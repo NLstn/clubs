@@ -1,19 +1,16 @@
-name: Build
+name: CI
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
+on: [push]
 
 jobs:
-  build_web:
+  ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
           architecture: x64
-      - run: flutter build web
+      - run: flutter pub get
+      - run: flutter analyze
