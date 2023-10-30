@@ -1,4 +1,5 @@
 import 'package:clubs/components/my_button.dart';
+import 'package:clubs/components/my_clickable_text.dart';
 import 'package:clubs/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -82,6 +83,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   hintText: 'Email',
                 ),
                 controller: _emailController,
+                onSubmitted: (value) => signUp(),
               ),
               TextField(
                 decoration: const InputDecoration(
@@ -89,6 +91,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 obscureText: true,
                 controller: _passwordController,
+                onSubmitted: (value) => signUp(),
               ),
               TextField(
                 decoration: const InputDecoration(
@@ -96,6 +99,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 obscureText: true,
                 controller: _confirmPasswordController,
+                onSubmitted: (value) => signUp(),
               ),
               const SizedBox(height: 15),
               MyButton(
@@ -108,15 +112,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 children: [
                   const Text('Already have an account?'),
                   const SizedBox(width: 4),
-                  GestureDetector(
+                  MyClickableText(
+                    text: 'Login',
                     onTap: widget.toggleScreens,
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                   ),
                 ],
               ),
