@@ -1,7 +1,7 @@
 import 'package:clubs/components/my_app_bar.dart';
-import 'package:clubs/screens/core/create_club_screen.dart';
+import 'package:clubs/screens/core/clubs/club_list_screen.dart';
+import 'package:clubs/screens/core/clubs/create_club_screen.dart';
 import 'package:flutter/material.dart';
-import 'members_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -22,15 +22,6 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(20),
         children: [
           HomeScreenTile(
-            child: const Text('Members'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MembersPage()),
-              );
-            },
-          ),
-          HomeScreenTile(
             child: const Text('Create Club'),
             onTap: () {
               Navigator.push(
@@ -40,20 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           HomeScreenTile(
-            child: const Text('Dummy2'),
+            child: const Text('List Clubs'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const MembersPage()),
-              );
-            },
-          ),
-          HomeScreenTile(
-            child: const Text('Dummy3'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MembersPage()),
+                MaterialPageRoute(builder: (context) => const ClubListScreen()),
               );
             },
           ),

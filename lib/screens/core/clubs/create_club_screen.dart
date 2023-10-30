@@ -1,13 +1,17 @@
 import 'package:clubs/components/my_app_bar.dart';
 import 'package:clubs/components/my_button.dart';
+import 'package:clubs/services/club_service.dart';
 import 'package:flutter/material.dart';
 
 class CreateClubScreen extends StatelessWidget {
-  final TextEditingController _clubNameController = TextEditingController();
-
   CreateClubScreen({super.key});
 
-  void createClub() async {}
+  final TextEditingController _clubNameController = TextEditingController();
+
+  void createClub() async {
+    if (_clubNameController.text.isEmpty) return;
+    await ClubService.createClub(_clubNameController.text);
+  }
 
   @override
   Widget build(BuildContext context) {
