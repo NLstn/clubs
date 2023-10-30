@@ -1,3 +1,4 @@
+import 'package:clubs/components/my_app_bar.dart';
 import 'package:clubs/models/core/member.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -39,9 +40,7 @@ class _MembersPageState extends State<MembersPage> {
         DateFormat.yMd(Localizations.localeOf(context).languageCode);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Members'),
-      ),
+      appBar: const MyAppBar(),
       body: ListView.builder(
         itemCount: members.length,
         itemBuilder: (BuildContext context, int index) {

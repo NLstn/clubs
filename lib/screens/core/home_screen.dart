@@ -1,6 +1,6 @@
-import 'package:clubs/services/auth_service.dart';
+import 'package:clubs/components/my_app_bar.dart';
+import 'package:clubs/screens/core/create_club_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'members_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -11,23 +11,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  void logOut() {
-    AuthService authService = Provider.of<AuthService>(context, listen: false);
-    authService.logout();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        actions: [
-          IconButton(
-            onPressed: logOut,
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
+      appBar: const MyAppBar(),
       body: GridView.extent(
         maxCrossAxisExtent: 100,
         crossAxisSpacing: 5,
@@ -44,11 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           HomeScreenTile(
-            child: const Text('Dummy1'),
+            child: const Text('Create Club'),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const MembersPage()),
+                MaterialPageRoute(builder: (context) => CreateClubScreen()),
               );
             },
           ),
