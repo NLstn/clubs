@@ -24,9 +24,10 @@ class _MyAppBarState extends State<MyAppBar> {
     return AppBar(
       title: InkWell(
         onTap: () {
-          Navigator.push(
+          Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
+            (route) => false,
           );
         },
         child: const Text('Clubs'),
