@@ -1,3 +1,4 @@
+import 'package:clubs/components/my_app_bar.dart';
 import 'package:clubs/screens/core/clubs/club_detail_screen.dart';
 import 'package:clubs/services/club_service.dart';
 import 'package:flutter/material.dart';
@@ -8,9 +9,7 @@ class ClubListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Clubs'),
-      ),
+      appBar: const MyAppBar(),
       body: StreamBuilder(
         stream: ClubService.getClubs(),
         builder: (context, snapshot) {
