@@ -30,6 +30,7 @@ class ClubService {
     await _firestore.collection('clubs').doc(clubId).collection('members').add({
       'userId': userId,
       'email': user.data()!['email'],
+      'memberSince': DateTime.now(),
     });
   }
 
@@ -84,6 +85,7 @@ class ClubService {
         .collection('clubs')
         .doc(clubId)
         .collection('members')
+        .orderBy('memberSince', descending: false)
         .snapshots();
   }
 }
