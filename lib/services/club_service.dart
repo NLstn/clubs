@@ -25,8 +25,50 @@ class ClubService {
       'clubId': clubId,
     });
 
+    var user = await _firestore.collection('users').doc(userId).get();
+
     await _firestore.collection('clubs').doc(clubId).collection('members').add({
       'userId': userId,
+      'email': user.data()!['email'],
+    });
+  }
+
+  static Future<void> addMemberByMail(String clubId, String email) async {
+    var user = await _firestore
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+
+    if (user.docs.isEmpty) {
+      throw Exception('User not found');
+    }
+
+    await addMember(clubId, user.docs.first.id);
+  }
+
+  static Future<void> removeMember(String clubId, String userId) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('memberOf')
+        .where('clubId', isEqualTo: clubId)
+        .get()
+        .then((snapshot) {
+      for (var doc in snapshot.docs) {
+        doc.reference.delete();
+      }
+    });
+
+    await _firestore
+        .collection('clubs')
+        .doc(clubId)
+        .collection('members')
+        .where('userId', isEqualTo: userId)
+        .get()
+        .then((snapshot) {
+      for (var doc in snapshot.docs) {
+        doc.reference.delete();
+      }
     });
   }
 
