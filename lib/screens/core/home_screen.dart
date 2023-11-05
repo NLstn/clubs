@@ -1,10 +1,11 @@
 import 'package:clubs/components/my_app_bar.dart';
 import 'package:clubs/screens/core/clubs/club_list_screen.dart';
 import 'package:clubs/screens/core/clubs/create_club_screen.dart';
+import 'package:clubs/screens/core/news/create_news_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -39,6 +40,16 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
+          HomeScreenTile(
+            child: const Text('Create News'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const CreateNewsScreen()),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -47,10 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class HomeScreenTile extends StatelessWidget {
   const HomeScreenTile({
-    Key? key,
+    super.key,
     required this.child,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   final Widget child;
   final VoidCallback onTap;

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:clubs/components/my_app_bar.dart';
 import 'package:clubs/components/my_button.dart';
+import 'package:clubs/screens/core/news/club_news_list_screen.dart';
 import 'package:clubs/services/club_service.dart';
 import 'package:flutter/material.dart';
 
@@ -65,6 +66,16 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(height: 10),
+              MyButton(
+                text: 'News',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ClubNewsListScreen(clubId: widget.clubId),
+                  ),
+                ),
+              ),
               const SizedBox(height: 15),
               MyButton(text: 'Add Member', onTap: openAddMemberPopup),
               StreamBuilder(
@@ -83,7 +94,6 @@ class _ClubDetailScreenState extends State<ClubDetailScreen> {
                   }
 
                   return ListView.builder(
-                    scrollDirection: Axis.vertical,
                     shrinkWrap: true,
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {

@@ -73,11 +73,18 @@ class ClubService {
     });
   }
 
-  static Stream<QuerySnapshot> getClubs() {
+  static Stream<QuerySnapshot> getClubsAsStream() {
     return _firestore
         .collection('clubs')
         .where('owner', isEqualTo: _auth.currentUser!.uid)
         .snapshots();
+  }
+
+  static Future<QuerySnapshot<Map<String, dynamic>>> getClubs() {
+    return _firestore
+        .collection('clubs')
+        .where('owner', isEqualTo: _auth.currentUser!.uid)
+        .get();
   }
 
   static Stream<QuerySnapshot> getMembersForClub(String clubId) {

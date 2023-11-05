@@ -11,7 +11,7 @@ class ClubListScreen extends StatelessWidget {
     return Scaffold(
       appBar: const MyAppBar(),
       body: StreamBuilder(
-        stream: ClubService.getClubs(),
+        stream: ClubService.getClubsAsStream(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(
