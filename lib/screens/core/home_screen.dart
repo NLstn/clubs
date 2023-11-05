@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(20),
         children: [
           HomeScreenTile(
-            child: const Text('Create Club'),
+            text: 'Create Club',
             onTap: () {
               Navigator.push(
                 context,
@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           HomeScreenTile(
-            child: const Text('List Clubs'),
+            text: 'List Clubs',
             onTap: () {
               Navigator.push(
                 context,
@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           HomeScreenTile(
-            child: const Text('Create News'),
+            text: 'Create News',
             onTap: () {
               Navigator.push(
                 context,
@@ -57,14 +57,14 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class HomeScreenTile extends StatelessWidget {
+  final String text;
+  final VoidCallback onTap;
+
   const HomeScreenTile({
     super.key,
-    required this.child,
+    required this.text,
     required this.onTap,
   });
-
-  final Widget child;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +76,7 @@ class HomeScreenTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(15),
         ),
         child: Center(
-          child: child,
+          child: Text(text, textAlign: TextAlign.center),
         ),
       ),
     );
