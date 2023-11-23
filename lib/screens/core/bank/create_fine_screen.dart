@@ -42,12 +42,16 @@ class _CreateFineScreenState extends State<CreateFineScreen> {
   }
 
   void addFine() async {
-    BankService.addFine(
+    await BankService.addFine(
       widget.clubId,
       selectedMemberId!,
       _reasonController.text,
       int.parse(_amountController.text),
     );
+
+    if (context.mounted) {
+      Navigator.pop(context);
+    }
   }
 
   @override
