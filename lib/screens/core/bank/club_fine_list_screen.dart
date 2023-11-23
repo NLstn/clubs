@@ -1,10 +1,10 @@
 import 'package:clubs/components/my_app_bar.dart';
-import 'package:clubs/services/news_service.dart';
+import 'package:clubs/services/bank_service.dart';
 import 'package:flutter/material.dart';
 
-class ClubNewsListScreen extends StatelessWidget {
+class ClubFineListScreen extends StatelessWidget {
   final String clubId;
-  const ClubNewsListScreen({
+  const ClubFineListScreen({
     super.key,
     required this.clubId,
   });
@@ -19,14 +19,15 @@ class ClubNewsListScreen extends StatelessWidget {
           child: Column(
             children: [
               const Text(
-                'News',
+                'Fines',
                 style: TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(height: 10),
               StreamBuilder(
-                stream: NewsService.getNewsAsStream(clubId),
+                stream: BankService.getFinesAsStream(clubId),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return const Center(
@@ -41,14 +42,14 @@ class ClubNewsListScreen extends StatelessWidget {
                   }
 
                   return ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
                     itemCount: snapshot.data!.docs.length,
                     itemBuilder: (context, index) {
-                      final news = snapshot.data!.docs[index];
+                      final fine = snapshot.data!.docs[index];
                       return ListTile(
-                        title: Text(news['title']),
-                        subtitle: Text(news['content']),
+                        title: Text(fine['reason']),
+                        subtitle: Text(fine['userId']),
+                        trailing: Text(fine['amount'].toString()),
                       );
                     },
                   );
