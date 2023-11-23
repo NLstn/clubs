@@ -87,12 +87,22 @@ class ClubService {
         .get();
   }
 
-  static Stream<QuerySnapshot> getMembersForClub(String clubId) {
+  static Stream<QuerySnapshot> getMembersForClubAsStream(String clubId) {
     return _firestore
         .collection('clubs')
         .doc(clubId)
         .collection('members')
         .orderBy('memberSince', descending: false)
         .snapshots();
+  }
+
+  static Future<QuerySnapshot<Map<String, dynamic>>> getMembersForClub(
+      String clubId) {
+    return _firestore
+        .collection('clubs')
+        .doc(clubId)
+        .collection('members')
+        .orderBy('memberSince', descending: false)
+        .get();
   }
 }
