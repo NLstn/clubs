@@ -6,16 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class CreateFineScreen extends StatefulWidget {
-  const CreateFineScreen({super.key});
+  final String clubId;
+
+  const CreateFineScreen({
+    super.key,
+    required this.clubId,
+  });
 
   @override
   State<CreateFineScreen> createState() => _CreateFineScreenState();
 }
 
 class _CreateFineScreenState extends State<CreateFineScreen> {
-  List<DropdownMenuItem> clubs = [];
-  String? selectedClubId;
-
   List<DropdownMenuItem> members = [];
   String? selectedMemberId;
 
@@ -25,30 +27,7 @@ class _CreateFineScreenState extends State<CreateFineScreen> {
   @override
   void initState() {
     super.initState();
-    loadClubs();
-  }
-
-  void loadClubs() async {
-    ClubService.getClubs().then((snapshot) {
-      setState(() {
-        for (var doc in snapshot.docs) {
-          clubs.add(
-            DropdownMenuItem(
-              value: doc.id,
-              child: Text(doc['name']),
-            ),
-          );
-        }
-      });
-    });
-  }
-
-  void setSelectedClub(String clubId) {
-    setState(() {
-      selectedClubId = clubId;
-    });
-
-    ClubService.getMembersForClub(clubId).then((snapshot) {
+    ClubService.getMembersForClub(widget.clubId).then((snapshot) {
       setState(() {
         for (var doc in snapshot.docs) {
           members.add(
@@ -64,7 +43,7 @@ class _CreateFineScreenState extends State<CreateFineScreen> {
 
   void addFine() async {
     BankService.addFine(
-      selectedClubId!,
+      widget.clubId,
       selectedMemberId!,
       _reasonController.text,
       int.parse(_amountController.text),
@@ -88,12 +67,6 @@ class _CreateFineScreenState extends State<CreateFineScreen> {
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
-              ),
-              const SizedBox(height: 10),
-              DropdownButton(
-                items: clubs,
-                onChanged: (value) => setSelectedClub(value.toString()),
-                value: selectedClubId,
               ),
               const SizedBox(height: 10),
               DropdownButton(

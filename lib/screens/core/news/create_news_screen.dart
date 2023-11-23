@@ -1,11 +1,14 @@
 import 'package:clubs/components/my_app_bar.dart';
 import 'package:clubs/components/my_button.dart';
-import 'package:clubs/services/club_service.dart';
 import 'package:clubs/services/news_service.dart';
 import 'package:flutter/material.dart';
 
 class CreateNewsScreen extends StatefulWidget {
-  const CreateNewsScreen({super.key});
+  final String clubId;
+  const CreateNewsScreen({
+    super.key,
+    required this.clubId,
+  });
 
   @override
   State<CreateNewsScreen> createState() => _CreateNewsScreenState();
@@ -15,34 +18,13 @@ class _CreateNewsScreenState extends State<CreateNewsScreen> {
   final TextEditingController _newsTitleController = TextEditingController();
   final TextEditingController _newsContentController = TextEditingController();
 
-  List<DropdownMenuItem> clubs = [];
-  String? selectedClubId;
-
-  @override
-  void initState() {
-    super.initState();
-    loadClubs();
-  }
-
   void createNews() async {
     if (_newsTitleController.text.isEmpty) return;
-    await NewsService.createNews(selectedClubId!, _newsTitleController.text,
-        _newsContentController.text);
-  }
-
-  void loadClubs() async {
-    ClubService.getClubs().then((snapshot) {
-      setState(() {
-        for (var doc in snapshot.docs) {
-          clubs.add(
-            DropdownMenuItem(
-              value: doc.id,
-              child: Text(doc['name']),
-            ),
-          );
-        }
-      });
-    });
+    await NewsService.createNews(
+      widget.clubId,
+      _newsTitleController.text,
+      _newsContentController.text,
+    );
   }
 
   @override
@@ -64,15 +46,6 @@ class _CreateNewsScreenState extends State<CreateNewsScreen> {
                 ),
               ),
               const SizedBox(height: 10),
-              DropdownButton(
-                items: clubs,
-                onChanged: (value) {
-                  setState(() {
-                    selectedClubId = value as String;
-                  });
-                },
-                value: selectedClubId,
-              ),
               TextField(
                 decoration: const InputDecoration(
                   labelText: 'News Title',

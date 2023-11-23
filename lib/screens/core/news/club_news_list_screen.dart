@@ -1,4 +1,6 @@
 import 'package:clubs/components/my_app_bar.dart';
+import 'package:clubs/components/my_button.dart';
+import 'package:clubs/screens/core/news/create_news_screen.dart';
 import 'package:clubs/services/news_service.dart';
 import 'package:flutter/material.dart';
 
@@ -25,6 +27,21 @@ class ClubNewsListScreen extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(height: 10),
+              MyButton(
+                text: 'Create News',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CreateNewsScreen(
+                        clubId: clubId,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 15),
               StreamBuilder(
                 stream: NewsService.getNewsAsStream(clubId),
                 builder: (context, snapshot) {
