@@ -25,6 +25,9 @@ class _CreateNewsScreenState extends State<CreateNewsScreen> {
       _newsTitleController.text,
       _newsContentController.text,
     );
+    if (context.mounted) {
+      Navigator.pop(context);
+    }
   }
 
   @override
