@@ -1,8 +1,6 @@
 import 'package:clubs/components/my_app_bar.dart';
-import 'package:clubs/screens/core/bank/create_fine_screen.dart';
 import 'package:clubs/screens/core/clubs/club_list_screen.dart';
 import 'package:clubs/screens/core/clubs/create_club_screen.dart';
-import 'package:clubs/screens/core/news/create_news_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -41,26 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             },
           ),
-          HomeScreenTile(
-            text: 'Create News',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const CreateNewsScreen()),
-              );
-            },
-          ),
-          HomeScreenTile(
-            text: 'Create Fine',
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const CreateFineScreen()),
-              );
-            },
-          )
         ],
       ),
     );

@@ -1,4 +1,6 @@
 import 'package:clubs/components/my_app_bar.dart';
+import 'package:clubs/components/my_button.dart';
+import 'package:clubs/screens/core/bank/create_fine_screen.dart';
 import 'package:clubs/services/bank_service.dart';
 import 'package:flutter/material.dart';
 
@@ -26,6 +28,20 @@ class ClubFineListScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
+              MyButton(
+                text: 'Create Fine',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CreateFineScreen(
+                        clubId: clubId,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 15),
               StreamBuilder(
                 stream: BankService.getFinesAsStream(clubId),
                 builder: (context, snapshot) {
