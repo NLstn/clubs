@@ -5,36 +5,16 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
+	"clubs/database"
+	"clubs/models"
+
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
-type Club struct {
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Members     []Member `json:"-"`
-}
-
-type ClubResponse struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-}
-
-type Member struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
-// In-memory storage
-var (
-	clubs = make(map[string]Club)
-	mutex = &sync.RWMutex{}
-)
+var db *gorm.DB
 
 type responseWriter struct {
 	http.ResponseWriter
@@ -88,19 +68,20 @@ func loggingMiddleware(next http.Handler) http.Handler {
 func handleClubs(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		// Clean the path and split it into segments
 		path := strings.Trim(r.URL.Path, "/")
 		segments := strings.Split(path, "/")
 
-		// Check if we're requesting a specific club
-		if len(segments) == 4 && segments[3] != "" { // ["api", "v1", "clubs", "{id}"]
+		if len(segments) == 4 && segments[3] != "" {
 			id := segments[3]
-			mutex.RLock()
-			club, ok := clubs[id]
-			mutex.RUnlock()
+			var club models.Club
+			result := db.First(&club, "id = ?", id)
 
-			if !ok {
+			if result.Error == gorm.ErrRecordNotFound {
 				http.Error(w, "Club not found", http.StatusNotFound)
+				return
+			}
+			if result.Error != nil {
+				http.Error(w, result.Error.Error(), http.StatusInternalServerError)
 				return
 			}
 
@@ -109,46 +90,39 @@ func handleClubs(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// List all clubs
-		mutex.RLock()
-		clubsList := make([]Club, 0, len(clubs))
-		for _, club := range clubs {
-			clubsList = append(clubsList, club)
+		var clubs []models.Club
+		if result := db.Find(&clubs); result.Error != nil {
+			http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+			return
 		}
-		mutex.RUnlock()
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(clubsList)
+		json.NewEncoder(w).Encode(clubs)
 
 	case http.MethodPost:
-		var club Club
+		var club models.Club
 		if err := json.NewDecoder(r.Body).Decode(&club); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		// Generate new UUID for the club
 		club.ID = uuid.New().String()
 
-		mutex.Lock()
-		clubs[club.ID] = club
-		mutex.Unlock()
+		if result := db.Create(&club); result.Error != nil {
+			http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(club)
-
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
 func handleClubMembers(w http.ResponseWriter, r *http.Request) {
-	// Clean the path and split it into segments
 	path := strings.Trim(r.URL.Path, "/")
 	segments := strings.Split(path, "/")
 
-	// Path should be ["api", "v1", "clubs", "{id}", "members"]
 	if len(segments) != 5 {
 		http.Error(w, "Invalid path", http.StatusBadRequest)
 		return
@@ -156,27 +130,25 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 
 	clubID := segments[3]
 
-	mutex.RLock()
-	club, exists := clubs[clubID]
-	mutex.RUnlock()
-
-	if !exists {
+	var club models.Club
+	if result := db.First(&club, "id = ?", clubID); result.Error == gorm.ErrRecordNotFound {
 		http.Error(w, "Club not found", http.StatusNotFound)
 		return
 	}
 
 	switch r.Method {
 	case http.MethodGet:
-		// List all members
-		w.Header().Set("Content-Type", "application/json")
-		if club.Members == nil {
-			json.NewEncoder(w).Encode([]Member{})
-		} else {
-			json.NewEncoder(w).Encode(club.Members)
+		var members []models.Member
+		if result := db.Where("club_id = ?", clubID).Find(&members); result.Error != nil {
+			http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+			return
 		}
 
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(members)
+
 	case http.MethodPost:
-		var member Member
+		var member models.Member
 		if err := json.NewDecoder(r.Body).Decode(&member); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -187,16 +159,13 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Generate new UUID for the member
 		member.ID = uuid.New().String()
+		member.ClubID = clubID
 
-		mutex.Lock()
-		if club.Members == nil {
-			club.Members = make([]Member, 0)
+		if result := db.Create(&member); result.Error != nil {
+			http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+			return
 		}
-		club.Members = append(club.Members, member)
-		clubs[clubID] = club
-		mutex.Unlock()
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
@@ -209,28 +178,35 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		mutex.Lock()
-		if club.Members != nil {
-			// Find and remove the member with the matching ID
-			for i, member := range club.Members {
-				if member.ID == memberID {
-					// Remove the member by slicing
-					club.Members = append(club.Members[:i], club.Members[i+1:]...)
-					break
-				}
-			}
-			clubs[clubID] = club
+		result := db.Where("id = ? AND club_id = ?", memberID, clubID).Delete(&models.Member{})
+		if result.Error != nil {
+			http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+			return
 		}
-		mutex.Unlock()
+		if result.RowsAffected == 0 {
+			http.Error(w, "Member not found", http.StatusNotFound)
+			return
+		}
 
 		w.WriteHeader(http.StatusNoContent)
-
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
 func main() {
+	config := &database.Config{
+		Host:     "localhost",
+		Port:     5432,
+		User:     "clubs",
+		Password: "yourpassword",
+		DBName:   "clubs",
+	}
+
+	var err error
+	db, err = database.NewConnection(config)
+	if err != nil {
+		log.Fatal("Could not connect to database:", err)
+	}
+
 	mux := http.NewServeMux()
 
 	// FIXME: this looks super weird
