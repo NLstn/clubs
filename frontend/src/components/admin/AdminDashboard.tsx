@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './AdminDashboard.css';
+import { useNavigate } from 'react-router-dom';
 
 interface Club {
     id: number;
@@ -9,6 +10,7 @@ interface Club {
 }
 
 const AdminDashboard = () => {
+    const navigate = useNavigate();
     const [clubs, setClubs] = useState<Club[]>([]);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [clubName, setClubName] = useState('');
@@ -57,7 +59,12 @@ const AdminDashboard = () => {
 
             <div className="clubs-list">
                 {clubs.map(club => (
-                    <div key={club.id} className="club-item">
+                    <div 
+                        key={club.id} 
+                        className="club-item"
+                        onClick={() => navigate(`/admin/clubs/${club.id}`)}
+                        style={{ cursor: 'pointer' }}
+                    >
                         <h4>{club.name}</h4>
                         <p>{club.description}</p>
                     </div>
