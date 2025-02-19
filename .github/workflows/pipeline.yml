@@ -1,8 +1,8 @@
 name: pipeline
 on:
- push:
-   branches:
-     - "master"
+  push:
+    paths:
+      - 'backend/**'
 
 permissions:
   packages: write
@@ -10,6 +10,9 @@ permissions:
 jobs:
   run-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - name: Setup Go
@@ -24,6 +27,9 @@ jobs:
 
   build-and-push-image:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     needs:
       - run-tests
     steps:
@@ -40,7 +46,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./backend
+          context: .
           push: true
           tags: |
             ghcr.io/NLstn/clubs:latest
