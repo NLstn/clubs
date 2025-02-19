@@ -1,21 +1,12 @@
-import { useEffect, useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AdminDashboard from './components/admin/AdminDashboard';
 
-function App() {
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    fetch("http://localhost:8080/")
-      .then((res) => res.text())
-      .then((data) => setMessage(data))
-      .catch((err) => console.error("Error fetching data:", err));
-  }, []);
-
-  return (
-    <div>
-      <h1>Welcome to Clubs</h1>
-      <p>Backend says: {message}</p>
-    </div>
-  );
-}
+const App = () => (
+    <Router>
+        <Routes>
+            <Route path="/admin" element={<AdminDashboard />} />
+        </Routes>
+    </Router>
+);
 
 export default App;
