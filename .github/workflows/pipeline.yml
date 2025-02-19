@@ -17,6 +17,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.24.x'
+          cache-dependency-path: backend/go.sum
       - name: Install dependencies
         run: go get .
       - name: Test with the Go CLI
@@ -46,5 +47,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/NLstn/clubs:latest
-            ghcr.io/NLstn/clubs:${{ github.sha }}
+            ghcr.io/nlstn/clubs:latest
+            ghcr.io/nlstn/clubs:${{ github.sha }}
