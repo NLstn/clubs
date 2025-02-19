@@ -1,4 +1,4 @@
-module clubs
+module github.com/NLstn/clubs
 
 go 1.24.0
 

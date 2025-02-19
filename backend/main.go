@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
-	"clubs/database"
-	"clubs/models"
+	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/clubs/models"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -193,15 +195,40 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	dbUrl, ok := os.LookupEnv("DATABASE_URL")
+	if !ok {
+		log.Fatal("DATABASE_URL environment variable is required")
+	}
+
+	dbPort, ok := os.LookupEnv("DATABASE_PORT")
+	if !ok {
+		log.Fatal("DATABASE_PORT environment variable is required")
+	}
+
+	dbPortInt, err := strconv.Atoi(dbPort)
+	if err != nil {
+		log.Fatal("DATABASE_PORT must be an integer")
+	}
+
+	dbUser := os.Getenv("DATABASE_USER")
+	if dbUser == "" {
+		log.Fatal("DATABASE_USER environment variable is required")
+	}
+
+	dbUserPassword := os.Getenv("DATABASE_USER_PASSWORD")
+	if dbUserPassword == "" {
+		log.Fatal("DATABASE_USER_PASSWORD environment variable is required")
+	}
+
 	config := &database.Config{
-		Host:     "localhost",
-		Port:     5432,
-		User:     "clubs",
-		Password: "yourpassword",
+		Host:     dbUrl,
+		Port:     dbPortInt,
+		User:     dbUser,
+		Password: dbUserPassword,
 		DBName:   "clubs",
 	}
 
-	var err error
 	db, err = database.NewConnection(config)
 	if err != nil {
 		log.Fatal("Could not connect to database:", err)

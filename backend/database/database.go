@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"clubs/models"
+	"github.com/NLstn/clubs/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
