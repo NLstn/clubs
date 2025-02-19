@@ -23,7 +23,7 @@ const AdminDashboard = () => {
 
     const fetchClubs = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/v1/clubs');
+            const response = await axios.get(`${import.meta.env.VITE_API_HOST}/api/v1/clubs`);
             setClubs(response.data);
         } catch (error) {
             setMessage('Error fetching clubs');
@@ -33,7 +33,7 @@ const AdminDashboard = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:8080/api/v1/clubs', { name: clubName, description });
+            await axios.post(`${import.meta.env.VITE_API_HOST}/api/v1/clubs`, { name: clubName, description });
             setMessage('Club created successfully!');
             setClubName('');
             setDescription('');
