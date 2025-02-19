@@ -11,6 +11,7 @@ import (
 
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/models"
+	"github.com/joho/godotenv"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -195,6 +196,8 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	godotenv.Load()
 
 	dbUrl, ok := os.LookupEnv("DATABASE_URL")
 	if !ok {
