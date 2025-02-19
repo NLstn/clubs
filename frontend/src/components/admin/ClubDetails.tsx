@@ -2,8 +2,16 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+import './ClubDetails.css';
+
+interface Member {
+    id: string;
+    name: string;
+    email: string;
+}
+
 interface Club {
-    id: number;
+    id: string;
     name: string;
     description: string;
 }
@@ -12,14 +20,20 @@ const ClubDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [club, setClub] = useState<Club | null>(null);
+    const [members, setMembers] = useState<Member[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [newMember, setNewMember] = useState({ name: '', email: '' });
 
     useEffect(() => {
-        const fetchClubDetails = async () => {
+        const fetchData = async () => {
             try {
-                const response = await axios.get(`http://localhost:8080/api/v1/clubs/${id}`);
-                setClub(response.data);
+                const [clubResponse, membersResponse] = await Promise.all([
+                    axios.get(`http://localhost:8080/api/v1/clubs/${id}`),
+                    axios.get(`http://localhost:8080/api/v1/clubs/${id}/members`)
+                ]);
+                setClub(clubResponse.data);
+                setMembers(membersResponse.data);
                 setLoading(false);
             } catch (error) {
                 setError('Error fetching club details');
@@ -27,8 +41,24 @@ const ClubDetails = () => {
             }
         };
 
-        fetchClubDetails();
+        fetchData();
     }, [id]);
+
+    const addMember = async () => {
+        try {
+            const response = await axios.post(
+                `http://localhost:8080/api/v1/clubs/${id}/members`,
+                {
+                    name: newMember.name,
+                    email: newMember.email
+                }
+            );
+            setMembers([...members, response.data]);
+            setNewMember({ name: '', email: '' }); // Reset form
+        } catch (error) {
+            setError('Failed to add member');
+        }
+    };
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="error">{error}</div>;
@@ -42,6 +72,43 @@ const ClubDetails = () => {
             <h2>{club.name}</h2>
             <div className="club-info">
                 <p>{club.description}</p>
+                <h3>Members</h3>
+                <table className="members-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {members.map((member) => (
+                            <tr key={member.id}>
+                                <td>{member.name}</td>
+                                <td>{member.email}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <div className="add-member-form">
+                    <input
+                        type="text"
+                        value={newMember.name}
+                        onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
+                        placeholder="Member name"
+                    />
+                    <input
+                        type="email"
+                        value={newMember.email}
+                        onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                        placeholder="Member email"
+                    />
+                    <button 
+                        onClick={addMember}
+                        disabled={!newMember.name || !newMember.email}
+                    >
+                        Add Member
+                    </button>
+                </div>
             </div>
         </div>
     );

@@ -1,0 +1,47 @@
+.members-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.members-table th,
+.members-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.members-table th {
+    background-color: #121212;
+    font-weight: bold;
+}
+
+.members-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+.add-member-form {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.add-member-form input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.add-member-form button {
+    padding: 8px 16px;
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.add-member-form button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
