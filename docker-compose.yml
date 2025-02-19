@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    image: clubs_backend:latest
+    image: ghcr.io/nlstn/clubs:latest
     ports:
       - "8080:8080"
     environment:

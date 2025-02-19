@@ -29,8 +29,8 @@ const ClubDetails = () => {
         const fetchData = async () => {
             try {
                 const [clubResponse, membersResponse] = await Promise.all([
-                    axios.get(`http://localhost:8080/api/v1/clubs/${id}`),
-                    axios.get(`http://localhost:8080/api/v1/clubs/${id}/members`)
+                    axios.get(`${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}`),
+                    axios.get(`${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}/members`)
                 ]);
                 setClub(clubResponse.data);
                 setMembers(membersResponse.data);
@@ -47,7 +47,7 @@ const ClubDetails = () => {
     const addMember = async () => {
         try {
             const response = await axios.post(
-                `http://localhost:8080/api/v1/clubs/${id}/members`,
+                `${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}/members`,
                 {
                     name: newMember.name,
                     email: newMember.email
