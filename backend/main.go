@@ -22,6 +22,16 @@ var (
 	mutex = &sync.RWMutex{}
 )
 
+type responseWriter struct {
+	http.ResponseWriter
+	status int
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.status = code
+	rw.ResponseWriter.WriteHeader(code)
+}
+
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -42,13 +52,20 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
-		next.ServeHTTP(w, r)
+		// Create custom response writer to capture status code
+		rw := &responseWriter{
+			ResponseWriter: w,
+			status:         http.StatusOK, // Default status
+		}
+
+		next.ServeHTTP(rw, r)
 
 		duration := time.Since(start)
 		log.Printf(
-			"endpoint=%s method=%s duration=%v",
+			"endpoint=%s method=%s status=%d duration=%v",
 			r.URL.Path,
 			r.Method,
+			rw.status,
 			duration,
 		)
 	})
