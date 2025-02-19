@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -74,6 +75,28 @@ func loggingMiddleware(next http.Handler) http.Handler {
 func handleClubs(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
+		// Clean the path and split it into segments
+		path := strings.Trim(r.URL.Path, "/")
+		segments := strings.Split(path, "/")
+
+		// Check if we're requesting a specific club
+		if len(segments) == 4 && segments[3] != "" { // ["api", "v1", "clubs", "{id}"]
+			id := segments[3]
+			mutex.RLock()
+			club, ok := clubs[id]
+			mutex.RUnlock()
+
+			if !ok {
+				http.Error(w, "Club not found", http.StatusNotFound)
+				return
+			}
+
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(club)
+			return
+		}
+
+		// List all clubs
 		mutex.RLock()
 		clubsList := make([]Club, 0, len(clubs))
 		for _, club := range clubs {
@@ -110,10 +133,10 @@ func handleClubs(w http.ResponseWriter, r *http.Request) {
 func main() {
 	mux := http.NewServeMux()
 
-	// Single API route for all CRUD operations
+	// FIXME: move clubs handler to its own file and find a smarter way to handle routes
 	mux.HandleFunc("/api/v1/clubs", handleClubs)
+	mux.HandleFunc("/api/v1/clubs/", handleClubs)
 
-	// Wrap with CORS and logging middleware
 	handler := corsMiddleware(mux)
 	handlerWithLogging := loggingMiddleware(handler)
 
