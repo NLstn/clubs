@@ -60,6 +60,17 @@ const ClubDetails = () => {
         }
     };
 
+    const deleteMember = async (memberId: string) => {
+        try {
+            await axios.delete(
+                `${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}/members/${memberId}`
+            );
+            setMembers(members.filter(member => member.id !== memberId));
+        } catch (error) {
+            setError('Failed to delete member');
+        }
+    };
+
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="error">{error}</div>;
     if (!club) return <div>Club not found</div>;
@@ -78,6 +89,7 @@ const ClubDetails = () => {
                         <tr>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -85,6 +97,15 @@ const ClubDetails = () => {
                             <tr key={member.id}>
                                 <td>{member.name}</td>
                                 <td>{member.email}</td>
+                                <td className="delete-cell">
+                                    <button
+                                        onClick={() => deleteMember(member.id)}
+                                        className="delete-button"
+                                        aria-label="Delete member"
+                                    >
+                                        ×
+                                    </button>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
