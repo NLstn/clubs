@@ -17,20 +17,23 @@ type Config struct {
 	DBName   string
 }
 
-func NewConnection(config *Config) (*gorm.DB, error) {
+var Db *gorm.DB
+
+func NewConnection(config *Config) error {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		config.Host, config.Port, config.User, config.Password, config.DBName)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	var err error
+	Db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Auto Migrate the schema
-	err = db.AutoMigrate(&models.Club{}, &models.Member{})
+	err = Db.AutoMigrate(&models.Club{}, &models.Member{})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return db, nil
+	return nil
 }
