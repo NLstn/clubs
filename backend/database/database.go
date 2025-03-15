@@ -30,7 +30,7 @@ func NewConnection(config *Config) error {
 	}
 
 	// Auto Migrate the schema
-	err = Db.AutoMigrate(&models.Club{}, &models.Member{})
+	err = Db.AutoMigrate(&models.Club{}, &models.Member{}, &models.Event{})
 	if err != nil {
 		return err
 	}
