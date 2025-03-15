@@ -16,11 +16,21 @@ interface Club {
     description: string;
 }
 
+interface Events {
+    id: string;
+    name: string;
+    date: string;
+    description: string;
+    begin_time: string;
+    end_time: string;
+}
+
 const ClubDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [club, setClub] = useState<Club | null>(null);
     const [members, setMembers] = useState<Member[]>([]);
+    const [events, setEvents] = useState<Events[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [newMember, setNewMember] = useState({ name: '', email: '' });
@@ -28,12 +38,14 @@ const ClubDetails = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [clubResponse, membersResponse] = await Promise.all([
+                const [clubResponse, membersResponse, eventsResponse] = await Promise.all([
                     axios.get(`${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}`),
-                    axios.get(`${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}/members`)
+                    axios.get(`${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}/members`),
+                    axios.get(`${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}/events`)
                 ]);
                 setClub(clubResponse.data);
                 setMembers(membersResponse.data);
+                setEvents(eventsResponse.data);
                 setLoading(false);
             } catch (error) {
                 setError('Error fetching club details');
@@ -84,7 +96,7 @@ const ClubDetails = () => {
             <div className="club-info">
                 <p>{club.description}</p>
                 <h3>Members</h3>
-                <table className="members-table">
+                <table className="basic-table">
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -130,6 +142,29 @@ const ClubDetails = () => {
                         Add Member
                     </button>
                 </div>
+                <h3>Events</h3>
+                <table className="basic-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Begin Time</th>
+                            <th>End Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {events.map((event) => (
+                            <tr key={event.id}>
+                                <td>{event.name}</td>
+                                <td>{event.date}</td>
+                                <td>{event.description}</td>
+                                <td>{event.begin_time}</td>
+                                <td>{event.end_time}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </div>
     );
