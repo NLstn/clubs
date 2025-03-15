@@ -10,6 +10,8 @@ func Handler_v1() http.Handler {
 	mux.HandleFunc("/api/v1/clubs", handleClubs)
 	mux.HandleFunc("/api/v1/clubs/", handleClubs)
 	mux.HandleFunc("/api/v1/clubs/{clubid}/members", handleClubMembers)
+	mux.HandleFunc("/api/v1/clubs/{clubid}/events", handleClubEvents)
+	mux.HandleFunc("/api/v1/clubs/{clubid}/events/", handleClubEvents)
 
 	return mux
 }
