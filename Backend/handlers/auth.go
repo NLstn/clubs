@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -67,9 +66,6 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 	if userID == "" {
 		err = database.Db.Raw(`INSERT INTO users (email) VALUES ($1) RETURNING id`, result.Email).Scan(&userID).Error
 	}
-
-	// print user id
-	log.Default().Println("User ID:", userID)
 
 	if err != nil {
 		http.Error(w, "User error", http.StatusInternalServerError)

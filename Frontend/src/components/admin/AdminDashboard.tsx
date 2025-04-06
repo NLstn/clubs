@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import './AdminDashboard.css';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 interface Club {
     id: number;
@@ -11,6 +11,7 @@ interface Club {
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
+    const { api } = useAuth();
     const [clubs, setClubs] = useState<Club[]>([]);
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [clubName, setClubName] = useState('');
@@ -23,17 +24,18 @@ const AdminDashboard = () => {
 
     const fetchClubs = async () => {
         try {
-            const response = await axios.get(`${import.meta.env.VITE_API_HOST}/api/v1/clubs`);
+            const response = await api.get('/api/v1/clubs');
             setClubs(response.data);
         } catch (error) {
             setMessage('Error fetching clubs');
+            console.error(error);
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.post(`${import.meta.env.VITE_API_HOST}/api/v1/clubs`, { name: clubName, description });
+            await api.post('/api/v1/clubs', { name: clubName, description });
             setMessage('Club created successfully!');
             setClubName('');
             setDescription('');
@@ -41,6 +43,7 @@ const AdminDashboard = () => {
             fetchClubs(); // Refresh the list
         } catch (error) {
             setMessage('Error creating club');
+            console.error(error);
         }
     };
 
