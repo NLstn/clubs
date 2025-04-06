@@ -31,7 +31,7 @@ type Content struct {
 	HTML      string `json:"html,omitempty"`
 }
 
-func SendMail(senderAddress string, recipients []Recipient, subject, plainText, htmlContent string) error {
+func SendMail(recipients []Recipient, subject, plainText, htmlContent string) error {
 	// Get authentication token from auth.go
 	token := azure.GetACSToken()
 	if token == "" {
@@ -46,7 +46,7 @@ func SendMail(senderAddress string, recipients []Recipient, subject, plainText, 
 
 	// Create email request
 	emailReq := EmailRequest{
-		SenderAddress: senderAddress,
+		SenderAddress: "DoNotReply@9a1159be-1efb-4f84-b252-9e949a999910.azurecomm.net",
 		Recipients: Recipients{
 			To: recipients,
 		},
@@ -90,7 +90,6 @@ func SendMail(senderAddress string, recipients []Recipient, subject, plainText, 
 }
 
 func SendTestMail() {
-	senderAddress := "DoNotReply@9a1159be-1efb-4f84-b252-9e949a999910.azurecomm.net"
 	recipients := []Recipient{
 		{"niklas.lahnstein@outlook.com"},
 	}
@@ -98,7 +97,7 @@ func SendTestMail() {
 	plainText := "This is a test email sent using Azure Communication Services."
 	htmlContent := "<html><body><h1>Test Email</h1><p>This is a test email sent using Azure Communication Services.</p></body></html>"
 
-	err := SendMail(senderAddress, recipients, subject, plainText, htmlContent)
+	err := SendMail(recipients, subject, plainText, htmlContent)
 	if err != nil {
 		log.Default().Println(err.Error())
 		return

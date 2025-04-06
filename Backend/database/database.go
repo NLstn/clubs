@@ -29,8 +29,10 @@ func NewConnection(config *Config) error {
 		return err
 	}
 
+	Db.Exec("CREATE EXTENSION IF NOT EXISTS \"pgcrypto\"")
+
 	// Auto Migrate the schema
-	err = Db.AutoMigrate(&models.Club{}, &models.Member{}, &models.Event{})
+	err = Db.AutoMigrate(&models.Club{}, &models.Member{}, &models.Event{}, &models.MagicLink{}, &models.User{})
 	if err != nil {
 		return err
 	}

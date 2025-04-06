@@ -6,7 +6,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/NLstn/clubs/azure/acs"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
 	"github.com/joho/godotenv"
@@ -53,8 +52,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Could not connect to database:", err)
 	}
-
-	acs.SendTestMail()
 
 	mux := http.NewServeMux()
 
