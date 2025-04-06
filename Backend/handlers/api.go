@@ -13,5 +13,8 @@ func Handler_v1() http.Handler {
 	mux.HandleFunc("/api/v1/clubs/{clubid}/events", handleClubEvents)
 	mux.HandleFunc("/api/v1/clubs/{clubid}/events/", handleClubEvents)
 
+	mux.HandleFunc("/api/v1/auth/requestMagicLink", requestMagicLink)
+	mux.HandleFunc("/api/v1/auth/verifyMagicLink", verifyMagicLink)
+
 	return mux
 }
