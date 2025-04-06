@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/NLstn/clubs/auth"
@@ -31,8 +32,14 @@ func requestMagicLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get frontend URL from environment variable or use default
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if frontendURL == "" {
+		frontendURL = "http://localhost:5173" // Default fallback
+	}
+
 	// Build link
-	link := fmt.Sprintf("http://localhost:5173/auth/magic?token=%s", token) // Vite frontend
+	link := fmt.Sprintf("%s/auth/magic?token=%s", frontendURL, token)
 
 	// Send mail
 	go auth.SendMagicLinkEmail(req.Email, link)
