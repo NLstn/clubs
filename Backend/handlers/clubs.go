@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/models"
 	"github.com/google/uuid"
@@ -12,6 +13,9 @@ import (
 )
 
 func handleClubs(w http.ResponseWriter, r *http.Request) {
+
+	userID := r.Context().Value(auth.UserIDKey).(string)
+
 	switch r.Method {
 	case http.MethodGet:
 		path := strings.Trim(r.URL.Path, "/")
@@ -28,6 +32,11 @@ func handleClubs(w http.ResponseWriter, r *http.Request) {
 			}
 			if result.Error != nil {
 				http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			if !auth.IsAuthorizedForClub(userID, club.ID) {
+				http.Error(w, "Unauthorized", http.StatusForbidden)
 				return
 			}
 
