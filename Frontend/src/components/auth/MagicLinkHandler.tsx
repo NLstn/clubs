@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -8,9 +8,14 @@ const MagicLinkHandler: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
+  const hasVerified = useRef(false);
 
   useEffect(() => {
     const verifyToken = async () => {
+      // Only proceed if we haven't already verified
+      if (hasVerified.current) return;
+      hasVerified.current = true;
+
       const params = new URLSearchParams(location.search);
       const token = params.get('token');
 
