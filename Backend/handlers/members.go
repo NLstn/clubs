@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/models"
 	"github.com/google/uuid"
@@ -48,6 +49,19 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 
 		if member.Email == "" || member.Name == "" {
 			http.Error(w, "Email and name are required", http.StatusBadRequest)
+			return
+		}
+
+		// Check if userID exists in context
+		userIDValue := r.Context().Value(auth.UserIDKey)
+		if userIDValue == nil {
+			http.Error(w, "Unauthorized - authentication required", http.StatusUnauthorized)
+			return
+		}
+
+		userID := userIDValue.(string)
+		if club.OwnerID != userID {
+			http.Error(w, "Unauthorized", http.StatusForbidden)
 			return
 		}
 
@@ -101,6 +115,19 @@ func handleClubMemberDelete(w http.ResponseWriter, r *http.Request) {
 	var club models.Club
 	if result := database.Db.First(&club, "id = ?", clubID); result.Error == gorm.ErrRecordNotFound {
 		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+
+	// Check if userID exists in context
+	userIDValue := r.Context().Value(auth.UserIDKey)
+	if userIDValue == nil {
+		http.Error(w, "Unauthorized - authentication required", http.StatusUnauthorized)
+		return
+	}
+
+	userID := userIDValue.(string)
+	if club.OwnerID != userID {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
 
