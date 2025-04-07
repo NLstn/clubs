@@ -64,11 +64,12 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(member)
 
 	case http.MethodDelete:
-		memberID := r.URL.Query().Get("id")
-		if memberID == "" {
-			http.Error(w, "Member ID parameter is required", http.StatusBadRequest)
+		// Extract member ID from the URL path
+		if len(segments) != 6 {
+			http.Error(w, "Invalid path", http.StatusBadRequest)
 			return
 		}
+		memberID := segments[5]
 
 		result := database.Db.Where("id = ? AND club_id = ?", memberID, clubID).Delete(&models.Member{})
 		if result.Error != nil {
@@ -82,4 +83,37 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(http.StatusNoContent)
 	}
+}
+
+func handleClubMemberDelete(w http.ResponseWriter, r *http.Request) {
+	path := strings.Trim(r.URL.Path, "/")
+	segments := strings.Split(path, "/")
+
+	if len(segments) != 6 {
+		http.Error(w, "Invalid path", http.StatusBadRequest)
+		return
+	}
+
+	clubID := segments[3]
+	memberID := segments[5]
+
+	// Check if club exists
+	var club models.Club
+	if result := database.Db.First(&club, "id = ?", clubID); result.Error == gorm.ErrRecordNotFound {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+
+	// Delete the member
+	result := database.Db.Where("id = ? AND club_id = ?", memberID, clubID).Delete(&models.Member{})
+	if result.Error != nil {
+		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+		return
+	}
+	if result.RowsAffected == 0 {
+		http.Error(w, "Member not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

@@ -8,9 +8,7 @@ import (
 
 func withAuth(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Create an http.Handler from the handlerFunc
 		handler := http.HandlerFunc(h)
-		// Apply the middleware and serve the request
 		auth.AuthMiddleware(handler).ServeHTTP(w, r)
 	}
 }
@@ -18,7 +16,6 @@ func withAuth(h http.HandlerFunc) http.HandlerFunc {
 func Handler_v1() http.Handler {
 	mux := http.NewServeMux()
 
-	// Route to specific handlers based on method and path
 	mux.HandleFunc("/api/v1/clubs", withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
@@ -40,7 +37,14 @@ func Handler_v1() http.Handler {
 
 	mux.HandleFunc("/api/v1/clubs/{clubid}/members", handleClubMembers)
 
-	// Register event-related endpoints
+	mux.HandleFunc("/api/v1/clubs/{clubid}/members/{memberid}", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodDelete {
+			handleClubMemberDelete(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
 	mux.HandleFunc("/api/v1/clubs/{clubid}/events", withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
