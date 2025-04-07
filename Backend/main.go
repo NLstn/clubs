@@ -3,8 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
-	"strconv"
 
 	"github.com/NLstn/clubs/azure"
 	"github.com/NLstn/clubs/database"
@@ -16,42 +14,9 @@ func main() {
 
 	godotenv.Load()
 
-	dbUrl, ok := os.LookupEnv("DATABASE_URL")
-	if !ok {
-		log.Fatal("DATABASE_URL environment variable is required")
-	}
-
-	dbPort, ok := os.LookupEnv("DATABASE_PORT")
-	if !ok {
-		log.Fatal("DATABASE_PORT environment variable is required")
-	}
-
-	dbPortInt, err := strconv.Atoi(dbPort)
+	err := database.Init()
 	if err != nil {
-		log.Fatal("DATABASE_PORT must be an integer")
-	}
-
-	dbUser := os.Getenv("DATABASE_USER")
-	if dbUser == "" {
-		log.Fatal("DATABASE_USER environment variable is required")
-	}
-
-	dbUserPassword := os.Getenv("DATABASE_USER_PASSWORD")
-	if dbUserPassword == "" {
-		log.Fatal("DATABASE_USER_PASSWORD environment variable is required")
-	}
-
-	config := &database.Config{
-		Host:     dbUrl,
-		Port:     dbPortInt,
-		User:     dbUser,
-		Password: dbUserPassword,
-		DBName:   "clubs",
-	}
-
-	err = database.NewConnection(config)
-	if err != nil {
-		log.Fatal("Could not connect to database:", err)
+		log.Fatal("Could not initialize database:", err)
 	}
 
 	err = azure.Init()

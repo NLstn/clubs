@@ -2,6 +2,8 @@ package database
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/NLstn/clubs/models"
 
@@ -38,4 +40,41 @@ func NewConnection(config *Config) error {
 	}
 
 	return nil
+}
+
+func Init() error {
+	dbUrl, ok := os.LookupEnv("DATABASE_URL")
+	if !ok {
+		return fmt.Errorf("DATABASE_URL environment variable is required")
+	}
+
+	dbPort, ok := os.LookupEnv("DATABASE_PORT")
+	if !ok {
+		return fmt.Errorf("DATABASE_PORT environment variable is required")
+	}
+
+	dbPortInt, err := strconv.Atoi(dbPort)
+	if err != nil {
+		return fmt.Errorf("DATABASE_PORT must be an integer")
+	}
+
+	dbUser := os.Getenv("DATABASE_USER")
+	if dbUser == "" {
+		return fmt.Errorf("DATABASE_USER environment variable is required")
+	}
+
+	dbUserPassword := os.Getenv("DATABASE_USER_PASSWORD")
+	if dbUserPassword == "" {
+		return fmt.Errorf("DATABASE_USER_PASSWORD environment variable is required")
+	}
+
+	config := &Config{
+		Host:     dbUrl,
+		Port:     dbPortInt,
+		User:     dbUser,
+		Password: dbUserPassword,
+		DBName:   "clubs",
+	}
+
+	return NewConnection(config)
 }
