@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AdminDashboard from './components/admin/AdminDashboard';
 import ClubDetails from './components/admin/ClubDetails';
 import Login from './components/auth/Login';
@@ -11,6 +11,9 @@ function App() {
         <AuthProvider>
             <BrowserRouter>
                 <Routes>
+                    {/* Root redirect */}
+                    <Route path="/" element={<Navigate to="/admin" replace />} />
+
                     {/* Auth routes */}
                     <Route path="/login" element={<Login />} />
                     <Route path="/auth/magic" element={<MagicLinkHandler />} />
