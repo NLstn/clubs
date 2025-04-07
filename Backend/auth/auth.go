@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/azure/acs"
-	"github.com/NLstn/clubs/database"
-	"github.com/NLstn/clubs/models"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -116,12 +114,12 @@ func IsAuthorizedForClub(clubId string, userId string) bool {
 		return false
 	}
 
-	// Check if the user is a member of the club
-	var count int64
-	database.Db.Model(&models.Member{}).Where("club_id = ? AND user_id = ?", clubId, userId).Count(&count)
-	if count == 0 {
-		return false
-	}
+	/* 	// Check if the user is a member of the club
+	   	var count int64
+	   	database.Db.Model(&models.Member{}).Where("club_id = ? AND user_id = ?", clubId, userId).Count(&count)
+	   	if count == 0 {
+	   		return false
+	   	} */
 
 	return true
 }
