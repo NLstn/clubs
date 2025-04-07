@@ -24,7 +24,7 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 
 	var authorizedClubs []models.Club
 	for _, club := range clubs {
-		if !auth.IsAuthorizedForClub(userID, club.ID) {
+		if auth.IsAuthorizedForClub(userID, club.ID) {
 			authorizedClubs = append(authorizedClubs, club)
 		}
 	}
