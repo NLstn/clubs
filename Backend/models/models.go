@@ -6,6 +6,7 @@ type Club struct {
 	ID          string   `json:"id" gorm:"type:uuid;primary_key"`
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
+	OwnerID     string   `json:"owner_id" gorm:"type:uuid"`
 	Members     []Member `json:"members,omitempty" gorm:"foreignKey:ClubID"`
 	Events      []Event  `json:"events,omitempty" gorm:"foreignKey:ClubID"`
 }

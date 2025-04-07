@@ -56,8 +56,8 @@ func handleGetClubByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !auth.IsAuthorizedForClub(userID, club.ID) {
-		// http.Error(w, "Unauthorized", http.StatusForbidden)
-		// return
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -74,6 +74,7 @@ func handleCreateClub(w http.ResponseWriter, r *http.Request) {
 	}
 
 	club.ID = uuid.New().String()
+	club.OwnerID = r.Context().Value(auth.UserIDKey).(string)
 
 	if result := database.Db.Create(&club); result.Error != nil {
 		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
