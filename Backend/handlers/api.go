@@ -18,8 +18,26 @@ func withAuth(h http.HandlerFunc) http.HandlerFunc {
 func Handler_v1() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/v1/clubs", withAuth(handleClubs))
-	mux.HandleFunc("/api/v1/clubs/", withAuth(handleClubs))
+	// Route to specific handlers based on method and path
+	mux.HandleFunc("/api/v1/clubs", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetAllClubs(w, r)
+		case http.MethodPost:
+			handleCreateClub(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.HandleFunc("/api/v1/clubs/", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetClubByID(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
 	mux.HandleFunc("/api/v1/clubs/{clubid}/members", handleClubMembers)
 	mux.HandleFunc("/api/v1/clubs/{clubid}/events", handleClubEvents)
 	mux.HandleFunc("/api/v1/clubs/{clubid}/events/", handleClubEvents)
