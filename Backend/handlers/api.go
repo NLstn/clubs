@@ -35,15 +35,15 @@ func Handler_v1() http.Handler {
 		}
 	}))
 
-	mux.HandleFunc("/api/v1/clubs/{clubid}/members", handleClubMembers)
+	mux.HandleFunc("/api/v1/clubs/{clubid}/members", withAuth(handleClubMembers))
 
-	mux.HandleFunc("/api/v1/clubs/{clubid}/members/{memberid}", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/v1/clubs/{clubid}/members/{memberid}", withAuth(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodDelete {
 			handleClubMemberDelete(w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	})
+	}))
 
 	mux.HandleFunc("/api/v1/clubs/{clubid}/events", withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
