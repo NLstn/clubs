@@ -44,9 +44,9 @@ func Handler_v1() http.Handler {
 	mux.HandleFunc("/api/v1/clubs/{clubid}/events", withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
-			handleGetClubEvents(w, r, "{clubid}")
+			handleGetClubEvents(w, r)
 		case http.MethodPost:
-			handleCreateClubEvent(w, r, "{clubid}")
+			handleCreateClubEvent(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -54,7 +54,7 @@ func Handler_v1() http.Handler {
 
 	mux.HandleFunc("/api/v1/clubs/{clubid}/events/{eventid}", withAuth(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodDelete {
-			handleDeleteClubEvent(w, r, "{clubid}", "{eventid}")
+			handleDeleteClubEvent(w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}

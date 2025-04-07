@@ -3,13 +3,33 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/models"
 	"github.com/google/uuid"
 )
 
-func handleGetClubEvents(w http.ResponseWriter, r *http.Request, clubID string) {
+// Helper function to extract path parameters
+func extractPathParam(r *http.Request, param string) string {
+	parts := strings.Split(r.URL.Path, "/")
+	for i, part := range parts {
+		if part == param && i+1 < len(parts) {
+			return parts[i+1]
+		}
+	}
+	return ""
+}
+
+// endpoint: /api/v1/clubs/{clubid}/events
+func handleGetClubEvents(w http.ResponseWriter, r *http.Request) {
+	clubID := extractPathParam(r, "clubs")
+	// Validate clubID as a UUID
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
 	var events []models.Event
 	if result := database.Db.Where("club_id = ?", clubID).Find(&events); result.Error != nil {
 		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
@@ -20,7 +40,14 @@ func handleGetClubEvents(w http.ResponseWriter, r *http.Request, clubID string) 
 	json.NewEncoder(w).Encode(events)
 }
 
-func handleCreateClubEvent(w http.ResponseWriter, r *http.Request, clubID string) {
+func handleCreateClubEvent(w http.ResponseWriter, r *http.Request) {
+	clubID := extractPathParam(r, "clubs")
+	// Validate clubID as a UUID
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
 	var event models.Event
 	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -44,7 +71,22 @@ func handleCreateClubEvent(w http.ResponseWriter, r *http.Request, clubID string
 	json.NewEncoder(w).Encode(event)
 }
 
-func handleDeleteClubEvent(w http.ResponseWriter, r *http.Request, clubID, eventID string) {
+// endpoint: /api/v1/clubs/{clubid}/events/{eventid}
+func handleDeleteClubEvent(w http.ResponseWriter, r *http.Request) {
+	clubID := extractPathParam(r, "clubs")
+	eventID := extractPathParam(r, "events")
+	// Validate clubID as a UUID
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	// Validate eventID as a UUID
+	if _, err := uuid.Parse(eventID); err != nil {
+		http.Error(w, "Invalid event ID format", http.StatusBadRequest)
+		return
+	}
+
 	if eventID == "" {
 		http.Error(w, "Event ID parameter is required", http.StatusBadRequest)
 		return
