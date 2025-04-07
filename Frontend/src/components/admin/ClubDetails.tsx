@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../utils/api'; // Updated import
 
 import './ClubDetails.css';
 
@@ -39,9 +39,9 @@ const ClubDetails = () => {
         const fetchData = async () => {
             try {
                 const [clubResponse, membersResponse, eventsResponse] = await Promise.all([
-                    axios.get(`${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}`),
-                    axios.get(`${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}/members`),
-                    axios.get(`${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}/events`)
+                    api.get(`/api/v1/clubs/${id}`),
+                    api.get(`/api/v1/clubs/${id}/members`),
+                    api.get(`/api/v1/clubs/${id}/events`)
                 ]);
                 setClub(clubResponse.data);
                 setMembers(membersResponse.data);
@@ -58,13 +58,10 @@ const ClubDetails = () => {
 
     const addMember = async () => {
         try {
-            const response = await axios.post(
-                `${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}/members`,
-                {
-                    name: newMember.name,
-                    email: newMember.email
-                }
-            );
+            const response = await api.post(`/api/v1/clubs/${id}/members`, {
+                name: newMember.name,
+                email: newMember.email
+            });
             setMembers([...members, response.data]);
             setNewMember({ name: '', email: '' }); // Reset form
         } catch (error) {
@@ -74,9 +71,7 @@ const ClubDetails = () => {
 
     const deleteMember = async (memberId: string) => {
         try {
-            await axios.delete(
-                `${import.meta.env.VITE_API_HOST}/api/v1/clubs/${id}/members/${memberId}`
-            );
+            await api.delete(`/api/v1/clubs/${id}/members/${memberId}`);
             setMembers(members.filter(member => member.id !== memberId));
         } catch (error) {
             setError('Failed to delete member');
