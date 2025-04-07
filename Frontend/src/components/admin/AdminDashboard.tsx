@@ -61,17 +61,21 @@ const AdminDashboard = () => {
             </p>}
 
             <div className="clubs-list">
-                {clubs.map(club => (
-                    <div 
-                        key={club.id} 
-                        className="club-item"
-                        onClick={() => navigate(`/admin/clubs/${club.id}`)}
-                        style={{ cursor: 'pointer' }}
-                    >
-                        <h4>{club.name}</h4>
-                        <p>{club.description}</p>
-                    </div>
-                ))}
+                {clubs === null || clubs.length === 0 ? (
+                    <p>No clubs available. Create one to get started!</p>
+                ) : (
+                    clubs.map(club => (
+                        <div 
+                            key={club.id} 
+                            className="club-item"
+                            onClick={() => navigate(`/admin/clubs/${club.id}`)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <h4>{club.name}</h4>
+                            <p>{club.description}</p>
+                        </div>
+                    ))
+                )}
             </div>
 
             {showCreateForm && (
