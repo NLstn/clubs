@@ -11,7 +11,10 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/azure/acs"
+	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/clubs/models"
 	"github.com/golang-jwt/jwt/v5"
+	"gorm.io/gorm"
 )
 
 var jwtSecret = []byte("super-secret")
@@ -109,17 +112,21 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func IsAuthorizedForClub(clubId string, userId string) bool {
+func IsAuthorizedForClub(userId string, clubId string) bool {
 	if userId == "" {
 		return false
 	}
 
-	/* 	// Check if the user is a member of the club
-	   	var count int64
-	   	database.Db.Model(&models.Member{}).Where("club_id = ? AND user_id = ?", clubId, userId).Count(&count)
-	   	if count == 0 {
-	   		return false
-	   	} */
+	// Check if the user is the owner of the club
+	var club models.Club
+	if result := database.Db.First(&club, "id = ? AND owner_id = ?", clubId, userId); result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return false
+		}
+		log.Default().Printf("Error checking club ownership: %v", result.Error)
+		return false
+	}
+	// If the user is the owner, they are authorized
 
 	return true
 }
