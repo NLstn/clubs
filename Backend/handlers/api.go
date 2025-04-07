@@ -39,8 +39,26 @@ func Handler_v1() http.Handler {
 	}))
 
 	mux.HandleFunc("/api/v1/clubs/{clubid}/members", handleClubMembers)
-	mux.HandleFunc("/api/v1/clubs/{clubid}/events", handleClubEvents)
-	mux.HandleFunc("/api/v1/clubs/{clubid}/events/", handleClubEvents)
+
+	// Register event-related endpoints
+	mux.HandleFunc("/api/v1/clubs/{clubid}/events", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetClubEvents(w, r, "{clubid}")
+		case http.MethodPost:
+			handleCreateClubEvent(w, r, "{clubid}")
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.HandleFunc("/api/v1/clubs/{clubid}/events/{eventid}", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodDelete {
+			handleDeleteClubEvent(w, r, "{clubid}", "{eventid}")
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
 
 	mux.HandleFunc("/api/v1/auth/requestMagicLink", requestMagicLink)
 	mux.HandleFunc("/api/v1/auth/verifyMagicLink", verifyMagicLink)
