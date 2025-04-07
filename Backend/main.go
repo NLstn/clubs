@@ -11,10 +11,13 @@ import (
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: Error loading .env file:", err)
+		// Note: Not fatal as env vars may be set through other means in production
+	}
 
-	godotenv.Load()
-
-	err := database.Init()
+	err = database.Init()
 	if err != nil {
 		log.Fatal("Could not initialize database:", err)
 	}
