@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/NLstn/clubs/azure"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
 	"github.com/joho/godotenv"
@@ -51,6 +52,11 @@ func main() {
 	err = database.NewConnection(config)
 	if err != nil {
 		log.Fatal("Could not connect to database:", err)
+	}
+
+	err = azure.Init()
+	if err != nil {
+		log.Fatal("Could not initialize Azure SDK:", err)
 	}
 
 	mux := http.NewServeMux()
