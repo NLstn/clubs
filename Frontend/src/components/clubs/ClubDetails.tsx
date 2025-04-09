@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../utils/api'; // Updated import
+import api from '../../utils/api'; // Updated import
 
 import './ClubDetails.css';
 

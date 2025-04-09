@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
-import ClubDetails from './components/ClubDetails';
+import ClubDetails from './components/clubs/ClubDetails';
 import Login from './components/auth/Login';
 import MagicLinkHandler from './components/auth/MagicLinkHandler';
 import ProtectedRoute from './components/auth/ProtectedRoute';
