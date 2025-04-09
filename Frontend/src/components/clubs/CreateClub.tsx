@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import './CreateClub.css';
+import Layout from '../layout/Layout';
 
 const CreateClub = () => {
     const navigate = useNavigate();
@@ -25,36 +26,38 @@ const CreateClub = () => {
     };
 
     return (
-        <div className="create-club-container">
-            <h2>Create New Club</h2>
-            
-            {message && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
-                {message}
-            </p>}
-            
-            <form onSubmit={handleSubmit} className="create-club-form">
-                <div className="form-group">
-                    <label>Club Name:</label>
-                    <input
-                        type="text"
-                        value={clubName}
-                        onChange={(e) => setClubName(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="form-group">
-                    <label>Description:</label>
-                    <textarea
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    />
-                </div>
-                <div className="form-actions">
-                    <button type="button" onClick={() => navigate('/')}>Cancel</button>
-                    <button type="submit">Create Club</button>
-                </div>
-            </form>
-        </div>
+        <Layout title="Create New Club">
+            <div className="create-club-container">
+                <h2>Create New Club</h2>
+
+                {message && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
+                    {message}
+                </p>}
+
+                <form onSubmit={handleSubmit} className="create-club-form">
+                    <div className="form-group">
+                        <label>Club Name:</label>
+                        <input
+                            type="text"
+                            value={clubName}
+                            onChange={(e) => setClubName(e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Description:</label>
+                        <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                        />
+                    </div>
+                    <div className="form-actions">
+                        <button type="button" onClick={() => navigate('/')}>Cancel</button>
+                        <button type="submit">Create Club</button>
+                    </div>
+                </form>
+            </div>
+        </Layout>
     );
 };
 
