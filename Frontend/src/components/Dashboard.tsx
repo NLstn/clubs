@@ -13,9 +13,6 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const { api } = useAuth();
     const [clubs, setClubs] = useState<Club[]>([]);
-    const [showCreateForm, setShowCreateForm] = useState(false);
-    const [clubName, setClubName] = useState('');
-    const [description, setDescription] = useState('');
     const [message, setMessage] = useState('');
 
     useEffect(() => {
@@ -32,26 +29,11 @@ const Dashboard = () => {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            await api.post('/api/v1/clubs', { name: clubName, description });
-            setMessage('Club created successfully!');
-            setClubName('');
-            setDescription('');
-            setShowCreateForm(false);
-            fetchClubs(); // Refresh the list
-        } catch (error) {
-            setMessage('Error creating club');
-            console.error(error);
-        }
-    };
-
     return (
         <div className="dashboard">
             <div className="dashboard-header">
                 <h2>Dashboard</h2>
-                <button className="create-button" onClick={() => setShowCreateForm(true)}>
+                <button className="create-button" onClick={() => navigate('/createClub')}>
                     Create New Club
                 </button>
             </div>
@@ -77,37 +59,6 @@ const Dashboard = () => {
                     ))
                 )}
             </div>
-
-            {showCreateForm && (
-                <>
-                    <div className="modal-overlay" onClick={() => setShowCreateForm(false)} />
-                    <div className="modal">
-                        <h3>Create New Club</h3>
-                        <form onSubmit={handleSubmit}>
-                            <div className="form-group">
-                                <label>Club Name:</label>
-                                <input
-                                    type="text"
-                                    value={clubName}
-                                    onChange={(e) => setClubName(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Description:</label>
-                                <textarea
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                />
-                            </div>
-                            <div className="form-actions">
-                                <button type="button" onClick={() => setShowCreateForm(false)}>Cancel</button>
-                                <button type="submit">Create Club</button>
-                            </div>
-                        </form>
-                    </div>
-                </>
-            )}
         </div>
     );
 };
