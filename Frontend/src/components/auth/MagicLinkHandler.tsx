@@ -37,7 +37,7 @@ const MagicLinkHandler: React.FC = () => {
           
           // Redirect after short delay
           setTimeout(() => {
-            navigate('/admin');
+            navigate('/');
           }, 2000);
         } else {
           const error = await response.text();

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import './AdminDashboard.css';
+import './Dashboard.css';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 interface Club {
     id: number;
@@ -9,7 +9,7 @@ interface Club {
     description: string;
 }
 
-const AdminDashboard = () => {
+const Dashboard = () => {
     const navigate = useNavigate();
     const { api } = useAuth();
     const [clubs, setClubs] = useState<Club[]>([]);
@@ -48,9 +48,9 @@ const AdminDashboard = () => {
     };
 
     return (
-        <div className="admin-dashboard">
+        <div className="dashboard">
             <div className="dashboard-header">
-                <h2>Admin Dashboard</h2>
+                <h2>Dashboard</h2>
                 <button className="create-button" onClick={() => setShowCreateForm(true)}>
                     Create New Club
                 </button>
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
                         <div 
                             key={club.id} 
                             className="club-item"
-                            onClick={() => navigate(`/admin/clubs/${club.id}`)}
+                            onClick={() => navigate(`/clubs/${club.id}`)}
                             style={{ cursor: 'pointer' }}
                         >
                             <h4>{club.name}</h4>
@@ -112,4 +112,4 @@ const AdminDashboard = () => {
     );
 };
 
-export default AdminDashboard;
+export default Dashboard;
