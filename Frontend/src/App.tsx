@@ -26,12 +26,12 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
-                    
+
                     <Route
                         path="/createClub"
                         element={
                             <ProtectedRoute>
-                                <CreateClub />
+                                    <CreateClub />
                             </ProtectedRoute>
                         }
                     />
