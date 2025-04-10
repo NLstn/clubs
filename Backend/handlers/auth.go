@@ -3,10 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/clubs/models"
 	frontend "github.com/NLstn/clubs/tools"
 )
 
@@ -21,11 +20,8 @@ func requestMagicLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := auth.GenerateToken()
-	expiresAt := time.Now().Add(15 * time.Minute)
-
-	tx := database.Db.Exec(`INSERT INTO magic_links (email, token, expires_at) VALUES ($1, $2, $3)`, req.Email, token, expiresAt)
-	if tx.Error != nil {
+	token, err := models.CreateMagicLink(req.Email)
+	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
@@ -44,26 +40,14 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result struct {
-		Email     string
-		ExpiresAt time.Time
-	}
-
-	err := database.Db.Raw(`SELECT email, expires_at FROM magic_links WHERE token = ?`, token).
-		Scan(&result).Error
-
-	if err != nil || time.Now().After(result.ExpiresAt) {
+	email, valid, err := models.VerifyMagicLink(token)
+	if err != nil || !valid {
 		http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
 		return
 	}
 
 	// Find or create user
-	var userID string
-	err = database.Db.Raw(`SELECT id FROM users WHERE email = $1`, result.Email).Scan(&userID).Error
-	if userID == "" {
-		err = database.Db.Raw(`INSERT INTO users (email) VALUES ($1) RETURNING id`, result.Email).Scan(&userID).Error
-	}
-
+	userID, err := models.FindOrCreateUser(email)
 	if err != nil {
 		http.Error(w, "User error", http.StatusInternalServerError)
 		return
@@ -81,9 +65,5 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 		"token": jwt,
 	})
 
-	tx := database.Db.Exec(`DELETE FROM magic_links WHERE token = ?`, token)
-	if tx.Error != nil {
-		http.Error(w, "DB error", http.StatusInternalServerError)
-		return
-	}
+	models.DeleteMagicLink(token)
 }

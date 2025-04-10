@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/models"
 	"github.com/google/uuid"
 )
@@ -30,9 +29,9 @@ func handleGetClubEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var events []models.Event
-	if result := database.Db.Where("club_id = ?", clubID).Find(&events); result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+	events, err := models.GetClubEvents(clubID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -54,18 +53,16 @@ func handleCreateClubEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if event.Name == "" || event.Date == "" || event.BeginTime == "" || event.EndTime == "" {
+	if !event.Validate() {
 		http.Error(w, "Name, date, begin time, and end time are required", http.StatusBadRequest)
 		return
 	}
 
-	event.ID = uuid.New().String()
-	event.ClubID = clubID
-
-	if result := database.Db.Create(&event); result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+	if err := models.CreateEvent(&event, clubID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(event)
@@ -91,12 +88,13 @@ func handleDeleteClubEvent(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Event ID parameter is required", http.StatusBadRequest)
 		return
 	}
-	result := database.Db.Where("id = ? AND club_id = ?", eventID, clubID).Delete(&models.Event{})
-	if result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+
+	rowsAffected, err := models.DeleteEvent(eventID, clubID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if result.RowsAffected == 0 {
+	if rowsAffected == 0 {
 		http.Error(w, "Event not found", http.StatusNotFound)
 		return
 	}
