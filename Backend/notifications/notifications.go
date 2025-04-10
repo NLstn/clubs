@@ -4,12 +4,15 @@ import (
 	"fmt"
 
 	"github.com/NLstn/clubs/azure/acs"
+	frontend "github.com/NLstn/clubs/tools"
 )
 
-func SendMemberAddedNotification(userMail string, clubName string) error {
+func SendMemberAddedNotification(userMail string, clubName string, clubID string) error {
 	subject := "You have been added to a club"
-	plainText := fmt.Sprintf("Hello,\n\nYou have been added to the club %s as a member.\n\nBest regards,\nThe Clubs Team", clubName)
-	htmlContent := fmt.Sprintf("<p>Hello,</p><p>You have been added to the club <strong>%s</strong> as a member.</p><p>Best regards,<br>The Clubs Team</p>", clubName)
+	clubLink := frontend.MakeClubLink(clubID)
+
+	plainText := fmt.Sprintf("Hello,\n\nYou have been added to the club %s as a member.\n\nVisit the club page at: %s\n\nBest regards,\nThe Clubs Team", clubName, clubLink)
+	htmlContent := fmt.Sprintf("<p>Hello,</p><p>You have been added to the club <strong>%s</strong> as a member.</p><p>Visit the club page <a href=\"%s\">here</a>.</p><p>Best regards,<br>The Clubs Team</p>", clubName, clubLink)
 
 	recipients := []acs.Recipient{
 		{Address: userMail},

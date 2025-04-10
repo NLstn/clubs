@@ -7,6 +7,7 @@ import (
 	"github.com/NLstn/clubs/azure"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
+	frontend "github.com/NLstn/clubs/tools"
 	"github.com/joho/godotenv"
 )
 
@@ -25,6 +26,11 @@ func main() {
 	err = azure.Init()
 	if err != nil {
 		log.Fatal("Could not initialize Azure SDK:", err)
+	}
+
+	err = frontend.Init()
+	if err != nil {
+		log.Fatal("Could not initialize frontend:", err)
 	}
 
 	mux := http.NewServeMux()
