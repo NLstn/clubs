@@ -1,18 +1,18 @@
 .basic-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 20px 0;
+    margin: var(--space-lg) 0;
 }
 
 .basic-table th,
 .basic-table td {
     padding: 12px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .basic-table th {
-    background-color: #121212;
+    background-color: var(--color-background-light);
     font-weight: bold;
 }
 
@@ -21,23 +21,23 @@
 }
 
 .add-member-form {
-    margin-top: 20px;
+    margin-top: var(--space-lg);
     display: flex;
-    gap: 10px;
+    gap: var(--space-sm);
 }
 
 .add-member-form input {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    padding: var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
 }
 
 .add-member-form button {
-    padding: 8px 16px;
+    padding: var(--space-xs) var(--space-sm);
     background-color: #0066cc;
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--border-radius-sm);
     cursor: pointer;
 }
 

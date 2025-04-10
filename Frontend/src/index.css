@@ -3,9 +3,41 @@
   line-height: 1.5;
   font-weight: 400;
 
+  /* Color System */
+  --color-primary: #4CAF50;
+  --color-primary-hover: #45a049;
+  --color-secondary: #646cff;
+  --color-secondary-hover: #535bf2;
+  --color-background: #242424;
+  --color-background-light: #333333;
+  --color-text: rgba(255, 255, 255, 0.87);
+  --color-text-secondary: #888;
+  --color-border: #ddd;
+  
+  /* Component Colors */
+  --color-success-bg: #d4edda;
+  --color-success-text: #155724;
+  --color-error-bg: #f8d7da;
+  --color-error-text: #721c24;
+  
+  /* UI Elements */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+  --border-radius-circle: 50%;
+  
+  /* Spacing */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  color: var(--color-text);
+  background-color: var(--color-background);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -15,11 +47,11 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: var(--color-secondary);
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: var(--color-secondary-hover);
 }
 
 body {
@@ -40,28 +72,48 @@ h1 {
 }
 
 button {
-  border-radius: 8px;
+  border-radius: var(--border-radius-md);
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--color-background-light);
   cursor: pointer;
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: var(--color-secondary);
 }
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* Common utility classes */
+.message {
+  padding: var(--space-sm);
+  border-radius: var(--border-radius-sm);
+  margin: var(--space-sm) 0;
+}
+
+.success {
+  background-color: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.error {
+  background-color: var(--color-error-bg);
+  color: var(--color-error-text);
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
     background-color: #ffffff;
+    --color-background: #ffffff;
+    --color-background-light: #f9f9f9;
+    --color-text: #213547;
   }
   a:hover {
     color: #747bff;

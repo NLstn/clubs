@@ -1,13 +1,13 @@
 .create-club-container {
     max-width: 600px;
     margin: 0 auto;
-    padding: 20px;
+    padding: var(--space-lg);
 }
 
 .create-club-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: var(--space-lg);
 }
 
 .form-group {
@@ -22,9 +22,9 @@
 
 .form-group input, 
 .form-group textarea {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: var(--space-xs);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
 }
 
 .form-group textarea {
@@ -34,21 +34,7 @@
 .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: var(--space-sm);
 }
 
-.message {
-    padding: 10px;
-    border-radius: 4px;
-    margin: 10px 0;
-}
-
-.success {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.error {
-    background-color: #f8d7da;
-    color: #721c24;
-}
+/* Message styles are now in index.css */
