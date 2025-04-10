@@ -2,13 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
+	frontend "github.com/NLstn/clubs/tools"
 )
 
 func requestMagicLink(w http.ResponseWriter, r *http.Request) {
@@ -22,26 +21,17 @@ func requestMagicLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token := auth.GenerateToken() // or use a signed JWT
+	token := auth.GenerateToken()
 	expiresAt := time.Now().Add(15 * time.Minute)
 
-	// Save to DB (or encode expiry in JWT)
 	tx := database.Db.Exec(`INSERT INTO magic_links (email, token, expires_at) VALUES ($1, $2, $3)`, req.Email, token, expiresAt)
 	if tx.Error != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
 
-	// Get frontend URL from environment variable or use default
-	frontendURL := os.Getenv("FRONTEND_URL")
-	if frontendURL == "" {
-		frontendURL = "http://localhost:5173" // Default fallback
-	}
+	link := frontend.MakeMagicLink(token)
 
-	// Build link
-	link := fmt.Sprintf("%s/auth/magic?token=%s", frontendURL, token)
-
-	// Send mail
 	go auth.SendMagicLinkEmail(req.Email, link)
 
 	w.WriteHeader(http.StatusNoContent)

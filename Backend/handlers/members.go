@@ -74,7 +74,7 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		notifications.SendMemberAddedNotification(member.Email, club.Name)
+		notifications.SendMemberAddedNotification(member.Email, club.Name, clubID)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
