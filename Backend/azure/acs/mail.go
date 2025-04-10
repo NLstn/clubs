@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -87,21 +86,4 @@ func SendMail(recipients []Recipient, subject, plainText, htmlContent string) er
 	} else {
 		return fmt.Errorf("failed to send email. Status code: %d", resp.StatusCode)
 	}
-}
-
-func SendTestMail() {
-	recipients := []Recipient{
-		{"niklas.lahnstein@outlook.com"},
-	}
-	subject := "Test Email from ACS"
-	plainText := "This is a test email sent using Azure Communication Services."
-	htmlContent := "<html><body><h1>Test Email</h1><p>This is a test email sent using Azure Communication Services.</p></body></html>"
-
-	err := SendMail(recipients, subject, plainText, htmlContent)
-	if err != nil {
-		log.Default().Println(err.Error())
-		return
-	}
-
-	log.Default().Println("Test email sent successfully")
 }
