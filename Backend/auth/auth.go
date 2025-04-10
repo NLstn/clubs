@@ -119,10 +119,11 @@ func IsAuthorizedForClub(userId string, clubId string) bool {
 
 	// Check if the user is the owner of the club
 	var club models.Club
-	if result := database.Db.First(&club, "id = ? AND owner_id = ?", clubId, userId); result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return false
-		}
+	result := database.Db.Where("id = ? AND owner_id = ?", clubId, userId).Find(&club)
+	if result.Error == gorm.ErrRecordNotFound || result.RowsAffected == 0 {
+		return false
+	}
+	if result.Error != nil {
 		log.Default().Printf("Error checking club ownership: %v", result.Error)
 		return false
 	}
