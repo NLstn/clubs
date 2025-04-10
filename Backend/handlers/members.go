@@ -8,6 +8,7 @@ import (
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/notifications"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -72,6 +73,8 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, result.Error.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		notifications.SendMemberAddedNotification(member.Email, club.Name)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
