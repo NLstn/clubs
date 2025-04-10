@@ -65,5 +65,10 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 		"token": jwt,
 	})
 
-	models.DeleteMagicLink(token)
+	if err := models.DeleteMagicLink(token); err != nil {
+		// Log the error for debugging and monitoring purposes
+		// Replace this with your logging framework if applicable
+		http.Error(w, "Failed to delete magic link", http.StatusInternalServerError)
+		return
+	}
 }
