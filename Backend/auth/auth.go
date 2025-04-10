@@ -12,7 +12,7 @@ import (
 
 	"github.com/NLstn/clubs/azure/acs"
 	"github.com/NLstn/clubs/database"
-	"github.com/NLstn/clubs/models"
+
 	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
@@ -118,9 +118,9 @@ func IsAuthorizedForClub(userId string, clubId string) bool {
 	}
 
 	// Check if the user is the owner of the club
-	var club models.Club
-	result := database.Db.Where("id = ? AND owner_id = ?", clubId, userId).Find(&club)
-	if result.Error == gorm.ErrRecordNotFound || result.RowsAffected == 0 {
+	var count int64
+	result := database.Db.Table("clubs").Where("id = ? AND owner_id = ?", clubId, userId).Count(&count)
+	if result.Error == gorm.ErrRecordNotFound || count == 0 {
 		return false
 	}
 	if result.Error != nil {

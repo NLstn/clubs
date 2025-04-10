@@ -6,9 +6,7 @@ import (
 	"strings"
 
 	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/models"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -16,9 +14,9 @@ import (
 func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
-	var clubs []models.Club
-	if result := database.Db.Find(&clubs); result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+	clubs, err := models.GetAllClubs()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -43,15 +41,14 @@ func handleGetClubByID(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/api/v1/clubs/")
 	id := path
 
-	var club models.Club
-	result := database.Db.First(&club, "id = ?", id)
+	club, err := models.GetClubByID(id)
 
-	if result.Error == gorm.ErrRecordNotFound {
+	if err == gorm.ErrRecordNotFound {
 		http.Error(w, "Club not found", http.StatusNotFound)
 		return
 	}
-	if result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -66,18 +63,16 @@ func handleGetClubByID(w http.ResponseWriter, r *http.Request) {
 
 // handleCreateClub creates a new club
 func handleCreateClub(w http.ResponseWriter, r *http.Request) {
-
 	var club models.Club
 	if err := json.NewDecoder(r.Body).Decode(&club); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	club.ID = uuid.New().String()
-	club.OwnerID = r.Context().Value(auth.UserIDKey).(string)
+	ownerID := r.Context().Value(auth.UserIDKey).(string)
 
-	if result := database.Db.Create(&club); result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+	if err := models.CreateClub(&club, ownerID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

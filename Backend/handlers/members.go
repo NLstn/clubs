@@ -6,10 +6,7 @@ import (
 	"strings"
 
 	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/models"
-	"github.com/NLstn/clubs/notifications"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -24,17 +21,20 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 
 	clubID := segments[3]
 
-	var club models.Club
-	if result := database.Db.First(&club, "id = ?", clubID); result.Error == gorm.ErrRecordNotFound {
+	club, err := models.GetClubByID(clubID)
+	if err == gorm.ErrRecordNotFound {
 		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	switch r.Method {
 	case http.MethodGet:
-		var members []models.Member
-		if result := database.Db.Where("club_id = ?", clubID).Find(&members); result.Error != nil {
-			http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+		members, err := models.GetClubMembers(clubID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -48,7 +48,7 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if member.Email == "" || member.Name == "" {
+		if !member.Validate() {
 			http.Error(w, "Email and name are required", http.StatusBadRequest)
 			return
 		}
@@ -61,20 +61,17 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 		}
 
 		userID := userIDValue.(string)
-		if club.OwnerID != userID {
+		if !club.IsOwner(userID) {
 			http.Error(w, "Unauthorized", http.StatusForbidden)
 			return
 		}
 
-		member.ID = uuid.New().String()
-		member.ClubID = clubID
-
-		if result := database.Db.Create(&member); result.Error != nil {
-			http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+		if err := models.AddMember(&member, clubID); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		notifications.SendMemberAddedNotification(member.Email, club.Name, clubID)
+		member.NotifyAdded(club.Name)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
@@ -88,12 +85,12 @@ func handleClubMembers(w http.ResponseWriter, r *http.Request) {
 		}
 		memberID := segments[5]
 
-		result := database.Db.Where("id = ? AND club_id = ?", memberID, clubID).Delete(&models.Member{})
-		if result.Error != nil {
-			http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+		rowsAffected, err := models.DeleteMember(memberID, clubID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if result.RowsAffected == 0 {
+		if rowsAffected == 0 {
 			http.Error(w, "Member not found", http.StatusNotFound)
 			return
 		}
@@ -115,9 +112,12 @@ func handleClubMemberDelete(w http.ResponseWriter, r *http.Request) {
 	memberID := segments[5]
 
 	// Check if club exists
-	var club models.Club
-	if result := database.Db.First(&club, "id = ?", clubID); result.Error == gorm.ErrRecordNotFound {
+	club, err := models.GetClubByID(clubID)
+	if err == gorm.ErrRecordNotFound {
 		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -129,18 +129,18 @@ func handleClubMemberDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID := userIDValue.(string)
-	if club.OwnerID != userID {
+	if !club.IsOwner(userID) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
 
 	// Delete the member
-	result := database.Db.Where("id = ? AND club_id = ?", memberID, clubID).Delete(&models.Member{})
-	if result.Error != nil {
-		http.Error(w, result.Error.Error(), http.StatusInternalServerError)
+	rowsAffected, err := models.DeleteMember(memberID, clubID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if result.RowsAffected == 0 {
+	if rowsAffected == 0 {
 		http.Error(w, "Member not found", http.StatusNotFound)
 		return
 	}

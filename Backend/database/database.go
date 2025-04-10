@@ -5,8 +5,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/NLstn/clubs/models"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -32,12 +30,6 @@ func NewConnection(config *Config) error {
 	}
 
 	Db.Exec("CREATE EXTENSION IF NOT EXISTS \"pgcrypto\"")
-
-	// Auto Migrate the schema
-	err = Db.AutoMigrate(&models.Club{}, &models.Member{}, &models.Event{}, &models.MagicLink{}, &models.User{})
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
