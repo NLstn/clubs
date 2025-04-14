@@ -7,6 +7,7 @@ import (
 	"github.com/NLstn/clubs/azure"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
+	"github.com/NLstn/clubs/models"
 	frontend "github.com/NLstn/clubs/tools"
 	"github.com/joho/godotenv"
 )
@@ -21,6 +22,13 @@ func main() {
 	err = database.Init()
 	if err != nil {
 		log.Fatal("Could not initialize database:", err)
+	}
+
+	// FIXME: This should be in the database.go file, but importing the models there would result
+	//        in a circular dependency.
+	err = database.Db.AutoMigrate(&models.Club{}, &models.Member{}, &models.Event{}, &models.MagicLink{}, &models.User{})
+	if err != nil {
+		log.Fatal("Could not migrate database:", err)
 	}
 
 	err = azure.Init()
