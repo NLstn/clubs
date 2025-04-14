@@ -26,7 +26,7 @@ func main() {
 
 	// FIXME: This should be in the database.go file, but importing the models there would result
 	//        in a circular dependency.
-	err = database.Db.AutoMigrate(&models.Club{}, &models.Member{}, &models.Event{}, &models.MagicLink{}, &models.User{})
+	err = database.Db.AutoMigrate(&models.Club{}, &models.Member{}, &models.Event{}, &models.MagicLink{}, &models.User{}, &models.JoinRequest{})
 	if err != nil {
 		log.Fatal("Could not migrate database:", err)
 	}

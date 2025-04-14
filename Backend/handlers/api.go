@@ -67,5 +67,14 @@ func Handler_v1() http.Handler {
 	mux.HandleFunc("/api/v1/auth/requestMagicLink", requestMagicLink)
 	mux.HandleFunc("/api/v1/auth/verifyMagicLink", verifyMagicLink)
 
+	mux.HandleFunc("/api/v1/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			handleJoinRequestCreate(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
 	return mux
 }
