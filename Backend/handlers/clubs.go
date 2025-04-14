@@ -69,9 +69,9 @@ func handleCreateClub(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ownerID := r.Context().Value(auth.UserIDKey).(string)
+	userID := r.Context().Value(auth.UserIDKey).(string)
 
-	if err := models.CreateClub(&club, ownerID); err != nil {
+	if err := models.CreateClub(&club, userID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
