@@ -5,6 +5,34 @@ import Layout from '../layout/Layout';
 
 import './ClubDetails.css';
 
+// Modal component
+const Modal = ({ isOpen, onClose, onSubmit }: { isOpen: boolean; onClose: () => void; onSubmit: (email: string) => void }) => {
+    if (!isOpen) return null;
+
+    const [email, setEmail] = useState('');
+
+    const handleSubmit = () => {
+        onSubmit(email);
+        setEmail('');
+    };
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal">
+                <h3>Invite Member</h3>
+                <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter email"
+                />
+                <button onClick={handleSubmit} disabled={!email}>Send Invite</button>
+                <button onClick={onClose}>Cancel</button>
+            </div>
+        </div>
+    );
+};
+
 interface Member {
     id: string;
     name: string;
@@ -35,6 +63,7 @@ const ClubDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [newMember, setNewMember] = useState({ name: '', email: '' });
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -76,6 +105,15 @@ const ClubDetails = () => {
             setMembers(members.filter(member => member.id !== memberId));
         } catch (error) {
             setError('Failed to delete member');
+        }
+    };
+
+    const sendInvite = async (email: string) => {
+        try {
+            await api.post(`/api/v1/clubs/${id}/joinRequest`, { email });
+            setIsModalOpen(false);
+        } catch (error) {
+            setError('Failed to send invite');
         }
     };
 
@@ -139,6 +177,12 @@ const ClubDetails = () => {
                             Add Member
                         </button>
                     </div>
+                    <button onClick={() => setIsModalOpen(true)}>Invite Member</button>
+                    <Modal
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        onSubmit={sendInvite}
+                    />
                     <h3>Events</h3>
                     <table className="basic-table">
                         <thead>
