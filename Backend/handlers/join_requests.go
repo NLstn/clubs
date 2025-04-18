@@ -6,6 +6,7 @@ import (
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
+	"github.com/google/uuid"
 )
 
 func handleJoinRequestCreate(w http.ResponseWriter, r *http.Request) {
@@ -34,4 +35,28 @@ func handleJoinRequestCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+// endpoint: GET /api/v1/clubs/{clubid}/joinRequests
+func handleGetJoinEvents(w http.ResponseWriter, r *http.Request) {
+	clubID := extractPathParam(r, "clubs")
+	// Validate clubID as a UUID
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	if !auth.IsOwnerOfClub(r.Context().Value("userID").(string), clubID) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
+	events, err := models.GetJoinRequests(clubID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(events)
 }
