@@ -3,22 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/NLstn/clubs/models"
 	"github.com/google/uuid"
 )
-
-// Helper function to extract path parameters
-func extractPathParam(r *http.Request, param string) string {
-	parts := strings.Split(r.URL.Path, "/")
-	for i, part := range parts {
-		if part == param && i+1 < len(parts) {
-			return parts[i+1]
-		}
-	}
-	return ""
-}
 
 // endpoint: /api/v1/clubs/{clubid}/events
 func handleGetClubEvents(w http.ResponseWriter, r *http.Request) {

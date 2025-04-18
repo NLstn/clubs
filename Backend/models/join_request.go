@@ -19,3 +19,12 @@ func CreateJoinRequest(clubId, email string) error {
 	}
 	return database.Db.Create(request).Error
 }
+
+func GetJoinRequests(clubId string) ([]JoinRequest, error) {
+	var requests []JoinRequest
+	err := database.Db.Where("club_id = ?", clubId).Find(&requests).Error
+	if err != nil {
+		return nil, err
+	}
+	return requests, nil
+}

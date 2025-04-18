@@ -2,16 +2,10 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/NLstn/clubs/auth"
 )
-
-func withAuth(h http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		handler := http.HandlerFunc(h)
-		auth.AuthMiddleware(handler).ServeHTTP(w, r)
-	}
-}
 
 func Handler_v1() http.Handler {
 	mux := http.NewServeMux()
@@ -67,14 +61,33 @@ func Handler_v1() http.Handler {
 	mux.HandleFunc("/api/v1/auth/requestMagicLink", requestMagicLink)
 	mux.HandleFunc("/api/v1/auth/verifyMagicLink", verifyMagicLink)
 
-	mux.HandleFunc("/api/v1/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/v1/clubs/{clubid}/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
 			handleJoinRequestCreate(w, r)
+		case http.MethodGet:
+			handleGetJoinEvents(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	}))
 
 	return mux
+}
+
+func withAuth(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handler := http.HandlerFunc(h)
+		auth.AuthMiddleware(handler).ServeHTTP(w, r)
+	}
+}
+
+func extractPathParam(r *http.Request, param string) string {
+	parts := strings.Split(r.URL.Path, "/")
+	for i, part := range parts {
+		if part == param && i+1 < len(parts) {
+			return parts[i+1]
+		}
+	}
+	return ""
 }
