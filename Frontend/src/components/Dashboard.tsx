@@ -31,7 +31,7 @@ const Dashboard = () => {
     };
 
     return (
-        <Layout title="Dashboard">
+        <Layout title="Dashboard" showBackButton={false}>
             <div className="dashboard">
                 <div className="dashboard-header">
                     <button className="create-button" onClick={() => navigate('/createClub')}>
