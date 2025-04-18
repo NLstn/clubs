@@ -56,6 +56,12 @@ const Header: React.FC<HeaderProps> = ({ title, showBackButton = true }) => {
           <div className="dropdown">
             <button 
               className="dropdownItem" 
+              onClick={() => navigate('/createClub')}
+            >
+              Create New Club
+            </button>
+            <button 
+              className="dropdownItem" 
               onClick={handleLogout}
             >
               Logout

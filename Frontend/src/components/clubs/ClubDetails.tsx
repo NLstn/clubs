@@ -1,37 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import api from '../../utils/api'; // Updated import
+import { useParams } from 'react-router-dom';
+import api from '../../utils/api';
 import Layout from '../layout/Layout';
-
-import './ClubDetails.css';
-
-// Modal component
-const Modal = ({ isOpen, onClose, onSubmit }: { isOpen: boolean; onClose: () => void; onSubmit: (email: string) => void }) => {
-    if (!isOpen) return null;
-
-    const [email, setEmail] = useState('');
-
-    const handleSubmit = () => {
-        onSubmit(email);
-        setEmail('');
-    };
-
-    return (
-        <div className="modal-overlay">
-            <div className="modal">
-                <h3>Invite Member</h3>
-                <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter email"
-                />
-                <button onClick={handleSubmit} disabled={!email}>Send Invite</button>
-                <button onClick={onClose}>Cancel</button>
-            </div>
-        </div>
-    );
-};
+import InviteMember from './InviteMember';
 
 interface Member {
     id: string;
@@ -56,7 +27,6 @@ interface Events {
 
 const ClubDetails = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
     const [club, setClub] = useState<Club | null>(null);
     const [members, setMembers] = useState<Member[]>([]);
     const [events, setEvents] = useState<Events[]>([]);
@@ -86,19 +56,6 @@ const ClubDetails = () => {
         fetchData();
     }, [id]);
 
-    const addMember = async () => {
-        try {
-            const response = await api.post(`/api/v1/clubs/${id}/members`, {
-                name: newMember.name,
-                email: newMember.email
-            });
-            setMembers([...members, response.data]);
-            setNewMember({ name: '', email: '' }); // Reset form
-        } catch (error) {
-            setError('Failed to add member');
-        }
-    };
-
     const deleteMember = async (memberId: string) => {
         try {
             await api.delete(`/api/v1/clubs/${id}/members/${memberId}`);
@@ -123,10 +80,7 @@ const ClubDetails = () => {
 
     return (
         <Layout title={club.name}>
-            <div className="club-details">
-                <button onClick={() => navigate(-1)} className="back-button">
-                    ← Back
-                </button>
+            <div>
                 <h2>{club.name}</h2>
                 <div className="club-info">
                     <p>{club.description}</p>
@@ -136,7 +90,6 @@ const ClubDetails = () => {
                             <tr>
                                 <th>Name</th>
                                 <th>Email</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -170,15 +123,9 @@ const ClubDetails = () => {
                             onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
                             placeholder="Member email"
                         />
-                        <button 
-                            onClick={addMember}
-                            disabled={!newMember.name || !newMember.email}
-                        >
-                            Add Member
-                        </button>
                     </div>
                     <button onClick={() => setIsModalOpen(true)}>Invite Member</button>
-                    <Modal
+                    <InviteMember
                         isOpen={isModalOpen}
                         onClose={() => setIsModalOpen(false)}
                         onSubmit={sendInvite}

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import './CreateClub.css';
 import Layout from '../layout/Layout';
 
 const CreateClub = () => {
@@ -27,14 +26,14 @@ const CreateClub = () => {
 
     return (
         <Layout title="Create New Club">
-            <div className="create-club-container">
+            <div>
                 <h2>Create New Club</h2>
 
                 {message && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
                     {message}
                 </p>}
 
-                <form onSubmit={handleSubmit} className="create-club-form">
+                <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <label>Club Name:</label>
                         <input
@@ -52,8 +51,8 @@ const CreateClub = () => {
                         />
                     </div>
                     <div className="form-actions">
-                        <button type="button" onClick={() => navigate('/')}>Cancel</button>
-                        <button type="submit">Create Club</button>
+                        <button type="submit" className="button-accept">Create Club</button>
+                        <button type="button" onClick={() => navigate('/')} className="button-cancel">Cancel</button>
                     </div>
                 </form>
             </div>

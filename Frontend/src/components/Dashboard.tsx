@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import './Dashboard.css';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Layout from './layout/Layout';
@@ -32,13 +31,7 @@ const Dashboard = () => {
 
     return (
         <Layout title="Dashboard" showBackButton={false}>
-            <div className="dashboard">
-                <div className="dashboard-header">
-                    <button className="create-button" onClick={() => navigate('/createClub')}>
-                        Create New Club
-                    </button>
-                </div>
-
+            <div>
                 {message && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
                     {message}
                 </p>}
@@ -50,7 +43,7 @@ const Dashboard = () => {
                         clubs.map(club => (
                             <div
                                 key={club.id}
-                                className="club-item"
+                                className="card"
                                 onClick={() => navigate(`/clubs/${club.id}`)}
                                 style={{ cursor: 'pointer' }}
                             >
