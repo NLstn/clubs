@@ -18,6 +18,7 @@
   margin: 0;
   text-align: left;
   flex-grow: 1;
+  font-size: 2rem;
 }
 
 .userSection {
