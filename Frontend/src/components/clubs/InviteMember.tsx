@@ -12,15 +12,19 @@ const InviteMember: React.FC<InviteMemberProps> = ({ isOpen, onClose, onSubmit }
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
-      <div className="modal">
+    <div className="modal">
+      <div className="modal-content">
         <h2>Invite Member</h2>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter email"
-        />
+        <div className="form-group">
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter email"
+          />
+        </div>
         <div className="modal-actions">
           <button onClick={() => onSubmit(email)} disabled={!email} className="button-accept">
             Send Invite
