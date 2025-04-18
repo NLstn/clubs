@@ -25,11 +25,17 @@ interface Events {
     end_time: string;
 }
 
+interface JoinRequest {
+    id: string;
+    email: string;
+}
+
 const ClubDetails = () => {
     const { id } = useParams();
     const [club, setClub] = useState<Club | null>(null);
     const [members, setMembers] = useState<Member[]>([]);
     const [events, setEvents] = useState<Events[]>([]);
+    const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,14 +43,16 @@ const ClubDetails = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [clubResponse, membersResponse, eventsResponse] = await Promise.all([
+                const [clubResponse, membersResponse, eventsResponse, joinRequestsResponse] = await Promise.all([
                     api.get(`/api/v1/clubs/${id}`),
                     api.get(`/api/v1/clubs/${id}/members`),
-                    api.get(`/api/v1/clubs/${id}/events`)
+                    api.get(`/api/v1/clubs/${id}/events`),
+                    api.get(`/api/v1/clubs/${id}/joinRequests`)
                 ]);
                 setClub(clubResponse.data);
                 setMembers(membersResponse.data);
                 setEvents(eventsResponse.data);
+                setJoinRequests(joinRequestsResponse.data);
                 setLoading(false);
             } catch (error) {
                 setError('Error fetching club details');
@@ -66,7 +74,7 @@ const ClubDetails = () => {
 
     const sendInvite = async (email: string) => {
         try {
-            await api.post(`/api/v1/clubs/${id}/joinRequest`, { email });
+            await api.post(`/api/v1/clubs/${id}/joinRequests`, { email });
             setIsModalOpen(false);
         } catch (error) {
             setError('Failed to send invite');
@@ -134,6 +142,21 @@ const ClubDetails = () => {
                                     <td>{event.description}</td>
                                     <td>{event.begin_time}</td>
                                     <td>{event.end_time}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    <h3>Pending Invites</h3>
+                    <table className="basic-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {joinRequests.map((request) => (
+                                <tr key={request.id}>
+                                    <td>{request.email}</td>
                                 </tr>
                             ))}
                         </tbody>

@@ -11,17 +11,25 @@ import (
 
 func handleJoinRequestCreate(w http.ResponseWriter, r *http.Request) {
 
+	clubID := extractPathParam(r, "clubs")
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	userID := r.Context().Value(auth.UserIDKey).(string)
+	if !auth.IsOwnerOfClub(userID, clubID) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
 	var joinRequest models.JoinRequest
 	if err := json.NewDecoder(r.Body).Decode(&joinRequest); err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	userID := r.Context().Value("userID").(string)
-	if !auth.IsOwnerOfClub(userID, joinRequest.ClubID) {
-		http.Error(w, "Unauthorized", http.StatusForbidden)
-		return
-	}
+	joinRequest.ClubID = clubID
 
 	if joinRequest.ClubID == "" || joinRequest.Email == "" {
 		http.Error(w, "Missing club_id or email", http.StatusBadRequest)
@@ -39,14 +47,15 @@ func handleJoinRequestCreate(w http.ResponseWriter, r *http.Request) {
 
 // endpoint: GET /api/v1/clubs/{clubid}/joinRequests
 func handleGetJoinEvents(w http.ResponseWriter, r *http.Request) {
+
 	clubID := extractPathParam(r, "clubs")
-	// Validate clubID as a UUID
 	if _, err := uuid.Parse(clubID); err != nil {
 		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
 		return
 	}
 
-	if !auth.IsOwnerOfClub(r.Context().Value("userID").(string), clubID) {
+	userID := r.Context().Value(auth.UserIDKey).(string)
+	if !auth.IsOwnerOfClub(userID, clubID) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
