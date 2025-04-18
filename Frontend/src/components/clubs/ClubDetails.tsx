@@ -32,7 +32,6 @@ const ClubDetails = () => {
     const [events, setEvents] = useState<Events[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [newMember, setNewMember] = useState({ name: '', email: '' });
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
@@ -110,20 +109,6 @@ const ClubDetails = () => {
                             ))}
                         </tbody>
                     </table>
-                    <div className="add-member-form">
-                        <input
-                            type="text"
-                            value={newMember.name}
-                            onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
-                            placeholder="Member name"
-                        />
-                        <input
-                            type="email"
-                            value={newMember.email}
-                            onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
-                            placeholder="Member email"
-                        />
-                    </div>
                     <button onClick={() => setIsModalOpen(true)}>Invite Member</button>
                     <InviteMember
                         isOpen={isModalOpen}
