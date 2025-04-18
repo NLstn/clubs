@@ -5,9 +5,10 @@ import './Header.css';
 
 interface HeaderProps {
   title: string;
+  showBackButton?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ title }) => {
+const Header: React.FC<HeaderProps> = ({ title, showBackButton = true }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -16,6 +17,10 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
+  };
+
+  const handleBack = () => {
+    navigate(-1);
   };
 
   // Close dropdown when clicking outside
@@ -33,6 +38,11 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
 
   return (
     <header className="header">
+      {showBackButton && (
+        <button className="backButton" onClick={handleBack}>
+          ← Back
+        </button>
+      )}
       <h1>{title}</h1>
       <div className="userSection" ref={dropdownRef}>
         <div 
