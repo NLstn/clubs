@@ -34,7 +34,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="login-container">
+    <div>
       <h1>Login</h1>
       <p>Enter your email to receive a magic link for logging in.</p>
 

@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import api from '../../utils/api'; // Updated import
+import { useParams } from 'react-router-dom';
+import api from '../../utils/api';
 import Layout from '../layout/Layout';
-
-import './ClubDetails.css';
+import InviteMember from './InviteMember';
 
 interface Member {
     id: string;
@@ -26,27 +25,34 @@ interface Events {
     end_time: string;
 }
 
+interface JoinRequest {
+    id: string;
+    email: string;
+}
+
 const ClubDetails = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
     const [club, setClub] = useState<Club | null>(null);
     const [members, setMembers] = useState<Member[]>([]);
     const [events, setEvents] = useState<Events[]>([]);
+    const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [newMember, setNewMember] = useState({ name: '', email: '' });
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [clubResponse, membersResponse, eventsResponse] = await Promise.all([
+                const [clubResponse, membersResponse, eventsResponse, joinRequestsResponse] = await Promise.all([
                     api.get(`/api/v1/clubs/${id}`),
                     api.get(`/api/v1/clubs/${id}/members`),
-                    api.get(`/api/v1/clubs/${id}/events`)
+                    api.get(`/api/v1/clubs/${id}/events`),
+                    api.get(`/api/v1/clubs/${id}/joinRequests`)
                 ]);
                 setClub(clubResponse.data);
                 setMembers(membersResponse.data);
                 setEvents(eventsResponse.data);
+                setJoinRequests(joinRequestsResponse.data);
                 setLoading(false);
             } catch (error) {
                 setError('Error fetching club details');
@@ -57,19 +63,6 @@ const ClubDetails = () => {
         fetchData();
     }, [id]);
 
-    const addMember = async () => {
-        try {
-            const response = await api.post(`/api/v1/clubs/${id}/members`, {
-                name: newMember.name,
-                email: newMember.email
-            });
-            setMembers([...members, response.data]);
-            setNewMember({ name: '', email: '' }); // Reset form
-        } catch (error) {
-            setError('Failed to add member');
-        }
-    };
-
     const deleteMember = async (memberId: string) => {
         try {
             await api.delete(`/api/v1/clubs/${id}/members/${memberId}`);
@@ -79,16 +72,22 @@ const ClubDetails = () => {
         }
     };
 
+    const sendInvite = async (email: string) => {
+        try {
+            await api.post(`/api/v1/clubs/${id}/joinRequests`, { email });
+            setIsModalOpen(false);
+        } catch (error) {
+            setError('Failed to send invite');
+        }
+    };
+
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="error">{error}</div>;
     if (!club) return <div>Club not found</div>;
 
     return (
         <Layout title={club.name}>
-            <div className="club-details">
-                <button onClick={() => navigate(-1)} className="back-button">
-                    ← Back
-                </button>
+            <div>
                 <h2>{club.name}</h2>
                 <div className="club-info">
                     <p>{club.description}</p>
@@ -98,7 +97,6 @@ const ClubDetails = () => {
                             <tr>
                                 <th>Name</th>
                                 <th>Email</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -119,26 +117,12 @@ const ClubDetails = () => {
                             ))}
                         </tbody>
                     </table>
-                    <div className="add-member-form">
-                        <input
-                            type="text"
-                            value={newMember.name}
-                            onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
-                            placeholder="Member name"
-                        />
-                        <input
-                            type="email"
-                            value={newMember.email}
-                            onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
-                            placeholder="Member email"
-                        />
-                        <button 
-                            onClick={addMember}
-                            disabled={!newMember.name || !newMember.email}
-                        >
-                            Add Member
-                        </button>
-                    </div>
+                    <button onClick={() => setIsModalOpen(true)}>Invite Member</button>
+                    <InviteMember
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        onSubmit={sendInvite}
+                    />
                     <h3>Events</h3>
                     <table className="basic-table">
                         <thead>
@@ -158,6 +142,21 @@ const ClubDetails = () => {
                                     <td>{event.description}</td>
                                     <td>{event.begin_time}</td>
                                     <td>{event.end_time}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    <h3>Pending Invites</h3>
+                    <table className="basic-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {joinRequests.map((request) => (
+                                <tr key={request.id}>
+                                    <td>{request.email}</td>
                                 </tr>
                             ))}
                         </tbody>

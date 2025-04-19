@@ -117,7 +117,19 @@ func IsAuthorizedForClub(userId string, clubId string) bool {
 		return false
 	}
 
-	// Check if the user is the owner of the club
+	if IsOwnerOfClub(userId, clubId) {
+		return true
+	}
+	// If the user is the owner, they are authorized
+
+	return true
+}
+
+func IsOwnerOfClub(userId, clubId string) bool {
+	if userId == "" {
+		return false
+	}
+
 	var count int64
 	result := database.Db.Table("clubs").Where("id = ? AND owner_id = ?", clubId, userId).Count(&count)
 	if result.Error == gorm.ErrRecordNotFound || count == 0 {
