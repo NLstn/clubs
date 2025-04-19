@@ -54,6 +54,12 @@ const Header: React.FC<HeaderProps> = ({ title, showBackButton = true }) => {
         
         {isDropdownOpen && (
           <div className="dropdown">
+            <button
+              className="dropdownItem"
+              onClick={() => navigate('/profile')}
+            >
+              Profile
+            </button>
             <button 
               className="dropdownItem" 
               onClick={() => navigate('/createClub')}

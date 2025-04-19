@@ -6,6 +6,8 @@ import Login from './components/auth/Login';
 import MagicLinkHandler from './components/auth/MagicLinkHandler';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
+import Profile from './components/profile/Profile';
+import ProfileInvites from './components/profile/ProfileInvites';
 
 function App() {
     return (
@@ -35,6 +37,18 @@ function App() {
                             </ProtectedRoute>
                         }
                     />
+
+                    <Route path="/profile"  element={
+                        <ProtectedRoute>
+                            <Profile />
+                        </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/profile/invites"  element={
+                        <ProtectedRoute>
+                            <ProfileInvites />
+                        </ProtectedRoute>
+                    } />
 
                     <Route path="/login" element={<Login />} />
                     <Route path="/auth/magic" element={<MagicLinkHandler />} />
