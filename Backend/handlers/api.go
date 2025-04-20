@@ -83,6 +83,17 @@ func Handler_v1() http.Handler {
 		}
 	})
 
+	mux.HandleFunc("/api/v1/auth/me", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetMe(w, r)
+		case http.MethodPut:
+			handleUpdateMe(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
 	mux.HandleFunc("/api/v1/clubs/{clubid}/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:

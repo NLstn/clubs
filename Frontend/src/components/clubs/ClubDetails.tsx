@@ -7,7 +7,6 @@ import InviteMember from './InviteMember';
 interface Member {
     id: string;
     name: string;
-    email: string;
 }
 
 interface Club {
@@ -96,14 +95,12 @@ const ClubDetails = () => {
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Email</th>
                             </tr>
                         </thead>
                         <tbody>
                             {members.map((member) => (
                                 <tr key={member.id}>
                                     <td>{member.name}</td>
-                                    <td>{member.email}</td>
                                     <td className="delete-cell">
                                         <button
                                             onClick={() => deleteMember(member.id)}
