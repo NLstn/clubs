@@ -22,17 +22,15 @@ const Profile = () => {
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
-                // In a real implementation, you'd fetch the user profile from API
-                // For now, we'll simulate getting the email from the API
                 const response = await api.get('/api/v1/auth/me');
+                console.log('User profile response:', response.data);
                 setProfile({
-                    name: response.data.name || 'User',
-                    email: response.data.email
+                    name: response.data.Name || 'User',
+                    email: response.data.Email || ''
                 });
-                setEditedName(response.data.name || 'User');
+                setEditedName(response.data.Name || 'User');
             } catch (error) {
                 console.error('Error fetching user profile:', error);
-                // For demo, setting default values
                 setProfile({
                     name: 'Demo User',
                     email: 'user@example.com'
@@ -53,10 +51,10 @@ const Profile = () => {
     const handleSave = async () => {
         setIsLoading(true);
         try {
-            // In a real implementation, you'd update the user name via API
-            // await api.put('/api/v1/auth/profile', { name: editedName });
-            
-            // Update local state
+            await api.put('/api/v1/auth/me', {
+                name: editedName
+            });
+
             setProfile({
                 ...profile,
                 name: editedName

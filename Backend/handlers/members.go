@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
@@ -13,12 +12,10 @@ import (
 
 // endpoint: GET /api/v1/clubs/{clubid}/members
 func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
-	path := strings.Trim(r.URL.Path, "/")
-	segments := strings.Split(path, "/")
 
-	if len(segments) != 5 {
-		http.Error(w, "Invalid path", http.StatusBadRequest)
-		return
+	type APIMember struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
 	}
 
 	clubID := extractPathParam(r, "clubs")
@@ -33,8 +30,22 @@ func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Loop at members and load their names
+	var apiMembers []APIMember
+	for i := range members {
+		user, err := models.GetUserByID(members[i].UserID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		var apiMember APIMember
+		apiMember.ID = members[i].UserID
+		apiMember.Name = user.Name
+		apiMembers = append(apiMembers, apiMember)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(members)
+	json.NewEncoder(w).Encode(apiMembers)
 }
 
 // endpoint: DELETE /api/v1/clubs/{clubid}/members/{memberid}
