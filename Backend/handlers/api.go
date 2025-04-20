@@ -94,6 +94,31 @@ func Handler_v1() http.Handler {
 		}
 	}))
 
+	mux.HandleFunc("/api/v1/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetUserJoinRequests(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.HandleFunc("/api/v1/joinRequests/{requestid}/accept", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			handleAcceptJoinRequest(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.HandleFunc("/api/v1/joinRequests/{requestid}/reject", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			handleRejectJoinRequest(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
 	return mux
 }
 

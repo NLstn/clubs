@@ -8,9 +8,8 @@ import (
 
 type Member struct {
 	ID     string `json:"id" gorm:"type:uuid;primary_key"`
-	Name   string `json:"name"`
-	Email  string `json:"email"`
 	ClubID string `json:"club_id" gorm:"type:uuid"`
+	UserID string `json:"user_id" gorm:"type:uuid"`
 }
 
 func GetClubMembers(clubID string) ([]Member, error) {
@@ -19,10 +18,17 @@ func GetClubMembers(clubID string) ([]Member, error) {
 	return members, err
 }
 
-func AddMember(member *Member, clubID string) error {
+func AddMember(clubID, userId string) error {
+	var member Member
 	member.ID = uuid.New().String()
 	member.ClubID = clubID
-	return database.Db.Create(member).Error
+	member.UserID = userId
+	err := database.Db.Create(member).Error
+	if err != nil {
+		return err
+	}
+	member.notifyAdded()
+	return nil
 }
 
 func DeleteMember(memberID, clubID string) (int64, error) {
@@ -30,10 +36,16 @@ func DeleteMember(memberID, clubID string) (int64, error) {
 	return result.RowsAffected, result.Error
 }
 
-func (m *Member) Validate() bool {
-	return m.Email != "" && m.Name != ""
-}
+func (m *Member) notifyAdded() {
+	var club Club
+	if err := database.Db.Where("id = ?", m.ClubID).First(&club).Error; err != nil {
+		return
+	}
 
-func (m *Member) NotifyAdded(clubName string) {
-	notifications.SendMemberAddedNotification(m.Email, clubName, m.ClubID)
+	var user User
+	if err := database.Db.Where("id = ?", m.UserID).First(&user).Error; err != nil {
+		return
+	}
+
+	notifications.SendMemberAddedNotification(user.Email, club.ID, club.Name)
 }
