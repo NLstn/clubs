@@ -7,7 +7,7 @@ import (
 	frontend "github.com/NLstn/clubs/tools"
 )
 
-func SendMemberAddedNotification(userMail string, clubName string, clubID string) error {
+func SendMemberAddedNotification(userMail string, clubID string, clubName string) error {
 	subject := "You have been added to a club"
 	clubLink := frontend.MakeClubLink(clubID)
 
