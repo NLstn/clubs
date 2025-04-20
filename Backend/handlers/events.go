@@ -4,16 +4,25 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
 	"github.com/google/uuid"
 )
 
 // endpoint: /api/v1/clubs/{clubid}/events
 func handleGetClubEvents(w http.ResponseWriter, r *http.Request) {
+
 	clubID := extractPathParam(r, "clubs")
-	// Validate clubID as a UUID
+
+	userID := extractUserID(r)
+
 	if _, err := uuid.Parse(clubID); err != nil {
 		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	if !auth.IsAuthorizedForClub(userID, clubID) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
 
@@ -27,9 +36,17 @@ func handleGetClubEvents(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(events)
 }
 
+// endpoint: POST /api/v1/clubs/{clubid}/events
 func handleCreateClubEvent(w http.ResponseWriter, r *http.Request) {
+
 	clubID := extractPathParam(r, "clubs")
-	// Validate clubID as a UUID
+
+	userID := extractUserID(r)
+	if !auth.IsAuthorizedForClub(userID, clubID) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
 	if _, err := uuid.Parse(clubID); err != nil {
 		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
 		return
@@ -57,9 +74,19 @@ func handleCreateClubEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 // endpoint: /api/v1/clubs/{clubid}/events/{eventid}
+
 func handleDeleteClubEvent(w http.ResponseWriter, r *http.Request) {
+
 	clubID := extractPathParam(r, "clubs")
+
 	eventID := extractPathParam(r, "events")
+
+	userID := extractUserID(r)
+	if !auth.IsAuthorizedForClub(userID, clubID) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
 	// Validate clubID as a UUID
 	if _, err := uuid.Parse(clubID); err != nil {
 		http.Error(w, "Invalid club ID format", http.StatusBadRequest)

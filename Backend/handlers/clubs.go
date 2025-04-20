@@ -3,16 +3,16 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
 	"gorm.io/gorm"
 )
 
-// handleGetAllClubs retrieves all clubs
+// endpoint: GET /api/v1/clubs
 func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(auth.UserIDKey).(string)
+
+	userID := extractUserID(r)
 
 	clubs, err := models.GetAllClubs()
 	if err != nil {
@@ -33,15 +33,14 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(clubs)
 }
 
-// handleGetClubByID retrieves a specific club by ID
+// endpoint: GET /api/v1/clubs/{clubid}
 func handleGetClubByID(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(auth.UserIDKey).(string)
 
-	// Extract club ID from URL path
-	path := strings.TrimPrefix(r.URL.Path, "/api/v1/clubs/")
-	id := path
+	userID := extractUserID(r)
 
-	club, err := models.GetClubByID(id)
+	clubID := extractPathParam(r, "clubs")
+
+	club, err := models.GetClubByID(clubID)
 
 	if err == gorm.ErrRecordNotFound {
 		http.Error(w, "Club not found", http.StatusNotFound)
@@ -61,15 +60,16 @@ func handleGetClubByID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(club)
 }
 
-// handleCreateClub creates a new club
+// endpoint: POST /api/v1/clubs
 func handleCreateClub(w http.ResponseWriter, r *http.Request) {
+
+	userID := extractUserID(r)
+
 	var club models.Club
 	if err := json.NewDecoder(r.Body).Decode(&club); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	if err := models.CreateClub(&club, userID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

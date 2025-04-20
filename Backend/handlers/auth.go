@@ -9,7 +9,8 @@ import (
 	frontend "github.com/NLstn/clubs/tools"
 )
 
-func requestMagicLink(w http.ResponseWriter, r *http.Request) {
+// endpoint: GET /api/v1/auth/requestMagicLink
+func handleRequestMagicLink(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Email string `json:"email"`
 	}
@@ -33,6 +34,7 @@ func requestMagicLink(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// endpoint: GET /api/v1/auth/verifyMagicLink
 func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
 	if token == "" {
