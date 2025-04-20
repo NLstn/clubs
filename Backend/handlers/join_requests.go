@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// endpoint: POST /api/v1/clubs/{clubid}/joinRequests
 func handleJoinRequestCreate(w http.ResponseWriter, r *http.Request) {
 
 	clubID := extractPathParam(r, "clubs")
@@ -17,7 +18,7 @@ func handleJoinRequestCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := r.Context().Value(auth.UserIDKey).(string)
+	userID := extractUserID(r)
 	if !auth.IsOwnerOfClub(userID, clubID) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
@@ -54,7 +55,7 @@ func handleGetJoinEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := r.Context().Value(auth.UserIDKey).(string)
+	userID := extractUserID(r)
 	if !auth.IsOwnerOfClub(userID, clubID) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return

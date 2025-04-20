@@ -29,7 +29,14 @@ func Handler_v1() http.Handler {
 		}
 	}))
 
-	mux.HandleFunc("/api/v1/clubs/{clubid}/members", withAuth(handleClubMembers))
+	mux.HandleFunc("/api/v1/clubs/{clubid}/members", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetClubMembers(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 
 	mux.HandleFunc("/api/v1/clubs/{clubid}/members/{memberid}", withAuth(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodDelete {
@@ -58,8 +65,23 @@ func Handler_v1() http.Handler {
 		}
 	}))
 
-	mux.HandleFunc("/api/v1/auth/requestMagicLink", requestMagicLink)
-	mux.HandleFunc("/api/v1/auth/verifyMagicLink", verifyMagicLink)
+	mux.HandleFunc("/api/v1/auth/requestMagicLink", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			handleRequestMagicLink(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	mux.HandleFunc("/api/v1/auth/verifyMagicLink", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			verifyMagicLink(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 
 	mux.HandleFunc("/api/v1/clubs/{clubid}/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -90,4 +112,12 @@ func extractPathParam(r *http.Request, param string) string {
 		}
 	}
 	return ""
+}
+
+func extractUserID(r *http.Request) string {
+	userID, ok := r.Context().Value(auth.UserIDKey).(string)
+	if !ok {
+		return ""
+	}
+	return userID
 }
