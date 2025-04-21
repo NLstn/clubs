@@ -4,13 +4,12 @@ import Header from './Header';
 interface LayoutProps {
   children: React.ReactNode;
   title: string;
-  showBackButton?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, title, showBackButton = true }) => {
+const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   return (
     <div>
-      <Header title={title} showBackButton={showBackButton} />
+      <Header title={title} />
       <main style={{ marginTop: '90px' }}>
         {children}
       </main>
