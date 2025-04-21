@@ -3,7 +3,7 @@ name: Deploy Backend to VPS
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - 'Backend/**'
 
@@ -33,7 +33,7 @@ jobs:
               git sparse-checkout set Backend
             else
               cd ~/clubs
-              git pull origin main
+              git pull origin master
             fi
 
             # Make sure docker is using the latest changes
