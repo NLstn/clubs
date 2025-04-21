@@ -1,0 +1,43 @@
+name: Deploy Backend to VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Backend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_STAGING }}
+
+      - name: Deploy to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no myuser@your-vps << 'EOF'
+            set -e
+
+            # Clone repo if it doesn't exist
+            if [ ! -d ~/clubs ]; then
+              git clone --filter=blob:none --sparse https://github.com/NLstn/clubs.git ~/clubs
+              cd ~/clubs
+              git sparse-checkout init --cone
+              git sparse-checkout set Backend
+            else
+              cd ~/clubs
+              git pull origin main
+            fi
+
+            # Make sure docker is using the latest changes
+            cd Backend
+            docker compose pull
+            docker compose up -d --build
+          EOF
