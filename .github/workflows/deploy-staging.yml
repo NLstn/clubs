@@ -22,7 +22,7 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          ssh -o StrictHostKeyChecking=no myuser@your-vps << 'EOF'
+          ssh -o StrictHostKeyChecking=no nlstn@78.47.250.5 << 'EOF'
             set -e
 
             # Clone repo if it doesn't exist
