@@ -98,7 +98,7 @@ const ClubDetails = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {members.map((member) => (
+                            {members && members.map((member) => (
                                 <tr key={member.id}>
                                     <td>{member.name}</td>
                                     <td className="delete-cell">
