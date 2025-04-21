@@ -24,7 +24,17 @@ func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := models.GetClubMembers(clubID)
+	var club models.Club
+	club, err := models.GetClubByID(clubID)
+	if err == gorm.ErrRecordNotFound {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	members, err := club.GetClubMembers()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -83,7 +93,7 @@ func handleClubMemberDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rowsAffected, err := models.DeleteMember(memberID, clubID)
+	rowsAffected, err := club.DeleteMember(memberID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
