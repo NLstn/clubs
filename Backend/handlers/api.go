@@ -10,7 +10,27 @@ import (
 func Handler_v1() http.Handler {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/v1/clubs", withAuth(func(w http.ResponseWriter, r *http.Request) {
+	// Unauthenticated endpoints with strict rate limiting
+	mux.Handle("/api/v1/auth/requestMagicLink", RateLimitMiddleware(authLimiter)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			handleRequestMagicLink(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	mux.Handle("/api/v1/auth/verifyMagicLink", RateLimitMiddleware(authLimiter)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			verifyMagicLink(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	// Authenticated endpoints with general API rate limiting
+	mux.Handle("/api/v1/clubs", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			handleGetAllClubs(w, r)
@@ -19,34 +39,34 @@ func Handler_v1() http.Handler {
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	}))
+	})))
 
-	mux.HandleFunc("/api/v1/clubs/", withAuth(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/api/v1/clubs/", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			handleGetClubByID(w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	}))
+	})))
 
-	mux.HandleFunc("/api/v1/clubs/{clubid}/members", func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/api/v1/clubs/{clubid}/members", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			handleGetClubMembers(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	})
+	})))
 
-	mux.HandleFunc("/api/v1/clubs/{clubid}/members/{memberid}", withAuth(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/api/v1/clubs/{clubid}/members/{memberid}", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodDelete {
 			handleClubMemberDelete(w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	}))
+	})))
 
-	mux.HandleFunc("/api/v1/clubs/{clubid}/events", withAuth(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/api/v1/clubs/{clubid}/events", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			handleGetClubEvents(w, r)
@@ -55,35 +75,17 @@ func Handler_v1() http.Handler {
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	}))
+	})))
 
-	mux.HandleFunc("/api/v1/clubs/{clubid}/events/{eventid}", withAuth(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/api/v1/clubs/{clubid}/events/{eventid}", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodDelete {
 			handleDeleteClubEvent(w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	}))
+	})))
 
-	mux.HandleFunc("/api/v1/auth/requestMagicLink", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			handleRequestMagicLink(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
-	mux.HandleFunc("/api/v1/auth/verifyMagicLink", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			verifyMagicLink(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
-	mux.HandleFunc("/api/v1/auth/me", withAuth(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/api/v1/auth/me", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			handleGetMe(w, r)
@@ -92,9 +94,9 @@ func Handler_v1() http.Handler {
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	}))
+	})))
 
-	mux.HandleFunc("/api/v1/clubs/{clubid}/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/api/v1/clubs/{clubid}/joinRequests", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
 			handleJoinRequestCreate(w, r)
@@ -103,34 +105,34 @@ func Handler_v1() http.Handler {
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	}))
+	})))
 
-	mux.HandleFunc("/api/v1/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/api/v1/joinRequests", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			handleGetUserJoinRequests(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	}))
+	})))
 
-	mux.HandleFunc("/api/v1/joinRequests/{requestid}/accept", withAuth(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/api/v1/joinRequests/{requestid}/accept", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			handleAcceptJoinRequest(w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	}))
+	})))
 
-	mux.HandleFunc("/api/v1/joinRequests/{requestid}/reject", withAuth(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/api/v1/joinRequests/{requestid}/reject", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			handleRejectJoinRequest(w, r)
 		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	}))
+	})))
 
-	return mux
+	return LoggingMiddleware(CorsMiddleware(mux))
 }
 
 func withAuth(h http.HandlerFunc) http.HandlerFunc {
