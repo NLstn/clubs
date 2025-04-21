@@ -21,6 +21,12 @@
   font-size: 2rem;
 }
 
+.headerLogo {
+  margin-right: 1rem;
+  transition: transform 0.2s;
+  border-radius: 8px;
+}
+
 .userSection {
   position: relative;
   margin-right: 50px;

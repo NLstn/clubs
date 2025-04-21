@@ -30,7 +30,7 @@ const Dashboard = () => {
     };
 
     return (
-        <Layout title="Dashboard" showBackButton={false}>
+        <Layout title="Dashboard">
             <div>
                 {message && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
                     {message}

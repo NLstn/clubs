@@ -17,7 +17,7 @@ const ProfileInvites = () => {
   }, []);
 
   const fetchInvitations = async () => {
-    const response  = await api.get('/api/v1/joinRequests');
+    const response = await api.get('/api/v1/joinRequests');
     if (response.status === 200) {
       const data = response.data;
       setInvites(data);
@@ -28,7 +28,7 @@ const ProfileInvites = () => {
     try {
       await api.post(`/api/v1/joinRequests/${inviteId}/accept`);
       setInvites(invites.filter(invite => invite.id !== inviteId));
-      
+
       // Show success message
       setMessage(`You've joined ${clubName}!`);
       setTimeout(() => setMessage(''), 3000);
@@ -42,7 +42,7 @@ const ProfileInvites = () => {
     try {
       await api.post(`/api/v1/joinRequests/${inviteId}/reject`);
       setInvites(invites.filter(invite => invite.id !== inviteId));
-      
+
       // Show success message
       setMessage('Invitation declined');
       setTimeout(() => setMessage(''), 3000);
@@ -53,34 +53,34 @@ const ProfileInvites = () => {
   };
 
   return (
-    <Layout title="Club Invitations" showBackButton={true}>
-      <div style={{ 
-        display: 'flex', 
+    <Layout title="Club Invitations">
+      <div style={{
+        display: 'flex',
         minHeight: 'calc(100vh - 90px)',
         width: '100%',
         position: 'relative'
       }}>
         <ProfileSidebar />
-        <div style={{ 
+        <div style={{
           flex: '1 1 auto',
           padding: '20px',
           maxWidth: 'calc(100% - 200px)'
         }}>
           <h2>Pending Invitations</h2>
-          
+
           {message && (
-            <div className={message.includes('Failed') ? 'error' : 'success'} 
-                 style={{ 
-                    padding: '10px', 
-                    marginBottom: '20px',
-                    backgroundColor: message.includes('Failed') ? 'var(--color-error-bg)' : 'var(--color-success-bg)',
-                    color: message.includes('Failed') ? 'var(--color-error-text)' : 'var(--color-success-text)',
-                    borderRadius: '4px'
-                 }}>
-                {message}
+            <div className={message.includes('Failed') ? 'error' : 'success'}
+              style={{
+                padding: '10px',
+                marginBottom: '20px',
+                backgroundColor: message.includes('Failed') ? 'var(--color-error-bg)' : 'var(--color-success-bg)',
+                color: message.includes('Failed') ? 'var(--color-error-text)' : 'var(--color-success-text)',
+                borderRadius: '4px'
+              }}>
+              {message}
             </div>
           )}
-          
+
           {invites == null || invites.length === 0 ? (
             <p>You have no pending invitations.</p>
           ) : (
@@ -97,14 +97,14 @@ const ProfileInvites = () => {
                     <tr key={invite.id}>
                       <td>{invite.clubName}</td>
                       <td style={{ display: 'flex', gap: '10px' }}>
-                        <button 
-                          className="button-accept" 
+                        <button
+                          className="button-accept"
                           onClick={() => handleAccept(invite.id, invite.clubName)}
                         >
                           Accept
                         </button>
-                        <button 
-                          className="button-cancel" 
+                        <button
+                          className="button-cancel"
                           onClick={() => handleDecline(invite.id)}
                         >
                           Decline

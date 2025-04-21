@@ -1,26 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import logo from '../../assets/logo.png';
 import './Header.css';
 
 interface HeaderProps {
   title: string;
-  showBackButton?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, showBackButton = true }) => {
+const Header: React.FC<HeaderProps> = ({ title }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = async () => {
-    await logout();
+    logout();
     navigate('/login');
-  };
-
-  const handleBack = () => {
-    navigate(-1);
   };
 
   // Close dropdown when clicking outside
@@ -38,11 +34,13 @@ const Header: React.FC<HeaderProps> = ({ title, showBackButton = true }) => {
 
   return (
     <header className="header">
-      {showBackButton && (
-        <button className="backButton" onClick={handleBack}>
-          ← Back
-        </button>
-      )}
+      <img 
+        src={logo} 
+        alt="Logo" 
+        className="headerLogo" 
+        onClick={() => navigate('/')}
+        style={{ cursor: 'pointer', height: '40px' }} 
+      />
       <h1>{title}</h1>
       <div className="userSection" ref={dropdownRef}>
         <div 

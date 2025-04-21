@@ -76,7 +76,7 @@ const Profile = () => {
     };
 
     return (
-        <Layout title="User Profile" showBackButton={true}>
+        <Layout title="User Profile">
             <div style={{ 
                 display: 'flex', 
                 minHeight: 'calc(100vh - 90px)',
