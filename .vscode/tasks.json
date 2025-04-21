@@ -1,0 +1,72 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Backend",
+            "type": "shell",
+            "command": "cd Backend && ~/go/bin/air",
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^.*$",
+                    "file": 1,
+                    "location": 2,
+                    "message": 3
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".",
+                    "endsPattern": "^Watching.*"
+                }
+            }
+        },
+        {
+            "label": "Start Frontend",
+            "type": "shell",
+            "command": "cd Frontend && npm run dev",
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^.*$",
+                    "file": 1,
+                    "location": 2,
+                    "message": 3
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".",
+                    "endsPattern": "^.*Local:.*"
+                }
+            }
+        },
+        {
+            "label": "Open Website",
+            "type": "shell",
+            "command": "cmd.exe /C start http://localhost:5173 || explorer.exe http://localhost:5173 || wslview http://localhost:5173 || python3 -m webbrowser http://localhost:5173",
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^$",
+                    "endsPattern": "^$"
+                }
+            },
+            "presentation": {
+                "reveal": "never",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Start Development Environment",
+            "dependsOn": ["Start Backend", "Start Frontend", "Open Website"],
+            "dependsOrder": "parallel",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
+        }
+    ]
+}
