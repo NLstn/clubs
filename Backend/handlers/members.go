@@ -39,7 +39,7 @@ func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var apiMember APIMember
-		apiMember.ID = members[i].UserID
+		apiMember.ID = members[i].ID
 		apiMember.Name = user.Name
 		apiMembers = append(apiMembers, apiMember)
 	}
