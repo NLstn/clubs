@@ -11,18 +11,18 @@ type JoinRequest struct {
 	Email  string `json:"email"`
 }
 
-func CreateJoinRequest(clubId, email string) error {
+func (c *Club) CreateJoinRequest(email string) error {
 	request := &JoinRequest{
 		ID:     uuid.New().String(),
-		ClubID: clubId,
+		ClubID: c.ID,
 		Email:  email,
 	}
 	return database.Db.Create(request).Error
 }
 
-func GetJoinRequestsForClub(clubId string) ([]JoinRequest, error) {
+func (c *Club) GetJoinRequests() ([]JoinRequest, error) {
 	var requests []JoinRequest
-	err := database.Db.Where("club_id = ?", clubId).Find(&requests).Error
+	err := database.Db.Where("club_id = ?", c.ID).Find(&requests).Error
 	if err != nil {
 		return nil, err
 	}
