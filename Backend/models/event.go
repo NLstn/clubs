@@ -15,23 +15,30 @@ type Event struct {
 	EndTime     string `json:"end_time"`
 }
 
-func GetClubEvents(clubID string) ([]Event, error) {
+func (c *Club) GetEvents() ([]Event, error) {
 	var events []Event
-	err := database.Db.Where("club_id = ?", clubID).Find(&events).Error
+	err := database.Db.Where("club_id = ?", c.ID).Find(&events).Error
 	return events, err
 }
 
-func CreateEvent(event *Event, clubID string) error {
+func (c *Club) CreateEvent(name, description, date, beginTime, endTime string) (Event, error) {
+	var event Event
 	event.ID = uuid.New().String()
-	event.ClubID = clubID
-	return database.Db.Create(event).Error
+	event.Name = name
+	event.Description = description
+	event.ClubID = c.ID
+	event.Date = date
+	event.BeginTime = beginTime
+	event.EndTime = endTime
+
+	err := database.Db.Create(event).Error
+	if err != nil {
+		return Event{}, err
+	}
+	return event, nil
 }
 
-func DeleteEvent(eventID, clubID string) (int64, error) {
-	result := database.Db.Where("id = ? AND club_id = ?", eventID, clubID).Delete(&Event{})
+func (c *Club) DeleteEvent(eventID string) (int64, error) {
+	result := database.Db.Where("id = ? AND club_id = ?", eventID, c.ID).Delete(&Event{})
 	return result.RowsAffected, result.Error
-}
-
-func (e *Event) Validate() bool {
-	return e.Name != "" && e.Date != "" && e.BeginTime != "" && e.EndTime != ""
 }
