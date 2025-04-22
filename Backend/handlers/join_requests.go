@@ -11,6 +11,10 @@ import (
 // endpoint: POST /api/v1/clubs/{clubid}/joinRequests
 func handleJoinRequestCreate(w http.ResponseWriter, r *http.Request) {
 
+	type Payload struct {
+		Email string `json:"email"`
+	}
+
 	clubID := extractPathParam(r, "clubs")
 	club, err := models.GetClubByID(clubID)
 	if err != nil {
@@ -24,20 +28,18 @@ func handleJoinRequestCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var joinRequest models.JoinRequest
-	if err := json.NewDecoder(r.Body).Decode(&joinRequest); err != nil {
+	var payload Payload
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	joinRequest.ClubID = clubID
-
-	if joinRequest.ClubID == "" || joinRequest.Email == "" {
-		http.Error(w, "Missing club_id or email", http.StatusBadRequest)
+	if payload.Email == "" {
+		http.Error(w, "Missing email", http.StatusBadRequest)
 		return
 	}
 
-	err = models.CreateJoinRequest(joinRequest.ClubID, joinRequest.Email)
+	err = club.CreateJoinRequest(payload.Email)
 	if err != nil {
 		http.Error(w, "Failed to create join request", http.StatusInternalServerError)
 		return
@@ -67,7 +69,7 @@ func handleGetJoinEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	events, err := models.GetJoinRequestsForClub(clubID)
+	events, err := club.GetJoinRequests()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
