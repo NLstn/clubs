@@ -19,10 +19,18 @@ type Member struct {
 	UserID string `json:"user_id" gorm:"type:uuid"`
 }
 
-func CreateClub(club *Club, ownerID string) error {
+func CreateClub(name, description, ownerID string) (Club, error) {
+	var club Club
 	club.ID = uuid.New().String()
+	club.Name = name
+	club.Description = description
 	club.OwnerID = ownerID
-	return database.Db.Create(club).Error
+	err := database.Db.Create(club)
+	if err != nil {
+		return Club{}, err.Error
+	}
+
+	return club, nil
 }
 
 func GetAllClubs() ([]Club, error) {

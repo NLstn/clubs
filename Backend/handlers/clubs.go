@@ -63,15 +63,21 @@ func handleGetClubByID(w http.ResponseWriter, r *http.Request) {
 // endpoint: POST /api/v1/clubs
 func handleCreateClub(w http.ResponseWriter, r *http.Request) {
 
+	type Body struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+	}
+
 	userID := extractUserID(r)
 
-	var club models.Club
-	if err := json.NewDecoder(r.Body).Decode(&club); err != nil {
+	var payload Body
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := models.CreateClub(&club, userID); err != nil {
+	club, err := models.CreateClub(payload.Name, payload.Description, userID)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
