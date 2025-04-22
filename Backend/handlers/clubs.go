@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
 	"gorm.io/gorm"
 )
@@ -22,7 +21,7 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 
 	var authorizedClubs []models.Club
 	for _, club := range clubs {
-		if auth.IsAuthorizedForClub(userID, club.ID) {
+		if club.IsMember(userID) {
 			authorizedClubs = append(authorizedClubs, club)
 		}
 	}
@@ -41,7 +40,6 @@ func handleGetClubByID(w http.ResponseWriter, r *http.Request) {
 	clubID := extractPathParam(r, "clubs")
 
 	club, err := models.GetClubByID(clubID)
-
 	if err == gorm.ErrRecordNotFound {
 		http.Error(w, "Club not found", http.StatusNotFound)
 		return
@@ -51,7 +49,7 @@ func handleGetClubByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !auth.IsAuthorizedForClub(userID, club.ID) {
+	if !club.IsMember(userID) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
 	"github.com/google/uuid"
 )
@@ -13,13 +12,14 @@ import (
 func handleJoinRequestCreate(w http.ResponseWriter, r *http.Request) {
 
 	clubID := extractPathParam(r, "clubs")
-	if _, err := uuid.Parse(clubID); err != nil {
-		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Club not found", http.StatusNotFound)
 		return
 	}
 
 	userID := extractUserID(r)
-	if !auth.IsOwnerOfClub(userID, clubID) {
+	if !club.IsOwner(userID) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
@@ -37,7 +37,7 @@ func handleJoinRequestCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := models.CreateJoinRequest(joinRequest.ClubID, joinRequest.Email)
+	err = models.CreateJoinRequest(joinRequest.ClubID, joinRequest.Email)
 	if err != nil {
 		http.Error(w, "Failed to create join request", http.StatusInternalServerError)
 		return
@@ -55,8 +55,14 @@ func handleGetJoinEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Failed to get club information", http.StatusInternalServerError)
+		return
+	}
+
 	userID := extractUserID(r)
-	if !auth.IsOwnerOfClub(userID, clubID) {
+	if !club.IsOwner(userID) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
