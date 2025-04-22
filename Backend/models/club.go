@@ -70,6 +70,17 @@ func (c *Club) IsOwner(userID string) bool {
 	return false
 }
 
+func (c *Club) IsMember(userID string) bool {
+	var member Member
+	result := database.Db.Where("club_id = ? AND user_id = ?", c.ID, userID).First(&member)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return false
+		}
+	}
+	return true
+}
+
 func (c *Club) GetClubMembers() ([]Member, error) {
 	var members []Member
 	err := database.Db.Where("club_id = ?", c.ID).Find(&members).Error

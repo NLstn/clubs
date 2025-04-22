@@ -4,15 +4,20 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
 	"github.com/google/uuid"
 )
 
-// endpoint: /api/v1/clubs/{clubid}/events
+// endpoint: GET /api/v1/clubs/{clubid}/events
 func handleGetClubEvents(w http.ResponseWriter, r *http.Request) {
 
 	clubID := extractPathParam(r, "clubs")
+
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
 
 	userID := extractUserID(r)
 
@@ -21,7 +26,7 @@ func handleGetClubEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !auth.IsAuthorizedForClub(userID, clubID) {
+	if !club.IsMember(userID) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
@@ -39,16 +44,17 @@ func handleGetClubEvents(w http.ResponseWriter, r *http.Request) {
 // endpoint: POST /api/v1/clubs/{clubid}/events
 func handleCreateClubEvent(w http.ResponseWriter, r *http.Request) {
 
-	clubID := extractPathParam(r, "clubs")
-
 	userID := extractUserID(r)
-	if !auth.IsAuthorizedForClub(userID, clubID) {
-		http.Error(w, "Unauthorized", http.StatusForbidden)
+
+	clubID := extractPathParam(r, "clubs")
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Club not found", http.StatusNotFound)
 		return
 	}
 
-	if _, err := uuid.Parse(clubID); err != nil {
-		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+	if !club.IsOwner(userID) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
 
@@ -74,15 +80,19 @@ func handleCreateClubEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 // endpoint: /api/v1/clubs/{clubid}/events/{eventid}
-
 func handleDeleteClubEvent(w http.ResponseWriter, r *http.Request) {
 
 	clubID := extractPathParam(r, "clubs")
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
 
 	eventID := extractPathParam(r, "events")
 
 	userID := extractUserID(r)
-	if !auth.IsAuthorizedForClub(userID, clubID) {
+	if !club.IsOwner(userID) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
