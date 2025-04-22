@@ -71,7 +71,7 @@ func AcceptJoinRequest(requestId, userId string) error {
 		return err
 	}
 
-	err = club.AddMember(userId)
+	err = club.AddMember(userId, "member")
 	if err != nil {
 		return err
 	}
