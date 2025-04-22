@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/NLstn/clubs/models"
-	"github.com/google/uuid"
 )
 
 // endpoint: GET /api/v1/clubs/{clubid}/events
@@ -21,17 +20,12 @@ func handleGetClubEvents(w http.ResponseWriter, r *http.Request) {
 
 	userID := extractUserID(r)
 
-	if _, err := uuid.Parse(clubID); err != nil {
-		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
-		return
-	}
-
 	if !club.IsMember(userID) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
 
-	events, err := models.GetClubEvents(clubID)
+	events, err := club.GetEvents()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -43,6 +37,16 @@ func handleGetClubEvents(w http.ResponseWriter, r *http.Request) {
 
 // endpoint: POST /api/v1/clubs/{clubid}/events
 func handleCreateClubEvent(w http.ResponseWriter, r *http.Request) {
+
+	type Payload struct {
+		ID          string `json:"id" gorm:"type:uuid;primary_key"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		ClubID      string `json:"club_id" gorm:"type:uuid"`
+		Date        string `json:"date"`
+		BeginTime   string `json:"begin_time"`
+		EndTime     string `json:"end_time"`
+	}
 
 	userID := extractUserID(r)
 
@@ -58,18 +62,14 @@ func handleCreateClubEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var event models.Event
-	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+	var payload Payload
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if !event.Validate() {
-		http.Error(w, "Name, date, begin time, and end time are required", http.StatusBadRequest)
-		return
-	}
-
-	if err := models.CreateEvent(&event, clubID); err != nil {
+	event, err := club.CreateEvent(payload.Name, payload.Description, payload.Date, payload.BeginTime, payload.EndTime)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -90,6 +90,10 @@ func handleDeleteClubEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	eventID := extractPathParam(r, "events")
+	if eventID == "" {
+		http.Error(w, "Event ID parameter is required", http.StatusBadRequest)
+		return
+	}
 
 	userID := extractUserID(r)
 	if !club.IsOwner(userID) {
@@ -97,24 +101,7 @@ func handleDeleteClubEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate clubID as a UUID
-	if _, err := uuid.Parse(clubID); err != nil {
-		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
-		return
-	}
-
-	// Validate eventID as a UUID
-	if _, err := uuid.Parse(eventID); err != nil {
-		http.Error(w, "Invalid event ID format", http.StatusBadRequest)
-		return
-	}
-
-	if eventID == "" {
-		http.Error(w, "Event ID parameter is required", http.StatusBadRequest)
-		return
-	}
-
-	rowsAffected, err := models.DeleteEvent(eventID, clubID)
+	rowsAffected, err := club.DeleteEvent(eventID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
