@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/NLstn/clubs/database"
@@ -15,9 +16,10 @@ type User struct {
 }
 
 type RefreshToken struct {
-	ID     string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	UserID string `gorm:"type:uuid;not null"`
-	Token  string `gorm:"uniqueIndex;not null"`
+	ID         string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	UserID     string `gorm:"type:uuid;not null"`
+	Token      string `gorm:"uniqueIndex;not null"`
+	ValidUntil time.Time
 }
 
 func FindOrCreateUser(email string) (User, error) {
@@ -50,6 +52,26 @@ func (u *User) UpdateUserName(name string) error {
 }
 
 func (u *User) StoreRefreshToken(token string) error {
-	refreshToken := RefreshToken{UserID: u.ID, Token: token}
+	refreshToken := RefreshToken{UserID: u.ID, Token: token, ValidUntil: time.Now().Add(30 * 24 * time.Hour)}
 	return database.Db.Exec(`INSERT INTO refresh_tokens (user_id, token) VALUES (?, ?)`, refreshToken.UserID, refreshToken.Token).Error
+}
+
+func (u *User) ValidateRefreshToken(token string) error {
+	var refreshToken RefreshToken
+	err := database.Db.Raw(`SELECT * FROM refresh_tokens WHERE user_id = ? AND token = ?`, u.ID, token).Scan(&refreshToken).Error
+	if err != nil {
+		return err
+	}
+	if refreshToken.ID == "" {
+		return fmt.Errorf("invalid refresh token")
+	}
+	if refreshToken.ValidUntil.Before(time.Now()) {
+		return fmt.Errorf("refresh token expired")
+	}
+
+	return nil
+}
+
+func (u *User) DeleteRefreshToken(token string) error {
+	return database.Db.Exec(`DELETE FROM refresh_tokens WHERE user_id = ? AND token = ?`, u.ID, token).Error
 }

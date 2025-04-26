@@ -88,6 +88,65 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// endpoint: POST /api/v1/auth/refresh
+func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
+	refreshToken := r.Header.Get("Authorization")
+	if refreshToken == "" {
+		http.Error(w, "Refresh token required", http.StatusUnauthorized)
+		return
+	}
+
+	userID, err := auth.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
+		return
+	}
+
+	user, err := models.GetUserByID(userID)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	newAccessToken, err := auth.GenerateAccessToken(user.ID)
+	if err != nil {
+		http.Error(w, "Failed to generate access token", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"access": newAccessToken,
+	})
+}
+
+// endpoint: POST /api/v1/auth/logout
+func handleLogout(w http.ResponseWriter, r *http.Request) {
+	refreshToken := r.Header.Get("Authorization")
+	if refreshToken == "" {
+		http.Error(w, "Refresh token required", http.StatusUnauthorized)
+		return
+	}
+
+	userID, err := auth.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		http.Error(w, "Invalid refresh token", http.StatusUnauthorized)
+		return
+	}
+
+	user, err := models.GetUserByID(userID)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	if err := user.DeleteRefreshToken(refreshToken); err != nil {
+		http.Error(w, "Failed to delete refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // endpoint: GET /api/v1/auth/me
 func handleGetMe(w http.ResponseWriter, r *http.Request) {
 	user := extractUser(r)

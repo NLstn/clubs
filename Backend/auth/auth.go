@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/azure/acs"
+	"github.com/NLstn/clubs/database"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -116,4 +117,50 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), UserIDKey, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func ValidateRefreshToken(tokenStr string) (string, error) {
+	// Parse and validate JWT
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		// Validate the alg
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			log.Default().Printf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, jwt.ErrSignatureInvalid
+		}
+		return jwtSecret, nil
+	})
+
+	if err != nil {
+		log.Default().Printf("Token parsing error: %v", err)
+		return "", fmt.Errorf("invalid token")
+	}
+
+	if !token.Valid {
+		log.Default().Println("Token validation failed")
+		return "", fmt.Errorf("invalid token")
+	}
+
+	// Extract user ID
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		log.Default().Println("Could not parse claims as MapClaims")
+		return "", fmt.Errorf("invalid token claims")
+	}
+
+	userID, ok := claims["user_id"].(string)
+	if !ok {
+		log.Default().Printf("user_id is not a string: %T", claims["user_id"])
+		return "", fmt.Errorf("invalid user ID")
+	}
+
+	var validUntil time.Time
+	err = database.Db.Raw(`SELECT valid_until FROM refresh_tokens WHERE user_id = ? AND token = ?`, userID, token).Scan(&validUntil).Error
+	if err != nil {
+		return "", err
+	}
+	if validUntil.Before(time.Now()) {
+		return "", fmt.Errorf("refresh token expired")
+	}
+
+	return userID, nil
 }
