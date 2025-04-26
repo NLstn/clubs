@@ -1,6 +1,8 @@
 package models
 
 import (
+	"log"
+
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/notifications"
 	"github.com/google/uuid"
@@ -71,12 +73,18 @@ func (c *Club) IsOwner(user User) bool {
 }
 
 func (c *Club) IsMember(user User) bool {
-	var member Member
-	result := database.Db.Where("club_id = ? AND user_id = ?", c.ID, user.ID).First(&member)
+	if user.ID == "" {
+		log.Fatal("User ID is empty")
+		return false
+	}
+
+	result := database.Db.Where("club_id = ? AND user_id = ?", c.ID, user.ID).Limit(1).Find(&Member{})
 	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
-			return false
-		}
+		log.Default().Println("Error checking membership:", result.Error)
+		return false
+	}
+	if result.RowsAffected == 0 {
+		return false
 	}
 	return true
 }

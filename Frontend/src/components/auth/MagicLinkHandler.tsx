@@ -32,7 +32,7 @@ const MagicLinkHandler: React.FC = () => {
 
         if (response.ok) {
           const data = await response.json();
-          login(data.token);
+          login(data.access, data.refresh);
           setStatus('success');
           
           // Redirect after short delay
