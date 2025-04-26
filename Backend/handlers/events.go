@@ -18,9 +18,9 @@ func handleGetClubEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := extractUserID(r)
+	user := extractUser(r)
 
-	if !club.IsMember(userID) {
+	if !club.IsMember(user) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
@@ -48,7 +48,7 @@ func handleCreateClubEvent(w http.ResponseWriter, r *http.Request) {
 		EndTime     string `json:"end_time"`
 	}
 
-	userID := extractUserID(r)
+	user := extractUser(r)
 
 	clubID := extractPathParam(r, "clubs")
 	club, err := models.GetClubByID(clubID)
@@ -57,7 +57,7 @@ func handleCreateClubEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !club.IsOwner(userID) {
+	if !club.IsOwner(user) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
@@ -95,8 +95,8 @@ func handleDeleteClubEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := extractUserID(r)
-	if !club.IsOwner(userID) {
+	user := extractUser(r)
+	if !club.IsOwner(user) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}

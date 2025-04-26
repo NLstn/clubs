@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/NLstn/clubs/auth"
+	"github.com/NLstn/clubs/models"
 )
 
 func Handler_v1() http.Handler {
@@ -152,10 +154,15 @@ func extractPathParam(r *http.Request, param string) string {
 	return ""
 }
 
-func extractUserID(r *http.Request) string {
-	userID, ok := r.Context().Value(auth.UserIDKey).(string)
-	if !ok {
-		return ""
+func extractUser(r *http.Request) models.User {
+	userID := r.Context().Value(auth.UserIDKey).(string)
+	if userID == "" {
+		return models.User{}
 	}
-	return userID
+	user, err := models.GetUserByID(userID)
+	if err != nil {
+		fmt.Println("Error getting user by ID:", err)
+		return models.User{}
+	}
+	return user
 }
