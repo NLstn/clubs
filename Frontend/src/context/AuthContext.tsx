@@ -3,8 +3,9 @@ import api from '../utils/api';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  token: string | null;
-  login: (token: string) => void;
+  accessToken: string | null;
+  refreshToken: string | null;
+  login: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
   api: typeof api;
 }
@@ -12,29 +13,46 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(localStorage.getItem('auth_token'));
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!token);
+  const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem('auth_token'));
+  const [refreshToken, setRefreshToken] = useState<string | null>(localStorage.getItem('refresh_token'));
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!accessToken);
 
   useEffect(() => {
-    if (token) {
-      localStorage.setItem('auth_token', token);
+    if (accessToken) {
+      localStorage.setItem('auth_token', accessToken);
+      localStorage.setItem('refresh_token', refreshToken || '');
       setIsAuthenticated(true);
     } else {
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('refresh_token');
       setIsAuthenticated(false);
     }
-  }, [token]);
+  }, [accessToken, refreshToken]);
 
-  const login = (newToken: string) => {
-    setToken(newToken);
+  const login = (newAccessToken: string, newRefreshToken: string) => {
+    setAccessToken(newAccessToken);
+    setRefreshToken(newRefreshToken);
   };
 
-  const logout = () => {
-    setToken(null);
+  const logout = async () => {
+    if (refreshToken) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_HOST}/api/v1/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': refreshToken
+          }
+        });
+      } catch (error) {
+        console.error('Error during logout:', error);
+      }
+    }
+    setAccessToken(null);
+    setRefreshToken(null);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, token, login, logout, api }}>
+    <AuthContext.Provider value={{ isAuthenticated, accessToken, refreshToken, login, logout, api }}>
       {children}
     </AuthContext.Provider>
   );

@@ -16,10 +16,10 @@ type User struct {
 }
 
 type RefreshToken struct {
-	ID         string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	UserID     string `gorm:"type:uuid;not null"`
-	Token      string `gorm:"uniqueIndex;not null"`
-	ValidUntil time.Time
+	ID        string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	UserID    string `gorm:"type:uuid;not null"`
+	Token     string `gorm:"uniqueIndex;not null"`
+	ExpiresAt time.Time
 }
 
 func FindOrCreateUser(email string) (User, error) {
@@ -52,8 +52,8 @@ func (u *User) UpdateUserName(name string) error {
 }
 
 func (u *User) StoreRefreshToken(token string) error {
-	refreshToken := RefreshToken{UserID: u.ID, Token: token, ValidUntil: time.Now().Add(30 * 24 * time.Hour)}
-	return database.Db.Exec(`INSERT INTO refresh_tokens (user_id, token) VALUES (?, ?)`, refreshToken.UserID, refreshToken.Token).Error
+	refreshToken := RefreshToken{UserID: u.ID, Token: token, ExpiresAt: time.Now().Add(30 * 24 * time.Hour)}
+	return database.Db.Exec(`INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)`, refreshToken.UserID, refreshToken.Token, refreshToken.ExpiresAt).Error
 }
 
 func (u *User) ValidateRefreshToken(token string) error {
@@ -65,7 +65,7 @@ func (u *User) ValidateRefreshToken(token string) error {
 	if refreshToken.ID == "" {
 		return fmt.Errorf("invalid refresh token")
 	}
-	if refreshToken.ValidUntil.Before(time.Now()) {
+	if refreshToken.ExpiresAt.Before(time.Now()) {
 		return fmt.Errorf("refresh token expired")
 	}
 

@@ -153,12 +153,12 @@ func ValidateRefreshToken(tokenStr string) (string, error) {
 		return "", fmt.Errorf("invalid user ID")
 	}
 
-	var validUntil time.Time
-	err = database.Db.Raw(`SELECT valid_until FROM refresh_tokens WHERE user_id = ? AND token = ?`, userID, token).Scan(&validUntil).Error
+	var expiresAt time.Time
+	err = database.Db.Raw(`SELECT expires_at FROM refresh_tokens WHERE user_id = ? AND token = ?`, userID, token.Raw).Scan(&expiresAt).Error
 	if err != nil {
 		return "", err
 	}
-	if validUntil.Before(time.Now()) {
+	if expiresAt.Before(time.Now()) {
 		return "", fmt.Errorf("refresh token expired")
 	}
 

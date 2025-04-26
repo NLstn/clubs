@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/NLstn/clubs/auth"
@@ -95,6 +96,8 @@ func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Refresh token required", http.StatusUnauthorized)
 		return
 	}
+
+	log.Default().Println("Refreshing access token")
 
 	userID, err := auth.ValidateRefreshToken(refreshToken)
 	if err != nil {
