@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -81,14 +80,14 @@ func handleClubMemberDelete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	userIDValue := r.Context().Value(auth.UserIDKey)
-	if userIDValue == nil {
-		http.Error(w, "Unauthorized - authentication required", http.StatusUnauthorized)
+
+	user := extractUser(r)
+	if user.ID == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	userID := userIDValue.(string)
-	if !club.IsOwner(userID) {
+	if !club.IsOwner(user) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}

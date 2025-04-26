@@ -31,7 +31,7 @@ func SendMagicLinkEmail(email, link string) {
 	acs.SendMail([]acs.Recipient{{Address: email}}, "Magic Link", "Click the link to login: "+link, "<a href='"+link+"'>Click here to login</a>")
 }
 
-func GenerateJWT(userID string) (string, error) {
+func generateJWT(userID string, expiration time.Duration) (string, error) {
 	// Validate userID is not empty
 	if userID == "" {
 		return "", fmt.Errorf("cannot generate JWT with empty userID")
@@ -39,7 +39,7 @@ func GenerateJWT(userID string) (string, error) {
 
 	claims := jwt.MapClaims{
 		"user_id": userID,
-		"exp":     time.Now().Add(24 * time.Hour).Unix(),
+		"exp":     time.Now().Add(expiration).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenStr, err := token.SignedString(jwtSecret)
@@ -47,6 +47,14 @@ func GenerateJWT(userID string) (string, error) {
 		return "", fmt.Errorf("failed to sign JWT: %w", err)
 	}
 	return tokenStr, nil
+}
+
+func GenerateAccessToken(userID string) (string, error) {
+	return generateJWT(userID, 15*time.Minute)
+}
+
+func GenerateRefreshToken(userID string) (string, error) {
+	return generateJWT(userID, 30*24*time.Hour)
 }
 
 func AuthMiddleware(next http.Handler) http.Handler {

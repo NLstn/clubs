@@ -29,18 +29,18 @@ func (c *Club) GetJoinRequests() ([]JoinRequest, error) {
 	return requests, nil
 }
 
-func GetUserJoinRequests(userId string) ([]JoinRequest, error) {
+func (u *User) GetJoinRequests() ([]JoinRequest, error) {
 	var requests []JoinRequest
-	err := database.Db.Where("email = (SELECT email FROM users WHERE id = ?)", userId).Find(&requests).Error
+	err := database.Db.Where("email = (SELECT email FROM users WHERE id = ?)", u.ID).Find(&requests).Error
 	if err != nil {
 		return nil, err
 	}
 	return requests, nil
 }
 
-func GetUserCanEditJoinRequest(userId, requestId string) (bool, error) {
+func (u *User) GetUserCanEditJoinRequest(requestId string) (bool, error) {
 	var user User
-	err := database.Db.Where("id = ?", userId).First(&user).Error
+	err := database.Db.Where("id = ?", user.ID).First(&user).Error
 	if err != nil {
 		return false, err
 	}

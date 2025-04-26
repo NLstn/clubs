@@ -59,8 +59,8 @@ func GetClubByID(id string) (Club, error) {
 	return club, result.Error
 }
 
-func (c *Club) IsOwner(userID string) bool {
-	role, err := c.GetMemberRole(userID)
+func (c *Club) IsOwner(user User) bool {
+	role, err := c.GetMemberRole(user.ID)
 	if err != nil {
 		return false
 	}
@@ -70,9 +70,9 @@ func (c *Club) IsOwner(userID string) bool {
 	return false
 }
 
-func (c *Club) IsMember(userID string) bool {
+func (c *Club) IsMember(user User) bool {
 	var member Member
-	result := database.Db.Where("club_id = ? AND user_id = ?", c.ID, userID).First(&member)
+	result := database.Db.Where("club_id = ? AND user_id = ?", c.ID, user.ID).First(&member)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
 			return false

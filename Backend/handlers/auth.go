@@ -49,22 +49,35 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find or create user
-	userID, err := models.FindOrCreateUser(email)
+	user, err := models.FindOrCreateUser(email)
 	if err != nil {
 		http.Error(w, "User error", http.StatusInternalServerError)
 		return
 	}
 
 	// Create session token or JWT
-	jwt, err := auth.GenerateJWT(userID)
+	accessToken, err := auth.GenerateAccessToken(user.ID)
 	if err != nil {
 		http.Error(w, "JWT error", http.StatusInternalServerError)
 		return
 	}
 
+	refreshToken, err := auth.GenerateRefreshToken(user.ID)
+	if err != nil {
+		http.Error(w, "Refresh token error", http.StatusInternalServerError)
+		return
+	}
+
+	// Store refresh token in the database
+	if err := user.StoreRefreshToken(refreshToken); err != nil {
+		http.Error(w, "Failed to store refresh token", http.StatusInternalServerError)
+		return
+	}
+
 	// Return token
 	json.NewEncoder(w).Encode(map[string]string{
-		"token": jwt,
+		"access":  accessToken,
+		"refresh": refreshToken,
 	})
 
 	if err := models.DeleteMagicLink(token); err != nil {
@@ -77,24 +90,20 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 
 // endpoint: GET /api/v1/auth/me
 func handleGetMe(w http.ResponseWriter, r *http.Request) {
-	userId := extractUserID(r)
-	if userId == "" {
+	user := extractUser(r)
+	if user.ID == "" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	user, err := models.GetUserByID(userId)
-	if err != nil {
-		http.Error(w, "User not found", http.StatusNotFound)
-		return
-	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }
 
 // endpoint: POST /api/v1/auth/me
 func handleUpdateMe(w http.ResponseWriter, r *http.Request) {
-	userId := extractUserID(r)
-	if userId == "" {
+	user := extractUser(r)
+	if user.ID == "" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -112,7 +121,7 @@ func handleUpdateMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.UpdateUserName(userId, req.Name); err != nil {
+	if err := user.UpdateUserName(req.Name); err != nil {
 		http.Error(w, "Failed to update user", http.StatusInternalServerError)
 		return
 	}

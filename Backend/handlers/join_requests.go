@@ -22,8 +22,8 @@ func handleJoinRequestCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := extractUserID(r)
-	if !club.IsOwner(userID) {
+	user := extractUser(r)
+	if !club.IsOwner(user) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
@@ -63,8 +63,8 @@ func handleGetJoinEvents(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := extractUserID(r)
-	if !club.IsOwner(userID) {
+	user := extractUser(r)
+	if !club.IsOwner(user) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
@@ -82,7 +82,7 @@ func handleGetJoinEvents(w http.ResponseWriter, r *http.Request) {
 // endpoint: POST /api/v1/joinRequests/{requestid}/accept
 func handleAcceptJoinRequest(w http.ResponseWriter, r *http.Request) {
 
-	userID := extractUserID(r)
+	user := extractUser(r)
 
 	requestID := extractPathParam(r, "joinRequests")
 	if _, err := uuid.Parse(requestID); err != nil {
@@ -90,13 +90,13 @@ func handleAcceptJoinRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	canEdit, err := models.GetUserCanEditJoinRequest(userID, requestID)
+	canEdit, err := user.GetUserCanEditJoinRequest(requestID)
 	if err != nil || !canEdit {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	err = models.AcceptJoinRequest(requestID, userID)
+	err = models.AcceptJoinRequest(requestID, user.ID)
 	if err != nil {
 		http.Error(w, "Failed to accept join request", http.StatusInternalServerError)
 		return
@@ -107,7 +107,7 @@ func handleAcceptJoinRequest(w http.ResponseWriter, r *http.Request) {
 
 // endpoint: POST /api/v1/joinRequests/{requestid}/reject
 func handleRejectJoinRequest(w http.ResponseWriter, r *http.Request) {
-	userID := extractUserID(r)
+	user := extractUser(r)
 
 	requestID := extractPathParam(r, "joinRequests")
 	if _, err := uuid.Parse(requestID); err != nil {
@@ -115,7 +115,7 @@ func handleRejectJoinRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	canEdit, err := models.GetUserCanEditJoinRequest(userID, requestID)
+	canEdit, err := user.GetUserCanEditJoinRequest(requestID)
 	if err != nil || !canEdit {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
@@ -138,13 +138,13 @@ func handleGetUserJoinRequests(w http.ResponseWriter, r *http.Request) {
 		ClubName string `json:"clubName"`
 	}
 
-	userID := extractUserID(r)
-	if userID == "" {
+	user := extractUser(r)
+	if user.ID == "" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	requests, err := models.GetUserJoinRequests(userID)
+	requests, err := user.GetJoinRequests()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

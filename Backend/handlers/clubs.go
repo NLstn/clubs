@@ -11,7 +11,7 @@ import (
 // endpoint: GET /api/v1/clubs
 func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 
-	userID := extractUserID(r)
+	user := extractUser(r)
 
 	clubs, err := models.GetAllClubs()
 	if err != nil {
@@ -21,7 +21,7 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 
 	var authorizedClubs []models.Club
 	for _, club := range clubs {
-		if club.IsMember(userID) {
+		if club.IsMember(user) {
 			authorizedClubs = append(authorizedClubs, club)
 		}
 	}
@@ -35,7 +35,7 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 // endpoint: GET /api/v1/clubs/{clubid}
 func handleGetClubByID(w http.ResponseWriter, r *http.Request) {
 
-	userID := extractUserID(r)
+	user := extractUser(r)
 
 	clubID := extractPathParam(r, "clubs")
 
@@ -49,7 +49,7 @@ func handleGetClubByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !club.IsMember(userID) {
+	if !club.IsMember(user) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
@@ -66,7 +66,7 @@ func handleCreateClub(w http.ResponseWriter, r *http.Request) {
 		Description string `json:"description"`
 	}
 
-	userID := extractUserID(r)
+	user := extractUser(r)
 
 	var payload Body
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
@@ -74,7 +74,7 @@ func handleCreateClub(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	club, err := models.CreateClub(payload.Name, payload.Description, userID)
+	club, err := models.CreateClub(payload.Name, payload.Description, user.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
