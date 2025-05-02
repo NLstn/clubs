@@ -5,10 +5,12 @@ import logo from '../../assets/logo.png';
 import './Header.css';
 
 interface HeaderProps {
-  title: string;
+  title?: string;
+  isClubAdmin?: boolean;
+  clubId?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ title }) => {
+const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -41,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
         onClick={() => navigate('/')}
         style={{ cursor: 'pointer', height: '40px' }} 
       />
-      <h1>{title}</h1>
+      <h1>{title || 'Clubs'}</h1>
       <div className="userSection" ref={dropdownRef}>
         <div 
           className="userIcon" 
@@ -52,6 +54,14 @@ const Header: React.FC<HeaderProps> = ({ title }) => {
         
         {isDropdownOpen && (
           <div className="dropdown">
+            {isClubAdmin && clubId && (
+              <button
+                className="dropdownItem"
+                onClick={() => navigate(`/clubs/${clubId}/admin`)}
+              >
+                Admin Panel
+              </button>
+            )}
             <button
               className="dropdownItem"
               onClick={() => navigate('/profile')}
