@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Layout from '../layout/Layout';
-import InviteMember from './InviteMember';
-
-interface Member {
-    id: string;
-    name: string;
-}
 
 interface Club {
     id: string;
@@ -24,36 +18,28 @@ interface Events {
     end_time: string;
 }
 
-interface JoinRequest {
-    id: string;
-    email: string;
-}
-
 const ClubDetails = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [club, setClub] = useState<Club | null>(null);
-    const [members, setMembers] = useState<Member[]>([]);
     const [events, setEvents] = useState<Events[]>([]);
-    const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [clubResponse, membersResponse, eventsResponse, joinRequestsResponse] = await Promise.all([
+                const [clubResponse, eventsResponse, adminResponse] = await Promise.all([
                     api.get(`/api/v1/clubs/${id}`),
-                    api.get(`/api/v1/clubs/${id}/members`),
                     api.get(`/api/v1/clubs/${id}/events`),
-                    api.get(`/api/v1/clubs/${id}/joinRequests`)
+                    api.get(`/api/v1/clubs/${id}/isAdmin`)
                 ]);
                 setClub(clubResponse.data);
-                setMembers(membersResponse.data);
                 setEvents(eventsResponse.data);
-                setJoinRequests(joinRequestsResponse.data);
+                setIsAdmin(adminResponse.data.isAdmin);
                 setLoading(false);
-            } catch (error) {
+            } catch {
                 setError('Error fetching club details');
                 setLoading(false);
             }
@@ -61,24 +47,6 @@ const ClubDetails = () => {
 
         fetchData();
     }, [id]);
-
-    const deleteMember = async (memberId: string) => {
-        try {
-            await api.delete(`/api/v1/clubs/${id}/members/${memberId}`);
-            setMembers(members.filter(member => member.id !== memberId));
-        } catch (error) {
-            setError('Failed to delete member');
-        }
-    };
-
-    const sendInvite = async (email: string) => {
-        try {
-            await api.post(`/api/v1/clubs/${id}/joinRequests`, { email });
-            setIsModalOpen(false);
-        } catch (error) {
-            setError('Failed to send invite');
-        }
-    };
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="error">{error}</div>;
@@ -90,36 +58,6 @@ const ClubDetails = () => {
                 <h2>{club.name}</h2>
                 <div className="club-info">
                     <p>{club.description}</p>
-                    <h3>Members</h3>
-                    <table className="basic-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {members && members.map((member) => (
-                                <tr key={member.id}>
-                                    <td>{member.name}</td>
-                                    <td className="delete-cell">
-                                        <button
-                                            onClick={() => deleteMember(member.id)}
-                                            className="delete-button"
-                                            aria-label="Delete member"
-                                        >
-                                            ×
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    <button onClick={() => setIsModalOpen(true)}>Invite Member</button>
-                    <InviteMember
-                        isOpen={isModalOpen}
-                        onClose={() => setIsModalOpen(false)}
-                        onSubmit={sendInvite}
-                    />
                     <h3>Events</h3>
                     <table className="basic-table">
                         <thead>
@@ -143,21 +81,15 @@ const ClubDetails = () => {
                             ))}
                         </tbody>
                     </table>
-                    <h3>Pending Invites</h3>
-                    <table className="basic-table">
-                        <thead>
-                            <tr>
-                                <th>Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {joinRequests.map((request) => (
-                                <tr key={request.id}>
-                                    <td>{request.email}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    {isAdmin && (
+                        <button 
+                            className="button"
+                            onClick={() => navigate(`/clubs/${id}/admin`)}
+                            style={{ marginTop: '20px' }}
+                        >
+                            Manage Club
+                        </button>
+                    )}
                 </div>
             </div>
         </Layout>

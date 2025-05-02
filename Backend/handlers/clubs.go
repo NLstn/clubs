@@ -84,3 +84,26 @@ func handleCreateClub(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(club)
 }
+
+// endpoint: GET /api/v1/clubs/{clubid}/isAdmin
+func handleCheckAdminRights(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+	clubID := extractPathParam(r, "clubs")
+
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+
+	role, err := club.GetMemberRole(user.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	isAdmin := role == "owner" || role == "admin"
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]bool{"isAdmin": isAdmin})
+}
