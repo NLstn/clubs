@@ -122,6 +122,13 @@ func (c *Club) GetMemberRole(userID string) (string, error) {
 	return member.Role, nil
 }
 
+func (c *Club) Update(name, description string) error {
+	return database.Db.Model(c).Updates(map[string]interface{}{
+		"name":        name,
+		"description": description,
+	}).Error
+}
+
 func (m *Member) notifyAdded() {
 	var club Club
 	if err := database.Db.Where("id = ?", m.ClubID).First(&club).Error; err != nil {

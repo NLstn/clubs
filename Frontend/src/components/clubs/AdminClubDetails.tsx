@@ -37,8 +37,10 @@ const AdminClubDetails = () => {
     const [events, setEvents] = useState<Events[]>([]);
     const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editForm, setEditForm] = useState({ name: '', description: '' });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -89,6 +91,24 @@ const AdminClubDetails = () => {
         }
     };
 
+    const updateClub = async () => {
+        try {
+            const response = await api.patch(`/api/v1/clubs/${id}`, editForm);
+            setClub(response.data);
+            setIsEditing(false);
+            setError(null);
+        } catch {
+            setError('Failed to update club');
+        }
+    };
+
+    const handleEdit = () => {
+        if (club) {
+            setEditForm({ name: club.name, description: club.description });
+            setIsEditing(true);
+        }
+    };
+
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="error">{error}</div>;
     if (!club) return <div>Club not found</div>;
@@ -96,9 +116,43 @@ const AdminClubDetails = () => {
     return (
         <Layout title={`${club.name} - Admin`}>
             <div>
-                <h2>{club.name}</h2>
+                {isEditing ? (
+                    <div className="edit-form">
+                        <div className="form-group">
+                            <label htmlFor="clubName">Club Name</label>
+                            <input
+                                id="clubName"
+                                type="text"
+                                value={editForm.name}
+                                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                placeholder="Club Name"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="clubDescription">Description</label>
+                            <textarea
+                                id="clubDescription"
+                                value={editForm.description}
+                                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                placeholder="Club Description"
+                            />
+                        </div>
+                        <div className="form-actions">
+                            <button onClick={updateClub} className="button-accept">Save</button>
+                            <button onClick={() => setIsEditing(false)} className="button-cancel">Cancel</button>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h2>{club.name}</h2>
+                            <button onClick={handleEdit}>Edit Club</button>
+                        </div>
+                        <p>{club.description}</p>
+                    </>
+                )}
+
                 <div className="club-info">
-                    <p>{club.description}</p>
                     <h3>Members</h3>
                     <table className="basic-table">
                         <thead>

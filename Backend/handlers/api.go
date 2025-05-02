@@ -60,10 +60,13 @@ func Handler_v1() http.Handler {
 		}
 	})))
 
-	mux.Handle("/api/v1/clubs/", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
+	mux.Handle("/api/v1/clubs/{clubid}", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
 			handleGetClubByID(w, r)
-		} else {
+		case http.MethodPatch:
+			handleUpdateClub(w, r)
+		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})))

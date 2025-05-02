@@ -107,3 +107,71 @@ func handleCheckAdminRights(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]bool{"isAdmin": isAdmin})
 }
+
+// endpoint: PATCH /api/v1/clubs/{clubid}
+func handleUpdateClub(w http.ResponseWriter, r *http.Request) {
+	type Body struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+	}
+
+	user := extractUser(r)
+	clubID := extractPathParam(r, "clubs")
+
+	club, err := models.GetClubByID(clubID)
+	if err == gorm.ErrRecordNotFound {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if !club.IsOwner(user) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
+	var payload Body
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := club.Update(payload.Name, payload.Description); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(club)
+}
+
+func InitializeClubsRoutes(handler *http.ServeMux) {
+	handler.HandleFunc("/api/v1/clubs", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetAllClubs(w, r)
+		case http.MethodPost:
+			handleCreateClub(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	handler.HandleFunc("/api/v1/clubs/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			if r.URL.Path[len("/api/v1/clubs/"):] == "isAdmin" {
+				handleCheckAdminRights(w, r)
+			} else {
+				handleGetClubByID(w, r)
+			}
+		case http.MethodPatch:
+			handleUpdateClub(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+}
