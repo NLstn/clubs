@@ -69,7 +69,7 @@ func (c *Club) Update(name, description string) error {
 }
 
 func (c *Club) IsOwner(user User) bool {
-	role, err := c.GetMemberRole(user.ID)
+	role, err := c.GetMemberRole(user)
 	if err != nil {
 		return false
 	}
@@ -80,7 +80,7 @@ func (c *Club) IsOwner(user User) bool {
 }
 
 func (c *Club) IsAdmin(user User) bool {
-	role, err := c.GetMemberRole(user.ID)
+	role, err := c.GetMemberRole(user)
 	if err != nil {
 		return false
 	}
@@ -131,16 +131,16 @@ func (c *Club) DeleteMember(memberID string) (int64, error) {
 	return result.RowsAffected, result.Error
 }
 
-func (c *Club) GetMemberRole(userID string) (string, error) {
+func (c *Club) GetMemberRole(user User) (string, error) {
 	var member Member
-	result := database.Db.Where("club_id = ? AND user_id = ?", c.ID, userID).First(&member)
+	result := database.Db.Where("club_id = ? AND user_id = ?", c.ID, user.ID).First(&member)
 	if result.Error != nil {
 		return "", result.Error
 	}
 	return member.Role, nil
 }
 
-func (c *Club) UpdateMemberRole(memberID, role string) error {
+func (c *Club) UpdateMemberRole(changingUser User, memberID, role string) error {
 	var member Member
 	result := database.Db.Where("id = ? AND club_id = ?", memberID, c.ID).First(&member)
 	if result.Error != nil {
@@ -149,6 +149,11 @@ func (c *Club) UpdateMemberRole(memberID, role string) error {
 	if role != "owner" && role != "admin" && role != "member" {
 		return gorm.ErrInvalidData
 	}
+
+	if canChange, err := c.canChangeRole(changingUser, member.Role, role); err != nil || !canChange {
+		return gorm.ErrInvalidData
+	}
+
 	member.Role = role
 	return database.Db.Save(&member).Error
 }
@@ -165,4 +170,18 @@ func (m *Member) notifyAdded() {
 	}
 
 	notifications.SendMemberAddedNotification(user.Email, club.ID, club.Name)
+}
+
+func (c *Club) canChangeRole(changingUser User, oldRole, newRole string) (bool, error) {
+	changingUserRole, err := c.GetMemberRole(changingUser)
+	if err != nil {
+		return false, err
+	}
+	if changingUserRole == "owner" {
+		return true, nil
+	}
+	if changingUserRole == "admin" && (oldRole == "member" || newRole == "admin") {
+		return true, nil
+	}
+	return false, nil
 }
