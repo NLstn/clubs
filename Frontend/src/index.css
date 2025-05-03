@@ -253,3 +253,24 @@ tr:hover {
 .dummy {
   display: none;
 }
+
+/* dropdown styles */
+select {
+    padding: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-sm);
+    background-color: var(--color-background-light);
+    color: var(--color-text);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.25s;
+}
+
+select:hover {
+    border-color: var(--color-secondary);
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}

@@ -15,6 +15,7 @@ func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 	type APIMember struct {
 		ID   string `json:"id"`
 		Name string `json:"name"`
+		Role string `json:"role"`
 	}
 
 	clubID := extractPathParam(r, "clubs")
@@ -50,6 +51,7 @@ func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 		var apiMember APIMember
 		apiMember.ID = members[i].ID
 		apiMember.Name = user.Name
+		apiMember.Role = members[i].Role
 		apiMembers = append(apiMembers, apiMember)
 	}
 
