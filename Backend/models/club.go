@@ -22,6 +22,18 @@ type Member struct {
 	Role   string `json:"role"`
 }
 
+func GetAllClubs() ([]Club, error) {
+	var clubs []Club
+	err := database.Db.Find(&clubs).Error
+	return clubs, err
+}
+
+func GetClubByID(id string) (Club, error) {
+	var club Club
+	result := database.Db.First(&club, "id = ?", id)
+	return club, result.Error
+}
+
 func CreateClub(name, description, ownerID string) (Club, error) {
 	var club Club
 	club.ID = uuid.New().String()
@@ -49,16 +61,11 @@ func CreateClub(name, description, ownerID string) (Club, error) {
 	return club, nil
 }
 
-func GetAllClubs() ([]Club, error) {
-	var clubs []Club
-	err := database.Db.Find(&clubs).Error
-	return clubs, err
-}
-
-func GetClubByID(id string) (Club, error) {
-	var club Club
-	result := database.Db.First(&club, "id = ?", id)
-	return club, result.Error
+func (c *Club) Update(name, description string) error {
+	return database.Db.Model(c).Updates(map[string]interface{}{
+		"name":        name,
+		"description": description,
+	}).Error
 }
 
 func (c *Club) IsOwner(user User) bool {
@@ -67,6 +74,17 @@ func (c *Club) IsOwner(user User) bool {
 		return false
 	}
 	if role == "owner" {
+		return true
+	}
+	return false
+}
+
+func (c *Club) IsAdmin(user User) bool {
+	role, err := c.GetMemberRole(user.ID)
+	if err != nil {
+		return false
+	}
+	if role == "admin" || role == "owner" {
 		return true
 	}
 	return false
@@ -122,11 +140,17 @@ func (c *Club) GetMemberRole(userID string) (string, error) {
 	return member.Role, nil
 }
 
-func (c *Club) Update(name, description string) error {
-	return database.Db.Model(c).Updates(map[string]interface{}{
-		"name":        name,
-		"description": description,
-	}).Error
+func (c *Club) UpdateMemberRole(memberID, role string) error {
+	var member Member
+	result := database.Db.Where("id = ? AND club_id = ?", memberID, c.ID).First(&member)
+	if result.Error != nil {
+		return result.Error
+	}
+	if role != "owner" && role != "admin" && role != "member" {
+		return gorm.ErrInvalidData
+	}
+	member.Role = role
+	return database.Db.Save(&member).Error
 }
 
 func (m *Member) notifyAdded() {

@@ -104,3 +104,84 @@ func handleClubMemberDelete(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// endpoint: PATCH /api/v1/clubs/{clubid}/members/{memberid}
+func handleUpdateMemberRole(w http.ResponseWriter, r *http.Request) {
+	type Body struct {
+		Role string `json:"role"`
+	}
+
+	clubID := extractPathParam(r, "clubs")
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	memberID := extractPathParam(r, "members")
+	if _, err := uuid.Parse(memberID); err != nil {
+		http.Error(w, "Invalid member ID format", http.StatusBadRequest)
+		return
+	}
+
+	user := extractUser(r)
+	if user.ID == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var payload Body
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if payload.Role != "owner" && payload.Role != "admin" && payload.Role != "member" {
+		http.Error(w, "Invalid role", http.StatusBadRequest)
+		return
+	}
+
+	club, err := models.GetClubByID(clubID)
+	if err == gorm.ErrRecordNotFound {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if !club.IsAdmin(user) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
+	err = club.UpdateMemberRole(memberID, payload.Role)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// endpoint: GET /api/v1/clubs/{clubid}/isAdmin
+func handleCheckAdminRights(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+	clubID := extractPathParam(r, "clubs")
+
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+
+	role, err := club.GetMemberRole(user.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	isAdmin := role == "owner" || role == "admin"
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]bool{"isAdmin": isAdmin})
+}

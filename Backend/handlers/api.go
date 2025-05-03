@@ -75,6 +75,8 @@ func Handler_v1() http.Handler {
 		switch r.Method {
 		case http.MethodGet:
 			handleGetClubMembers(w, r)
+		case http.MethodPatch:
+			handleUpdateMemberRole(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
