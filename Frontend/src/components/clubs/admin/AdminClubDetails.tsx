@@ -4,6 +4,7 @@ import api from '../../../utils/api';
 import Layout from '../../layout/Layout';
 import AdminClubMemberList from './AdminClubMemberList';
 import AdminClubEventList from './AdminClubEventList';
+import AdminClubPendingInviteList from './AdminClubPendingInviteList';
 
 interface Club {
     id: string;
@@ -11,17 +12,12 @@ interface Club {
     description: string;
 }
 
-interface JoinRequest {
-    id: string;
-    email: string;
-}
-
 const AdminClubDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [club, setClub] = useState<Club | null>(null);
     
-    const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
+    
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -30,11 +26,10 @@ const AdminClubDetails = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [adminResponse, clubResponse, joinRequestsResponse] = await Promise.all([
+                const [adminResponse, clubResponse] = await Promise.all([
                     api.get(`/api/v1/clubs/${id}/isAdmin`),
                     api.get(`/api/v1/clubs/${id}`),
                     
-                    api.get(`/api/v1/clubs/${id}/joinRequests`)
                 ]);
 
                 if (!adminResponse.data.isAdmin) {
@@ -43,7 +38,6 @@ const AdminClubDetails = () => {
                 }
 
                 setClub(clubResponse.data);
-                setJoinRequests(joinRequestsResponse.data);
                 setLoading(false);
             } catch (err: Error | unknown) {
                 console.error('Error fetching club details:', err instanceof Error ? err.message : 'Unknown error');
@@ -119,22 +113,7 @@ const AdminClubDetails = () => {
                 <div className="club-info">
                     <AdminClubMemberList />
                     <AdminClubEventList />
-                    
-                    <h3>Pending Invites</h3>
-                    <table className="basic-table">
-                        <thead>
-                            <tr>
-                                <th>Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {joinRequests.map((request) => (
-                                <tr key={request.id}>
-                                    <td>{request.email}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <AdminClubPendingInviteList />
                 </div>
             </div>
         </Layout>
