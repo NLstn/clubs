@@ -154,7 +154,7 @@ func handleUpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = club.UpdateMemberRole(memberID, payload.Role)
+	err = club.UpdateMemberRole(user, memberID, payload.Role)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -174,7 +174,7 @@ func handleCheckAdminRights(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role, err := club.GetMemberRole(user.ID)
+	role, err := club.GetMemberRole(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
