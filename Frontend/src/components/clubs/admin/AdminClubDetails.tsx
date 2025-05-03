@@ -3,20 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../../utils/api';
 import Layout from '../../layout/Layout';
 import AdminClubMemberList from './AdminClubMemberList';
+import AdminClubEventList from './AdminClubEventList';
 
 interface Club {
     id: string;
     name: string;
     description: string;
-}
-
-interface Events {
-    id: string;
-    name: string;
-    date: string;
-    description: string;
-    begin_time: string;
-    end_time: string;
 }
 
 interface JoinRequest {
@@ -29,7 +21,6 @@ const AdminClubDetails = () => {
     const navigate = useNavigate();
     const [club, setClub] = useState<Club | null>(null);
     
-    const [events, setEvents] = useState<Events[]>([]);
     const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -39,10 +30,10 @@ const AdminClubDetails = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [adminResponse, clubResponse, eventsResponse, joinRequestsResponse] = await Promise.all([
+                const [adminResponse, clubResponse, joinRequestsResponse] = await Promise.all([
                     api.get(`/api/v1/clubs/${id}/isAdmin`),
                     api.get(`/api/v1/clubs/${id}`),
-                    api.get(`/api/v1/clubs/${id}/events`),
+                    
                     api.get(`/api/v1/clubs/${id}/joinRequests`)
                 ]);
 
@@ -52,7 +43,6 @@ const AdminClubDetails = () => {
                 }
 
                 setClub(clubResponse.data);
-                setEvents(eventsResponse.data);
                 setJoinRequests(joinRequestsResponse.data);
                 setLoading(false);
             } catch (err: Error | unknown) {
@@ -128,30 +118,8 @@ const AdminClubDetails = () => {
 
                 <div className="club-info">
                     <AdminClubMemberList />
+                    <AdminClubEventList />
                     
-                    <h3>Events</h3>
-                    <table className="basic-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Date</th>
-                                <th>Description</th>
-                                <th>Begin Time</th>
-                                <th>End Time</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {events.map((event) => (
-                                <tr key={event.id}>
-                                    <td>{event.name}</td>
-                                    <td>{event.date}</td>
-                                    <td>{event.description}</td>
-                                    <td>{event.begin_time}</td>
-                                    <td>{event.end_time}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
                     <h3>Pending Invites</h3>
                     <table className="basic-table">
                         <thead>
