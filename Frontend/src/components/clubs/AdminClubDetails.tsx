@@ -7,6 +7,7 @@ import InviteMember from './InviteMember';
 interface Member {
     id: string;
     name: string;
+    role: string;
 }
 
 interface Club {
@@ -41,6 +42,17 @@ const AdminClubDetails = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({ name: '', description: '' });
+
+    const handleRoleChange = async (memberId: string, newRole: string) => {
+        try {
+            await api.patch(`/api/v1/clubs/${id}/members/${memberId}`, { role: newRole });
+            setMembers(members.map(member => 
+                member.id === memberId ? { ...member, role: newRole } : member
+            ));
+        } catch {
+            setError('Failed to update member role');
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -158,6 +170,7 @@ const AdminClubDetails = () => {
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>Role</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -165,6 +178,16 @@ const AdminClubDetails = () => {
                             {members && members.map((member) => (
                                 <tr key={member.id}>
                                     <td>{member.name}</td>
+                                    <td>
+                                        <select 
+                                            value={member.role} 
+                                            onChange={(e) => handleRoleChange(member.id, e.target.value)}
+                                        >
+                                            <option value="member">Member</option>
+                                            <option value="admin">Admin</option>
+                                            <option value="owner">Owner</option>
+                                        </select>
+                                    </td>
                                     <td className="delete-cell">
                                         <button
                                             onClick={() => deleteMember(member.id)}
