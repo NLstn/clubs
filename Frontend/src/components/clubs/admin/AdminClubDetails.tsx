@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../../utils/api';
 import Layout from '../../layout/Layout';
 import AdminClubMemberList from './AdminClubMemberList';
-import AdminClubEventList from './AdminClubEventList';
 import AdminClubPendingInviteList from './AdminClubPendingInviteList';
 
 interface Club {
@@ -112,7 +111,6 @@ const AdminClubDetails = () => {
 
                 <div className="club-info">
                     <AdminClubMemberList />
-                    <AdminClubEventList />
                     <AdminClubPendingInviteList />
                 </div>
             </div>
