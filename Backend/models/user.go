@@ -75,3 +75,12 @@ func (u *User) ValidateRefreshToken(token string) error {
 func (u *User) DeleteRefreshToken(token string) error {
 	return database.Db.Exec(`DELETE FROM refresh_tokens WHERE user_id = ? AND token = ?`, u.ID, token).Error
 }
+
+func (u *User) GetFines() ([]Fine, error) {
+	var fines []Fine
+	err := database.Db.Raw(`SELECT * FROM fines WHERE user_id = ?`, u.ID).Scan(&fines).Error
+	if err != nil {
+		return nil, err
+	}
+	return fines, nil
+}
