@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/NLstn/clubs/database"
@@ -19,6 +20,16 @@ type Fine struct {
 }
 
 func (c *Club) CreateFine(userID, reason string, amount float64) (Fine, error) {
+
+	user, err := GetUserByID(userID)
+	if err != nil {
+		return Fine{}, err
+	}
+	if !c.IsMember(user) {
+		err = fmt.Errorf("user is not a member of the club")
+		return Fine{}, err
+	}
+
 	var fine Fine
 	fine.ID = uuid.New().String()
 	fine.ClubID = c.ID
@@ -28,7 +39,7 @@ func (c *Club) CreateFine(userID, reason string, amount float64) (Fine, error) {
 	fine.CreatedAt = time.Now().Format(time.RFC3339)
 	fine.UpdatedAt = time.Now().Format(time.RFC3339)
 
-	err := database.Db.Create(&fine).Error
+	err = database.Db.Create(&fine).Error
 	if err != nil {
 		return Fine{}, err
 	}

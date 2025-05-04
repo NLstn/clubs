@@ -6,6 +6,7 @@ interface Member {
     id: string;
     name: string;
     role: string;
+    userId: string;
 }
 
 interface MemberOption {
@@ -61,7 +62,7 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
             await api.post(`/api/v1/clubs/${clubId}/fines`, { 
                 amount, 
                 reason,
-                userId: selectedOption.member.id 
+                userId: selectedOption.member.userId
             });
             setAmount(0);
             setReason('');

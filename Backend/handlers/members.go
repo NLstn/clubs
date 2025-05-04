@@ -13,9 +13,10 @@ import (
 func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 
 	type APIMember struct {
-		ID   string `json:"id"`
-		Name string `json:"name"`
-		Role string `json:"role"`
+		ID     string `json:"id"`
+		UserId string `json:"userId"`
+		Name   string `json:"name"`
+		Role   string `json:"role"`
 	}
 
 	clubID := extractPathParam(r, "clubs")
@@ -50,6 +51,7 @@ func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 		}
 		var apiMember APIMember
 		apiMember.ID = members[i].ID
+		apiMember.UserId = members[i].UserID
 		apiMember.Name = user.Name
 		apiMember.Role = members[i].Role
 		apiMembers = append(apiMembers, apiMember)
