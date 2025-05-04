@@ -1,4 +1,4 @@
-import React from 'react';
+import { FC, useState } from 'react';
 
 interface InviteMemberProps {
   isOpen: boolean;
@@ -6,8 +6,8 @@ interface InviteMemberProps {
   onSubmit: (email: string) => void;
 }
 
-const InviteMember: React.FC<InviteMemberProps> = ({ isOpen, onClose, onSubmit }) => {
-  const [email, setEmail] = React.useState('');
+const InviteMember: FC<InviteMemberProps> = ({ isOpen, onClose, onSubmit }) => {
+  const [email, setEmail] = useState('');
 
   if (!isOpen) return null;
 
@@ -25,7 +25,7 @@ const InviteMember: React.FC<InviteMemberProps> = ({ isOpen, onClose, onSubmit }
             placeholder="Enter email"
           />
         </div>
-        <div className="modal-actions">
+        <div>
           <button onClick={() => onSubmit(email)} disabled={!email} className="button-accept">
             Send Invite
           </button>

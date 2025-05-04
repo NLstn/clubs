@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import InviteMember from "../InviteMember";
+import InviteMember from "./InviteMember";
 import api from "../../../utils/api";
 import { useParams } from "react-router-dom";
 
@@ -64,7 +64,7 @@ const AdminClubMemberList = () => {
     return (
         <div>
             <h3>Members</h3>
-            <table className="basic-table">
+            <table>
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -99,7 +99,7 @@ const AdminClubMemberList = () => {
                     ))}
                 </tbody>
             </table>
-            <button onClick={() => setIsModalOpen(true)}>Invite Member</button>
+            <button onClick={() => setIsModalOpen(true)} className="button-accept">Invite Member</button>
             <InviteMember
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
