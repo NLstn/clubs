@@ -145,6 +145,17 @@ func Handler_v1() http.Handler {
 		}
 	})))
 
+	mux.Handle("/api/v1/clubs/{clubid}/fines", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			handleCreateFine(w, r)
+		case http.MethodGet:
+			handleGetFines(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
 	return LoggingMiddleware(CorsMiddleware(mux))
 }
 
