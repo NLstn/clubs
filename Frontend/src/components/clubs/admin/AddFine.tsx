@@ -1,11 +1,17 @@
 import { FC, useState, useEffect } from "react";
 import api from "../../../utils/api";
-import './AddFine.css';
+import TypeAheadDropdown from "../../TypeAheadDropdown";
 
 interface Member {
     id: string;
     name: string;
     role: string;
+}
+
+interface MemberOption {
+    id: string;
+    label: string;
+    member: Member;
 }
 
 interface AddFineProps {
@@ -21,8 +27,8 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [members, setMembers] = useState<Member[]>([]);
-    const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [selectedOption, setSelectedOption] = useState<MemberOption | null>(null);
+    const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
 
     useEffect(() => {
         const fetchMembers = async () => {
@@ -45,7 +51,7 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
     if (!isOpen) return null;
 
     const handleSubmit = async () => {
-        if (!selectedMember) {
+        if (!selectedOption) {
             setError("Please select a member");
             return;
         }
@@ -55,12 +61,11 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
             await api.post(`/api/v1/clubs/${clubId}/fines`, { 
                 amount, 
                 reason,
-                userId: selectedMember.id 
+                userId: selectedOption.member.id 
             });
             setAmount(0);
             setReason('');
-            setSelectedMember(null);
-            setSearchQuery('');
+            setSelectedOption(null);
             onSuccess();
             onClose();
         } catch (error: unknown) {
@@ -74,9 +79,16 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
         }
     };
 
-    const filteredMembers = members.filter(member =>
-        member.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const handleSearch = (query: string) => {
+        const filtered = members.map(member => ({
+            id: member.id,
+            label: member.name,
+            member: member
+        })).filter(option =>
+            option.label.toLowerCase().includes(query.toLowerCase())
+        );
+        setMemberOptions(filtered);
+    };
 
     return (
         <div className="modal">
@@ -84,35 +96,15 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                 <h2>Add Fine</h2>
                 {error && <div className="error">{error}</div>}
                 <div className="form-group">
-                    <label htmlFor="member">Member</label>
-                    <div className="member-select">
-                        <input
-                            id="member"
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value)
-                                setSelectedMember(null);}}
-                            placeholder="Search member..."
-                            autoComplete="off"
-                        />
-                        {searchQuery && !selectedMember && (
-                            <div className="member-dropdown">
-                                {filteredMembers.map(member => (
-                                    <div
-                                        key={member.id}
-                                        className="member-option"
-                                        onClick={() => {
-                                            setSelectedMember(member);
-                                            setSearchQuery(member.name);
-                                        }}
-                                    >
-                                        {member.name}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    <TypeAheadDropdown<MemberOption>
+                        options={memberOptions}
+                        value={selectedOption}
+                        onChange={setSelectedOption}
+                        onSearch={handleSearch}
+                        placeholder="Search member..."
+                        id="member"
+                        label="Member"
+                    />
                     <label htmlFor="amount">Amount</label>
                     <input
                         id="amount"
@@ -133,7 +125,7 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                 <div>
                     <button 
                         onClick={handleSubmit} 
-                        disabled={!selectedMember || !amount || !reason || isSubmitting} 
+                        disabled={!selectedOption || !amount || !reason || isSubmitting} 
                         className="button-accept"
                     >
                         {isSubmitting ? "Adding..." : "Add Fine"}
