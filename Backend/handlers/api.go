@@ -98,7 +98,7 @@ func Handler_v1() http.Handler {
 		}
 	})))
 
-	mux.Handle("/api/v1/auth/me", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/api/v1/me", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			handleGetMe(w, r)

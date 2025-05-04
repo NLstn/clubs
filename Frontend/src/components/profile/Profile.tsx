@@ -22,7 +22,7 @@ const Profile = () => {
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
-                const response = await api.get('/api/v1/auth/me');
+                const response = await api.get('/api/v1/me');
                 console.log('User profile response:', response.data);
                 setProfile({
                     name: response.data.Name || 'User',
@@ -42,7 +42,7 @@ const Profile = () => {
         };
 
         fetchUserProfile();
-    }, []);
+    }, [api]);
 
     const handleEdit = () => {
         setIsEditing(true);
@@ -51,7 +51,7 @@ const Profile = () => {
     const handleSave = async () => {
         setIsLoading(true);
         try {
-            await api.put('/api/v1/auth/me', {
+            await api.put('/api/v1/me', {
                 name: editedName
             });
 

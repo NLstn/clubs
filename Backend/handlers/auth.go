@@ -150,7 +150,7 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// endpoint: GET /api/v1/auth/me
+// endpoint: GET /api/v1/me
 func handleGetMe(w http.ResponseWriter, r *http.Request) {
 	user := extractUser(r)
 	if user.ID == "" {
@@ -162,7 +162,7 @@ func handleGetMe(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// endpoint: POST /api/v1/auth/me
+// endpoint: POST /api/v1/me
 func handleUpdateMe(w http.ResponseWriter, r *http.Request) {
 	user := extractUser(r)
 	if user.ID == "" {
