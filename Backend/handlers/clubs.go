@@ -124,31 +124,3 @@ func handleUpdateClub(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(club)
 }
-
-func InitializeClubsRoutes(handler *http.ServeMux) {
-	handler.HandleFunc("/api/v1/clubs", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			handleGetAllClubs(w, r)
-		case http.MethodPost:
-			handleCreateClub(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
-	handler.HandleFunc("/api/v1/clubs/", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			if r.URL.Path[len("/api/v1/clubs/"):] == "isAdmin" {
-				handleCheckAdminRights(w, r)
-			} else {
-				handleGetClubByID(w, r)
-			}
-		case http.MethodPatch:
-			handleUpdateClub(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-}
