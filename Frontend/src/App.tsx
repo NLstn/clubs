@@ -9,6 +9,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import Profile from './components/profile/Profile';
 import ProfileInvites from './components/profile/ProfileInvites';
+import ProfileFines from './components/profile/ProfileFines';
 
 function App() {
     return (
@@ -57,6 +58,11 @@ function App() {
                     <Route path="/profile/invites"  element={
                         <ProtectedRoute>
                             <ProfileInvites />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/profile/fines"  element={
+                        <ProtectedRoute>
+                            <ProfileFines />
                         </ProtectedRoute>
                     } />
 
