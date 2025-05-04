@@ -8,7 +8,8 @@ interface ProfileNavItem {
 
 const navItems: ProfileNavItem[] = [
   { label: 'Profile', path: '/profile' },
-  { label: 'Invites', path: '/profile/invites' }
+  { label: 'Invites', path: '/profile/invites' },
+  { label: 'Fines', path: '/profile/fines' }
 ];
 
 const ProfileSidebar = () => {
