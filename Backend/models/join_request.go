@@ -40,7 +40,7 @@ func (u *User) GetJoinRequests() ([]JoinRequest, error) {
 
 func (u *User) GetUserCanEditJoinRequest(requestId string) (bool, error) {
 	var user User
-	err := database.Db.Where("id = ?", user.ID).First(&user).Error
+	err := database.Db.Where("id = ?", u.ID).First(&user).Error
 	if err != nil {
 		return false, err
 	}
