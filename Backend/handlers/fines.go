@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/NLstn/clubs/models"
@@ -9,6 +10,18 @@ import (
 
 // endpoint: GET /api/v1/clubs/{clubid}/fines
 func handleGetFines(w http.ResponseWriter, r *http.Request) {
+
+	type Fine struct {
+		ID        string  `json:"id"`
+		UserID    string  `json:"userId"`
+		UserName  string  `json:"userName"`
+		Reason    string  `json:"reason"`
+		Amount    float64 `json:"amount"`
+		CreatedAt string  `json:"created_at"`
+		UpdatedAt string  `json:"updated_at"`
+		Paid      bool    `json:"paid"`
+	}
+
 	clubID := extractPathParam(r, "clubs")
 	club, err := models.GetClubByID(clubID)
 	if err != nil {
@@ -28,8 +41,31 @@ func handleGetFines(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var fineList []Fine
+	for _, fine := range fines {
+
+		user, err := models.GetUserByID(fine.UserID)
+		if err != nil {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+
+		log.Default().Printf("Fine: %v, user %s", fine, user.Name)
+
+		fineList = append(fineList, Fine{
+			ID:        fine.ID,
+			UserID:    fine.UserID,
+			UserName:  user.Name,
+			Reason:    fine.Reason,
+			Amount:    fine.Amount,
+			CreatedAt: fine.CreatedAt,
+			UpdatedAt: fine.UpdatedAt,
+			Paid:      fine.Paid,
+		})
+	}
+
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(fines)
+	json.NewEncoder(w).Encode(fineList)
 }
 
 // endpoint: POST /api/v1/clubs/{clubid}/fines

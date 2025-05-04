@@ -5,6 +5,7 @@ import AddFine from "./AddFine";
 
 interface Fine {
     id: string;
+    userName: string;
     amount: number;
     reason: string;
     createdAt: string;
@@ -40,6 +41,7 @@ const AdminClubFineList = () => {
             <table>
                 <thead>
                     <tr>
+                        <th>User</th>
                         <th>Amount</th>
                         <th>Reason</th>
                         <th>Created At</th>
@@ -50,6 +52,7 @@ const AdminClubFineList = () => {
                 <tbody>
                     {fines && fines.map((fine) => (
                         <tr key={fine.id}>
+                            <td>{fine.userName}</td>
                             <td>{fine.amount}</td>
                             <td>{fine.reason}</td>
                             <td>{new Date(fine.createdAt).toLocaleString()}</td>
