@@ -206,3 +206,11 @@ func extractUser(r *http.Request) models.User {
 	}
 	return user
 }
+
+func extractQueryParam(r *http.Request, param string) string {
+	query := r.URL.Query()
+	if value, ok := query[param]; ok && len(value) > 0 {
+		return value[0]
+	}
+	return ""
+}

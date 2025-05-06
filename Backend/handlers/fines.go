@@ -68,6 +68,59 @@ func handleGetFines(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(fineList)
 }
 
+// endpoint: GET /api/v1/me/fines
+func handleGetMyFines(w http.ResponseWriter, r *http.Request) {
+
+	type Fine struct {
+		ID        string  `json:"id" gorm:"type:uuid;primary_key"`
+		ClubID    string  `json:"clubId" gorm:"type:uuid"`
+		ClubName  string  `json:"clubName"`
+		Reason    string  `json:"reason"`
+		Amount    float64 `json:"amount"`
+		CreatedAt string  `json:"created_at"`
+		UpdatedAt string  `json:"updated_at"`
+		Paid      bool    `json:"paid"`
+	}
+
+	user := extractUser(r)
+	if user.ID == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	clubId := extractQueryParam(r, "clubId")
+
+	fines, err := user.GetFines(clubId)
+	if err != nil {
+		http.Error(w, "Failed to get fines", http.StatusInternalServerError)
+		return
+	}
+
+	// load club names
+	var result []Fine
+	for i := range fines {
+		club, err := models.GetClubByID(fines[i].ClubID)
+		if err != nil {
+			http.Error(w, "Failed to get club", http.StatusInternalServerError)
+			return
+		}
+		var fine Fine
+		fine.ID = fines[i].ID
+		fine.ClubID = fines[i].ClubID
+		fine.Reason = fines[i].Reason
+		fine.Amount = fines[i].Amount
+		fine.CreatedAt = fines[i].CreatedAt
+		fine.UpdatedAt = fines[i].UpdatedAt
+		fine.Paid = fines[i].Paid
+		fine.ClubName = club.Name
+
+		result = append(result, fine)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
 // endpoint: POST /api/v1/clubs/{clubid}/fines
 func handleCreateFine(w http.ResponseWriter, r *http.Request) {
 	type Payload struct {

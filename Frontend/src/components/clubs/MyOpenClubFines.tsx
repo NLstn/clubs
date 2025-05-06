@@ -20,7 +20,7 @@ const MyOpenClubFines = () => {
 
     const fetchFines = useCallback(async () => {
         try {
-            const response = await api.get(`/api/v1/me/fines`);
+            const response = await api.get(`/api/v1/me/fines?clubId=${id}`);
             if (!response.data) {
                 return;
             }
