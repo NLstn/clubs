@@ -109,3 +109,40 @@ func handleCreateFine(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(fine)
 }
+
+// endpoint: PATCH /api/v1/clubs/{clubid}/fines/{fineid}
+func handleUpdateFine(w http.ResponseWriter, r *http.Request) {
+	type Payload struct {
+		Paid bool `json:"paid"`
+	}
+
+	clubID := extractPathParam(r, "clubs")
+	fineID := extractPathParam(r, "fines")
+
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+
+	user := extractUser(r)
+	if !club.IsAdmin(user) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
+	var payload Payload
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
+	fine, err := club.UpdateFine(fineID, payload.Paid)
+	if err != nil {
+		http.Error(w, "Failed to update fine", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(fine)
+}

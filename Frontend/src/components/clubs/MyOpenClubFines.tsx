@@ -31,6 +31,16 @@ const MyOpenClubFines = () => {
         }
     }, [id]);
 
+    const payFine = async (fineId: string) => {
+        try {
+            await api.patch(`/api/v1/clubs/${id}/fines/${fineId}`, { paid: true });
+            // Refresh the fines list after successful payment
+            await fetchFines();
+        } catch (err) {
+            setError("Failed to pay fine: " + err);
+        }
+    };
+
     useEffect(() => {
         fetchFines();
     }, [fetchFines]);
@@ -47,6 +57,7 @@ const MyOpenClubFines = () => {
                         <th>Created At</th>
                         <th>Updated At</th>
                         <th>Paid</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -57,6 +68,16 @@ const MyOpenClubFines = () => {
                             <td>{new Date(fine.createdAt).toLocaleString()}</td>
                             <td>{new Date(fine.updatedAt).toLocaleString()}</td>
                             <td>{fine.paid ? "Yes" : "No"}</td>
+                            <td>
+                                {!fine.paid && (
+                                    <button 
+                                        onClick={() => payFine(fine.id)}
+                                        className="button"
+                                    >
+                                        Pay Fine
+                                    </button>
+                                )}
+                            </td>
                         </tr>
                     ))}
                 </tbody>
