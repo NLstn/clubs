@@ -170,7 +170,6 @@ func handleUpdateFine(w http.ResponseWriter, r *http.Request) {
 	}
 
 	clubID := extractPathParam(r, "clubs")
-	fineID := extractPathParam(r, "fines")
 
 	club, err := models.GetClubByID(clubID)
 	if err != nil {
@@ -178,8 +177,15 @@ func handleUpdateFine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fineID := extractPathParam(r, "fines")
+	fine, err := club.GetFineByID(fineID)
+	if err != nil {
+		http.Error(w, "Fine not found", http.StatusNotFound)
+		return
+	}
+
 	user := extractUser(r)
-	if !club.IsAdmin(user) {
+	if !club.IsAdmin(user) && fine.UserID != user.ID {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
@@ -190,7 +196,7 @@ func handleUpdateFine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fine, err := club.UpdateFine(fineID, payload.Paid)
+	err = fine.SetPaid(payload.Paid)
 	if err != nil {
 		http.Error(w, "Failed to update fine", http.StatusInternalServerError)
 		return

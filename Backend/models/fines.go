@@ -65,11 +65,10 @@ func (c *Club) GetFineByID(fineID string) (Fine, error) {
 	return fine, nil
 }
 
-func (c *Club) UpdateFine(fineID string, paid bool) (Fine, error) {
-	var fine Fine
-	err := database.Db.Model(&fine).Where("id = ? AND club_id = ?", fineID, c.ID).Updates(Fine{Paid: paid}).Error
+func (f *Fine) SetPaid(paid bool) error {
+	err := database.Db.Model(f).Where("id = ?", f.ID).Updates(Fine{Paid: paid}).Error
 	if err != nil {
-		return Fine{}, err
+		return err
 	}
-	return fine, nil
+	return nil
 }
