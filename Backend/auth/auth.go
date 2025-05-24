@@ -28,8 +28,8 @@ func GenerateToken() string {
 	return base64.URLEncoding.EncodeToString(b)
 }
 
-func SendMagicLinkEmail(email, link string) {
-	acs.SendMail([]acs.Recipient{{Address: email}}, "Magic Link", "Click the link to login: "+link, "<a href='"+link+"'>Click here to login</a>")
+func SendMagicLinkEmail(email, link string) error {
+	return acs.SendMail([]acs.Recipient{{Address: email}}, "Magic Link", "Click the link to login: "+link, "<a href='"+link+"'>Click here to login</a>")
 }
 
 func generateJWT(userID string, expiration time.Duration) (string, error) {
