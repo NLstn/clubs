@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import EditShift from "./EditShift";
 import AddShift from "./AddShift";
-import api from "../../../utils/api";
+import api from "../../../../utils/api";
 
 interface Shift {
     id: string;

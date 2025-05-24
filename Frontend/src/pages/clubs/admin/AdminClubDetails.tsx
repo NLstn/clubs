@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../../utils/api';
-import Layout from '../../layout/Layout';
-import AdminClubMemberList from './AdminClubMemberList';
-import AdminClubPendingInviteList from './AdminClubPendingInviteList';
+import Layout from '../../../components/layout/Layout';
+import AdminClubMemberList from './members/AdminClubMemberList';
+import AdminClubPendingInviteList from './members/AdminClubPendingInviteList';
 import AdminClubFineList from './AdminClubFineList';
-import AdminClubShiftList from './AdminClubShiftList';
+import AdminClubShiftList from './shifts/AdminClubShiftList';
 
 interface Club {
     id: string;

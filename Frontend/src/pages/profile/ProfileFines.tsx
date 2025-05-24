@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
-import Layout from "../layout/Layout";
+import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 
 interface Fine {
