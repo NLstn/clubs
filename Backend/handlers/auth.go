@@ -32,7 +32,7 @@ func handleRequestMagicLink(w http.ResponseWriter, r *http.Request) {
 
 	err = auth.SendMagicLinkEmail(req.Email, link)
 	if err != nil {
-		http.Error(w, "Failed", http.StatusInternalServerError)
+		http.Error(w, "Failed to send magic link email", http.StatusInternalServerError)
 		return
 	}
 
