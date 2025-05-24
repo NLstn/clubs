@@ -5,6 +5,7 @@ import Layout from '../../layout/Layout';
 import AdminClubMemberList from './AdminClubMemberList';
 import AdminClubPendingInviteList from './AdminClubPendingInviteList';
 import AdminClubFineList from './AdminClubFineList';
+import AdminClubShiftList from './AdminClubShiftList';
 
 interface Club {
     id: string;
@@ -114,6 +115,7 @@ const AdminClubDetails = () => {
                     <AdminClubMemberList />
                     <AdminClubFineList />
                     <AdminClubPendingInviteList />
+                    <AdminClubShiftList />
                 </div>
             </div>
         </Layout>

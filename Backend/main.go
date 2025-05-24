@@ -30,6 +30,8 @@ func main() {
 		&models.JoinRequest{},
 		&models.RefreshToken{},
 		&models.Fine{},
+		&models.Shift{},
+		&models.ShiftMember{},
 	)
 	if err != nil {
 		log.Fatal("Could not migrate database:", err)
