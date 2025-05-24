@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Layout from "../layout/Layout";
+import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import api from '../../utils/api';
 

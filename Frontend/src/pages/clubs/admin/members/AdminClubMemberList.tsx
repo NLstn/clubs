@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import InviteMember from "./InviteMember";
-import api from "../../../utils/api";
+import api from "../../../../utils/api";
 import { useParams } from "react-router-dom";
 
 interface Member {

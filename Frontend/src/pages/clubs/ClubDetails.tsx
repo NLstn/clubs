@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
-import Layout from '../layout/Layout';
+import Layout from '../../components/layout/Layout';
 import MyOpenClubFines from './MyOpenClubFines';
 
 interface Club {
