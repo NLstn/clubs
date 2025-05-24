@@ -30,7 +30,11 @@ func handleRequestMagicLink(w http.ResponseWriter, r *http.Request) {
 
 	link := frontend.MakeMagicLink(token)
 
-	go auth.SendMagicLinkEmail(req.Email, link)
+	err = auth.SendMagicLinkEmail(req.Email, link)
+	if err != nil {
+		http.Error(w, "Failed", http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusNoContent)
 }

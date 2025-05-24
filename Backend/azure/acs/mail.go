@@ -43,9 +43,14 @@ func SendMail(recipients []Recipient, subject, plainText, htmlContent string) er
 		return fmt.Errorf("AZURE_ACS_ENDPOINT environment variable not set")
 	}
 
+	senderAddress := os.Getenv("AZURE_ACS_SENDER_ADDRESS")
+	if senderAddress == "" {
+		return fmt.Errorf("AZURE_ACS_SENDER_ADDRESS environment variable not set")
+	}
+
 	// Create email request
 	emailReq := EmailRequest{
-		SenderAddress: "DoNotReply@9a1159be-1efb-4f84-b252-9e949a999910.azurecomm.net",
+		SenderAddress: senderAddress,
 		Recipients: Recipients{
 			To: recipients,
 		},
@@ -84,6 +89,7 @@ func SendMail(recipients []Recipient, subject, plainText, htmlContent string) er
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return nil
 	} else {
+		fmt.Printf("Failed to send email. Status code: %d", resp.StatusCode)
 		return fmt.Errorf("failed to send email. Status code: %d", resp.StatusCode)
 	}
 }

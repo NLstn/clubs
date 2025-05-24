@@ -48,7 +48,6 @@ func Handler_v1() http.Handler {
 		}
 	})))
 
-	// Authenticated endpoints with general API rate limiting
 	mux.Handle("/api/v1/clubs", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
