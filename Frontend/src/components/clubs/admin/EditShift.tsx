@@ -159,7 +159,6 @@ const EditShift: FC<EditShiftProps> = ({ isOpen, onClose, shift, clubId }) => {
                             id="member-select"
                             value={selectedMemberId}
                             onChange={(e) => {
-                                console.log('Selected member ID:', e.target.value);
                                 setSelectedMemberId(e.target.value)
                             }}
                         >
