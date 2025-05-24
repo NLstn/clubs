@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -89,7 +90,7 @@ func SendMail(recipients []Recipient, subject, plainText, htmlContent string) er
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return nil
 	} else {
-		fmt.Printf("Failed to send email. Status code: %d", resp.StatusCode)
+		log.Printf("Failed to send email. Status code: %d", resp.StatusCode)
 		return fmt.Errorf("failed to send email. Status code: %d", resp.StatusCode)
 	}
 }
