@@ -164,6 +164,37 @@ func Handler_v1() http.Handler {
 		}
 	})))
 
+	mux.Handle("/api/v1/clubs/{clubid}/shifts", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetShifts(w, r)
+		case http.MethodPost:
+			handleCreateShift(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}/shifts/{shiftid}/members", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetShiftMembers(w, r)
+		case http.MethodPost:
+			handleAddMemberToShift(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}/shifts/{shiftid}/members/{memberid}", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodDelete:
+			handleRemoveMemberFromShift(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
 	return LoggingMiddleware(CorsMiddleware(mux))
 }
 
