@@ -8,6 +8,28 @@ import (
 	"github.com/NLstn/clubs/models"
 )
 
+func registerFineRoutes(mux *http.ServeMux) {
+	mux.Handle("/api/v1/me/fines", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetMyFines(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}/fines", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			handleCreateFine(w, r)
+		case http.MethodGet:
+			handleGetFines(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+}
+
 // endpoint: GET /api/v1/clubs/{clubid}/fines
 func handleGetFines(w http.ResponseWriter, r *http.Request) {
 

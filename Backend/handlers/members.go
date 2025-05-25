@@ -9,6 +9,35 @@ import (
 	"gorm.io/gorm"
 )
 
+func registerMemberRoutes(mux *http.ServeMux) {
+	mux.Handle("/api/v1/clubs/{clubid}/members", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetClubMembers(w, r)
+		case http.MethodPatch:
+			handleUpdateMemberRole(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}/isAdmin", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleCheckAdminRights(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}/members/{memberid}", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodDelete {
+			handleClubMemberDelete(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+}
+
 // endpoint: GET /api/v1/clubs/{clubid}/members
 func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 

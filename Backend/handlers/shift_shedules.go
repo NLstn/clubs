@@ -8,6 +8,39 @@ import (
 	"github.com/google/uuid"
 )
 
+func registerShiftRoutes(mux *http.ServeMux) {
+	mux.Handle("/api/v1/clubs/{clubid}/shifts", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetShifts(w, r)
+		case http.MethodPost:
+			handleCreateShift(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}/shifts/{shiftid}/members", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetShiftMembers(w, r)
+		case http.MethodPost:
+			handleAddMemberToShift(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}/shifts/{shiftid}/members/{memberid}", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodDelete:
+			handleRemoveMemberFromShift(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+}
+
 // GET /api/v1/clubs/{clubid}/shifts
 func handleGetShifts(w http.ResponseWriter, r *http.Request) {
 	clubID := extractPathParam(r, "clubs")
