@@ -8,6 +8,30 @@ import (
 	"gorm.io/gorm"
 )
 
+func registerClubRoutes(mux *http.ServeMux) {
+	mux.Handle("/api/v1/clubs", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetAllClubs(w, r)
+		case http.MethodPost:
+			handleCreateClub(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetClubByID(w, r)
+		case http.MethodPatch:
+			handleUpdateClub(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+}
+
 // endpoint: GET /api/v1/clubs
 func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 

@@ -7,6 +7,19 @@ import (
 	"github.com/NLstn/clubs/models"
 )
 
+func registerUserRoutes(mux *http.ServeMux) {
+	mux.Handle("/api/v1/me", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetMe(w, r)
+		case http.MethodPut:
+			handleUpdateMe(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+}
+
 // endpoint: GET /api/v1/me
 func handleGetMe(w http.ResponseWriter, r *http.Request) {
 	user := extractUser(r)
