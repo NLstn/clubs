@@ -184,8 +184,8 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := user.DeleteRefreshToken(refreshToken); err != nil {
-		http.Error(w, "Failed to delete refresh token", http.StatusInternalServerError)
+	if err := user.DeleteAllRefreshTokens(); err != nil {
+		http.Error(w, "Failed to delete refresh tokens", http.StatusInternalServerError)
 		return
 	}
 

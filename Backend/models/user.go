@@ -52,6 +52,11 @@ func (u *User) UpdateUserName(name string) error {
 }
 
 func (u *User) StoreRefreshToken(token string) error {
+	// Delete all existing refresh tokens for this user first
+	if err := u.DeleteAllRefreshTokens(); err != nil {
+		return err
+	}
+	
 	refreshToken := RefreshToken{UserID: u.ID, Token: token, ExpiresAt: time.Now().Add(30 * 24 * time.Hour)}
 	return database.Db.Exec(`INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)`, refreshToken.UserID, refreshToken.Token, refreshToken.ExpiresAt).Error
 }
@@ -74,6 +79,10 @@ func (u *User) ValidateRefreshToken(token string) error {
 
 func (u *User) DeleteRefreshToken(token string) error {
 	return database.Db.Exec(`DELETE FROM refresh_tokens WHERE user_id = ? AND token = ?`, u.ID, token).Error
+}
+
+func (u *User) DeleteAllRefreshTokens() error {
+	return database.Db.Exec(`DELETE FROM refresh_tokens WHERE user_id = ?`, u.ID).Error
 }
 
 func (u *User) GetFines() ([]Fine, error) {
