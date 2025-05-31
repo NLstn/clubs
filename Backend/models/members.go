@@ -2,6 +2,7 @@ package models
 
 import (
 	"log"
+	"time"
 
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/notifications"
@@ -10,10 +11,14 @@ import (
 )
 
 type Member struct {
-	ID     string `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID string `json:"club_id" gorm:"type:uuid"`
-	UserID string `json:"user_id" gorm:"type:uuid"`
-	Role   string `json:"role"`
+	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
+	ClubID    string    `json:"club_id" gorm:"type:uuid"`
+	UserID    string    `json:"user_id" gorm:"type:uuid"`
+	Role      string    `json:"role"`
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
 }
 
 func (c *Club) IsOwner(user User) bool {
@@ -66,6 +71,10 @@ func (c *Club) AddMember(userId, role string) error {
 	member.ID = uuid.New().String()
 	member.ClubID = c.ID
 	member.UserID = userId
+	member.Role = role
+	// For now, set created_by to the user being added since we don't have the adding user's ID
+	member.CreatedBy = userId
+	member.UpdatedBy = userId
 	err := database.Db.Create(member).Error
 	if err != nil {
 		return err
@@ -103,6 +112,7 @@ func (c *Club) UpdateMemberRole(changingUser User, memberID, role string) error 
 	}
 
 	member.Role = role
+	member.UpdatedBy = changingUser.ID
 	return database.Db.Save(&member).Error
 }
 

@@ -9,17 +9,19 @@ import (
 )
 
 type Fine struct {
-	ID        string  `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID    string  `json:"club_id" gorm:"type:uuid"`
-	UserID    string  `json:"userId" gorm:"type:uuid"`
-	Reason    string  `json:"reason"`
-	Amount    float64 `json:"amount"`
-	CreatedAt string  `json:"created_at"`
-	UpdatedAt string  `json:"updated_at"`
-	Paid      bool    `json:"paid"`
+	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
+	ClubID    string    `json:"club_id" gorm:"type:uuid"`
+	UserID    string    `json:"userId" gorm:"type:uuid"`
+	Reason    string    `json:"reason"`
+	Amount    float64   `json:"amount"`
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
+	Paid      bool      `json:"paid"`
 }
 
-func (c *Club) CreateFine(userID, reason string, amount float64) (Fine, error) {
+func (c *Club) CreateFine(userID, reason, createdBy string, amount float64) (Fine, error) {
 
 	user, err := GetUserByID(userID)
 	if err != nil {
@@ -36,8 +38,8 @@ func (c *Club) CreateFine(userID, reason string, amount float64) (Fine, error) {
 	fine.UserID = userID
 	fine.Reason = reason
 	fine.Amount = amount
-	fine.CreatedAt = time.Now().Format(time.RFC3339)
-	fine.UpdatedAt = time.Now().Format(time.RFC3339)
+	fine.CreatedBy = createdBy
+	fine.UpdatedBy = createdBy
 
 	err = database.Db.Create(&fine).Error
 	if err != nil {

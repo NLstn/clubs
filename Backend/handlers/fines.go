@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/NLstn/clubs/models"
 )
@@ -80,8 +81,8 @@ func handleGetFines(w http.ResponseWriter, r *http.Request) {
 			UserName:  user.Name,
 			Reason:    fine.Reason,
 			Amount:    fine.Amount,
-			CreatedAt: fine.CreatedAt,
-			UpdatedAt: fine.UpdatedAt,
+			CreatedAt: fine.CreatedAt.Format(time.RFC3339),
+			UpdatedAt: fine.UpdatedAt.Format(time.RFC3339),
 			Paid:      fine.Paid,
 		})
 	}
@@ -122,7 +123,7 @@ func handleCreateFine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fine, err := club.CreateFine(payload.UserID, payload.Reason, payload.Amount)
+	fine, err := club.CreateFine(payload.UserID, payload.Reason, user.ID, payload.Amount)
 	if err != nil {
 		http.Error(w, "Failed to create fine", http.StatusInternalServerError)
 		return

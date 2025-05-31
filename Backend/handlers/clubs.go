@@ -140,7 +140,7 @@ func handleUpdateClub(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := club.Update(payload.Name, payload.Description); err != nil {
+	if err := club.Update(payload.Name, payload.Description, user.ID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

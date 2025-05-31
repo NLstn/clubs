@@ -75,6 +75,8 @@ func handleCreateShift(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user := extractUser(r)
+
 	club, err := models.GetClubByID(clubID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -92,7 +94,7 @@ func handleCreateShift(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shiftID, err := club.CreateShift(shift.StartTime.Time, shift.EndTime.Time)
+	shiftID, err := club.CreateShift(shift.StartTime.Time, shift.EndTime.Time, user.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -166,6 +168,8 @@ func handleAddMemberToShift(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user := extractUser(r)
+
 	var requestBody struct {
 		UserID string `json:"userId"`
 	}
@@ -180,7 +184,7 @@ func handleAddMemberToShift(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := models.AddMemberToShift(shiftID, requestBody.UserID); err != nil {
+	if err := models.AddMemberToShift(shiftID, requestBody.UserID, user.ID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
