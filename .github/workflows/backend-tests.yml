@@ -43,15 +43,6 @@ jobs:
     - name: Run tests
       run: go test -v -race -coverprofile=coverage.out ./...
 
-    - name: Generate coverage report
-      run: go tool cover -html=coverage.out -o coverage.html
-
-    - name: Upload coverage reports
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-report
-        path: Backend/coverage.html
-
     - name: Display coverage percentage
       run: |
         COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}')
