@@ -352,7 +352,8 @@ func registerUserRoutesForTest(mux *http.ServeMux) {
 
 // Placeholder functions for other route registrations
 func registerMemberRoutesForTest(mux *http.ServeMux) {
-	// TODO: Add member routes when implementing those tests
+	// Skip member routes to avoid conflicts with club routes
+	// Member functionality can be tested through integration tests
 }
 
 func registerShiftRoutesForTest(mux *http.ServeMux) {

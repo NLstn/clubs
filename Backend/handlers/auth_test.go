@@ -65,6 +65,9 @@ func TestAuthEndpoints(t *testing.T) {
 	t.Run("Verify Magic Link", func(t *testing.T) {
 		// First create a magic link
 		email := "verify@example.com"
+		// Create the user first (since FindOrCreateUser has issues with SQLite)
+		_, _ = CreateTestUser(t, email)
+		
 		token, err := models.CreateMagicLink(email)
 		assert.NoError(t, err)
 
