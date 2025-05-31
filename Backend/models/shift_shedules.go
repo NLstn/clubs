@@ -72,19 +72,29 @@ type Shift struct {
 	ClubID    string     `gorm:"type:uuid;not null"`
 	StartTime CustomTime `gorm:"not null" json:"startTime"`
 	EndTime   CustomTime `gorm:"not null" json:"endTime"`
+	CreatedAt time.Time  `json:"created_at"`
+	CreatedBy string     `json:"created_by" gorm:"type:uuid"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	UpdatedBy string     `json:"updated_by" gorm:"type:uuid"`
 }
 
 type ShiftMember struct {
-	ID      string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	ShiftID string `gorm:"type:uuid;not null"`
-	UserID  string `gorm:"type:uuid;not null"`
+	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	ShiftID   string    `gorm:"type:uuid;not null"`
+	UserID    string    `gorm:"type:uuid;not null"`
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
 }
 
-func (c *Club) CreateShift(startTime, endTime time.Time) (string, error) {
+func (c *Club) CreateShift(startTime, endTime time.Time, createdBy string) (string, error) {
 	shift := Shift{
 		ClubID:    c.ID,
 		StartTime: CustomTime{startTime},
 		EndTime:   CustomTime{endTime},
+		CreatedBy: createdBy,
+		UpdatedBy: createdBy,
 	}
 
 	tx := database.Db.Create(&shift)
@@ -95,10 +105,12 @@ func (c *Club) CreateShift(startTime, endTime time.Time) (string, error) {
 	return shift.ID, nil
 }
 
-func AddMemberToShift(shiftID, userID string) error {
+func AddMemberToShift(shiftID, userID, createdBy string) error {
 	shiftMember := ShiftMember{
-		ShiftID: shiftID,
-		UserID:  userID,
+		ShiftID:   shiftID,
+		UserID:    userID,
+		CreatedBy: createdBy,
+		UpdatedBy: createdBy,
 	}
 
 	tx := database.Db.Create(&shiftMember)

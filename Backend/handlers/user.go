@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/NLstn/clubs/models"
 )
@@ -100,8 +101,8 @@ func handleGetMyFines(w http.ResponseWriter, r *http.Request) {
 		fine.ClubID = fines[i].ClubID
 		fine.Reason = fines[i].Reason
 		fine.Amount = fines[i].Amount
-		fine.CreatedAt = fines[i].CreatedAt
-		fine.UpdatedAt = fines[i].UpdatedAt
+		fine.CreatedAt = fines[i].CreatedAt.Format(time.RFC3339)
+		fine.UpdatedAt = fines[i].UpdatedAt.Format(time.RFC3339)
 		fine.Paid = fines[i].Paid
 		fine.ClubName = club.Name
 

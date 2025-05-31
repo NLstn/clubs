@@ -1,14 +1,20 @@
 package models
 
 import (
+	"time"
+
 	"github.com/NLstn/clubs/database"
 	"github.com/google/uuid"
 )
 
 type JoinRequest struct {
-	ID     string `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID string `json:"club_id" gorm:"type:uuid"`
-	Email  string `json:"email"`
+	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
+	ClubID    string    `json:"club_id" gorm:"type:uuid"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
 }
 
 func (c *Club) CreateJoinRequest(email string) error {
@@ -16,6 +22,8 @@ func (c *Club) CreateJoinRequest(email string) error {
 		ID:     uuid.New().String(),
 		ClubID: c.ID,
 		Email:  email,
+		// CreatedBy and UpdatedBy are left empty since the person making the request
+		// might not be a user in the system yet
 	}
 	return database.Db.Create(request).Error
 }
