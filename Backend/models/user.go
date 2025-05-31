@@ -54,6 +54,7 @@ func (u *User) UpdateUserName(name string) error {
 func (u *User) StoreRefreshToken(token string) error {
 	// Delete all existing refresh tokens for this user first
 	if err := u.DeleteAllRefreshTokens(); err != nil {
+		fmt.Printf("Error deleting all refresh tokens for user %s: %v\n", u.ID, err)
 		return err
 	}
 
