@@ -98,6 +98,11 @@ func handleCreateClub(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if payload.Name == "" {
+		http.Error(w, "Name required", http.StatusBadRequest)
+		return
+	}
+
 	club, err := models.CreateClub(payload.Name, payload.Description, user.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
