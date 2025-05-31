@@ -56,7 +56,7 @@ func (u *User) StoreRefreshToken(token string) error {
 	if err := u.DeleteAllRefreshTokens(); err != nil {
 		return err
 	}
-	
+
 	refreshToken := RefreshToken{UserID: u.ID, Token: token, ExpiresAt: time.Now().Add(30 * 24 * time.Hour)}
 	return database.Db.Exec(`INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)`, refreshToken.UserID, refreshToken.Token, refreshToken.ExpiresAt).Error
 }
