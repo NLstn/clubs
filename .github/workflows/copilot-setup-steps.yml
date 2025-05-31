@@ -1,0 +1,81 @@
+name: "Copilot Setup Steps"
+
+# Allow testing of the setup steps from your repository's "Actions" tab.
+on: workflow_dispatch
+
+jobs:
+  # The job MUST be called `copilot-setup-steps` or it will not be picked up by Copilot.
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    # Set the permissions to the lowest permissions possible needed for your steps.
+    # Copilot will be given its own token for its operations.
+    permissions:
+      # If you want to clone the repository as part of your setup steps, for example to install dependencies, you'll need the `contents: read` permission.
+      contents: read
+
+    # Define steps to prepare the environment for this Go backend + React frontend monorepo
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Go environment for the backend
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.0'  # Match the version specified in go.mod
+          cache-dependency-path: Backend/go.sum
+
+      # Set up Node.js environment for the frontend
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: Frontend/package-lock.json
+
+      # Install Go dependencies
+      - name: Install Go dependencies
+        working-directory: Backend
+        run: go mod download
+
+      # Install Node.js dependencies
+      - name: Install JavaScript dependencies
+        working-directory: Frontend
+        run: npm ci
+
+      # Install PostgreSQL for database operations
+      - name: Set up PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql postgresql-contrib
+          sudo systemctl start postgresql
+          sudo -u postgres createuser --createdb --login runner
+          sudo -u postgres psql -c "ALTER USER runner WITH PASSWORD 'password';"
+
+      # Install Air for Go hot reloading (if needed for development tasks)
+      - name: Install Air (Go hot reloading)
+        run: go install github.com/air-verse/air@latest
+
+      # Verify installations
+      - name: Verify Go installation
+        working-directory: Backend
+        run: |
+          go version
+          go mod verify
+
+      - name: Verify Node.js installation
+        working-directory: Frontend
+        run: |
+          node --version
+          npm --version
+          npm list --depth=0
+
+      # Build both projects to ensure they compile correctly
+      - name: Build Go backend
+        working-directory: Backend
+        run: go build -o tmp/main .
+
+      - name: Build React frontend
+        working-directory: Frontend
+        run: npm run build
