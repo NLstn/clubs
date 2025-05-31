@@ -38,6 +38,10 @@ const isTokenExpired = (token: string): boolean => {
 const refreshAuthToken = async () => {
   const refreshToken = localStorage.getItem('refresh_token');
   if (!refreshToken) {
+    // No refresh token available - logout and redirect to login
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('refresh_token');
+    window.location.href = '/login';
     throw new Error('No refresh token available');
   }
 
