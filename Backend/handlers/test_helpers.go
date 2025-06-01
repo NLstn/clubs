@@ -32,9 +32,9 @@ type testMagicLink struct {
 func (testMagicLink) TableName() string { return "magic_links" }
 
 type testUser struct {
-	ID        string    `gorm:"primaryKey"`
+	ID        string `gorm:"primaryKey"`
 	Name      string
-	Email     string    `gorm:"uniqueIndex;not null"`
+	Email     string `gorm:"uniqueIndex;not null"`
 	CreatedAt time.Time
 	CreatedBy string
 	UpdatedAt time.Time
@@ -53,7 +53,7 @@ type testRefreshToken struct {
 func (testRefreshToken) TableName() string { return "refresh_tokens" }
 
 type testClub struct {
-	ID          string    `gorm:"primaryKey"`
+	ID          string `gorm:"primaryKey"`
 	Name        string
 	Description string
 	CreatedAt   time.Time
@@ -65,7 +65,7 @@ type testClub struct {
 func (testClub) TableName() string { return "clubs" }
 
 type testMember struct {
-	ID        string    `gorm:"primaryKey"`
+	ID        string `gorm:"primaryKey"`
 	ClubID    string
 	UserID    string
 	Role      string
@@ -78,7 +78,7 @@ type testMember struct {
 func (testMember) TableName() string { return "members" }
 
 type testJoinRequest struct {
-	ID        string    `gorm:"primaryKey"`
+	ID        string `gorm:"primaryKey"`
 	ClubID    string
 	Email     string
 	CreatedAt time.Time
@@ -90,7 +90,7 @@ type testJoinRequest struct {
 func (testJoinRequest) TableName() string { return "join_requests" }
 
 type testFine struct {
-	ID        string    `gorm:"primaryKey"`
+	ID        string `gorm:"primaryKey"`
 	ClubID    string
 	UserID    string
 	Reason    string
@@ -118,9 +118,9 @@ type testShift struct {
 func (testShift) TableName() string { return "shifts" }
 
 type testShiftMember struct {
-	ID        string    `gorm:"primaryKey"`
-	ShiftID   string    `gorm:"not null"`
-	UserID    string    `gorm:"not null"`
+	ID        string `gorm:"primaryKey"`
+	ShiftID   string `gorm:"not null"`
+	UserID    string `gorm:"not null"`
 	CreatedAt time.Time
 	CreatedBy string
 	UpdatedAt time.Time
@@ -172,14 +172,14 @@ func TeardownTestDB(t *testing.T) {
 func CreateTestUser(t *testing.T, email string) (models.User, string) {
 	// Generate a UUID-like string for SQLite
 	userID := uuid.New().String()
-	
+
 	// Create user directly in database
 	user := models.User{
 		ID:    userID,
 		Email: email,
 		Name:  "Test User",
 	}
-	
+
 	if err := testDB.Create(&user).Error; err != nil {
 		t.Fatalf("Failed to create test user: %v", err)
 	}
@@ -195,7 +195,7 @@ func CreateTestUser(t *testing.T, email string) (models.User, string) {
 // CreateTestClub creates a test club with the given user as owner
 func CreateTestClub(t *testing.T, user models.User, clubName string) models.Club {
 	clubID := uuid.New().String()
-	
+
 	club := models.Club{
 		ID:          clubID,
 		Name:        clubName,
@@ -265,7 +265,7 @@ func MockEnvironmentVariables(t *testing.T) {
 	os.Setenv("DATABASE_PORT", "5432")
 	os.Setenv("DATABASE_USER", "test")
 	os.Setenv("DATABASE_USER_PASSWORD", "test")
-	
+
 	// Set Azure environment variables to avoid initialization errors
 	os.Setenv("AZURE_CLIENT_ID", "test-client-id")
 	os.Setenv("AZURE_CLIENT_SECRET", "test-client-secret")
@@ -276,7 +276,7 @@ func MockEnvironmentVariables(t *testing.T) {
 // CreateTestFine creates a test fine for a user in a club
 func CreateTestFine(t *testing.T, user models.User, club models.Club, reason string, amount float64, paid bool) models.Fine {
 	fineID := uuid.New().String()
-	
+
 	fine := models.Fine{
 		ID:        fineID,
 		UserID:    user.ID,
@@ -298,7 +298,7 @@ func CreateTestFine(t *testing.T, user models.User, club models.Club, reason str
 // CreateTestMember creates a test member directly in the database without notifications
 func CreateTestMember(t *testing.T, user models.User, club models.Club, role string) models.Member {
 	memberID := uuid.New().String()
-	
+
 	member := models.Member{
 		ID:        memberID,
 		UserID:    user.ID,
