@@ -82,7 +82,7 @@ func handleGetMyFines(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fines, err := user.GetFines()
+	fines, err := user.GetUnpaidFines()
 	if err != nil {
 		http.Error(w, "Failed to get fines", http.StatusInternalServerError)
 		return

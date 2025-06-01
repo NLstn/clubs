@@ -75,7 +75,7 @@ func (c *Club) AddMember(userId, role string) error {
 	// For now, set created_by to the user being added since we don't have the adding user's ID
 	member.CreatedBy = userId
 	member.UpdatedBy = userId
-	err := database.Db.Create(member).Error
+	err := database.Db.Create(&member).Error
 	if err != nil {
 		return err
 	}
