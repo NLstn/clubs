@@ -8,13 +8,13 @@ import (
 )
 
 type User struct {
-	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	ID        string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	Name      string
-	Email     string    `gorm:"uniqueIndex;not null"`
+	Email     string `gorm:"uniqueIndex;not null"`
 	CreatedAt time.Time
-	CreatedBy string    `gorm:"type:uuid"`
+	CreatedBy string `gorm:"type:uuid"`
 	UpdatedAt time.Time
-	UpdatedBy string    `gorm:"type:uuid"`
+	UpdatedBy string `gorm:"type:uuid"`
 }
 
 type RefreshToken struct {
@@ -50,7 +50,12 @@ func GetUserByID(userID string) (User, error) {
 }
 
 func (u *User) UpdateUserName(name string) error {
-	return database.Db.Exec(`UPDATE users SET name = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, name, u.ID, u.ID).Error
+	// Use GORM's Updates method for better cross-database compatibility
+	return database.Db.Model(u).Where("id = ?", u.ID).Updates(map[string]interface{}{
+		"name":       name,
+		"updated_by": u.ID,
+		"updated_at": time.Now(),
+	}).Error
 }
 
 func (u *User) StoreRefreshToken(token string) error {
