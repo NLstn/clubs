@@ -40,8 +40,8 @@ func handleGetFines(w http.ResponseWriter, r *http.Request) {
 		UserName  string  `json:"userName"`
 		Reason    string  `json:"reason"`
 		Amount    float64 `json:"amount"`
-		CreatedAt string  `json:"created_at"`
-		UpdatedAt string  `json:"updated_at"`
+		CreatedAt string  `json:"createdAt"`
+		UpdatedAt string  `json:"updatedAt"`
 		Paid      bool    `json:"paid"`
 	}
 
