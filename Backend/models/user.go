@@ -49,6 +49,15 @@ func GetUserByID(userID string) (User, error) {
 	return user, nil
 }
 
+func GetUsersByIDs(userIDs []string) ([]User, error) {
+	var users []User
+	if len(userIDs) == 0 {
+		return users, nil
+	}
+	err := database.Db.Where("id IN ?", userIDs).Find(&users).Error
+	return users, err
+}
+
 func (u *User) UpdateUserName(name string) error {
 	return database.Db.Exec(`UPDATE users SET name = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, name, u.ID, u.ID).Error
 }

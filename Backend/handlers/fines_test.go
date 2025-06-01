@@ -100,6 +100,53 @@ func TestFinesEndpoints(t *testing.T) {
 		assert.True(t, foundUnpaid2, "Should find second unpaid fine")
 	})
 
+	t.Run("Get My Fines - Test Caching with Multiple Creators", func(t *testing.T) {
+		// Create test users
+		userWithFines, token := CreateTestUser(t, "user_with_fines@example.com")
+		creator1, _ := CreateTestUser(t, "creator1@example.com")
+		creator2, _ := CreateTestUser(t, "creator2@example.com")
+		
+		// Create clubs
+		club1 := CreateTestClub(t, creator1, "Club 1")
+		club2 := CreateTestClub(t, creator2, "Club 2")
+		
+		// Add userWithFines as member to both clubs
+		CreateTestMember(t, userWithFines, club1, "member")
+		CreateTestMember(t, userWithFines, club2, "member")
+
+		// Create multiple unpaid fines where some share the same creator
+		// This tests the caching of creator names when multiple fines have the same creator
+		fine1 := CreateTestFineWithCreator(t, userWithFines, club1, creator1, "Late to meeting", 10.0, false)
+		fine2 := CreateTestFineWithCreator(t, userWithFines, club1, creator1, "Forgot materials", 15.0, false) // same creator as fine1
+		fine3 := CreateTestFineWithCreator(t, userWithFines, club2, creator2, "No show", 25.0, false)
+		fine4 := CreateTestFineWithCreator(t, userWithFines, club2, creator2, "Disruptive behavior", 20.0, false) // same creator as fine3
+
+		req := MakeRequest(t, "GET", "/api/v1/me/fines", nil, token)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusOK, rr.Code)
+
+		var fines []map[string]interface{}
+		ParseJSONResponse(t, rr, &fines)
+		
+		// Should get all 4 unpaid fines
+		assert.Equal(t, 4, len(fines))
+
+		// Verify creator names are correctly populated from cache
+		for _, fine := range fines {
+			assert.NotEmpty(t, fine["createdByName"], "Creator name should be populated")
+			assert.NotEmpty(t, fine["clubName"], "Club name should be populated")
+			
+			if fine["id"] == fine1.ID || fine["id"] == fine2.ID {
+				assert.Equal(t, creator1.Name, fine["createdByName"], "Creator1 name should match")
+				assert.Equal(t, club1.Name, fine["clubName"], "Club1 name should match")
+			}
+			if fine["id"] == fine3.ID || fine["id"] == fine4.ID {
+				assert.Equal(t, creator2.Name, fine["createdByName"], "Creator2 name should match")
+				assert.Equal(t, club2.Name, fine["clubName"], "Club2 name should match")
+			}
+		}
+	})
+
 	t.Run("Get Club Fines - Admin sees all fines", func(t *testing.T) {
 		adminUser, adminToken := CreateTestUser(t, "admin@example.com")
 		club := CreateTestClub(t, adminUser, "Test Club for Admin Fines")

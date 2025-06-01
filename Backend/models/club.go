@@ -30,6 +30,15 @@ func GetClubByID(id string) (Club, error) {
 	return club, result.Error
 }
 
+func GetClubsByIDs(clubIDs []string) ([]Club, error) {
+	var clubs []Club
+	if len(clubIDs) == 0 {
+		return clubs, nil
+	}
+	err := database.Db.Where("id IN ?", clubIDs).Find(&clubs).Error
+	return clubs, err
+}
+
 func CreateClub(name, description, ownerID string) (Club, error) {
 	var club Club
 	club.ID = uuid.New().String()
