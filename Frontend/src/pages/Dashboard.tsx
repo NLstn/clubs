@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import Layout from '../components/layout/Layout';
 
 interface Club {
@@ -16,18 +16,18 @@ const Dashboard = () => {
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        fetchClubs();
-    }, []);
+        const fetchClubs = async () => {
+            try {
+                const response = await api.get('/api/v1/clubs');
+                setClubs(response.data);
+            } catch (error) {
+                setMessage('Error fetching clubs');
+                console.error(error);
+            }
+        };
 
-    const fetchClubs = async () => {
-        try {
-            const response = await api.get('/api/v1/clubs');
-            setClubs(response.data);
-        } catch (error) {
-            setMessage('Error fetching clubs');
-            console.error(error);
-        }
-    };
+        fetchClubs();
+    }, [api]);
 
     return (
         <Layout title="Dashboard">

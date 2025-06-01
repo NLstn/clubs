@@ -26,7 +26,7 @@ const Login: React.FC = () => {
         const error = await response.text();
         setMessage(`Error: ${error}`);
       }
-    } catch (error) {
+    } catch {
       setMessage('Network error. Please try again.');
     } finally {
       setIsSubmitting(false);
