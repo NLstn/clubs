@@ -14,7 +14,7 @@ type Member struct {
 	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
 	ClubID    string    `json:"club_id" gorm:"type:uuid"`
 	UserID    string    `json:"user_id" gorm:"type:uuid"`
-	Role      string    `json:"role"`
+	Role      string    `json:"role" gorm:"default:member"`
 	CreatedAt time.Time `json:"created_at"`
 	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
 	UpdatedAt time.Time `json:"updated_at"`
