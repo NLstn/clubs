@@ -66,14 +66,15 @@ func handleUpdateMe(w http.ResponseWriter, r *http.Request) {
 func handleGetMyFines(w http.ResponseWriter, r *http.Request) {
 
 	type Fine struct {
-		ID        string  `json:"id" gorm:"type:uuid;primary_key"`
-		ClubID    string  `json:"clubId" gorm:"type:uuid"`
-		ClubName  string  `json:"clubName"`
-		Reason    string  `json:"reason"`
-		Amount    float64 `json:"amount"`
-		CreatedAt string  `json:"created_at"`
-		UpdatedAt string  `json:"updated_at"`
-		Paid      bool    `json:"paid"`
+		ID            string  `json:"id" gorm:"type:uuid;primary_key"`
+		ClubID        string  `json:"clubId" gorm:"type:uuid"`
+		ClubName      string  `json:"clubName"`
+		Reason        string  `json:"reason"`
+		Amount        float64 `json:"amount"`
+		CreatedAt     string  `json:"created_at"`
+		UpdatedAt     string  `json:"updated_at"`
+		Paid          bool    `json:"paid"`
+		CreatedByName string  `json:"createdByName"`
 	}
 
 	user := extractUser(r)
@@ -88,7 +89,7 @@ func handleGetMyFines(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// load club names
+	// load club names and creator names
 	var result []Fine
 	for i := range fines {
 		club, err := models.GetClubByID(fines[i].ClubID)
@@ -96,6 +97,14 @@ func handleGetMyFines(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to get club", http.StatusInternalServerError)
 			return
 		}
+		
+		// Get the user who created the fine
+		creator, err := models.GetUserByID(fines[i].CreatedBy)
+		if err != nil {
+			http.Error(w, "Failed to get fine creator", http.StatusInternalServerError)
+			return
+		}
+		
 		var fine Fine
 		fine.ID = fines[i].ID
 		fine.ClubID = fines[i].ClubID
@@ -105,6 +114,7 @@ func handleGetMyFines(w http.ResponseWriter, r *http.Request) {
 		fine.UpdatedAt = fines[i].UpdatedAt.Format(time.RFC3339)
 		fine.Paid = fines[i].Paid
 		fine.ClubName = club.Name
+		fine.CreatedByName = creator.Name
 
 		result = append(result, fine)
 	}
