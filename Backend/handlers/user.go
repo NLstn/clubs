@@ -66,15 +66,15 @@ func handleUpdateMe(w http.ResponseWriter, r *http.Request) {
 func handleGetMyFines(w http.ResponseWriter, r *http.Request) {
 
 	type Fine struct {
-		ID            string  `json:"id" gorm:"type:uuid;primary_key"`
-		ClubID        string  `json:"clubId" gorm:"type:uuid"`
-		ClubName      string  `json:"clubName"`
-		Reason        string  `json:"reason"`
-		Amount        float64 `json:"amount"`
-		CreatedAt     string  `json:"createdAt"`
-		UpdatedAt     string  `json:"updatedAt"`
-		Paid          bool    `json:"paid"`
-		CreatedByName string  `json:"createdByName"`
+		ID            string    `json:"id" gorm:"type:uuid;primary_key"`
+		ClubID        string    `json:"clubId" gorm:"type:uuid"`
+		ClubName      string    `json:"clubName"`
+		Reason        string    `json:"reason"`
+		Amount        float64   `json:"amount"`
+		CreatedAt     time.Time `json:"createdAt"`
+		UpdatedAt     time.Time `json:"updatedAt"`
+		Paid          bool      `json:"paid"`
+		CreatedByName string    `json:"createdByName"`
 	}
 
 	user := extractUser(r)
@@ -145,14 +145,14 @@ func handleGetMyFines(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Creator not found for fine", http.StatusInternalServerError)
 			return
 		}
-		
+
 		var fine Fine
 		fine.ID = fines[i].ID
 		fine.ClubID = fines[i].ClubID
 		fine.Reason = fines[i].Reason
 		fine.Amount = fines[i].Amount
-		fine.CreatedAt = fines[i].CreatedAt.Format(time.RFC3339)
-		fine.UpdatedAt = fines[i].UpdatedAt.Format(time.RFC3339)
+		fine.CreatedAt = fines[i].CreatedAt
+		fine.UpdatedAt = fines[i].UpdatedAt
 		fine.Paid = fines[i].Paid
 		fine.ClubName = club.Name
 		fine.CreatedByName = creator.Name
