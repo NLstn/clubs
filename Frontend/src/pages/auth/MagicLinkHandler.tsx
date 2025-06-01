@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 const MagicLinkHandler: React.FC = () => {
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
@@ -44,7 +44,7 @@ const MagicLinkHandler: React.FC = () => {
           setStatus('error');
           setErrorMessage(`Authentication failed: ${error}`);
         }
-      } catch (error) {
+      } catch {
         setStatus('error');
         setErrorMessage('Network error. Please try again.');
       }

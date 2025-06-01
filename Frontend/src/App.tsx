@@ -6,7 +6,7 @@ import CreateClub from './pages/clubs/CreateClub';
 import Login from './pages/auth/Login';
 import MagicLinkHandler from './pages/auth/MagicLinkHandler';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/AuthProvider';
 import Profile from './pages/profile/Profile';
 import ProfileInvites from './pages/profile/ProfileInvites';
 import ProfileFines from './pages/profile/ProfileFines';

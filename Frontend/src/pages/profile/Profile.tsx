@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 interface UserProfile {
     name: string;
