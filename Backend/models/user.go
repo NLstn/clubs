@@ -50,12 +50,7 @@ func GetUserByID(userID string) (User, error) {
 }
 
 func (u *User) UpdateUserName(name string) error {
-	// Use GORM's Updates method for better cross-database compatibility
-	return database.Db.Model(u).Where("id = ?", u.ID).Updates(map[string]interface{}{
-		"name":       name,
-		"updated_by": u.ID,
-		"updated_at": time.Now(),
-	}).Error
+	return database.Db.Exec(`UPDATE users SET name = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, name, u.ID, u.ID).Error
 }
 
 func (u *User) StoreRefreshToken(token string) error {
