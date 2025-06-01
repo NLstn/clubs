@@ -89,19 +89,60 @@ func handleGetMyFines(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// load club names and creator names
+	// Extract unique club IDs and creator IDs for batch queries
+	clubIDSet := make(map[string]bool)
+	creatorIDSet := make(map[string]bool)
+	for _, fine := range fines {
+		clubIDSet[fine.ClubID] = true
+		creatorIDSet[fine.CreatedBy] = true
+	}
+
+	// Convert sets to slices
+	var clubIDs []string
+	for clubID := range clubIDSet {
+		clubIDs = append(clubIDs, clubID)
+	}
+	var creatorIDs []string
+	for creatorID := range creatorIDSet {
+		creatorIDs = append(creatorIDs, creatorID)
+	}
+
+	// Fetch all clubs and creators in bulk
+	clubs, err := models.GetClubsByIDs(clubIDs)
+	if err != nil {
+		http.Error(w, "Failed to get clubs", http.StatusInternalServerError)
+		return
+	}
+
+	creators, err := models.GetUsersByIDs(creatorIDs)
+	if err != nil {
+		http.Error(w, "Failed to get fine creators", http.StatusInternalServerError)
+		return
+	}
+
+	// Create lookup maps for quick access
+	clubMap := make(map[string]models.Club)
+	for _, club := range clubs {
+		clubMap[club.ID] = club
+	}
+
+	creatorMap := make(map[string]models.User)
+	for _, creator := range creators {
+		creatorMap[creator.ID] = creator
+	}
+
+	// Build response using cached data
 	var result []Fine
 	for i := range fines {
-		club, err := models.GetClubByID(fines[i].ClubID)
-		if err != nil {
-			http.Error(w, "Failed to get club", http.StatusInternalServerError)
+		club, clubExists := clubMap[fines[i].ClubID]
+		if !clubExists {
+			http.Error(w, "Club not found for fine", http.StatusInternalServerError)
 			return
 		}
-		
-		// Get the user who created the fine
-		creator, err := models.GetUserByID(fines[i].CreatedBy)
-		if err != nil {
-			http.Error(w, "Failed to get fine creator", http.StatusInternalServerError)
+
+		creator, creatorExists := creatorMap[fines[i].CreatedBy]
+		if !creatorExists {
+			http.Error(w, "Creator not found for fine", http.StatusInternalServerError)
 			return
 		}
 		

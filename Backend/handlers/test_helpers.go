@@ -259,6 +259,28 @@ func CreateTestFine(t *testing.T, user models.User, club models.Club, reason str
 	return fine
 }
 
+// CreateTestFineWithCreator creates a test fine with a specific creator
+func CreateTestFineWithCreator(t *testing.T, user models.User, club models.Club, creator models.User, reason string, amount float64, paid bool) models.Fine {
+	fineID := uuid.New().String()
+	
+	fine := models.Fine{
+		ID:        fineID,
+		UserID:    user.ID,
+		ClubID:    club.ID,
+		Reason:    reason,
+		Amount:    amount,
+		Paid:      paid,
+		CreatedBy: creator.ID,
+		UpdatedBy: creator.ID,
+	}
+
+	if err := testDB.Create(&fine).Error; err != nil {
+		t.Fatalf("Failed to create test fine: %v", err)
+	}
+
+	return fine
+}
+
 // CreateTestMember creates a test member directly in the database without notifications
 func CreateTestMember(t *testing.T, user models.User, club models.Club, role string) models.Member {
 	memberID := uuid.New().String()
