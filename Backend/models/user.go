@@ -50,7 +50,7 @@ func GetUserByID(userID string) (User, error) {
 }
 
 func (u *User) UpdateUserName(name string) error {
-	return database.Db.Exec(`UPDATE users SET name = ?, updated_by = ?, updated_at = NOW() WHERE id = ?`, name, u.ID, u.ID).Error
+	return database.Db.Exec(`UPDATE users SET name = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, name, u.ID, u.ID).Error
 }
 
 func (u *User) StoreRefreshToken(token string) error {
@@ -91,6 +91,15 @@ func (u *User) DeleteAllRefreshTokens() error {
 func (u *User) GetFines() ([]Fine, error) {
 	var fines []Fine
 	err := database.Db.Raw(`SELECT * FROM fines WHERE user_id = ?`, u.ID).Scan(&fines).Error
+	if err != nil {
+		return nil, err
+	}
+	return fines, nil
+}
+
+func (u *User) GetUnpaidFines() ([]Fine, error) {
+	var fines []Fine
+	err := database.Db.Raw(`SELECT * FROM fines WHERE user_id = ? AND paid = FALSE`, u.ID).Scan(&fines).Error
 	if err != nil {
 		return nil, err
 	}
