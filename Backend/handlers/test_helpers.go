@@ -84,10 +84,13 @@ func SetupTestDB(t *testing.T) {
 	`)
 	testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS join_requests (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			user_id TEXT NOT NULL,
+			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			email TEXT NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
 		)
 	`)
 	testDB.Exec(`
@@ -460,7 +463,41 @@ func registerShiftRoutesForTest(mux *http.ServeMux) {
 }
 
 func registerJoinRequestRoutesForTest(mux *http.ServeMux) {
-	// TODO: Add join request routes when implementing those tests
+	mux.Handle("/api/v1/clubs/{clubid}/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			handleJoinRequestCreate(w, r)
+		case http.MethodGet:
+			handleGetJoinEvents(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetUserJoinRequests(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/joinRequests/{requestid}/accept", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			handleAcceptJoinRequest(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/joinRequests/{requestid}/reject", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			handleRejectJoinRequest(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
 }
 
 func registerFineRoutesForTest(mux *http.ServeMux) {
