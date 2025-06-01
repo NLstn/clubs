@@ -108,6 +108,18 @@ func SetupTestDB(t *testing.T) {
 		)
 	`)
 	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS fine_templates (
+			id TEXT PRIMARY KEY,
+			club_id TEXT NOT NULL,
+			description TEXT,
+			amount REAL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
+		)
+	`)
+	testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS shifts (
 			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
@@ -418,6 +430,32 @@ func registerClubRoutesForTest(mux *http.ServeMux) {
 				handleCreateFine(w, r)
 			default:
 				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			}
+			return
+		}
+
+		// Check if this is a fine-templates endpoint
+		if strings.Contains(r.URL.Path, "/fine-templates") {
+			if strings.Contains(r.URL.Path, "/fine-templates/") {
+				// This is for specific template operations (PUT/DELETE)
+				switch r.Method {
+				case http.MethodPut:
+					handleUpdateFineTemplate(w, r)
+				case http.MethodDelete:
+					handleDeleteFineTemplate(w, r)
+				default:
+					http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+				}
+			} else {
+				// This is for general template operations (GET/POST)
+				switch r.Method {
+				case http.MethodGet:
+					handleGetFineTemplates(w, r)
+				case http.MethodPost:
+					handleCreateFineTemplate(w, r)
+				default:
+					http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+				}
 			}
 			return
 		}
