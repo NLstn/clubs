@@ -52,6 +52,7 @@ describe('Date Parsing', () => {
     }
 
     // With the TypeScript interface expecting camelCase, these will be undefined
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fine = mockOldResponse as any
     
     // Simulate what would happen in the component with the old format
