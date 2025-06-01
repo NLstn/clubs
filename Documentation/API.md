@@ -848,8 +848,9 @@ Some endpoints may return JSON error objects for structured error handling.
 ## Notes
 
 1. All UUIDs must be valid UUID format
-2. All timestamps are in ISO 8601 format (RFC 3339)
+2. All timestamps are in ISO 8601 format (RFC 3339) and use camelCase field names (e.g., `createdAt`, `updatedAt`)
 3. All monetary amounts are represented as floating-point numbers
 4. Authentication is required for all endpoints except magic link request and verification
 5. Rate limiting is enforced per IP address
 6. CORS is enabled with permissive settings for development
+7. JSON field names follow camelCase convention to ensure frontend compatibility
