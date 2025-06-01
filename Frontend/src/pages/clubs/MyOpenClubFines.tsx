@@ -10,6 +10,7 @@ interface Fine {
     createdAt: string;
     updatedAt: string;
     paid: boolean;
+    createdByName: string;
 }
 
 const MyOpenClubFines = () => {
@@ -42,21 +43,19 @@ const MyOpenClubFines = () => {
             <table>
                 <thead>
                     <tr>
-                        <th>Amount</th>
                         <th>Reason</th>
+                        <th>Amount</th>
                         <th>Created At</th>
-                        <th>Updated At</th>
-                        <th>Paid</th>
+                        <th>Created By</th>
                     </tr>
                 </thead>
                 <tbody>
                     {fines && fines.map((fine) => (
                         <tr key={fine.id}>
-                            <td>{fine.amount}</td>
                             <td>{fine.reason}</td>
+                            <td>{fine.amount}</td>
                             <td>{new Date(fine.createdAt).toLocaleString()}</td>
-                            <td>{new Date(fine.updatedAt).toLocaleString()}</td>
-                            <td>{fine.paid ? "Yes" : "No"}</td>
+                            <td>{fine.createdByName}</td>
                         </tr>
                     ))}
                 </tbody>

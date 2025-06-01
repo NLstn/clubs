@@ -751,7 +751,8 @@ The API uses JWT-based authentication with magic link email authentication. Most
     "amount": 25.50,
     "created_at": "2024-01-01T10:00:00Z",
     "updated_at": "2024-01-01T10:00:00Z",
-    "paid": false
+    "paid": false,
+    "createdByName": "Admin Name"
   }
 ]
 ```

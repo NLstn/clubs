@@ -59,6 +59,7 @@ func TestFinesEndpoints(t *testing.T) {
 		assert.Equal(t, "Late arrival", fine["reason"])
 		assert.Equal(t, 25.0, fine["amount"])
 		assert.Equal(t, club.Name, fine["clubName"])
+		assert.Equal(t, user.Name, fine["createdByName"]) // Verify creator name is included
 	})
 
 	t.Run("Get My Fines - Only Unpaid Fines Expected", func(t *testing.T) {
