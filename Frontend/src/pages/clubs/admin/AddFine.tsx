@@ -15,6 +15,23 @@ interface MemberOption {
     member: Member;
 }
 
+interface FineTemplate {
+    id: string;
+    club_id: string;
+    description: string;
+    amount: number;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+}
+
+interface FineTemplateOption {
+    id: string;
+    label: string;
+    template: FineTemplate;
+}
+
 interface AddFineProps {
     isOpen: boolean;
     onClose: () => void;
@@ -30,6 +47,11 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
     const [members, setMembers] = useState<Member[]>([]);
     const [selectedOption, setSelectedOption] = useState<MemberOption | null>(null);
     const [memberOptions, setMemberOptions] = useState<MemberOption[]>([]);
+    
+    // Fine template related state
+    const [fineTemplates, setFineTemplates] = useState<FineTemplate[]>([]);
+    const [selectedTemplate, setSelectedTemplate] = useState<FineTemplateOption | null>(null);
+    const [templateOptions, setTemplateOptions] = useState<FineTemplateOption[]>([]);
 
     useEffect(() => {
         const fetchMembers = async () => {
@@ -44,8 +66,23 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                 }
             }
         };
+
+        const fetchFineTemplates = async () => {
+            try {
+                const response = await api.get(`/api/v1/clubs/${clubId}/fine-templates`);
+                setFineTemplates(response.data);
+            } catch (error: unknown) {
+                if (error instanceof Error) {
+                    setError("Failed to fetch fine templates: " + error.message);
+                } else {
+                    setError("Failed to fetch fine templates: Unknown error");
+                }
+            }
+        };
+
         if (isOpen) {
             fetchMembers();
+            fetchFineTemplates();
         }
     }, [clubId, isOpen]);
 
@@ -67,6 +104,7 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
             setAmount(0);
             setReason('');
             setSelectedOption(null);
+            setSelectedTemplate(null);
             onSuccess();
             onClose();
         } catch (error: unknown) {
@@ -91,6 +129,25 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
         setMemberOptions(filtered);
     };
 
+    const handleTemplateSearch = (query: string) => {
+        const filtered = fineTemplates.map(template => ({
+            id: template.id,
+            label: `${template.description} - $${template.amount}`,
+            template: template
+        })).filter(option =>
+            option.label.toLowerCase().includes(query.toLowerCase())
+        );
+        setTemplateOptions(filtered);
+    };
+
+    const handleTemplateSelection = (templateOption: FineTemplateOption | null) => {
+        setSelectedTemplate(templateOption);
+        if (templateOption) {
+            setReason(templateOption.template.description);
+            setAmount(templateOption.template.amount);
+        }
+    };
+
     return (
         <div className="modal">
             <div className="modal-content">
@@ -105,6 +162,15 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                         placeholder="Search member..."
                         id="member"
                         label="Member"
+                    />
+                    <TypeAheadDropdown<FineTemplateOption>
+                        options={templateOptions}
+                        value={selectedTemplate}
+                        onChange={handleTemplateSelection}
+                        onSearch={handleTemplateSearch}
+                        placeholder="Search fine template (optional)..."
+                        id="template"
+                        label="Fine Template (Optional)"
                     />
                     <label htmlFor="amount">Amount</label>
                     <input
