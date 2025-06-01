@@ -30,83 +30,141 @@ func SetupTestDB(t *testing.T) {
 	// Set the global database reference for the application
 	database.Db = testDB
 
-	// Set up SQLite-compatible tables
-	testDB.Exec(`
+	// Create SQLite-compatible tables with all necessary columns including created_by and updated_by
+	err = testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS magic_links (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id TEXT PRIMARY KEY,
 			email TEXT NOT NULL,
 			token TEXT NOT NULL UNIQUE,
 			expires_at DATETIME NOT NULL
 		)
-	`)
-	testDB.Exec(`
+	`).Error
+	if err != nil {
+		t.Fatalf("Failed to create magic_links table: %v", err)
+	}
+
+	err = testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS users (
 			id TEXT PRIMARY KEY,
 			name TEXT,
 			email TEXT NOT NULL UNIQUE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
 		)
-	`)
-	testDB.Exec(`
+	`).Error
+	if err != nil {
+		t.Fatalf("Failed to create users table: %v", err)
+	}
+
+	err = testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS refresh_tokens (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id TEXT PRIMARY KEY,
 			user_id TEXT NOT NULL,
 			token TEXT NOT NULL UNIQUE,
 			expires_at DATETIME
 		)
-	`)
-	testDB.Exec(`
+	`).Error
+	if err != nil {
+		t.Fatalf("Failed to create refresh_tokens table: %v", err)
+	}
+
+	err = testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS clubs (
 			id TEXT PRIMARY KEY,
 			name TEXT,
-			description TEXT
+			description TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
 		)
-	`)
-	testDB.Exec(`
+	`).Error
+	if err != nil {
+		t.Fatalf("Failed to create clubs table: %v", err)
+	}
+
+	err = testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS members (
 			id TEXT PRIMARY KEY,
 			user_id TEXT NOT NULL,
 			club_id TEXT NOT NULL,
-			role TEXT
+			role TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
 		)
-	`)
-	testDB.Exec(`
+	`).Error
+	if err != nil {
+		t.Fatalf("Failed to create members table: %v", err)
+	}
+
+	err = testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS join_requests (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			user_id TEXT NOT NULL,
+			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			email TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
 		)
-	`)
-	testDB.Exec(`
+	`).Error
+	if err != nil {
+		t.Fatalf("Failed to create join_requests table: %v", err)
+	}
+
+	err = testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS fines (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id TEXT PRIMARY KEY,
 			user_id TEXT NOT NULL,
 			club_id TEXT NOT NULL,
 			reason TEXT,
 			amount REAL,
 			paid BOOLEAN DEFAULT FALSE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
 		)
-	`)
-	testDB.Exec(`
+	`).Error
+	if err != nil {
+		t.Fatalf("Failed to create fines table: %v", err)
+	}
+
+	err = testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS shifts (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
 			start_time DATETIME,
 			end_time DATETIME,
-			description TEXT
+			description TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
 		)
-	`)
-	testDB.Exec(`
+	`).Error
+	if err != nil {
+		t.Fatalf("Failed to create shifts table: %v", err)
+	}
+
+	err = testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS shift_members (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id TEXT PRIMARY KEY,
 			shift_id TEXT NOT NULL,
-			user_id TEXT NOT NULL
+			user_id TEXT NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
 		)
-	`)
+	`).Error
+	if err != nil {
+		t.Fatalf("Failed to create shift_members table: %v", err)
+	}
 }
 
 // TeardownTestDB cleans up the test database
