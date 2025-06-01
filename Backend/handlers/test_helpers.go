@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
@@ -20,6 +21,114 @@ import (
 // TestDatabase holds the test database instance
 var testDB *gorm.DB
 
+// SQLite-compatible model structs for testing (based on production models but without PostgreSQL-specific features)
+type testMagicLink struct {
+	ID        string    `gorm:"primaryKey"`
+	Email     string    `gorm:"not null"`
+	Token     string    `gorm:"not null;uniqueIndex"`
+	ExpiresAt time.Time `gorm:"not null"`
+}
+
+func (testMagicLink) TableName() string { return "magic_links" }
+
+type testUser struct {
+	ID        string    `gorm:"primaryKey"`
+	Name      string
+	Email     string    `gorm:"uniqueIndex;not null"`
+	CreatedAt time.Time
+	CreatedBy string
+	UpdatedAt time.Time
+	UpdatedBy string
+}
+
+func (testUser) TableName() string { return "users" }
+
+type testRefreshToken struct {
+	ID        string `gorm:"primaryKey"`
+	UserID    string `gorm:"not null"`
+	Token     string `gorm:"uniqueIndex;not null"`
+	ExpiresAt time.Time
+}
+
+func (testRefreshToken) TableName() string { return "refresh_tokens" }
+
+type testClub struct {
+	ID          string    `gorm:"primaryKey"`
+	Name        string
+	Description string
+	CreatedAt   time.Time
+	CreatedBy   string
+	UpdatedAt   time.Time
+	UpdatedBy   string
+}
+
+func (testClub) TableName() string { return "clubs" }
+
+type testMember struct {
+	ID        string    `gorm:"primaryKey"`
+	ClubID    string
+	UserID    string
+	Role      string
+	CreatedAt time.Time
+	CreatedBy string
+	UpdatedAt time.Time
+	UpdatedBy string
+}
+
+func (testMember) TableName() string { return "members" }
+
+type testJoinRequest struct {
+	ID        string    `gorm:"primaryKey"`
+	ClubID    string
+	Email     string
+	CreatedAt time.Time
+	CreatedBy string
+	UpdatedAt time.Time
+	UpdatedBy string
+}
+
+func (testJoinRequest) TableName() string { return "join_requests" }
+
+type testFine struct {
+	ID        string    `gorm:"primaryKey"`
+	ClubID    string
+	UserID    string
+	Reason    string
+	Amount    float64
+	CreatedAt time.Time
+	CreatedBy string
+	UpdatedAt time.Time
+	UpdatedBy string
+	Paid      bool
+}
+
+func (testFine) TableName() string { return "fines" }
+
+type testShift struct {
+	ID        string    `gorm:"primaryKey"`
+	ClubID    string    `gorm:"not null"`
+	StartTime time.Time `gorm:"not null"`
+	EndTime   time.Time `gorm:"not null"`
+	CreatedAt time.Time
+	CreatedBy string
+	UpdatedAt time.Time
+	UpdatedBy string
+}
+
+func (testShift) TableName() string { return "shifts" }
+
+type testShiftMember struct {
+	ID        string    `gorm:"primaryKey"`
+	ShiftID   string    `gorm:"not null"`
+	UserID    string    `gorm:"not null"`
+	CreatedAt time.Time
+	CreatedBy string
+	UpdatedAt time.Time
+	UpdatedBy string
+}
+
+func (testShiftMember) TableName() string { return "shift_members" }
+
 // SetupTestDB initializes an in-memory SQLite database for testing
 func SetupTestDB(t *testing.T) {
 	var err error
@@ -31,140 +140,21 @@ func SetupTestDB(t *testing.T) {
 	// Set the global database reference for the application
 	database.Db = testDB
 
-	// Create SQLite-compatible tables with all necessary columns including created_by and updated_by
-	err = testDB.Exec(`
-		CREATE TABLE IF NOT EXISTS magic_links (
-			id TEXT PRIMARY KEY,
-			email TEXT NOT NULL,
-			token TEXT NOT NULL UNIQUE,
-			expires_at DATETIME NOT NULL
-		)
-	`).Error
+	// Use AutoMigrate with SQLite-compatible test models that mirror the production schema
+	// This gives us the benefits of AutoMigrate (DRY, consistency) while handling SQLite limitations
+	err = testDB.AutoMigrate(
+		&testMagicLink{},
+		&testUser{},
+		&testRefreshToken{},
+		&testClub{},
+		&testMember{},
+		&testJoinRequest{},
+		&testFine{},
+		&testShift{},
+		&testShiftMember{},
+	)
 	if err != nil {
-		t.Fatalf("Failed to create magic_links table: %v", err)
-	}
-
-	err = testDB.Exec(`
-		CREATE TABLE IF NOT EXISTS users (
-			id TEXT PRIMARY KEY,
-			name TEXT,
-			email TEXT NOT NULL UNIQUE,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			created_by TEXT,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
-		)
-	`).Error
-	if err != nil {
-		t.Fatalf("Failed to create users table: %v", err)
-	}
-
-	err = testDB.Exec(`
-		CREATE TABLE IF NOT EXISTS refresh_tokens (
-			id TEXT PRIMARY KEY,
-			user_id TEXT NOT NULL,
-			token TEXT NOT NULL UNIQUE,
-			expires_at DATETIME
-		)
-	`).Error
-	if err != nil {
-		t.Fatalf("Failed to create refresh_tokens table: %v", err)
-	}
-
-	err = testDB.Exec(`
-		CREATE TABLE IF NOT EXISTS clubs (
-			id TEXT PRIMARY KEY,
-			name TEXT,
-			description TEXT,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			created_by TEXT,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
-		)
-	`).Error
-	if err != nil {
-		t.Fatalf("Failed to create clubs table: %v", err)
-	}
-
-	err = testDB.Exec(`
-		CREATE TABLE IF NOT EXISTS members (
-			id TEXT PRIMARY KEY,
-			user_id TEXT NOT NULL,
-			club_id TEXT NOT NULL,
-			role TEXT,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			created_by TEXT,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
-		)
-	`).Error
-	if err != nil {
-		t.Fatalf("Failed to create members table: %v", err)
-	}
-
-	err = testDB.Exec(`
-		CREATE TABLE IF NOT EXISTS join_requests (
-			id TEXT PRIMARY KEY,
-			club_id TEXT NOT NULL,
-			email TEXT,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			created_by TEXT,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
-		)
-	`).Error
-	if err != nil {
-		t.Fatalf("Failed to create join_requests table: %v", err)
-	}
-
-	err = testDB.Exec(`
-		CREATE TABLE IF NOT EXISTS fines (
-			id TEXT PRIMARY KEY,
-			user_id TEXT NOT NULL,
-			club_id TEXT NOT NULL,
-			reason TEXT,
-			amount REAL,
-			paid BOOLEAN DEFAULT FALSE,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			created_by TEXT,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
-		)
-	`).Error
-	if err != nil {
-		t.Fatalf("Failed to create fines table: %v", err)
-	}
-
-	err = testDB.Exec(`
-		CREATE TABLE IF NOT EXISTS shifts (
-			id TEXT PRIMARY KEY,
-			club_id TEXT NOT NULL,
-			start_time DATETIME,
-			end_time DATETIME,
-			description TEXT,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			created_by TEXT,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
-		)
-	`).Error
-	if err != nil {
-		t.Fatalf("Failed to create shifts table: %v", err)
-	}
-
-	err = testDB.Exec(`
-		CREATE TABLE IF NOT EXISTS shift_members (
-			id TEXT PRIMARY KEY,
-			shift_id TEXT NOT NULL,
-			user_id TEXT NOT NULL,
-			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			created_by TEXT,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
-		)
-	`).Error
-	if err != nil {
-		t.Fatalf("Failed to create shift_members table: %v", err)
+		t.Fatalf("Failed to migrate database: %v", err)
 	}
 }
 
