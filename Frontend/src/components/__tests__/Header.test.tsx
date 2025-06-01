@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import Header from '../layout/Header'
@@ -8,7 +8,7 @@ const mockUseAuth = vi.fn()
 const mockLogout = vi.fn()
 const mockNavigate = vi.fn()
 
-vi.mock('../../context/AuthContext', () => ({
+vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => mockUseAuth()
 }))
 

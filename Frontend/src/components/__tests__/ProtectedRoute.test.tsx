@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import ProtectedRoute from '../auth/ProtectedRoute'
@@ -7,8 +7,7 @@ import { AuthProvider } from '../../context/AuthProvider'
 // Mock the useAuth hook
 const mockUseAuth = vi.fn()
 
-vi.mock('../../context/AuthContext', () => ({
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => mockUseAuth()
 }))
 
