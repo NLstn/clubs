@@ -109,11 +109,14 @@ func SetupTestDB(t *testing.T) {
 	`)
 	testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS shifts (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
 			start_time DATETIME,
 			end_time DATETIME,
-			description TEXT
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
 		)
 	`)
 	testDB.Exec(`
@@ -484,7 +487,36 @@ func registerMemberRoutesForTest(mux *http.ServeMux) {
 }
 
 func registerShiftRoutesForTest(mux *http.ServeMux) {
-	// TODO: Add shift routes when implementing those tests
+	mux.Handle("/api/v1/clubs/{clubid}/shifts", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetShifts(w, r)
+		case http.MethodPost:
+			handleCreateShift(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/clubs/{clubid}/shifts/{shiftid}/members", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetShiftMembers(w, r)
+		case http.MethodPost:
+			handleAddMemberToShift(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/clubs/{clubid}/shifts/{shiftid}/members/{memberid}", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodDelete:
+			handleRemoveMemberFromShift(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
 }
 
 func registerJoinRequestRoutesForTest(mux *http.ServeMux) {
