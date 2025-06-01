@@ -567,6 +567,148 @@ The API uses JWT-based authentication with magic link email authentication. Most
 
 ---
 
+## Fine Template Management Endpoints
+
+### Get Club Fine Templates
+**Endpoint:** `GET /api/v1/clubs/{clubid}/fine-templates`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Get all fine templates for a club. User must be a member.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Response:**
+```json
+[
+  {
+    "id": "template-uuid",
+    "club_id": "club-uuid",
+    "description": "Late arrival",
+    "amount": 25.50,
+    "created_at": "2024-01-01T10:00:00Z",
+    "created_by": "user-uuid",
+    "updated_at": "2024-01-01T10:00:00Z",
+    "updated_by": "user-uuid"
+  }
+]
+```
+
+**Responses:**
+- `200 OK` - List of fine templates
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not a member of the club
+- `404 Not Found` - Club not found
+- `500 Internal Server Error` - Database error
+
+---
+
+### Create Fine Template
+**Endpoint:** `POST /api/v1/clubs/{clubid}/fine-templates`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Create a new fine template. Only admins/owners can create templates.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Request Body:**
+```json
+{
+  "description": "Late arrival",
+  "amount": 25.50
+}
+```
+
+**Response:**
+```json
+{
+  "id": "new-template-uuid",
+  "club_id": "club-uuid",
+  "description": "Late arrival",
+  "amount": 25.50,
+  "created_at": "2024-01-01T10:00:00Z",
+  "created_by": "user-uuid",
+  "updated_at": "2024-01-01T10:00:00Z",
+  "updated_by": "user-uuid"
+}
+```
+
+**Responses:**
+- `201 Created` - Fine template created successfully
+- `400 Bad Request` - Invalid request payload or missing required fields
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not an admin/owner
+- `404 Not Found` - Club not found
+- `500 Internal Server Error` - Database error
+
+---
+
+### Update Fine Template
+**Endpoint:** `PUT /api/v1/clubs/{clubid}/fine-templates/{templateid}`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Update an existing fine template. Only admins/owners can update templates.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+- `templateid` (UUID) - Fine template identifier
+
+**Request Body:**
+```json
+{
+  "description": "Very late arrival",
+  "amount": 30.00
+}
+```
+
+**Response:**
+```json
+{
+  "id": "template-uuid",
+  "club_id": "club-uuid",
+  "description": "Very late arrival",
+  "amount": 30.00,
+  "created_at": "2024-01-01T10:00:00Z",
+  "created_by": "user-uuid",
+  "updated_at": "2024-01-01T12:00:00Z",
+  "updated_by": "user-uuid"
+}
+```
+
+**Responses:**
+- `200 OK` - Fine template updated successfully
+- `400 Bad Request` - Invalid request payload or missing required fields
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not an admin/owner
+- `404 Not Found` - Club or template not found
+- `500 Internal Server Error` - Database error
+
+---
+
+### Delete Fine Template
+**Endpoint:** `DELETE /api/v1/clubs/{clubid}/fine-templates/{templateid}`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Delete a fine template. Only admins/owners can delete templates.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+- `templateid` (UUID) - Fine template identifier
+
+**Responses:**
+- `204 No Content` - Fine template deleted successfully
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not an admin/owner
+- `404 Not Found` - Club or template not found
+- `500 Internal Server Error` - Database error
+
+---
+
 ## Join Request Management Endpoints
 
 ### Create Join Request
