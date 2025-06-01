@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/NLstn/clubs/auth"
@@ -282,6 +283,48 @@ func MockEnvironmentVariables(t *testing.T) {
 	os.Setenv("ACS_CONNECTION_STRING", "test-connection-string")
 }
 
+// CreateTestFine creates a test fine for a user in a club
+func CreateTestFine(t *testing.T, user models.User, club models.Club, reason string, amount float64, paid bool) models.Fine {
+	fineID := uuid.New().String()
+	
+	fine := models.Fine{
+		ID:        fineID,
+		UserID:    user.ID,
+		ClubID:    club.ID,
+		Reason:    reason,
+		Amount:    amount,
+		Paid:      paid,
+		CreatedBy: user.ID,
+		UpdatedBy: user.ID,
+	}
+
+	if err := testDB.Create(&fine).Error; err != nil {
+		t.Fatalf("Failed to create test fine: %v", err)
+	}
+
+	return fine
+}
+
+// CreateTestMember creates a test member directly in the database without notifications
+func CreateTestMember(t *testing.T, user models.User, club models.Club, role string) models.Member {
+	memberID := uuid.New().String()
+	
+	member := models.Member{
+		ID:        memberID,
+		UserID:    user.ID,
+		ClubID:    club.ID,
+		Role:      role,
+		CreatedBy: user.ID,
+		UpdatedBy: user.ID,
+	}
+
+	if err := testDB.Create(&member).Error; err != nil {
+		t.Fatalf("Failed to create test member: %v", err)
+	}
+
+	return member
+}
+
 // ParseJSONResponse parses a JSON response body into the provided interface
 func ParseJSONResponse(t *testing.T, rr *httptest.ResponseRecorder, v interface{}) {
 	if err := json.NewDecoder(rr.Body).Decode(v); err != nil {
@@ -382,8 +425,22 @@ func registerClubRoutesForTest(mux *http.ServeMux) {
 		}
 	}))
 
-	// Handle club by ID - this pattern should match /api/v1/clubs/{id}
+	// Handle club by ID and club fines - this pattern should match /api/v1/clubs/{id} and /api/v1/clubs/{id}/fines
 	mux.Handle("/api/v1/clubs/", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		// Check if this is a fines endpoint
+		if strings.HasSuffix(r.URL.Path, "/fines") {
+			switch r.Method {
+			case http.MethodGet:
+				handleGetFines(w, r)
+			case http.MethodPost:
+				handleCreateFine(w, r)
+			default:
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			}
+			return
+		}
+
+		// Handle regular club operations
 		switch r.Method {
 		case http.MethodGet:
 			handleGetClubByID(w, r)
@@ -406,6 +463,14 @@ func registerUserRoutesForTest(mux *http.ServeMux) {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	}))
+
+	mux.Handle("/api/v1/me/fines", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetMyFines(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
 }
 
 // Placeholder functions for other route registrations
@@ -423,5 +488,6 @@ func registerJoinRequestRoutesForTest(mux *http.ServeMux) {
 }
 
 func registerFineRoutesForTest(mux *http.ServeMux) {
-	// TODO: Add fine routes when implementing those tests
+	// Fines routes are handled in registerClubRoutesForTest and registerUserRoutesForTest
+	// This function is left empty to avoid conflicts
 }

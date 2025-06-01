@@ -738,7 +738,7 @@ The API uses JWT-based authentication with magic link email authentication. Most
 **Authentication:** Bearer token required  
 **Rate Limit:** API limiter (30/5s)
 
-**Description:** Get all fines for the authenticated user across all clubs.
+**Description:** Get all unpaid fines for the authenticated user across all clubs.
 
 **Response:**
 ```json
@@ -757,9 +757,11 @@ The API uses JWT-based authentication with magic link email authentication. Most
 ```
 
 **Responses:**
-- `200 OK` - List of user's fines
+- `200 OK` - List of user's unpaid fines
 - `401 Unauthorized` - Invalid or missing token
 - `500 Internal Server Error` - Database error
+
+**Note:** This endpoint returns only unpaid fines for the user. Administrators can see all fines (paid and unpaid) using the club fines endpoint.
 
 ---
 
