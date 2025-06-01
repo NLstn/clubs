@@ -454,8 +454,33 @@ func registerUserRoutesForTest(mux *http.ServeMux) {
 
 // Placeholder functions for other route registrations
 func registerMemberRoutesForTest(mux *http.ServeMux) {
-	// Skip member routes to avoid conflicts with club routes
-	// Member functionality can be tested through integration tests
+	mux.Handle("/api/v1/clubs/{clubid}/members", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetClubMembers(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/clubs/{clubid}/isAdmin", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleCheckAdminRights(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/clubs/{clubid}/members/{memberid}", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodDelete:
+			handleClubMemberDelete(w, r)
+		case http.MethodPatch:
+			handleUpdateMemberRole(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
 }
 
 func registerShiftRoutesForTest(mux *http.ServeMux) {
