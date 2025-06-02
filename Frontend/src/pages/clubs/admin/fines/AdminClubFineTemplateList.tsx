@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 
@@ -22,11 +22,7 @@ const AdminClubFineTemplateList = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState({ description: '', amount: 0 });
 
-    useEffect(() => {
-        fetchTemplates();
-    }, [clubId]);
-
-    const fetchTemplates = async () => {
+    const fetchTemplates = useCallback(async () => {
         try {
             const response = await api.get(`/api/v1/clubs/${clubId}/fine-templates`);
             setTemplates(response.data);
@@ -36,7 +32,11 @@ const AdminClubFineTemplateList = () => {
             setError('Error fetching fine templates');
             setLoading(false);
         }
-    };
+    }, [clubId]);
+
+    useEffect(() => {
+        fetchTemplates();
+    }, [fetchTemplates]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
