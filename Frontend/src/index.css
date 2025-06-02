@@ -308,12 +308,16 @@ select:focus {
 /* Tab styles */
 .tabs-container {
   margin-top: var(--space-lg);
+  height: calc(100vh - 200px);
+  display: flex;
+  flex-direction: column;
 }
 
 .tabs-nav {
   display: flex;
   border-bottom: 2px solid var(--color-border);
   margin-bottom: var(--space-lg);
+  flex-shrink: 0;
 }
 
 .tab-button {
@@ -340,10 +344,13 @@ select:focus {
 
 .tab-content {
   padding: var(--space-md) 0;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .tab-panel {
   display: none;
+  height: 100%;
 }
 
 .tab-panel.active {

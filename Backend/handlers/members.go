@@ -42,10 +42,11 @@ func registerMemberRoutes(mux *http.ServeMux) {
 func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 
 	type APIMember struct {
-		ID     string `json:"id"`
-		UserId string `json:"userId"`
-		Name   string `json:"name"`
-		Role   string `json:"role"`
+		ID       string `json:"id"`
+		UserId   string `json:"userId"`
+		Name     string `json:"name"`
+		Role     string `json:"role"`
+		JoinedAt string `json:"joinedAt"`
 	}
 
 	clubID := extractPathParam(r, "clubs")
@@ -83,6 +84,7 @@ func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 		apiMember.UserId = members[i].UserID
 		apiMember.Name = user.Name
 		apiMember.Role = members[i].Role
+		apiMember.JoinedAt = members[i].CreatedAt.Format("2006-01-02T15:04:05Z")
 		apiMembers = append(apiMembers, apiMember)
 	}
 

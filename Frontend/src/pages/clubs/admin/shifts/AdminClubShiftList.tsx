@@ -74,8 +74,8 @@ const AdminClubShiftList = () => {
                             ) : (
                                 shifts.map(shift => (
                                     <tr key={shift.id}>
-                                        <td>{shift.startTime}</td>
-                                        <td>{shift.endTime}</td>
+                                        <td>{new Date(shift.startTime).toLocaleString()}</td>
+                                        <td>{new Date(shift.endTime).toLocaleString()}</td>
                                         <td>
                                             <button
                                                 onClick={() => handleEditShift(shift)}

@@ -162,6 +162,7 @@ const AdminClubFineTemplateList = () => {
                                 <td>
                                     <button 
                                         onClick={() => handleEdit(template)}
+                                        className="button-accept"
                                         style={{ marginRight: '0.5rem' }}
                                     >
                                         Edit
