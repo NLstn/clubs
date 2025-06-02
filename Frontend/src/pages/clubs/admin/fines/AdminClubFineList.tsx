@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../../../utils/api";
 import AddFine from "./AddFine";
+import AdminClubFineTemplateList from "./AdminClubFineTemplateList";
 
 interface Fine {
     id: string;
@@ -18,6 +19,8 @@ const AdminClubFineList = () => {
     const { id } = useParams();
 
     const [fines, setFines] = useState<Fine[]>([]);
+    const [showAllFines, setShowAllFines] = useState(false);
+    const [showFineTemplates, setShowFineTemplates] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -34,9 +37,24 @@ const AdminClubFineList = () => {
         fetchFines();
     }, [fetchFines]);
 
+    const displayedFines = showAllFines ? fines : fines.filter(fine => !fine.paid);
+
     return (
         <div>
-            <h3>Fines</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
+                <h3>Fines</h3>
+                <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
+                        <input
+                            type="checkbox"
+                            checked={showAllFines}
+                            onChange={(e) => setShowAllFines(e.target.checked)}
+                        />
+                        Show all fines
+                    </label>
+                    <button onClick={() => setShowFineTemplates(true)}>Manage Templates</button>
+                </div>
+            </div>
             {error && <div className="error">{error}</div>}
             <table>
                 <thead>
@@ -50,7 +68,7 @@ const AdminClubFineList = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {fines && fines.map((fine) => (
+                    {displayedFines && displayedFines.map((fine) => (
                         <tr key={fine.id}>
                             <td>{fine.userName}</td>
                             <td>{fine.amount}</td>
@@ -71,6 +89,18 @@ const AdminClubFineList = () => {
                 clubId={id || ''}
                 onSuccess={fetchFines}
             />
+            
+            {showFineTemplates && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <h2>Manage Fine Templates</h2>
+                        <AdminClubFineTemplateList />
+                        <div className="modal-actions">
+                            <button onClick={() => setShowFineTemplates(false)} className="button-cancel">Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

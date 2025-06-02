@@ -304,3 +304,48 @@ select:focus {
 .ta-option:hover {
   background-color: var(--color-background-light);
 }
+
+/* Tab styles */
+.tabs-container {
+  margin-top: var(--space-lg);
+}
+
+.tabs-nav {
+  display: flex;
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: var(--space-lg);
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  padding: var(--space-sm) var(--space-lg);
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+  color: var(--color-text);
+  background-color: var(--color-background-light);
+}
+
+.tab-button.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+  background-color: var(--color-background-light);
+}
+
+.tab-content {
+  padding: var(--space-md) 0;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
