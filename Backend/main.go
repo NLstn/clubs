@@ -30,6 +30,7 @@ func main() {
 		&models.JoinRequest{},
 		&models.RefreshToken{},
 		&models.Fine{},
+		&models.FineTemplate{},
 		&models.Shift{},
 		&models.ShiftMember{},
 	)
