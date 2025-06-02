@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
@@ -72,8 +71,6 @@ func handleGetFines(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "User not found", http.StatusNotFound)
 			return
 		}
-
-		log.Default().Printf("Fine: %v, user %s", fine, user.Name)
 
 		fineList = append(fineList, Fine{
 			ID:        fine.ID,
