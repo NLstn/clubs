@@ -133,7 +133,7 @@ const AdminClubDetails = () => {
                                 </div>
                             ) : (
                                 <>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div className="club-header">
                                         <h2>{club.name}</h2>
                                         <button onClick={handleEdit}>Edit Club</button>
                                     </div>

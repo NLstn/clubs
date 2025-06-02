@@ -349,3 +349,80 @@ select:focus {
 .tab-panel.active {
   display: block;
 }
+
+/* Fines section styles */
+.fines-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.fines-controls {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  cursor: pointer;
+}
+
+/* Club overview styles */
+.club-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+/* Member actions styles */
+.member-actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.member-actions.buttons {
+  gap: var(--space-sm);
+}
+
+.action-button {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.action-button.promote {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.action-button.promote:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.action-button.demote {
+  background-color: var(--color-cancel);
+  color: var(--color-cancel-text);
+}
+
+.action-button.demote:hover {
+  background-color: var(--color-cancel-hover);
+}
+
+.action-button.remove {
+  background-color: var(--color-cancel);
+  color: var(--color-cancel-text);
+  font-size: 0.9rem;
+}
+
+.action-button.remove:hover {
+  background-color: var(--color-cancel-hover);
+}
