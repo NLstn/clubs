@@ -3,9 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../../utils/api';
 import Layout from '../../../components/layout/Layout';
 import AdminClubMemberList from './members/AdminClubMemberList';
-import AdminClubPendingInviteList from './members/AdminClubPendingInviteList';
 import AdminClubFineList from './fines/AdminClubFineList';
-import AdminClubFineTemplateList from './fines/AdminClubFineTemplateList';
 import AdminClubShiftList from './shifts/AdminClubShiftList';
 
 interface Club {
@@ -24,6 +22,7 @@ const AdminClubDetails = () => {
     const [error, setError] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({ name: '', description: '' });
+    const [activeTab, setActiveTab] = useState('overview');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -76,48 +75,85 @@ const AdminClubDetails = () => {
     return (
         <Layout title={`${club.name} - Admin`}>
             <div>
-                {isEditing ? (
-                    <div className="edit-form">
-                        <div className="form-group">
-                            <label htmlFor="clubName">Club Name</label>
-                            <input
-                                id="clubName"
-                                type="text"
-                                value={editForm.name}
-                                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                placeholder="Club Name"
-                            />
+                <div className="tabs-container">
+                    <nav className="tabs-nav">
+                        <button 
+                            className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('overview')}
+                        >
+                            Overview
+                        </button>
+                        <button 
+                            className={`tab-button ${activeTab === 'members' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('members')}
+                        >
+                            Members
+                        </button>
+                        <button 
+                            className={`tab-button ${activeTab === 'fines' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('fines')}
+                        >
+                            Fines
+                        </button>
+                        <button 
+                            className={`tab-button ${activeTab === 'shifts' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('shifts')}
+                        >
+                            Shifts
+                        </button>
+                    </nav>
+
+                    <div className="tab-content">
+                        <div className={`tab-panel ${activeTab === 'overview' ? 'active' : ''}`}>
+                            {isEditing ? (
+                                <div className="edit-form">
+                                    <div className="form-group">
+                                        <label htmlFor="clubName">Club Name</label>
+                                        <input
+                                            id="clubName"
+                                            type="text"
+                                            value={editForm.name}
+                                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                            placeholder="Club Name"
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label htmlFor="clubDescription">Description</label>
+                                        <textarea
+                                            id="clubDescription"
+                                            value={editForm.description}
+                                            onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                            placeholder="Club Description"
+                                        />
+                                    </div>
+                                    <div className="form-actions">
+                                        <button onClick={updateClub} className="button-accept">Save</button>
+                                        <button onClick={() => setIsEditing(false)} className="button-cancel">Cancel</button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <h2>{club.name}</h2>
+                                        <button onClick={handleEdit}>Edit Club</button>
+                                    </div>
+                                    <p>{club.description}</p>
+                                </>
+                            )}
                         </div>
-                        <div className="form-group">
-                            <label htmlFor="clubDescription">Description</label>
-                            <textarea
-                                id="clubDescription"
-                                value={editForm.description}
-                                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                                placeholder="Club Description"
-                            />
+
+                        <div className={`tab-panel ${activeTab === 'members' ? 'active' : ''}`}>
+                            <AdminClubMemberList />
                         </div>
-                        <div className="form-actions">
-                            <button onClick={updateClub} className="button-accept">Save</button>
-                            <button onClick={() => setIsEditing(false)} className="button-cancel">Cancel</button>
+
+                        <div className={`tab-panel ${activeTab === 'fines' ? 'active' : ''}`}>
+                            <AdminClubFineList />
+                        </div>
+
+                        <div className={`tab-panel ${activeTab === 'shifts' ? 'active' : ''}`}>
+                            <AdminClubShiftList />
                         </div>
                     </div>
-                ) : (
-                    <>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h2>{club.name}</h2>
-                            <button onClick={handleEdit}>Edit Club</button>
-                        </div>
-                        <p>{club.description}</p>
-                    </>
-                )}
-
-                <div className="club-info">
-                    <AdminClubMemberList />
-                    <AdminClubFineList />
-                    <AdminClubFineTemplateList />
-                    <AdminClubPendingInviteList />
-                    <AdminClubShiftList />
                 </div>
             </div>
         </Layout>

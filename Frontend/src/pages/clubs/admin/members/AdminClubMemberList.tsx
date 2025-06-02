@@ -7,6 +7,12 @@ interface Member {
     id: string;
     name: string;
     role: string;
+    joinedAt: string;
+}
+
+interface JoinRequest {
+    id: string;
+    email: string;
 }
 
 const AdminClubMemberList = () => {
@@ -14,28 +20,52 @@ const AdminClubMemberList = () => {
 
     const [members, setMembers] = useState<Member[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showPendingInvites, setShowPendingInvites] = useState(false);
+    const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchMembers = async () => {
-            try {
-                const response = await api.get(`/api/v1/clubs/${id}/members`);
-                setMembers(response.data);
-            } catch {
-                setError("Failed to fetch members");
-            }
-        };
+    const fetchMembers = async () => {
+        try {
+            const response = await api.get(`/api/v1/clubs/${id}/members`);
+            const sortedMembers = response.data.sort((a: Member, b: Member) => {
+                const roleOrder = { owner: 0, admin: 1, member: 2 };
+                return (roleOrder[a.role as keyof typeof roleOrder] || 2) - (roleOrder[b.role as keyof typeof roleOrder] || 2);
+            });
+            setMembers(sortedMembers);
+        } catch {
+            setError("Failed to fetch members");
+        }
+    };
 
+    const fetchJoinRequests = async () => {
+        try {
+            const response = await api.get(`/api/v1/clubs/${id}/joinRequests`);
+            setJoinRequests(response.data);
+        } catch (error) {
+            console.error("Error fetching join requests:", error);
+        }
+    };
+
+    const handleShowPendingInvites = () => {
+        fetchJoinRequests();
+        setShowPendingInvites(true);
+    };
+
+    useEffect(() => {
         fetchMembers();
-    }
-    , [id]);
+    }, [id]);
 
     const handleRoleChange = async (memberId: string, newRole: string) => {
         try {
             await api.patch(`/api/v1/clubs/${id}/members/${memberId}`, { role: newRole });
-            setMembers(members.map(member => 
+            const updatedMembers = members.map(member => 
                 member.id === memberId ? { ...member, role: newRole } : member
-            ));
+            );
+            const sortedMembers = updatedMembers.sort((a: Member, b: Member) => {
+                const roleOrder = { owner: 0, admin: 1, member: 2 };
+                return (roleOrder[a.role as keyof typeof roleOrder] || 2) - (roleOrder[b.role as keyof typeof roleOrder] || 2);
+            });
+            setMembers(sortedMembers);
         } catch {
             setError('Failed to update member role');
         }
@@ -69,6 +99,7 @@ const AdminClubMemberList = () => {
                     <tr>
                         <th>Name</th>
                         <th>Role</th>
+                        <th>Joined</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -86,6 +117,7 @@ const AdminClubMemberList = () => {
                                     <option value="owner">Owner</option>
                                 </select>
                             </td>
+                            <td>{member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'N/A'}</td>
                             <td className="delete-cell">
                                 <button
                                     onClick={() => deleteMember(member.id)}
@@ -99,12 +131,44 @@ const AdminClubMemberList = () => {
                     ))}
                 </tbody>
             </table>
-            <button onClick={() => setIsModalOpen(true)} className="button-accept">Invite Member</button>
+            <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-md)' }}>
+                <button onClick={() => setIsModalOpen(true)} className="button-accept">Invite Member</button>
+                <button onClick={handleShowPendingInvites}>View Pending Invites</button>
+            </div>
             <InviteMember
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={sendInvite}
             />
+            
+            {showPendingInvites && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <h2>Pending Invites</h2>
+                        {joinRequests.length === 0 ? (
+                            <p>No pending invites</p>
+                        ) : (
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {joinRequests.map((request) => (
+                                        <tr key={request.id}>
+                                            <td>{request.email}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                        <div className="modal-actions">
+                            <button onClick={() => setShowPendingInvites(false)} className="button-cancel">Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
