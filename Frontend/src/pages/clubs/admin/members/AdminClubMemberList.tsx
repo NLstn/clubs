@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import InviteMember from "./InviteMember";
 import api from "../../../../utils/api";
 import { useParams } from "react-router-dom";
@@ -24,7 +24,7 @@ const AdminClubMemberList = () => {
     const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchMembers = async () => {
+    const fetchMembers = useCallback(async () => {
         try {
             const response = await api.get(`/api/v1/clubs/${id}/members`);
             const sortedMembers = response.data.sort((a: Member, b: Member) => {
@@ -35,7 +35,7 @@ const AdminClubMemberList = () => {
         } catch {
             setError("Failed to fetch members");
         }
-    };
+    }, [id]);
 
     const fetchJoinRequests = async () => {
         try {
@@ -53,7 +53,7 @@ const AdminClubMemberList = () => {
 
     useEffect(() => {
         fetchMembers();
-    }, [id]);
+    }, [fetchMembers]);
 
     const handleRoleChange = async (memberId: string, newRole: string) => {
         try {
@@ -107,31 +107,58 @@ const AdminClubMemberList = () => {
                     {members && members.map((member) => (
                         <tr key={member.id}>
                             <td>{member.name}</td>
-                            <td>
-                                <select
-                                    value={member.role}
-                                    onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                                >
-                                    <option value="member">Member</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="owner">Owner</option>
-                                </select>
-                            </td>
+                            <td>{member.role}</td>
                             <td>{member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'N/A'}</td>
-                            <td className="delete-cell">
-                                <button
-                                    onClick={() => deleteMember(member.id)}
-                                    className="delete-button"
-                                    aria-label="Delete member"
-                                >
-                                    ×
-                                </button>
+                            <td>
+                                <div className="member-actions">
+                                    {member.role !== 'owner' && (
+                                        <button
+                                            onClick={() => deleteMember(member.id)}
+                                            className="action-button remove"
+                                            aria-label="Remove member"
+                                        >
+                                            Remove
+                                        </button>
+                                    )}
+                                    {member.role === 'member' && (
+                                        <button
+                                            onClick={() => handleRoleChange(member.id, 'admin')}
+                                            className="action-button promote"
+                                        >
+                                            Promote
+                                        </button>
+                                    )}
+                                    {member.role === 'admin' && (
+                                        <>
+                                            <button
+                                                onClick={() => handleRoleChange(member.id, 'member')}
+                                                className="action-button demote"
+                                            >
+                                                Demote
+                                            </button>
+                                            <button
+                                                onClick={() => handleRoleChange(member.id, 'owner')}
+                                                className="action-button promote"
+                                            >
+                                                Promote
+                                            </button>
+                                        </>
+                                    )}
+                                    {member.role === 'owner' && (
+                                        <button
+                                            onClick={() => handleRoleChange(member.id, 'admin')}
+                                            className="action-button demote"
+                                        >
+                                            Demote
+                                        </button>
+                                    )}
+                                </div>
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
-            <div style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-md)' }}>
+            <div className="member-actions buttons" style={{ marginTop: 'var(--space-md)' }}>
                 <button onClick={() => setIsModalOpen(true)} className="button-accept">Invite Member</button>
                 <button onClick={handleShowPendingInvites}>View Pending Invites</button>
             </div>

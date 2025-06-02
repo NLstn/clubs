@@ -41,10 +41,10 @@ const AdminClubFineList = () => {
 
     return (
         <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-md)' }}>
+            <div className="fines-header">
                 <h3>Fines</h3>
-                <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
+                <div className="fines-controls">
+                    <label className="checkbox-label">
                         <input
                             type="checkbox"
                             checked={showAllFines}
