@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import api from "../../../utils/api";
+import api from "../../../../utils/api";
 import AddFine from "./AddFine";
 
 interface Fine {

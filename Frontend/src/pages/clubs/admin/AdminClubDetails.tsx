@@ -4,8 +4,8 @@ import api from '../../../utils/api';
 import Layout from '../../../components/layout/Layout';
 import AdminClubMemberList from './members/AdminClubMemberList';
 import AdminClubPendingInviteList from './members/AdminClubPendingInviteList';
-import AdminClubFineList from './AdminClubFineList';
-import AdminClubFineTemplateList from './AdminClubFineTemplateList';
+import AdminClubFineList from './fines/AdminClubFineList';
+import AdminClubFineTemplateList from './fines/AdminClubFineTemplateList';
 import AdminClubShiftList from './shifts/AdminClubShiftList';
 
 interface Club {
