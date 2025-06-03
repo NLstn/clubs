@@ -19,4 +19,4 @@ dist
 dist-ssr
 *.local
 
-**/tmpBackend/main
+**/tmp
