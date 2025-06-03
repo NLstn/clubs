@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  dev:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    networks:
+      - clubs-network
+    environment:
+      - DATABASE_URL=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=clubs
+      - DATABASE_USER_PASSWORD=yourpassword
+      - FRONTEND_URL=http://localhost:5173
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+    ports:
+      - "5432:5432"
+    networks:
+      - clubs-network
+
+volumes:
+  postgres-data:
+
+networks:
+  clubs-network:
+    driver: bridge
