@@ -46,9 +46,7 @@ func SetupTestDB(t *testing.T) {
 			name TEXT,
 			email TEXT NOT NULL UNIQUE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			created_by TEXT,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)
 	`)
 	testDB.Exec(`
@@ -154,14 +152,14 @@ func TeardownTestDB(t *testing.T) {
 func CreateTestUser(t *testing.T, email string) (models.User, string) {
 	// Generate a UUID-like string for SQLite
 	userID := uuid.New().String()
-	
+
 	// Create user directly in database
 	user := models.User{
 		ID:    userID,
 		Email: email,
 		Name:  "Test User",
 	}
-	
+
 	if err := testDB.Create(&user).Error; err != nil {
 		t.Fatalf("Failed to create test user: %v", err)
 	}
@@ -177,7 +175,7 @@ func CreateTestUser(t *testing.T, email string) (models.User, string) {
 // CreateTestClub creates a test club with the given user as owner
 func CreateTestClub(t *testing.T, user models.User, clubName string) models.Club {
 	clubID := uuid.New().String()
-	
+
 	club := models.Club{
 		ID:          clubID,
 		Name:        clubName,
@@ -247,7 +245,7 @@ func MockEnvironmentVariables(t *testing.T) {
 	os.Setenv("DATABASE_PORT", "5432")
 	os.Setenv("DATABASE_USER", "test")
 	os.Setenv("DATABASE_USER_PASSWORD", "test")
-	
+
 	// Set Azure environment variables to avoid initialization errors
 	os.Setenv("AZURE_CLIENT_ID", "test-client-id")
 	os.Setenv("AZURE_CLIENT_SECRET", "test-client-secret")
@@ -258,7 +256,7 @@ func MockEnvironmentVariables(t *testing.T) {
 // CreateTestFine creates a test fine for a user in a club
 func CreateTestFine(t *testing.T, user models.User, club models.Club, reason string, amount float64, paid bool) models.Fine {
 	fineID := uuid.New().String()
-	
+
 	fine := models.Fine{
 		ID:        fineID,
 		UserID:    user.ID,
@@ -280,7 +278,7 @@ func CreateTestFine(t *testing.T, user models.User, club models.Club, reason str
 // CreateTestFineWithCreator creates a test fine with a specific creator
 func CreateTestFineWithCreator(t *testing.T, user models.User, club models.Club, creator models.User, reason string, amount float64, paid bool) models.Fine {
 	fineID := uuid.New().String()
-	
+
 	fine := models.Fine{
 		ID:        fineID,
 		UserID:    user.ID,
@@ -302,7 +300,7 @@ func CreateTestFineWithCreator(t *testing.T, user models.User, club models.Club,
 // CreateTestMember creates a test member directly in the database without notifications
 func CreateTestMember(t *testing.T, user models.User, club models.Club, role string) models.Member {
 	memberID := uuid.New().String()
-	
+
 	member := models.Member{
 		ID:        memberID,
 		UserID:    user.ID,
