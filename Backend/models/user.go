@@ -8,13 +8,11 @@ import (
 )
 
 type User struct {
-	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	ID        string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	Name      string
-	Email     string    `gorm:"uniqueIndex;not null"`
+	Email     string `gorm:"uniqueIndex;not null"`
 	CreatedAt time.Time
-	CreatedBy string    `gorm:"type:uuid"`
 	UpdatedAt time.Time
-	UpdatedBy string    `gorm:"type:uuid"`
 }
 
 type RefreshToken struct {
@@ -40,17 +38,11 @@ func FindOrCreateUser(email string) (User, error) {
 					return User{}, err
 				}
 			}
-			
-			// Update the created_by and updated_by fields with the user's own ID (self-reference)
-			if user.ID != "" {
-				user.CreatedBy = user.ID
-				user.UpdatedBy = user.ID
-				err = database.Db.Save(&user).Error
-				if err != nil {
-					return User{}, err
-				}
+
+			err = database.Db.Save(&user).Error
+			if err != nil {
+				return User{}, err
 			}
-			
 			return user, nil
 		}
 		return User{}, err
