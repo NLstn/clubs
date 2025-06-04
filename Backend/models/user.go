@@ -69,7 +69,7 @@ func GetUsersByIDs(userIDs []string) ([]User, error) {
 }
 
 func (u *User) UpdateUserName(name string) error {
-	return database.Db.Exec(`UPDATE users SET name = ?, updated_by = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, name, u.ID, u.ID).Error
+	return database.Db.Exec(`UPDATE users SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, name, u.ID).Error
 }
 
 func (u *User) StoreRefreshToken(token string) error {
