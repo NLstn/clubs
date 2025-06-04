@@ -14,8 +14,6 @@ func registerMemberRoutes(mux *http.ServeMux) {
 		switch r.Method {
 		case http.MethodGet:
 			handleGetClubMembers(w, r)
-		case http.MethodPatch:
-			handleUpdateMemberRole(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -30,9 +28,12 @@ func registerMemberRoutes(mux *http.ServeMux) {
 	})))
 
 	mux.Handle("/api/v1/clubs/{clubid}/members/{memberid}", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodDelete {
+		switch r.Method {
+		case http.MethodDelete:
 			handleClubMemberDelete(w, r)
-		} else {
+		case http.MethodPatch:
+			handleUpdateMemberRole(w, r)
+		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})))
