@@ -17,13 +17,13 @@ type JoinRequest struct {
 	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
 }
 
-func (c *Club) CreateJoinRequest(email string) error {
+func (c *Club) CreateJoinRequest(email, createdBy string) error {
 	request := &JoinRequest{
-		ID:     uuid.New().String(),
-		ClubID: c.ID,
-		Email:  email,
-		// CreatedBy and UpdatedBy are left empty since the person making the request
-		// might not be a user in the system yet
+		ID:        uuid.New().String(),
+		ClubID:    c.ID,
+		Email:     email,
+		CreatedBy: createdBy,
+		UpdatedBy: createdBy,
 	}
 	return database.Db.Create(request).Error
 }
