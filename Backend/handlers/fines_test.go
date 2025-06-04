@@ -190,4 +190,24 @@ func TestFinesEndpoints(t *testing.T) {
 		assert.True(t, foundUnpaid, "Admin should see unpaid fine")
 		assert.True(t, foundPaid, "Admin should see paid fine")
 	})
+
+	t.Run("Get My Fines - Early Return for No Fines", func(t *testing.T) {
+		// Create a user with no fines to verify early return behavior
+		user, token := CreateTestUser(t, "no_fines_early_return@example.com")
+		_ = user // User created but no fines assigned
+
+		req := MakeRequest(t, "GET", "/api/v1/me/fines", nil, token)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusOK, rr.Code)
+
+		var fines []map[string]interface{}
+		ParseJSONResponse(t, rr, &fines)
+		
+		// Verify empty array is returned
+		assert.Equal(t, 0, len(fines))
+		assert.NotNil(t, fines) // Should be empty array, not nil
+		
+		// Verify response content type is set correctly
+		assert.Equal(t, "application/json", rr.Header().Get("Content-Type"))
+	})
 }

@@ -89,12 +89,23 @@ func handleGetMyFines(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If user has no fines, return empty array early
+	if len(fines) == 0 {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode([]Fine{})
+		return
+	}
+
 	// Extract unique club IDs and creator IDs for batch queries
 	clubIDSet := make(map[string]bool)
 	creatorIDSet := make(map[string]bool)
 	for _, fine := range fines {
-		clubIDSet[fine.ClubID] = true
-		creatorIDSet[fine.CreatedBy] = true
+		if fine.ClubID != "" {
+			clubIDSet[fine.ClubID] = true
+		}
+		if fine.CreatedBy != "" {
+			creatorIDSet[fine.CreatedBy] = true
+		}
 	}
 
 	// Convert sets to slices
