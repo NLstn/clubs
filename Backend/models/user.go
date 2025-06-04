@@ -26,16 +26,34 @@ type RefreshToken struct {
 
 func FindOrCreateUser(email string) (User, error) {
 	var user User
-	err := database.Db.Raw(`SELECT * FROM users WHERE email = ?`, email).Scan(&user).Error
+	err := database.Db.Where("email = ?", email).First(&user).Error
 	if err != nil {
-		return User{}, err
-	}
-	if user.ID == "" {
-		user = User{Email: email}
-		err = database.Db.Raw(`INSERT INTO users (email) VALUES (?) RETURNING *`, email).Scan(&user).Error
-		if err != nil {
-			return User{}, err
+		if err.Error() == "record not found" {
+			// For new user creation, use raw SQL to insert with NULL for created_by/updated_by initially
+			// Then update after we have the user ID
+			err = database.Db.Raw(`INSERT INTO users (email, created_by, updated_by) VALUES (?, NULL, NULL) RETURNING *`, email).Scan(&user).Error
+			if err != nil {
+				// If the above fails (e.g., in SQLite), try with GORM and handle the self-reference after
+				user = User{Email: email}
+				err = database.Db.Create(&user).Error
+				if err != nil {
+					return User{}, err
+				}
+			}
+			
+			// Update the created_by and updated_by fields with the user's own ID (self-reference)
+			if user.ID != "" {
+				user.CreatedBy = user.ID
+				user.UpdatedBy = user.ID
+				err = database.Db.Save(&user).Error
+				if err != nil {
+					return User{}, err
+				}
+			}
+			
+			return user, nil
 		}
+		return User{}, err
 	}
 	return user, nil
 }
