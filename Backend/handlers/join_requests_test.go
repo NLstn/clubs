@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/NLstn/clubs/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -55,6 +56,23 @@ func TestJoinRequestEndpoints(t *testing.T) {
 		req := MakeRequest(t, "POST", "/api/v1/clubs/"+club.ID+"/joinRequests", joinData, ownerToken)
 		rr := ExecuteRequest(t, handler, req)
 		CheckResponseCode(t, http.StatusCreated, rr.Code)
+
+		// Verify that the join request was created with proper created_by field
+		joinRequests, err := club.GetJoinRequests()
+		assert.NoError(t, err)
+		assert.GreaterOrEqual(t, len(joinRequests), 1)
+		
+		// Find our join request
+		var foundRequest *models.JoinRequest
+		for _, jr := range joinRequests {
+			if jr.Email == "newmember3@example.com" {
+				foundRequest = &jr
+				break
+			}
+		}
+		assert.NotNil(t, foundRequest, "Join request should be found")
+		assert.Equal(t, owner.ID, foundRequest.CreatedBy, "CreatedBy should be set to the owner's ID")
+		assert.Equal(t, owner.ID, foundRequest.UpdatedBy, "UpdatedBy should be set to the owner's ID")
 	})
 
 	t.Run("Create Join Request - Missing Email", func(t *testing.T) {
@@ -108,7 +126,7 @@ func TestJoinRequestEndpoints(t *testing.T) {
 		club := CreateTestClub(t, owner, "Test Club")
 
 		// Create a join request first
-		club.CreateJoinRequest("newmember8@example.com")
+		club.CreateJoinRequest("newmember8@example.com", owner.ID)
 
 		req := MakeRequest(t, "GET", "/api/v1/clubs/"+club.ID+"/joinRequests", nil, ownerToken)
 		rr := ExecuteRequest(t, handler, req)
@@ -140,7 +158,7 @@ func TestJoinRequestEndpoints(t *testing.T) {
 		// Create a join request for this user
 		owner, _ := CreateTestUser(t, "owner10@example.com")
 		club := CreateTestClub(t, owner, "Test Club")
-		club.CreateJoinRequest(user.Email)
+		club.CreateJoinRequest(user.Email, owner.ID)
 
 		req := MakeRequest(t, "GET", "/api/v1/joinRequests", nil, userToken)
 		rr := ExecuteRequest(t, handler, req)
