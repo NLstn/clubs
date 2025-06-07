@@ -33,6 +33,8 @@ func main() {
 		&models.FineTemplate{},
 		&models.Shift{},
 		&models.ShiftMember{},
+		&models.Event{},
+		&models.EventRSVP{},
 	)
 	if err != nil {
 		log.Fatal("Could not migrate database:", err)
