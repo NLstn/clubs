@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/NLstn/clubs/database"
@@ -10,14 +11,32 @@ type Event struct {
 	ID          string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	ClubID      string    `gorm:"type:uuid;not null" json:"club_id"`
 	Name        string    `gorm:"not null" json:"name"`
-	StartDate   time.Time `gorm:"not null" json:"start_date"`
-	StartTime   time.Time `gorm:"not null" json:"start_time"`
-	EndDate     time.Time `gorm:"not null" json:"end_date"`
-	EndTime     time.Time `gorm:"not null" json:"end_time"`
+	StartDate   time.Time `gorm:"not null" json:"-"`
+	StartTime   time.Time `gorm:"not null" json:"-"`
+	EndDate     time.Time `gorm:"not null" json:"-"`
+	EndTime     time.Time `gorm:"not null" json:"-"`
 	CreatedAt   time.Time `json:"created_at"`
 	CreatedBy   string    `json:"created_by" gorm:"type:uuid"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	UpdatedBy   string    `json:"updated_by" gorm:"type:uuid"`
+}
+
+// MarshalJSON implements custom JSON marshaling for Event
+func (e Event) MarshalJSON() ([]byte, error) {
+	type Alias Event
+	return json.Marshal(&struct {
+		StartDate string `json:"start_date"`
+		StartTime string `json:"start_time"`
+		EndDate   string `json:"end_date"`
+		EndTime   string `json:"end_time"`
+		*Alias
+	}{
+		StartDate: e.StartDate.Format("2006-01-02"),
+		StartTime: e.StartTime.Format("15:04"),
+		EndDate:   e.EndDate.Format("2006-01-02"),
+		EndTime:   e.EndTime.Format("15:04"),
+		Alias:     (*Alias)(&e),
+	})
 }
 
 type EventRSVP struct {
