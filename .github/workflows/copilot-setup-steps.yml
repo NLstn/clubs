@@ -53,10 +53,6 @@ jobs:
           sudo -u postgres createuser --createdb --login runner
           sudo -u postgres psql -c "ALTER USER runner WITH PASSWORD 'password';"
 
-      # Install Air for Go hot reloading (if needed for development tasks)
-      - name: Install Air (Go hot reloading)
-        run: go install github.com/air-verse/air@latest
-
       # Verify installations
       - name: Verify Go installation
         working-directory: Backend
