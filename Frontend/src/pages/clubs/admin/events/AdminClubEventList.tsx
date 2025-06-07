@@ -18,6 +18,12 @@ interface RSVPCounts {
     no?: number;
 }
 
+interface Shift {
+    id: string;
+    startTime: string;
+    endTime: string;
+}
+
 const AdminClubEventList = () => {
     const { id } = useParams();
     const [events, setEvents] = useState<Event[]>([]);
@@ -27,6 +33,7 @@ const AdminClubEventList = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [rsvpCounts, setRsvpCounts] = useState<Record<string, RSVPCounts>>({});
+    const [eventShifts, setEventShifts] = useState<Record<string, Shift[]>>({});
 
     const fetchEvents = useCallback(async () => {
         setLoading(true);
@@ -35,18 +42,26 @@ const AdminClubEventList = () => {
             const response = await api.get(`/api/v1/clubs/${id}/events`);
             setEvents(response.data || []);
 
-            // Fetch RSVP counts for each event
+            // Fetch RSVP counts and shifts for each event
             const counts: Record<string, RSVPCounts> = {};
+            const shifts: Record<string, Shift[]> = {};
             for (const event of response.data || []) {
                 try {
+                    // Fetch RSVP counts
                     const rsvpResponse = await api.get(`/api/v1/clubs/${id}/events/${event.id}/rsvps`);
                     counts[event.id] = rsvpResponse.data.counts || {};
+                    
+                    // Fetch event shifts
+                    const shiftsResponse = await api.get(`/api/v1/clubs/${id}/events/${event.id}/shifts`);
+                    shifts[event.id] = shiftsResponse.data || [];
                 } catch (err) {
-                    console.warn(`Failed to fetch RSVP counts for event ${event.id}:`, err);
+                    console.warn(`Failed to fetch data for event ${event.id}:`, err);
                     counts[event.id] = {};
+                    shifts[event.id] = [];
                 }
             }
             setRsvpCounts(counts);
+            setEventShifts(shifts);
         } catch (error) {
             console.error("Error fetching events:", error);
             setError(error instanceof Error ? error.message : "Failed to fetch events");
@@ -107,19 +122,21 @@ const AdminClubEventList = () => {
                                 <th>Start</th>
                                 <th>End</th>
                                 <th>RSVPs</th>
+                                <th>Shifts</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {events.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} style={{textAlign: 'center', fontStyle: 'italic'}}>
+                                    <td colSpan={6} style={{textAlign: 'center', fontStyle: 'italic'}}>
                                         No events available
                                     </td>
                                 </tr>
                             ) : (
                                 events.map(event => {
                                     const counts = rsvpCounts[event.id] || {};
+                                    const shifts = eventShifts[event.id] || [];
                                     const yesCount = counts.yes || 0;
                                     const noCount = counts.no || 0;
                                     
@@ -131,6 +148,11 @@ const AdminClubEventList = () => {
                                             <td>
                                                 <span style={{color: 'green'}}>Yes: {yesCount}</span>{' '}
                                                 <span style={{color: 'red'}}>No: {noCount}</span>
+                                            </td>
+                                            <td>
+                                                <span style={{color: shifts.length > 0 ? 'blue' : 'gray'}}>
+                                                    {shifts.length} shift{shifts.length !== 1 ? 's' : ''}
+                                                </span>
                                             </td>
                                             <td>
                                                 <button
