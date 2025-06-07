@@ -72,7 +72,7 @@ const UpcomingEvents = () => {
                         borderRadius: '8px',
                         padding: '16px',
                         marginBottom: '12px',
-                        backgroundColor: '#f9f9f9'
+                        backgroundColor: 'var(--color-background)'
                     }}>
                         <h4>{event.name}</h4>
                         <p>
