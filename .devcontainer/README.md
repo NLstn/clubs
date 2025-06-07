@@ -58,9 +58,6 @@ cd Backend
 # Run the backend server
 go run main.go
 
-# Or use Air for hot reloading (if installed)
-air
-
 # Run tests
 go test ./...
 
