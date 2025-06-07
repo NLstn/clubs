@@ -136,6 +136,31 @@ func SetupTestDB(t *testing.T) {
 			user_id TEXT NOT NULL
 		)
 	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS events (
+			id TEXT PRIMARY KEY,
+			club_id TEXT NOT NULL,
+			name TEXT NOT NULL,
+			start_date DATETIME NOT NULL,
+			start_time DATETIME NOT NULL,
+			end_date DATETIME NOT NULL,
+			end_time DATETIME NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
+		)
+	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS event_rsvps (
+			id TEXT PRIMARY KEY,
+			event_id TEXT NOT NULL,
+			user_id TEXT NOT NULL,
+			response TEXT NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
 }
 
 // TeardownTestDB cleans up the test database
