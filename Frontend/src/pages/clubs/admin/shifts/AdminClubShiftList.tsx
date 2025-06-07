@@ -8,6 +8,7 @@ interface Shift {
     id: string;
     startTime: string;
     endTime: string;
+    eventId?: string;
 }
 
 const AdminClubShiftList = () => {
@@ -19,13 +20,31 @@ const AdminClubShiftList = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [events, setEvents] = useState<{[key: string]: string}>({});
 
     const fetchShifts = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
             const response = await api.get(`/api/v1/clubs/${id}/shifts`);
-            setShifts(response.data || []);
+            const shiftsData = response.data || [];
+            setShifts(shiftsData);
+            
+            // Fetch event names for shifts that have eventId
+            const eventIds = [...new Set(shiftsData.filter((shift: Shift) => shift.eventId).map((shift: Shift) => shift.eventId))];
+            if (eventIds.length > 0) {
+                try {
+                    const eventsResponse = await api.get(`/api/v1/clubs/${id}/events`);
+                    const eventsData = eventsResponse.data || [];
+                    const eventMap: {[key: string]: string} = {};
+                    eventsData.forEach((event: any) => {
+                        eventMap[event.id] = event.name;
+                    });
+                    setEvents(eventMap);
+                } catch (err) {
+                    console.warn("Failed to fetch event names:", err);
+                }
+            }
         } catch (error) {
             console.error("Error fetching shifts:", error);
             setError(error instanceof Error ? error.message : "Failed to fetch shifts");
@@ -61,13 +80,14 @@ const AdminClubShiftList = () => {
                             <tr>
                                 <th>Start Time</th>
                                 <th>End Time</th>
+                                <th>Event</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {shifts.length === 0 ? (
                                 <tr>
-                                    <td colSpan={3} style={{textAlign: 'center', fontStyle: 'italic'}}>
+                                    <td colSpan={4} style={{textAlign: 'center', fontStyle: 'italic'}}>
                                         No shifts available
                                     </td>
                                 </tr>
@@ -76,6 +96,17 @@ const AdminClubShiftList = () => {
                                     <tr key={shift.id}>
                                         <td>{new Date(shift.startTime).toLocaleString()}</td>
                                         <td>{new Date(shift.endTime).toLocaleString()}</td>
+                                        <td>
+                                            {shift.eventId ? (
+                                                <span style={{color: 'blue'}}>
+                                                    {events[shift.eventId] || 'Unknown Event'}
+                                                </span>
+                                            ) : (
+                                                <span style={{color: 'gray', fontStyle: 'italic'}}>
+                                                    No event
+                                                </span>
+                                            )}
+                                        </td>
                                         <td>
                                             <button
                                                 onClick={() => handleEditShift(shift)}

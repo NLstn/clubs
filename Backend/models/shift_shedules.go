@@ -70,6 +70,7 @@ func (ct *CustomTime) Scan(value interface{}) error {
 type Shift struct {
 	ID        string     `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	ClubID    string     `gorm:"type:uuid;not null"`
+	EventID   *string    `gorm:"type:uuid" json:"eventId,omitempty"`
 	StartTime CustomTime `gorm:"not null" json:"startTime"`
 	EndTime   CustomTime `gorm:"not null" json:"endTime"`
 	CreatedAt time.Time  `json:"created_at"`
@@ -88,9 +89,10 @@ type ShiftMember struct {
 	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
 }
 
-func (c *Club) CreateShift(startTime, endTime time.Time, createdBy string) (string, error) {
+func (c *Club) CreateShift(startTime, endTime time.Time, createdBy string, eventID *string) (string, error) {
 	shift := Shift{
 		ClubID:    c.ID,
+		EventID:   eventID,
 		StartTime: CustomTime{startTime},
 		EndTime:   CustomTime{endTime},
 		CreatedBy: createdBy,
@@ -120,6 +122,15 @@ func AddMemberToShift(shiftID, userID, createdBy string) error {
 func (c *Club) GetShifts() ([]Shift, error) {
 	var shifts []Shift
 	tx := database.Db.Model(&Shift{}).Where("club_id = ?", c.ID).Find(&shifts)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+	return shifts, nil
+}
+
+func (c *Club) GetShiftsByEvent(eventID string) ([]Shift, error) {
+	var shifts []Shift
+	tx := database.Db.Model(&Shift{}).Where("club_id = ? AND event_id = ?", c.ID, eventID).Find(&shifts)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}

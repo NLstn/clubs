@@ -20,6 +20,17 @@ func registerShiftRoutes(mux *http.ServeMux) {
 		}
 	})))
 
+	mux.Handle("/api/v1/clubs/{clubid}/events/{eventid}/shifts", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetEventShifts(w, r)
+		case http.MethodPost:
+			handleCreateEventShift(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
 	mux.Handle("/api/v1/clubs/{clubid}/shifts/{shiftid}/members", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
@@ -94,7 +105,15 @@ func handleCreateShift(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shiftID, err := club.CreateShift(shift.StartTime.Time, shift.EndTime.Time, user.ID)
+	// Validate eventID if provided
+	if shift.EventID != nil {
+		if _, err := uuid.Parse(*shift.EventID); err != nil {
+			http.Error(w, "Invalid event ID format", http.StatusBadRequest)
+			return
+		}
+	}
+
+	shiftID, err := club.CreateShift(shift.StartTime.Time, shift.EndTime.Time, user.ID, shift.EventID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -225,6 +244,87 @@ func handleRemoveMemberFromShift(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]string{"message": "Member removed from shift successfully"}); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
+}
+
+// GET /api/v1/clubs/{clubid}/events/{eventid}/shifts
+func handleGetEventShifts(w http.ResponseWriter, r *http.Request) {
+	clubID := extractPathParam(r, "clubs")
+	eventID := extractPathParam(r, "events")
+
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	if _, err := uuid.Parse(eventID); err != nil {
+		http.Error(w, "Invalid event ID format", http.StatusBadRequest)
+		return
+	}
+
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	shifts, err := club.GetShiftsByEvent(eventID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(shifts); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
+}
+
+// POST /api/v1/clubs/{clubid}/events/{eventid}/shifts
+func handleCreateEventShift(w http.ResponseWriter, r *http.Request) {
+	clubID := extractPathParam(r, "clubs")
+	eventID := extractPathParam(r, "events")
+
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	if _, err := uuid.Parse(eventID); err != nil {
+		http.Error(w, "Invalid event ID format", http.StatusBadRequest)
+		return
+	}
+
+	user := extractUser(r)
+
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var shift models.Shift
+	if err := json.NewDecoder(r.Body).Decode(&shift); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if shift.StartTime.IsZero() || shift.EndTime.IsZero() {
+		http.Error(w, "StartTime and EndTime are required", http.StatusBadRequest)
+		return
+	}
+
+	// Set the eventID from the URL path
+	shiftID, err := club.CreateShift(shift.StartTime.Time, shift.EndTime.Time, user.ID, &eventID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(map[string]string{"id": shiftID}); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 	}
 }

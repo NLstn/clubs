@@ -121,6 +121,7 @@ func SetupTestDB(t *testing.T) {
 		CREATE TABLE IF NOT EXISTS shifts (
 			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
+			event_id TEXT,
 			start_time DATETIME,
 			end_time DATETIME,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
