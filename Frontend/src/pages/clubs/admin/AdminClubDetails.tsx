@@ -5,6 +5,7 @@ import Layout from '../../../components/layout/Layout';
 import AdminClubMemberList from './members/AdminClubMemberList';
 import AdminClubFineList from './fines/AdminClubFineList';
 import AdminClubShiftList from './shifts/AdminClubShiftList';
+import AdminClubEventList from './events/AdminClubEventList';
 
 interface Club {
     id: string;
@@ -101,6 +102,12 @@ const AdminClubDetails = () => {
                         >
                             Shifts
                         </button>
+                        <button 
+                            className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('events')}
+                        >
+                            Events
+                        </button>
                     </nav>
 
                     <div className="tab-content">
@@ -152,6 +159,10 @@ const AdminClubDetails = () => {
 
                         <div className={`tab-panel ${activeTab === 'shifts' ? 'active' : ''}`}>
                             <AdminClubShiftList />
+                        </div>
+
+                        <div className={`tab-panel ${activeTab === 'events' ? 'active' : ''}`}>
+                            <AdminClubEventList />
                         </div>
                     </div>
                 </div>

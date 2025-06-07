@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Layout from '../../components/layout/Layout';
 import MyOpenClubFines from './MyOpenClubFines';
+import UpcomingEvents from './UpcomingEvents';
 
 interface Club {
     id: string;
@@ -47,6 +48,7 @@ const ClubDetails = () => {
                 <h2>{club.name}</h2>
                 <div className="club-info">
                     <p>{club.description}</p>
+                    <UpcomingEvents />
                     <MyOpenClubFines />
                     {isAdmin && (
                         <button 
