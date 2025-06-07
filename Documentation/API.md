@@ -908,6 +908,295 @@ The API uses JWT-based authentication with magic link email authentication. Most
 
 ---
 
+## Event Management Endpoints
+
+### Get Club Events
+**Endpoint:** `GET /api/v1/clubs/{clubid}/events`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Get all events for a club. User must be a member.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Response:**
+```json
+[
+  {
+    "id": "event-uuid",
+    "club_id": "club-uuid",
+    "name": "Event Name",
+    "start_date": "2024-06-01",
+    "start_time": "10:00",
+    "end_date": "2024-06-01",
+    "end_time": "12:00",
+    "created_at": "2024-01-01T10:00:00Z",
+    "created_by": "user-uuid",
+    "updated_at": "2024-01-01T10:00:00Z",
+    "updated_by": "user-uuid"
+  }
+]
+```
+
+**Responses:**
+- `200 OK` - List of events
+- `400 Bad Request` - Invalid club ID format
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not a member of the club
+- `404 Not Found` - Club not found
+- `500 Internal Server Error` - Database error
+
+---
+
+### Create Event
+**Endpoint:** `POST /api/v1/clubs/{clubid}/events`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Create a new event for a club. Only club admins/owners can create events.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Request Body:**
+```json
+{
+  "name": "Event Name",
+  "start_date": "2024-06-01",
+  "start_time": "10:00",
+  "end_date": "2024-06-01",
+  "end_time": "12:00"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "new-event-uuid",
+  "club_id": "club-uuid",
+  "name": "Event Name",
+  "start_date": "2024-06-01",
+  "start_time": "10:00",
+  "end_date": "2024-06-01",
+  "end_time": "12:00",
+  "created_at": "2024-01-01T10:00:00Z",
+  "created_by": "user-uuid",
+  "updated_at": "2024-01-01T10:00:00Z",
+  "updated_by": "user-uuid"
+}
+```
+
+**Responses:**
+- `201 Created` - Event created successfully
+- `400 Bad Request` - Invalid club ID format, invalid request body, or invalid date/time format
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not an admin/owner
+- `404 Not Found` - Club not found
+- `500 Internal Server Error` - Database error
+
+---
+
+### Update Event
+**Endpoint:** `PUT /api/v1/clubs/{clubid}/events/{eventid}`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Update an existing event. Only club admins/owners can update events.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+- `eventid` (UUID) - Event identifier
+
+**Request Body:**
+```json
+{
+  "name": "Updated Event Name",
+  "start_date": "2024-06-02",
+  "start_time": "11:00",
+  "end_date": "2024-06-02",
+  "end_time": "13:00"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "event-uuid",
+  "club_id": "club-uuid",
+  "name": "Updated Event Name",
+  "start_date": "2024-06-02",
+  "start_time": "11:00",
+  "end_date": "2024-06-02",
+  "end_time": "13:00",
+  "created_at": "2024-01-01T10:00:00Z",
+  "created_by": "user-uuid",
+  "updated_at": "2024-01-01T12:00:00Z",
+  "updated_by": "user-uuid"
+}
+```
+
+**Responses:**
+- `200 OK` - Event updated successfully
+- `400 Bad Request` - Invalid club/event ID format, invalid request body, or invalid date/time format
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not an admin/owner
+- `404 Not Found` - Club or event not found
+- `500 Internal Server Error` - Database error
+
+---
+
+### Delete Event
+**Endpoint:** `DELETE /api/v1/clubs/{clubid}/events/{eventid}`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Delete an event. Only club admins/owners can delete events. This will also delete all RSVPs for the event.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+- `eventid` (UUID) - Event identifier
+
+**Responses:**
+- `204 No Content` - Event deleted successfully
+- `400 Bad Request` - Invalid club/event ID format
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not an admin/owner
+- `404 Not Found` - Club or event not found
+- `500 Internal Server Error` - Database error
+
+---
+
+### Get Upcoming Events
+**Endpoint:** `GET /api/v1/clubs/{clubid}/events/upcoming`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Get upcoming events for a club with user's RSVP status. User must be a member.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Response:**
+```json
+[
+  {
+    "id": "event-uuid",
+    "club_id": "club-uuid",
+    "name": "Event Name",
+    "start_date": "2024-06-01",
+    "start_time": "10:00",
+    "end_date": "2024-06-01",
+    "end_time": "12:00",
+    "created_at": "2024-01-01T10:00:00Z",
+    "created_by": "user-uuid",
+    "updated_at": "2024-01-01T10:00:00Z",
+    "updated_by": "user-uuid",
+    "user_rsvp": {
+      "id": "rsvp-uuid",
+      "event_id": "event-uuid",
+      "user_id": "user-uuid",
+      "response": "yes",
+      "created_at": "2024-01-01T10:00:00Z",
+      "updated_at": "2024-01-01T10:00:00Z"
+    }
+  }
+]
+```
+
+**Responses:**
+- `200 OK` - List of upcoming events with RSVP status
+- `400 Bad Request` - Invalid club ID format
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not a member of the club
+- `404 Not Found` - Club not found
+- `500 Internal Server Error` - Database error
+
+---
+
+### RSVP to Event
+**Endpoint:** `POST /api/v1/clubs/{clubid}/events/{eventid}/rsvp`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Create or update an RSVP response for an event. User must be a club member.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+- `eventid` (UUID) - Event identifier
+
+**Request Body:**
+```json
+{
+  "response": "yes"
+}
+```
+
+**Valid responses:** `"yes"` or `"no"`
+
+**Response:**
+```json
+{
+  "status": "success"
+}
+```
+
+**Responses:**
+- `200 OK` - RSVP updated successfully
+- `400 Bad Request` - Invalid club/event ID format, invalid request body, or invalid response value
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not a member of the club
+- `404 Not Found` - Club or event not found
+- `500 Internal Server Error` - Database error
+
+---
+
+### Get Event RSVPs
+**Endpoint:** `GET /api/v1/clubs/{clubid}/events/{eventid}/rsvps`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Get RSVP counts and details for an event. Only club admins/owners can view RSVPs.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+- `eventid` (UUID) - Event identifier
+
+**Response:**
+```json
+{
+  "counts": {
+    "yes": 5,
+    "no": 2
+  },
+  "rsvps": [
+    {
+      "id": "rsvp-uuid",
+      "event_id": "event-uuid",
+      "user_id": "user-uuid",
+      "response": "yes",
+      "created_at": "2024-01-01T10:00:00Z",
+      "updated_at": "2024-01-01T10:00:00Z",
+      "user": {
+        "id": "user-uuid",
+        "name": "User Name",
+        "email": "user@example.com"
+      }
+    }
+  ]
+}
+```
+
+**Responses:**
+- `200 OK` - RSVP counts and details
+- `400 Bad Request` - Invalid club/event ID format
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not an admin/owner
+- `404 Not Found` - Club or event not found
+- `500 Internal Server Error` - Database error
+
+---
+
 ## Club Settings Endpoints
 
 ### Get Club Settings
@@ -991,8 +1280,13 @@ Some endpoints may return JSON error objects for structured error handling.
 
 1. All UUIDs must be valid UUID format
 2. All timestamps are in ISO 8601 format (RFC 3339) and use camelCase field names (e.g., `createdAt`, `updatedAt`)
-3. All monetary amounts are represented as floating-point numbers
-4. Authentication is required for all endpoints except magic link request and verification
-5. Rate limiting is enforced per IP address
-6. CORS is enabled with permissive settings for development
-7. JSON field names follow camelCase convention to ensure frontend compatibility
+3. **Date and Time Format Conventions:**
+   - **Date fields**: Use format `YYYY-MM-DD` (e.g., `"2024-06-01"`)
+   - **Time fields**: Use format `HH:MM` in 24-hour format (e.g., `"10:00"`, `"15:30"`)
+   - **Full timestamps**: Use ISO 8601 format (RFC 3339) with timezone (e.g., `"2024-01-01T10:00:00Z"`)
+   - Event endpoints use separate date and time fields for better UX, while other endpoints use full timestamps
+4. All monetary amounts are represented as floating-point numbers
+5. Authentication is required for all endpoints except magic link request and verification
+6. Rate limiting is enforced per IP address
+7. CORS is enabled with permissive settings for development
+8. JSON field names follow camelCase convention to ensure frontend compatibility
