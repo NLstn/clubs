@@ -132,32 +132,32 @@ func handleCreateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse dates and times
-	startDate, err := time.Parse("2006-01-02", req.StartDate)
+	// Parse dates and times for validation
+	_, err = time.Parse("2006-01-02", req.StartDate)
 	if err != nil {
 		http.Error(w, "Invalid start date format", http.StatusBadRequest)
 		return
 	}
 
-	startTime, err := time.Parse("15:04", req.StartTime)
+	_, err = time.Parse("15:04", req.StartTime)
 	if err != nil {
 		http.Error(w, "Invalid start time format", http.StatusBadRequest)
 		return
 	}
 
-	endDate, err := time.Parse("2006-01-02", req.EndDate)
+	_, err = time.Parse("2006-01-02", req.EndDate)
 	if err != nil {
 		http.Error(w, "Invalid end date format", http.StatusBadRequest)
 		return
 	}
 
-	endTime, err := time.Parse("15:04", req.EndTime)
+	_, err = time.Parse("15:04", req.EndTime)
 	if err != nil {
 		http.Error(w, "Invalid end time format", http.StatusBadRequest)
 		return
 	}
 
-	event, err := club.CreateEvent(req.Name, startDate, startTime, endDate, endTime, user.ID)
+	event, err := club.CreateEvent(req.Name, req.StartDate, req.StartTime, req.EndDate, req.EndTime, user.ID)
 	if err != nil {
 		http.Error(w, "Failed to create event", http.StatusInternalServerError)
 		return
@@ -213,32 +213,32 @@ func handleUpdateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse dates and times
-	startDate, err := time.Parse("2006-01-02", req.StartDate)
+	// Parse dates and times for validation
+	_, err = time.Parse("2006-01-02", req.StartDate)
 	if err != nil {
 		http.Error(w, "Invalid start date format", http.StatusBadRequest)
 		return
 	}
 
-	startTime, err := time.Parse("15:04", req.StartTime)
+	_, err = time.Parse("15:04", req.StartTime)
 	if err != nil {
 		http.Error(w, "Invalid start time format", http.StatusBadRequest)
 		return
 	}
 
-	endDate, err := time.Parse("2006-01-02", req.EndDate)
+	_, err = time.Parse("2006-01-02", req.EndDate)
 	if err != nil {
 		http.Error(w, "Invalid end date format", http.StatusBadRequest)
 		return
 	}
 
-	endTime, err := time.Parse("15:04", req.EndTime)
+	_, err = time.Parse("15:04", req.EndTime)
 	if err != nil {
 		http.Error(w, "Invalid end time format", http.StatusBadRequest)
 		return
 	}
 
-	event, err := club.UpdateEvent(eventID, req.Name, startDate, startTime, endDate, endTime, user.ID)
+	event, err := club.UpdateEvent(eventID, req.Name, req.StartDate, req.StartTime, req.EndDate, req.EndTime, user.ID)
 	if err != nil {
 		http.Error(w, "Failed to update event", http.StatusInternalServerError)
 		return

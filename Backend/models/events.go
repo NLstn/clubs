@@ -1,7 +1,6 @@
 package models
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/NLstn/clubs/database"
@@ -11,32 +10,14 @@ type Event struct {
 	ID          string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	ClubID      string    `gorm:"type:uuid;not null" json:"club_id"`
 	Name        string    `gorm:"not null" json:"name"`
-	StartDate   time.Time `gorm:"not null" json:"-"`
-	StartTime   time.Time `gorm:"not null" json:"-"`
-	EndDate     time.Time `gorm:"not null" json:"-"`
-	EndTime     time.Time `gorm:"not null" json:"-"`
+	StartDate   string    `gorm:"not null" json:"start_date"`
+	StartTime   string    `gorm:"not null" json:"start_time"`
+	EndDate     string    `gorm:"not null" json:"end_date"`
+	EndTime     string    `gorm:"not null" json:"end_time"`
 	CreatedAt   time.Time `json:"created_at"`
 	CreatedBy   string    `json:"created_by" gorm:"type:uuid"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	UpdatedBy   string    `json:"updated_by" gorm:"type:uuid"`
-}
-
-// MarshalJSON implements custom JSON marshaling for Event
-func (e Event) MarshalJSON() ([]byte, error) {
-	type Alias Event
-	return json.Marshal(&struct {
-		StartDate string `json:"start_date"`
-		StartTime string `json:"start_time"`
-		EndDate   string `json:"end_date"`
-		EndTime   string `json:"end_time"`
-		*Alias
-	}{
-		StartDate: e.StartDate.Format("2006-01-02"),
-		StartTime: e.StartTime.Format("15:04"),
-		EndDate:   e.EndDate.Format("2006-01-02"),
-		EndTime:   e.EndTime.Format("15:04"),
-		Alias:     (*Alias)(&e),
-	})
 }
 
 type EventRSVP struct {
@@ -53,7 +34,7 @@ type EventRSVP struct {
 }
 
 // CreateEvent creates a new event for the club
-func (c *Club) CreateEvent(name string, startDate, startTime, endDate, endTime time.Time, createdBy string) (*Event, error) {
+func (c *Club) CreateEvent(name string, startDate, startTime, endDate, endTime string, createdBy string) (*Event, error) {
 	event := Event{
 		ClubID:    c.ID,
 		Name:      name,
@@ -84,13 +65,14 @@ func (c *Club) GetEvents() ([]Event, error) {
 func (c *Club) GetUpcomingEvents() ([]Event, error) {
 	var events []Event
 	now := time.Now()
-	err := database.Db.Where("club_id = ? AND start_date >= ?", c.ID, now.Format("2006-01-02")).
+	today := now.Format("2006-01-02")
+	err := database.Db.Where("club_id = ? AND start_date >= ?", c.ID, today).
 		Order("start_date ASC, start_time ASC").Find(&events).Error
 	return events, err
 }
 
 // UpdateEvent updates an existing event
-func (c *Club) UpdateEvent(eventID string, name string, startDate, startTime, endDate, endTime time.Time, updatedBy string) (*Event, error) {
+func (c *Club) UpdateEvent(eventID string, name string, startDate, startTime, endDate, endTime string, updatedBy string) (*Event, error) {
 	var event Event
 	err := database.Db.Where("id = ? AND club_id = ?", eventID, c.ID).First(&event).Error
 	if err != nil {
