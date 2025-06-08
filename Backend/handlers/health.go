@@ -47,9 +47,3 @@ func HealthCheck(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(response)
 }
-
-// registerHealthRoutes registers health check endpoints
-func registerHealthRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("/health", HealthCheck)
-	mux.HandleFunc("/health/", HealthCheck)
-}
