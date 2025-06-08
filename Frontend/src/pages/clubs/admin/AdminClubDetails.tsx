@@ -4,6 +4,7 @@ import api from '../../../utils/api';
 import Layout from '../../../components/layout/Layout';
 import AdminClubMemberList from './members/AdminClubMemberList';
 import AdminClubFineList from './fines/AdminClubFineList';
+import AdminClubShiftList from './shifts/AdminClubShiftList';
 import AdminClubEventList from './events/AdminClubEventList';
 import AdminClubNewsList from './news/AdminClubNewsList';
 import AdminClubSettings from './settings/AdminClubSettings';
@@ -60,6 +61,9 @@ const AdminClubDetails = () => {
             if (activeTab === 'fines' && !clubSettings.finesEnabled) {
                 setActiveTab('overview');
             }
+            if (activeTab === 'shifts' && !clubSettings.shiftsEnabled) {
+                setActiveTab('overview');
+            }
         }
     }, [clubSettings, activeTab]);
 
@@ -108,6 +112,14 @@ const AdminClubDetails = () => {
                                 onClick={() => setActiveTab('fines')}
                             >
                                 Fines
+                            </button>
+                        )}
+                        {clubSettings?.shiftsEnabled && (
+                            <button 
+                                className={`tab-button ${activeTab === 'shifts' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('shifts')}
+                            >
+                                Shifts
                             </button>
                         )}
 
@@ -177,6 +189,12 @@ const AdminClubDetails = () => {
                         {clubSettings?.finesEnabled && (
                             <div className={`tab-panel ${activeTab === 'fines' ? 'active' : ''}`}>
                                 <AdminClubFineList />
+                            </div>
+                        )}
+
+                        {clubSettings?.shiftsEnabled && (
+                            <div className={`tab-panel ${activeTab === 'shifts' ? 'active' : ''}`}>
+                                <AdminClubShiftList />
                             </div>
                         )}
 
