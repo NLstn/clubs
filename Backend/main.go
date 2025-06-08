@@ -35,6 +35,7 @@ func main() {
 		&models.ShiftMember{},
 		&models.Event{},
 		&models.EventRSVP{},
+		&models.News{},
 	)
 	if err != nil {
 		log.Fatal("Could not migrate database:", err)

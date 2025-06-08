@@ -160,6 +160,18 @@ func SetupTestDB(t *testing.T) {
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)
 	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS news (
+			id TEXT PRIMARY KEY,
+			club_id TEXT NOT NULL,
+			title TEXT NOT NULL,
+			content TEXT NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
+		)
+	`)
 }
 
 // TeardownTestDB cleans up the test database
