@@ -13,7 +13,11 @@ interface ClubSettings {
     updatedBy: string;
 }
 
-const AdminClubSettings = () => {
+interface AdminClubSettingsProps {
+    onSettingsUpdate?: () => void;
+}
+
+const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
     const { id } = useParams();
     const [settings, setSettings] = useState<ClubSettings | null>(null);
     const [loading, setLoading] = useState(true);
@@ -50,6 +54,8 @@ const AdminClubSettings = () => {
             await api.post(`/api/v1/clubs/${id}/settings`, completeSettings);
             setSettings({ ...settings, ...completeSettings });
             setError(null);
+            // Notify parent component that settings have been updated
+            onSettingsUpdate?.();
         } catch (err: unknown) {
             console.error('Error updating club settings:', err);
             setError('Failed to update settings');
