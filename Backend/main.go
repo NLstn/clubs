@@ -54,6 +54,9 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	// Add health check at root level for container monitoring
+	mux.HandleFunc("/health", handlers.HealthCheck)
+
 	mux.Handle("/api/v1/", handlers.Handler_v1())
 
 	handler := handlers.CorsMiddleware(mux)
