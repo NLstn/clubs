@@ -41,9 +41,9 @@ describe('Login Component', () => {
 
   it('displays success message with correct styling when request succeeds', async () => {
     // Mock successful response
-    (fetch as any).mockResolvedValueOnce({
+    vi.mocked(fetch).mockResolvedValueOnce({
       ok: true,
-    });
+    } as Response);
 
     render(<Login />);
     
@@ -62,10 +62,10 @@ describe('Login Component', () => {
 
   it('displays error message with correct styling when request fails', async () => {
     // Mock failed response
-    (fetch as any).mockResolvedValueOnce({
+    vi.mocked(fetch).mockResolvedValueOnce({
       ok: false,
       text: () => Promise.resolve('Invalid email'),
-    });
+    } as Response);
 
     render(<Login />);
     
