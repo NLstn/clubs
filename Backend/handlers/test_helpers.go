@@ -553,8 +553,17 @@ func registerShiftRoutesForTest(mux *http.ServeMux) {
 		switch r.Method {
 		case http.MethodGet:
 			handleGetShifts(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/clubs/{clubid}/events/{eventid}/shifts", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetEventShifts(w, r)
 		case http.MethodPost:
-			handleCreateShift(w, r)
+			handleCreateEventShift(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}

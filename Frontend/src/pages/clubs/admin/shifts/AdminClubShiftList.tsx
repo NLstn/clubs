@@ -1,14 +1,18 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import EditShift from "./EditShift";
-import AddShift from "./AddShift";
 import api from "../../../../utils/api";
 
 interface Shift {
     id: string;
     startTime: string;
     endTime: string;
-    eventId?: string;
+    eventId: string;
+}
+
+interface Event {
+    id: string;
+    name: string;
 }
 
 const AdminClubShiftList = () => {
@@ -17,7 +21,6 @@ const AdminClubShiftList = () => {
     const [shifts, setShifts] = useState<Shift[]>([]);
     const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [events, setEvents] = useState<{[key: string]: string}>({});
@@ -30,14 +33,14 @@ const AdminClubShiftList = () => {
             const shiftsData = response.data || [];
             setShifts(shiftsData);
             
-            // Fetch event names for shifts that have eventId
-            const eventIds = [...new Set(shiftsData.filter((shift: Shift) => shift.eventId).map((shift: Shift) => shift.eventId))];
+            // Fetch event names for all shifts since they all have eventId now
+            const eventIds = [...new Set(shiftsData.map((shift: Shift) => shift.eventId))];
             if (eventIds.length > 0) {
                 try {
                     const eventsResponse = await api.get(`/api/v1/clubs/${id}/events`);
                     const eventsData = eventsResponse.data || [];
                     const eventMap: {[key: string]: string} = {};
-                    eventsData.forEach((event: any) => {
+                    eventsData.forEach((event: Event) => {
                         eventMap[event.id] = event.name;
                     });
                     setEvents(eventMap);
@@ -97,15 +100,9 @@ const AdminClubShiftList = () => {
                                         <td>{new Date(shift.startTime).toLocaleString()}</td>
                                         <td>{new Date(shift.endTime).toLocaleString()}</td>
                                         <td>
-                                            {shift.eventId ? (
-                                                <span style={{color: 'blue'}}>
-                                                    {events[shift.eventId] || 'Unknown Event'}
-                                                </span>
-                                            ) : (
-                                                <span style={{color: 'gray', fontStyle: 'italic'}}>
-                                                    No event
-                                                </span>
-                                            )}
+                                            <span style={{color: 'blue'}}>
+                                                {events[shift.eventId] || 'Unknown Event'}
+                                            </span>
                                         </td>
                                         <td>
                                             <button
@@ -120,9 +117,9 @@ const AdminClubShiftList = () => {
                             )}
                         </tbody>
                     </table>
-                    <button onClick={() => setIsAddModalOpen(true)} className="button-accept">
-                        Add Shift
-                    </button>
+                    <p style={{fontStyle: 'italic', color: '#666', marginTop: '10px'}}>
+                        Shifts can only be created through events. Go to Events tab to create shifts.
+                    </p>
                 </>
             )}
             <EditShift
@@ -130,12 +127,6 @@ const AdminClubShiftList = () => {
                 onClose={handleCloseEditModal}
                 shift={selectedShift}
                 clubId={id}
-            />
-            <AddShift 
-                isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
-                clubId={id || ''}
-                onSuccess={fetchShifts}
             />
         </div>
     );
