@@ -1,82 +1,21 @@
 package models
 
 import (
-	"database/sql/driver"
-	"encoding/json"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/NLstn/clubs/database"
 )
 
-// CustomTime handles both full RFC3339 format and the shortened format from frontend
-type CustomTime struct {
-	time.Time
-}
-
-// UnmarshalJSON implements custom JSON unmarshaling for time
-func (ct *CustomTime) UnmarshalJSON(data []byte) error {
-	// Remove quotes from JSON string
-	timeStr := strings.Trim(string(data), "\"")
-
-	// Try parsing different formats
-	formats := []string{
-		time.RFC3339,          // "2006-01-02T15:04:05Z07:00"
-		"2006-01-02T15:04:05", // "2006-01-02T15:04:05"
-		"2006-01-02T15:04",    // "2006-01-02T15:04" (frontend format)
-	}
-
-	for _, format := range formats {
-		if t, err := time.Parse(format, timeStr); err == nil {
-			ct.Time = t
-			return nil
-		}
-	}
-
-	return fmt.Errorf("unable to parse time: %s", timeStr)
-}
-
-// MarshalJSON implements custom JSON marshaling for time
-func (ct CustomTime) MarshalJSON() ([]byte, error) {
-	return json.Marshal(ct.Time.Format(time.RFC3339))
-}
-
-// Value implements the driver.Valuer interface for database storage
-func (ct CustomTime) Value() (driver.Value, error) {
-	return ct.Time, nil
-}
-
-// Scan implements the sql.Scanner interface for database retrieval
-func (ct *CustomTime) Scan(value interface{}) error {
-	if value == nil {
-		ct.Time = time.Time{}
-		return nil
-	}
-
-	switch v := value.(type) {
-	case time.Time:
-		ct.Time = v
-		return nil
-	case []byte:
-		return ct.Time.UnmarshalText(v)
-	case string:
-		return ct.Time.UnmarshalText([]byte(v))
-	default:
-		return fmt.Errorf("cannot scan %T into CustomTime", value)
-	}
-}
-
 type Shift struct {
-	ID        string     `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	ClubID    string     `gorm:"type:uuid;not null"`
-	EventID   string     `gorm:"type:uuid;not null" json:"eventId"`
-	StartTime CustomTime `gorm:"not null" json:"startTime"`
-	EndTime   CustomTime `gorm:"not null" json:"endTime"`
-	CreatedAt time.Time  `json:"created_at"`
-	CreatedBy string     `json:"created_by" gorm:"type:uuid"`
-	UpdatedAt time.Time  `json:"updated_at"`
-	UpdatedBy string     `json:"updated_by" gorm:"type:uuid"`
+	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	ClubID    string    `gorm:"type:uuid;not null"`
+	EventID   string    `gorm:"type:uuid;not null" json:"eventId"`
+	StartTime time.Time `gorm:"not null" json:"startTime"`
+	EndTime   time.Time `gorm:"not null" json:"endTime"`
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
 }
 
 type ShiftMember struct {
@@ -93,8 +32,8 @@ func (c *Club) CreateShift(startTime, endTime time.Time, createdBy string, event
 	shift := Shift{
 		ClubID:    c.ID,
 		EventID:   eventID,
-		StartTime: CustomTime{startTime},
-		EndTime:   CustomTime{endTime},
+		StartTime: startTime,
+		EndTime:   endTime,
 		CreatedBy: createdBy,
 		UpdatedBy: createdBy,
 	}
