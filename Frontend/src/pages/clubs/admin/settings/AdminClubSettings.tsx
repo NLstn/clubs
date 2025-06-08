@@ -43,8 +43,12 @@ const AdminClubSettings = () => {
 
         try {
             setSaving(true);
-            await api.post(`/api/v1/clubs/${id}/settings`, newSettings);
-            setSettings({ ...settings, ...newSettings });
+            const completeSettings = {
+                finesEnabled: newSettings.finesEnabled ?? settings.finesEnabled,
+                shiftsEnabled: newSettings.shiftsEnabled ?? settings.shiftsEnabled,
+            };
+            await api.post(`/api/v1/clubs/${id}/settings`, completeSettings);
+            setSettings({ ...settings, ...completeSettings });
             setError(null);
         } catch (err: unknown) {
             console.error('Error updating club settings:', err);
