@@ -19,7 +19,7 @@ const AdminClubDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [club, setClub] = useState<Club | null>(null);
-    const { settings: clubSettings } = useClubSettings(id);
+    const { settings: clubSettings, refetch: refetchSettings } = useClubSettings(id);
     
     
     const [loading, setLoading] = useState(true);
@@ -190,7 +190,7 @@ const AdminClubDetails = () => {
                         </div>
 
                         <div className={`tab-panel ${activeTab === 'settings' ? 'active' : ''}`}>
-                            <AdminClubSettings />
+                            <AdminClubSettings onSettingsUpdate={refetchSettings} />
                         </div>
                     </div>
                 </div>
