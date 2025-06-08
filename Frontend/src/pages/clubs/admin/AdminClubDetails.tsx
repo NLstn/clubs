@@ -4,9 +4,9 @@ import api from '../../../utils/api';
 import Layout from '../../../components/layout/Layout';
 import AdminClubMemberList from './members/AdminClubMemberList';
 import AdminClubFineList from './fines/AdminClubFineList';
-
 import AdminClubEventList from './events/AdminClubEventList';
 import AdminClubNewsList from './news/AdminClubNewsList';
+import AdminClubSettings from './settings/AdminClubSettings';
 
 interface Club {
     id: string;
@@ -110,6 +110,12 @@ const AdminClubDetails = () => {
                         >
                             News
                         </button>
+                        <button 
+                            className={`tab-button ${activeTab === 'settings' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('settings')}
+                        >
+                            Settings
+                        </button>
                     </nav>
 
                     <div className="tab-content">
@@ -166,6 +172,10 @@ const AdminClubDetails = () => {
 
                         <div className={`tab-panel ${activeTab === 'news' ? 'active' : ''}`}>
                             <AdminClubNewsList />
+                        </div>
+
+                        <div className={`tab-panel ${activeTab === 'settings' ? 'active' : ''}`}>
+                            <AdminClubSettings />
                         </div>
                     </div>
                 </div>
