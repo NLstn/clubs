@@ -7,6 +7,7 @@ import AdminClubFineList from './fines/AdminClubFineList';
 import AdminClubEventList from './events/AdminClubEventList';
 import AdminClubNewsList from './news/AdminClubNewsList';
 import AdminClubSettings from './settings/AdminClubSettings';
+import { useClubSettings } from '../../../hooks/useClubSettings';
 
 interface Club {
     id: string;
@@ -18,6 +19,7 @@ const AdminClubDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [club, setClub] = useState<Club | null>(null);
+    const { settings: clubSettings } = useClubSettings(id);
     
     
     const [loading, setLoading] = useState(true);
@@ -51,6 +53,15 @@ const AdminClubDetails = () => {
 
         fetchData();
     }, [id, navigate]);
+
+    // Reset to valid tab if current tab becomes unavailable
+    useEffect(() => {
+        if (clubSettings) {
+            if (activeTab === 'fines' && !clubSettings.finesEnabled) {
+                setActiveTab('overview');
+            }
+        }
+    }, [clubSettings, activeTab]);
 
     const updateClub = async () => {
         try {
@@ -91,12 +102,14 @@ const AdminClubDetails = () => {
                         >
                             Members
                         </button>
-                        <button 
-                            className={`tab-button ${activeTab === 'fines' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('fines')}
-                        >
-                            Fines
-                        </button>
+                        {clubSettings?.finesEnabled && (
+                            <button 
+                                className={`tab-button ${activeTab === 'fines' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('fines')}
+                            >
+                                Fines
+                            </button>
+                        )}
 
                         <button 
                             className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
@@ -161,9 +174,11 @@ const AdminClubDetails = () => {
                             <AdminClubMemberList />
                         </div>
 
-                        <div className={`tab-panel ${activeTab === 'fines' ? 'active' : ''}`}>
-                            <AdminClubFineList />
-                        </div>
+                        {clubSettings?.finesEnabled && (
+                            <div className={`tab-panel ${activeTab === 'fines' ? 'active' : ''}`}>
+                                <AdminClubFineList />
+                            </div>
+                        )}
 
 
                         <div className={`tab-panel ${activeTab === 'events' ? 'active' : ''}`}>
