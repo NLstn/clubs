@@ -10,9 +10,7 @@ interface AddEventProps {
 
 const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
     const [name, setName] = useState<string>('');
-    const [startDate, setStartDate] = useState<string>('');
     const [startTime, setStartTime] = useState<string>('');
-    const [endDate, setEndDate] = useState<string>('');
     const [endTime, setEndTime] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,13 +18,13 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
     if (!isOpen) return null;
 
     const handleSubmit = async () => {
-        if (!name || !startDate || !startTime || !endDate || !endTime) {
+        if (!name || !startTime || !endTime) {
             setError("Please fill in all fields");
             return;
         }
 
-        const startDateTime = new Date(`${startDate}T${startTime}`);
-        const endDateTime = new Date(`${endDate}T${endTime}`);
+        const startDateTime = new Date(startTime);
+        const endDateTime = new Date(endTime);
 
         if (startDateTime >= endDateTime) {
             setError("End date/time must be after start date/time");
@@ -39,15 +37,11 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
         try {
             await api.post(`/api/v1/clubs/${clubId}/events`, { 
                 name,
-                start_date: startDate,
-                start_time: startTime,
-                end_date: endDate,
-                end_time: endTime
+                start_time: startDateTime.toISOString(),
+                end_time: endDateTime.toISOString()
             });
             setName('');
-            setStartDate('');
             setStartTime('');
-            setEndDate('');
             setEndTime('');
             onSuccess();
             onClose();
@@ -64,9 +58,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
 
     const handleClose = () => {
         setName('');
-        setStartDate('');
         setStartTime('');
-        setEndDate('');
         setEndTime('');
         setError(null);
         onClose();
@@ -91,21 +83,10 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="startDate">Start Date</label>
-                    <input
-                        id="startDate"
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        disabled={isSubmitting}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="startTime">Start Time</label>
+                    <label htmlFor="startTime">Start Date & Time</label>
                     <input
                         id="startTime"
-                        type="time"
+                        type="datetime-local"
                         value={startTime}
                         onChange={(e) => setStartTime(e.target.value)}
                         disabled={isSubmitting}
@@ -113,21 +94,10 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                 </div>
 
                 <div className="form-group">
-                    <label htmlFor="endDate">End Date</label>
-                    <input
-                        id="endDate"
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        disabled={isSubmitting}
-                    />
-                </div>
-
-                <div className="form-group">
-                    <label htmlFor="endTime">End Time</label>
+                    <label htmlFor="endTime">End Date & Time</label>
                     <input
                         id="endTime"
-                        type="time"
+                        type="datetime-local"
                         value={endTime}
                         onChange={(e) => setEndTime(e.target.value)}
                         disabled={isSubmitting}

@@ -5,9 +5,7 @@ import api from '../../utils/api';
 interface Event {
     id: string;
     name: string;
-    start_date: string;
     start_time: string;
-    end_date: string;
     end_time: string;
     user_rsvp?: {
         response: string;
@@ -49,12 +47,12 @@ const UpcomingEvents = () => {
         }
     };
 
-    const formatDateTime = (date: string, time: string) => {
+    const formatDateTime = (timestamp: string) => {
         try {
-            const dateTime = new Date(`${date}T${time}`);
+            const dateTime = new Date(timestamp);
             return dateTime.toLocaleString();
         } catch {
-            return `${date} ${time}`;
+            return timestamp;
         }
     };
 
@@ -76,10 +74,10 @@ const UpcomingEvents = () => {
                     }}>
                         <h4>{event.name}</h4>
                         <p>
-                            <strong>Start:</strong> {formatDateTime(event.start_date, event.start_time)}
+                            <strong>Start:</strong> {formatDateTime(event.start_time)}
                         </p>
                         <p>
-                            <strong>End:</strong> {formatDateTime(event.end_date, event.end_time)}
+                            <strong>End:</strong> {formatDateTime(event.end_time)}
                         </p>
                         
                         <div className="rsvp-section" style={{ marginTop: '12px' }}>
