@@ -61,7 +61,7 @@ func TestShiftEndpoints(t *testing.T) {
 		CheckResponseCode(t, http.StatusUnauthorized, rr.Code)
 	})
 
-	t.Run("Create Shift - Valid", func(t *testing.T) {
+	t.Run("Create Shift - No Longer Supported", func(t *testing.T) {
 		owner, ownerToken := CreateTestUser(t, "owner5@example.com")
 		club := CreateTestClub(t, owner, "Test Club")
 
@@ -72,16 +72,10 @@ func TestShiftEndpoints(t *testing.T) {
 
 		req := MakeRequest(t, "POST", "/api/v1/clubs/"+club.ID+"/shifts", shiftData, ownerToken)
 		rr := ExecuteRequest(t, handler, req)
-		CheckResponseCode(t, http.StatusCreated, rr.Code)
-
-		var response map[string]interface{}
-		ParseJSONResponse(t, rr, &response)
-		// Just check that the response contains an id field (might be empty in test environment)
-		_, hasID := response["id"]
-		assert.True(t, hasID, "Response should contain an id field")
+		CheckResponseCode(t, http.StatusMethodNotAllowed, rr.Code)
 	})
 
-	t.Run("Create Shift - Missing Start Time", func(t *testing.T) {
+	t.Run("Create Shift - No Longer Supported (Missing Start Time)", func(t *testing.T) {
 		owner, ownerToken := CreateTestUser(t, "owner6@example.com")
 		club := CreateTestClub(t, owner, "Test Club")
 
@@ -91,11 +85,11 @@ func TestShiftEndpoints(t *testing.T) {
 
 		req := MakeRequest(t, "POST", "/api/v1/clubs/"+club.ID+"/shifts", shiftData, ownerToken)
 		rr := ExecuteRequest(t, handler, req)
-		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
-		AssertContains(t, rr.Body.String(), "StartTime and EndTime are required")
+		CheckResponseCode(t, http.StatusMethodNotAllowed, rr.Code)
+		AssertContains(t, rr.Body.String(), "Method not allowed")
 	})
 
-	t.Run("Create Shift - Missing End Time", func(t *testing.T) {
+	t.Run("Create Shift - No Longer Supported (Missing End Time)", func(t *testing.T) {
 		owner, ownerToken := CreateTestUser(t, "owner7@example.com")
 		club := CreateTestClub(t, owner, "Test Club")
 
@@ -105,11 +99,11 @@ func TestShiftEndpoints(t *testing.T) {
 
 		req := MakeRequest(t, "POST", "/api/v1/clubs/"+club.ID+"/shifts", shiftData, ownerToken)
 		rr := ExecuteRequest(t, handler, req)
-		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
-		AssertContains(t, rr.Body.String(), "StartTime and EndTime are required")
+		CheckResponseCode(t, http.StatusMethodNotAllowed, rr.Code)
+		AssertContains(t, rr.Body.String(), "Method not allowed")
 	})
 
-	t.Run("Create Shift - Invalid Club ID", func(t *testing.T) {
+	t.Run("Create Shift - No Longer Supported (Invalid Club ID)", func(t *testing.T) {
 		_, token := CreateTestUser(t, "user8@example.com")
 
 		shiftData := map[string]interface{}{
@@ -119,8 +113,8 @@ func TestShiftEndpoints(t *testing.T) {
 
 		req := MakeRequest(t, "POST", "/api/v1/clubs/invalid-uuid/shifts", shiftData, token)
 		rr := ExecuteRequest(t, handler, req)
-		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
-		AssertContains(t, rr.Body.String(), "Invalid club ID format")
+		CheckResponseCode(t, http.StatusMethodNotAllowed, rr.Code)
+		AssertContains(t, rr.Body.String(), "Method not allowed")
 	})
 
 	t.Run("Get Shift Members - Unauthorized", func(t *testing.T) {
