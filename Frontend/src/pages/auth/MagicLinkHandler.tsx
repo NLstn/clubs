@@ -55,29 +55,36 @@ const MagicLinkHandler: React.FC = () => {
 
   return (
     <div className="magic-link-container">
-      {status === 'verifying' && (
-        <div>
-          <h2>Verifying your login...</h2>
-          <p>Please wait while we authenticate you.</p>
-        </div>
-      )}
+      <div className="magic-link-box">
+        {status === 'verifying' && (
+          <div>
+            <h1>Verifying your login...</h1>
+            <p>Please wait while we authenticate you.</p>
+          </div>
+        )}
 
-      {status === 'success' && (
-        <div>
-          <h2>Login Successful!</h2>
-          <p>You are now logged in. Redirecting...</p>
-        </div>
-      )}
+        {status === 'success' && (
+          <div>
+            <h1>Login Successful!</h1>
+            <p>You are now logged in. Redirecting...</p>
+            <div className="message success">
+              Authentication successful! Redirecting to dashboard...
+            </div>
+          </div>
+        )}
 
-      {status === 'error' && (
-        <div>
-          <h2>Login Failed</h2>
-          <p>{errorMessage}</p>
-          <p>
-            <a href="/login">Return to login page</a>
-          </p>
-        </div>
-      )}
+        {status === 'error' && (
+          <div>
+            <h1>Login Failed</h1>
+            <div className="message error">
+              {errorMessage}
+            </div>
+            <div className="magic-link-actions">
+              <a href="/login" className="return-link">Return to login page</a>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
