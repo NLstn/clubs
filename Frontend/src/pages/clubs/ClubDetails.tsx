@@ -5,6 +5,7 @@ import Layout from '../../components/layout/Layout';
 import MyOpenClubFines from './MyOpenClubFines';
 import UpcomingEvents from './UpcomingEvents';
 import ClubNews from './ClubNews';
+import { useClubSettings } from '../../hooks/useClubSettings';
 
 interface Club {
     id: string;
@@ -19,6 +20,7 @@ const ClubDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
+    const { settings: clubSettings } = useClubSettings(id);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,7 +53,7 @@ const ClubDetails = () => {
                     <p>{club.description}</p>
                     <ClubNews />
                     <UpcomingEvents />
-                    <MyOpenClubFines />
+                    {clubSettings?.finesEnabled && <MyOpenClubFines />}
                     {isAdmin && (
                         <button 
                             className="button"
