@@ -66,12 +66,3 @@ jobs:
           node --version
           npm --version
           npm list --depth=0
-
-      # Build both projects to ensure they compile correctly
-      - name: Build Go backend
-        working-directory: Backend
-        run: go build -o tmp/main .
-
-      - name: Build React frontend
-        working-directory: Frontend
-        run: npm run build
