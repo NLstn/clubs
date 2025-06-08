@@ -65,9 +65,9 @@ const ClubNews = () => {
                         padding: '15px', 
                         marginBottom: '15px', 
                         borderRadius: '5px',
-                        backgroundColor: '#fafafa'
+                        backgroundColor: 'var(--background-color)',
                     }}>
-                        <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>{newsItem.title}</h4>
+                        <h4 style={{ margin: '0 0 10px 0' }}>{newsItem.title}</h4>
                         <p style={{ margin: '0 0 10px 0', lineHeight: '1.5' }}>{newsItem.content}</p>
                         <small style={{ color: '#666' }}>
                             Posted on {formatDateTime(newsItem.created_at)}
