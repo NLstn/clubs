@@ -6,12 +6,20 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/NLstn/clubs/database"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHealthCheck(t *testing.T) {
 	// Set up test environment
 	MockEnvironmentVariables(t)
+
+	// Store original database state and reset it for this test
+	originalDb := database.Db
+	database.Db = nil
+	defer func() {
+		database.Db = originalDb
+	}()
 
 	// Create a request to the health endpoint
 	req, err := http.NewRequest("GET", "/health", nil)
@@ -45,6 +53,13 @@ func TestHealthCheck(t *testing.T) {
 func TestHealthCheckResponseStructure(t *testing.T) {
 	// Set up test environment
 	MockEnvironmentVariables(t)
+
+	// Store original database state and reset it for this test
+	originalDb := database.Db
+	database.Db = nil
+	defer func() {
+		database.Db = originalDb
+	}()
 
 	req, err := http.NewRequest("GET", "/health", nil)
 	assert.NoError(t, err)
