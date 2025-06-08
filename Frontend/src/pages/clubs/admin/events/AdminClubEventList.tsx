@@ -40,6 +40,7 @@ const AdminClubEventList = () => {
         setError(null);
         try {
             const response = await api.get(`/api/v1/clubs/${id}/events`);
+            console.log('Raw events data:', response.data); // Debug logging
             setEvents(response.data || []);
 
             // Fetch RSVP counts and shifts for each event
@@ -100,11 +101,20 @@ const AdminClubEventList = () => {
     };
 
     const formatDateTime = (date: string, time: string) => {
+        // Handle undefined, null, or empty values
+        if (!date || !time) {
+            return 'Invalid date';
+        }
+        
         try {
             const dateTime = new Date(`${date}T${time}`);
+            // Check if the date is valid
+            if (isNaN(dateTime.getTime())) {
+                return 'Invalid date';
+            }
             return dateTime.toLocaleString();
         } catch {
-            return `${date} ${time}`;
+            return 'Invalid date';
         }
     };
 

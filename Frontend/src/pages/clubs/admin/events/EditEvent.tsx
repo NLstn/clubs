@@ -54,11 +54,12 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
 
     useEffect(() => {
         if (event) {
-            setName(event.name);
-            setStartDate(event.start_date);
-            setStartTime(event.start_time);
-            setEndDate(event.end_date);
-            setEndTime(event.end_time);
+            console.log('Event data in EditEvent:', event); // Debug logging
+            setName(event.name || '');
+            setStartDate(event.start_date || '');
+            setStartTime(event.start_time || '');
+            setEndDate(event.end_date || '');
+            setEndTime(event.end_time || '');
             fetchEventShifts();
         }
     }, [event, fetchEventShifts]);
