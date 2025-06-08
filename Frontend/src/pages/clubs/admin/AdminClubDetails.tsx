@@ -4,7 +4,7 @@ import api from '../../../utils/api';
 import Layout from '../../../components/layout/Layout';
 import AdminClubMemberList from './members/AdminClubMemberList';
 import AdminClubFineList from './fines/AdminClubFineList';
-import AdminClubShiftList from './shifts/AdminClubShiftList';
+
 import AdminClubEventList from './events/AdminClubEventList';
 
 interface Club {
@@ -96,12 +96,7 @@ const AdminClubDetails = () => {
                         >
                             Fines
                         </button>
-                        <button 
-                            className={`tab-button ${activeTab === 'shifts' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('shifts')}
-                        >
-                            Shifts
-                        </button>
+
                         <button 
                             className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
                             onClick={() => setActiveTab('events')}
@@ -157,9 +152,6 @@ const AdminClubDetails = () => {
                             <AdminClubFineList />
                         </div>
 
-                        <div className={`tab-panel ${activeTab === 'shifts' ? 'active' : ''}`}>
-                            <AdminClubShiftList />
-                        </div>
 
                         <div className={`tab-panel ${activeTab === 'events' ? 'active' : ''}`}>
                             <AdminClubEventList />
