@@ -1200,7 +1200,7 @@ The API uses JWT-based authentication with magic link email authentication. Most
 ## Club Settings Endpoints
 
 ### Get Club Settings
-**Endpoint:** `GET /api/v1/{clubid}/settings`  
+**Endpoint:** `GET /api/v1/clubs/{clubid}/settings`  
 **Authentication:** Bearer token required  
 **Rate Limit:** API limiter (30/5s)
 
@@ -1212,8 +1212,14 @@ The API uses JWT-based authentication with magic link email authentication. Most
 **Response:**
 ```json
 {
-  "setting1": "value1",
-  "setting2": "value2"
+  "id": "settings-uuid",
+  "clubId": "club-uuid",
+  "finesEnabled": true,
+  "shiftsEnabled": true,
+  "createdAt": "2024-01-01T10:00:00Z",
+  "createdBy": "user-uuid",
+  "updatedAt": "2024-01-01T10:00:00Z",
+  "updatedBy": "user-uuid"
 }
 ```
 
@@ -1221,13 +1227,14 @@ The API uses JWT-based authentication with magic link email authentication. Most
 - `200 OK` - Club settings
 - `400 Bad Request` - Club ID is required
 - `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not an admin of the club
 - `404 Not Found` - Club not found
 - `500 Internal Server Error` - Database error
 
 ---
 
 ### Update Club Settings
-**Endpoint:** `POST /api/v1/{clubid}/settings`  
+**Endpoint:** `POST /api/v1/clubs/{clubid}/settings`  
 **Authentication:** Bearer token required  
 **Rate Limit:** API limiter (30/5s)
 
@@ -1239,8 +1246,8 @@ The API uses JWT-based authentication with magic link email authentication. Most
 **Request Body:**
 ```json
 {
-  "setting1": "new_value1",
-  "setting2": "new_value2"
+  "finesEnabled": true,
+  "shiftsEnabled": false
 }
 ```
 
@@ -1248,6 +1255,7 @@ The API uses JWT-based authentication with magic link email authentication. Most
 - `204 No Content` - Settings updated successfully
 - `400 Bad Request` - Club ID is required or invalid request body
 - `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not an admin of the club
 - `404 Not Found` - Club not found
 - `500 Internal Server Error` - Database error
 

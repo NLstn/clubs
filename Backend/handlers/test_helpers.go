@@ -172,6 +172,18 @@ func SetupTestDB(t *testing.T) {
 			updated_by TEXT
 		)
 	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS club_settings (
+			id TEXT PRIMARY KEY,
+			club_id TEXT NOT NULL UNIQUE,
+			fines_enabled BOOLEAN DEFAULT TRUE,
+			shifts_enabled BOOLEAN DEFAULT TRUE,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
+		)
+	`)
 }
 
 // TeardownTestDB cleans up the test database
@@ -375,6 +387,7 @@ func GetTestHandler() http.Handler {
 	// Register routes without rate limiting middleware for testing
 	registerAuthRoutesForTest(mux)
 	registerClubRoutesForTest(mux)
+	registerClubSettingsRoutesForTest(mux)
 	registerUserRoutesForTest(mux)
 	registerMemberRoutesForTest(mux)
 	registerShiftRoutesForTest(mux)
@@ -641,4 +654,17 @@ func registerJoinRequestRoutesForTest(mux *http.ServeMux) {
 func registerFineRoutesForTest(mux *http.ServeMux) {
 	// Fines routes are handled in registerClubRoutesForTest and registerUserRoutesForTest
 	// This function is left empty to avoid conflicts
+}
+
+func registerClubSettingsRoutesForTest(mux *http.ServeMux) {
+	mux.Handle("/api/v1/clubs/{clubid}/settings", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetClubSettings(w, r)
+		case http.MethodPost:
+			handleUpdateClubSettings(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
 }
