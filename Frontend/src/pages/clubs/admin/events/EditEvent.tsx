@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useCallback } from "react";
 import api from "../../../../utils/api";
 
 interface Event {
@@ -14,7 +14,7 @@ interface Shift {
     id: string;
     startTime: string;
     endTime: string;
-    eventId?: string;
+    eventId: string;
 }
 
 interface EditEventProps {
@@ -41,6 +41,17 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
     const [isAddingShift, setIsAddingShift] = useState(false);
     const [activeTab, setActiveTab] = useState<'event' | 'shifts'>('event');
 
+    const fetchEventShifts = useCallback(async () => {
+        if (!event || !clubId) return;
+        
+        try {
+            const response = await api.get(`/api/v1/clubs/${clubId}/events/${event.id}/shifts`);
+            setShifts(response.data || []);
+        } catch (error) {
+            console.error("Error fetching event shifts:", error);
+        }
+    }, [event, clubId]);
+
     useEffect(() => {
         if (event) {
             setName(event.name);
@@ -50,18 +61,8 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
             setEndTime(event.end_time);
             fetchEventShifts();
         }
-    }, [event]);
+    }, [event, fetchEventShifts]);
 
-    const fetchEventShifts = async () => {
-        if (!event || !clubId) return;
-        
-        try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/events/${event.id}/shifts`);
-            setShifts(response.data || []);
-        } catch (error) {
-            console.error("Error fetching event shifts:", error);
-        }
-    };
 
     const handleAddShift = async () => {
         if (!shiftStartTime || !shiftEndTime || !event || !clubId) {
@@ -166,129 +167,125 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
 
                     <div className="tab-content">
                         {/* Event Details Tab */}
-                        {activeTab === 'event' && (
-                            <div className="tab-panel">
-                                <div className="form-group">
-                                    <label htmlFor="eventName">Event Name</label>
-                                    <input
-                                        id="eventName"
-                                        type="text"
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        placeholder="Event Name"
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="startDate">Start Date</label>
-                                    <input
-                                        id="startDate"
-                                        type="date"
-                                        value={startDate}
-                                        onChange={(e) => setStartDate(e.target.value)}
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="startTime">Start Time</label>
-                                    <input
-                                        id="startTime"
-                                        type="time"
-                                        value={startTime}
-                                        onChange={(e) => setStartTime(e.target.value)}
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="endDate">End Date</label>
-                                    <input
-                                        id="endDate"
-                                        type="date"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="endTime">End Time</label>
-                                    <input
-                                        id="endTime"
-                                        type="time"
-                                        value={endTime}
-                                        onChange={(e) => setEndTime(e.target.value)}
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
+                        <div className={`tab-panel ${activeTab === 'event' ? 'active' : ''}`}>
+                            <div className="form-group">
+                                <label htmlFor="eventName">Event Name</label>
+                                <input
+                                    id="eventName"
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Event Name"
+                                    disabled={isSubmitting}
+                                />
                             </div>
-                        )}
+
+                            <div className="form-group">
+                                <label htmlFor="startDate">Start Date</label>
+                                <input
+                                    id="startDate"
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    disabled={isSubmitting}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="startTime">Start Time</label>
+                                <input
+                                    id="startTime"
+                                    type="time"
+                                    value={startTime}
+                                    onChange={(e) => setStartTime(e.target.value)}
+                                    disabled={isSubmitting}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="endDate">End Date</label>
+                                <input
+                                    id="endDate"
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    disabled={isSubmitting}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="endTime">End Time</label>
+                                <input
+                                    id="endTime"
+                                    type="time"
+                                    value={endTime}
+                                    onChange={(e) => setEndTime(e.target.value)}
+                                    disabled={isSubmitting}
+                                />
+                            </div>
+                        </div>
 
                         {/* Shifts Tab */}
-                        {activeTab === 'shifts' && (
-                            <div className="tab-panel">
-                                <h3>Event Shifts</h3>
-                                
-                                {/* Add Shift Form */}
-                                <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '5px' }}>
-                                    <h4>Add New Shift</h4>
-                                    <div className="form-group">
-                                        <label htmlFor="shiftStartTime">Shift Start Time</label>
-                                        <input
-                                            id="shiftStartTime"
-                                            type="datetime-local"
-                                            value={shiftStartTime}
-                                            onChange={(e) => setShiftStartTime(e.target.value)}
-                                            disabled={isAddingShift}
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="shiftEndTime">Shift End Time</label>
-                                        <input
-                                            id="shiftEndTime"
-                                            type="datetime-local"
-                                            value={shiftEndTime}
-                                            onChange={(e) => setShiftEndTime(e.target.value)}
-                                            disabled={isAddingShift}
-                                        />
-                                    </div>
-                                    <button 
-                                        onClick={handleAddShift}
-                                        className="button-accept"
-                                        disabled={isAddingShift || !shiftStartTime || !shiftEndTime}
-                                    >
-                                        {isAddingShift ? 'Adding...' : 'Add Shift'}
-                                    </button>
+                        <div className={`tab-panel ${activeTab === 'shifts' ? 'active' : ''}`}>
+                            <h3>Event Shifts</h3>
+                            
+                            {/* Add Shift Form */}
+                            <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '5px' }}>
+                                <h4>Add New Shift</h4>
+                                <div className="form-group">
+                                    <label htmlFor="shiftStartTime">Shift Start Time</label>
+                                    <input
+                                        id="shiftStartTime"
+                                        type="datetime-local"
+                                        value={shiftStartTime}
+                                        onChange={(e) => setShiftStartTime(e.target.value)}
+                                        disabled={isAddingShift}
+                                    />
                                 </div>
-
-                                {/* Shifts List */}
-                                <div>
-                                    <h4>Current Shifts</h4>
-                                    {shifts.length === 0 ? (
-                                        <p style={{fontStyle: 'italic', color: '#666'}}>No shifts scheduled for this event yet.</p>
-                                    ) : (
-                                        <table className="basic-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Start Time</th>
-                                                    <th>End Time</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {shifts.map(shift => (
-                                                    <tr key={shift.id}>
-                                                        <td>{new Date(shift.startTime).toLocaleString()}</td>
-                                                        <td>{new Date(shift.endTime).toLocaleString()}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    )}
+                                <div className="form-group">
+                                    <label htmlFor="shiftEndTime">Shift End Time</label>
+                                    <input
+                                        id="shiftEndTime"
+                                        type="datetime-local"
+                                        value={shiftEndTime}
+                                        onChange={(e) => setShiftEndTime(e.target.value)}
+                                        disabled={isAddingShift}
+                                    />
                                 </div>
+                                <button 
+                                    onClick={handleAddShift}
+                                    className="button-accept"
+                                    disabled={isAddingShift || !shiftStartTime || !shiftEndTime}
+                                >
+                                    {isAddingShift ? 'Adding...' : 'Add Shift'}
+                                </button>
                             </div>
-                        )}
+
+                            {/* Shifts List */}
+                            <div>
+                                <h4>Current Shifts</h4>
+                                {shifts.length === 0 ? (
+                                    <p style={{fontStyle: 'italic', color: '#666'}}>No shifts scheduled for this event yet.</p>
+                                ) : (
+                                    <table className="basic-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Start Time</th>
+                                                <th>End Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {shifts.map(shift => (
+                                                <tr key={shift.id}>
+                                                    <td>{new Date(shift.startTime).toLocaleString()}</td>
+                                                    <td>{new Date(shift.endTime).toLocaleString()}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
