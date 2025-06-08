@@ -43,9 +43,8 @@ const Dashboard = () => {
                         clubs.map(club => (
                             <div
                                 key={club.id}
-                                className="card"
+                                className="card card-clickable"
                                 onClick={() => navigate(`/clubs/${club.id}`)}
-                                style={{ cursor: 'pointer' }}
                             >
                                 <h4>{club.name}</h4>
                                 <p>{club.description}</p>

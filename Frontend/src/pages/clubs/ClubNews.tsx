@@ -52,24 +52,18 @@ const ClubNews = () => {
     };
 
     if (loading) return <div>Loading news...</div>;
-    if (error) return <div style={{color: 'red'}}>Error loading news: {error}</div>;
+    if (error) return <div className="error">Error loading news: {error}</div>;
     if (!news || news.length === 0) return null; // Don't show the section if there's no news
 
     return (
-        <div style={{ marginTop: '30px' }}>
+        <div className="news-section">
             <h3>Latest News</h3>
             <div>
                 {news.map(newsItem => (
-                    <div key={newsItem.id} style={{ 
-                        border: '1px solid #ddd', 
-                        padding: '15px', 
-                        marginBottom: '15px', 
-                        borderRadius: '5px',
-                        backgroundColor: 'var(--background-color)',
-                    }}>
-                        <h4 style={{ margin: '0 0 10px 0' }}>{newsItem.title}</h4>
-                        <p style={{ margin: '0 0 10px 0', lineHeight: '1.5' }}>{newsItem.content}</p>
-                        <small style={{ color: '#666' }}>
+                    <div key={newsItem.id} className="news-card">
+                        <h4 className="news-title">{newsItem.title}</h4>
+                        <p className="news-content">{newsItem.content}</p>
+                        <small className="news-meta">
                             Posted on {formatDateTime(newsItem.created_at)}
                         </small>
                     </div>

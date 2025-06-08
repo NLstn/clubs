@@ -65,13 +65,7 @@ const UpcomingEvents = () => {
             <h3>Upcoming Events</h3>
             <div className="events-list">
                 {events.map(event => (
-                    <div key={event.id} className="event-card" style={{
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        padding: '16px',
-                        marginBottom: '12px',
-                        backgroundColor: 'var(--color-background)'
-                    }}>
+                    <div key={event.id} className="event-card">
                         <h4>{event.name}</h4>
                         <p>
                             <strong>Start:</strong> {formatDateTime(event.start_time)}
@@ -80,26 +74,21 @@ const UpcomingEvents = () => {
                             <strong>End:</strong> {formatDateTime(event.end_time)}
                         </p>
                         
-                        <div className="rsvp-section" style={{ marginTop: '12px' }}>
+                        <div className="rsvp-section">
                             <p>
                                 <strong>RSVP:</strong> 
                                 {event.user_rsvp ? (
-                                    <span style={{ 
-                                        marginLeft: '8px',
-                                        color: event.user_rsvp.response === 'yes' ? 'green' : 'red',
-                                        fontWeight: 'bold'
-                                    }}>
+                                    <span className={`rsvp-status ${event.user_rsvp.response}`}>
                                         {event.user_rsvp.response === 'yes' ? 'Yes' : 'No'}
                                     </span>
                                 ) : (
-                                    <span style={{ marginLeft: '8px', color: '#666' }}>No response</span>
+                                    <span className="rsvp-status none">No response</span>
                                 )}
                             </p>
-                            <div className="rsvp-buttons" style={{ marginTop: '8px' }}>
+                            <div className="rsvp-buttons">
                                 <button
                                     onClick={() => handleRSVP(event.id, 'yes')}
                                     className={event.user_rsvp?.response === 'yes' ? 'button-accept' : 'button'}
-                                    style={{ marginRight: '8px' }}
                                 >
                                     Yes
                                 </button>
