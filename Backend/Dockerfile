@@ -21,13 +21,23 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 # Runtime stage
 FROM alpine:3.21
 
+# Create non-root user for security
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
+
 WORKDIR /app
 
-# Add ca-certificates for HTTPS requests
-RUN apk --no-cache add ca-certificates
+# Add ca-certificates for HTTPS requests and timezone data
+RUN apk --no-cache add ca-certificates tzdata
 
 # Copy the binary from builder
 COPY --from=builder /app/main .
+
+# Change ownership to non-root user
+RUN chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
 
 # Expose port 8080
 EXPOSE 8080

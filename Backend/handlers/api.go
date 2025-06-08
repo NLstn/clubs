@@ -12,6 +12,9 @@ import (
 func Handler_v1() http.Handler {
 	mux := http.NewServeMux()
 
+	// Register health check routes (no auth required)
+	registerHealthRoutes(mux)
+
 	registerAuthRoutes(mux)
 	registerClubRoutes(mux)
 	registerMemberRoutes(mux)
