@@ -164,6 +164,78 @@ tr:hover {
   color: black
 }
 
+.card-clickable {
+  cursor: pointer;
+}
+
+.event-card {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-sm);
+  margin-bottom: var(--space-xs);
+  color: var(--color-text);
+}
+
+.news-card {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  color: var(--color-text);
+}
+
+.rsvp-section {
+  margin-top: var(--space-xs);
+}
+
+.rsvp-status {
+  margin-left: var(--space-xs);
+  font-weight: bold;
+}
+
+.rsvp-status.yes {
+  color: var(--color-primary);
+}
+
+.rsvp-status.no {
+  color: var(--color-cancel);
+}
+
+.rsvp-status.none {
+  color: var(--color-text-secondary);
+}
+
+.rsvp-buttons {
+  margin-top: var(--space-xs);
+}
+
+.rsvp-buttons button {
+  margin-right: var(--space-xs);
+}
+
+.news-meta {
+  color: var(--color-text-secondary);
+}
+
+.news-title {
+  margin: 0 0 var(--space-xs) 0;
+}
+
+.news-content {
+  margin: 0 0 var(--space-xs) 0;
+  line-height: 1.5;
+}
+
+.news-section {
+  margin-top: var(--space-xl);
+}
+
+.error {
+  color: var(--color-error-text);
+}
+
 .clubs-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
