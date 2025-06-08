@@ -22,10 +22,9 @@ interface EditEventProps {
     event: Event | null;
     clubId: string | undefined;
     onSuccess: () => void;
-    onSettingsUpdate?: () => void;
 }
 
-const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSuccess, onSettingsUpdate }) => {
+const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSuccess }) => {
     const [name, setName] = useState<string>('');
     const [startTime, setStartTime] = useState<string>('');
     const [endTime, setEndTime] = useState<string>('');
@@ -92,10 +91,10 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
 
     // Refresh settings when modal opens to get latest settings
     useEffect(() => {
-        if (isOpen && onSettingsUpdate) {
+        if (isOpen) {
             refetchClubSettings();
         }
-    }, [isOpen, onSettingsUpdate, refetchClubSettings]);
+    }, [isOpen]);
 
     // Reset to event tab if shifts become unavailable
     useEffect(() => {

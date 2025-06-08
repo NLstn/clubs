@@ -182,7 +182,7 @@ const AdminClubDetails = () => {
 
 
                         <div className={`tab-panel ${activeTab === 'events' ? 'active' : ''}`}>
-                            <AdminClubEventList onSettingsUpdate={refetchSettings} />
+                            <AdminClubEventList />
                         </div>
 
                         <div className={`tab-panel ${activeTab === 'news' ? 'active' : ''}`}>

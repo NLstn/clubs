@@ -22,11 +22,7 @@ interface Shift {
     endTime: string;
 }
 
-interface AdminClubEventListProps {
-    onSettingsUpdate?: () => void;
-}
-
-const AdminClubEventList = ({ onSettingsUpdate }: AdminClubEventListProps = {}) => {
+const AdminClubEventList = () => {
     const { id } = useParams();
     const [events, setEvents] = useState<Event[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -197,7 +193,6 @@ const AdminClubEventList = ({ onSettingsUpdate }: AdminClubEventListProps = {}) 
                 event={selectedEvent}
                 clubId={id}
                 onSuccess={fetchEvents}
-                onSettingsUpdate={onSettingsUpdate}
             />
             <AddEvent 
                 isOpen={isAddModalOpen}
