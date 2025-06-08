@@ -55,10 +55,25 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
     useEffect(() => {
         if (event) {
             setName(event.name || '');
-            setStartDate(event.start_date || '');
-            setStartTime(event.start_time || '');
-            setEndDate(event.end_date || '');
-            setEndTime(event.end_time || '');
+            
+            // Validate and set date/time values, using empty string as fallback for invalid data
+            const validStartDate = event.start_date && event.start_date.match(/^\d{4}-\d{2}-\d{2}$/) ? event.start_date : '';
+            const validStartTime = event.start_time && event.start_time.match(/^\d{2}:\d{2}$/) ? event.start_time : '';
+            const validEndDate = event.end_date && event.end_date.match(/^\d{4}-\d{2}-\d{2}$/) ? event.end_date : '';
+            const validEndTime = event.end_time && event.end_time.match(/^\d{2}:\d{2}$/) ? event.end_time : '';
+            
+            setStartDate(validStartDate);
+            setStartTime(validStartTime);
+            setEndDate(validEndDate);
+            setEndTime(validEndTime);
+            
+            // Show an error if event has invalid date data
+            if (!validStartDate || !validStartTime || !validEndDate || !validEndTime) {
+                setError("This event has invalid date/time data. Please enter valid dates and times to update.");
+            } else {
+                setError(null);
+            }
+            
             fetchEventShifts();
         }
     }, [event, fetchEventShifts]);
@@ -139,6 +154,7 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
 
     const handleClose = () => {
         setError(null);
+        setActiveTab('event'); // Reset to event tab
         onClose();
     };
 
