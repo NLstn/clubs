@@ -4,9 +4,7 @@ import api from "../../../../utils/api";
 interface Event {
     id: string;
     name: string;
-    start_date: string;
     start_time: string;
-    end_date: string;
     end_time: string;
 }
 
@@ -27,9 +25,7 @@ interface EditEventProps {
 
 const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSuccess }) => {
     const [name, setName] = useState<string>('');
-    const [startDate, setStartDate] = useState<string>('');
     const [startTime, setStartTime] = useState<string>('');
-    const [endDate, setEndDate] = useState<string>('');
     const [endTime, setEndTime] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,22 +52,35 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
         if (event) {
             setName(event.name || '');
             
-            // Validate and set date/time values, using empty string as fallback for invalid data
-            const validStartDate = event.start_date && event.start_date.match(/^\d{4}-\d{2}-\d{2}$/) ? event.start_date : '';
-            const validStartTime = event.start_time && event.start_time.match(/^\d{2}:\d{2}$/) ? event.start_time : '';
-            const validEndDate = event.end_date && event.end_date.match(/^\d{4}-\d{2}-\d{2}$/) ? event.end_date : '';
-            const validEndTime = event.end_time && event.end_time.match(/^\d{2}:\d{2}$/) ? event.end_time : '';
-            
-            setStartDate(validStartDate);
-            setStartTime(validStartTime);
-            setEndDate(validEndDate);
-            setEndTime(validEndTime);
-            
-            // Show an error if event has invalid date data
-            if (!validStartDate || !validStartTime || !validEndDate || !validEndTime) {
-                setError("This event has invalid date/time data. Please enter valid dates and times to update.");
-            } else {
+            // Convert timestamps to datetime-local format (YYYY-MM-DDTHH:MM)
+            try {
+                if (event.start_time) {
+                    const startDate = new Date(event.start_time);
+                    if (!isNaN(startDate.getTime())) {
+                        setStartTime(startDate.toISOString().slice(0, 16));
+                    } else {
+                        setStartTime('');
+                    }
+                } else {
+                    setStartTime('');
+                }
+
+                if (event.end_time) {
+                    const endDate = new Date(event.end_time);
+                    if (!isNaN(endDate.getTime())) {
+                        setEndTime(endDate.toISOString().slice(0, 16));
+                    } else {
+                        setEndTime('');
+                    }
+                } else {
+                    setEndTime('');
+                }
+                
                 setError(null);
+            } catch {
+                setError("This event has invalid date/time data. Please enter valid dates and times to update.");
+                setStartTime('');
+                setEndTime('');
             }
             
             fetchEventShifts();
@@ -85,7 +94,10 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
             return;
         }
 
-        if (new Date(shiftStartTime) >= new Date(shiftEndTime)) {
+        const shiftStart = new Date(shiftStartTime);
+        const shiftEnd = new Date(shiftEndTime);
+
+        if (shiftStart >= shiftEnd) {
             setError("Shift end time must be after start time");
             return;
         }
@@ -95,8 +107,8 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
         
         try {
             await api.post(`/api/v1/clubs/${clubId}/events/${event.id}/shifts`, {
-                startTime: shiftStartTime,
-                endTime: shiftEndTime
+                startTime: shiftStart.toISOString(),
+                endTime: shiftEnd.toISOString()
             });
             setShiftStartTime('');
             setShiftEndTime('');
@@ -115,13 +127,13 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
     if (!isOpen || !event) return null;
 
     const handleSubmit = async () => {
-        if (!name || !startDate || !startTime || !endDate || !endTime) {
+        if (!name || !startTime || !endTime) {
             setError("Please fill in all fields");
             return;
         }
 
-        const startDateTime = new Date(`${startDate}T${startTime}`);
-        const endDateTime = new Date(`${endDate}T${endTime}`);
+        const startDateTime = new Date(startTime);
+        const endDateTime = new Date(endTime);
 
         if (startDateTime >= endDateTime) {
             setError("End date/time must be after start date/time");
@@ -134,10 +146,8 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
         try {
             await api.put(`/api/v1/clubs/${clubId}/events/${event.id}`, { 
                 name,
-                start_date: startDate,
-                start_time: startTime,
-                end_date: endDate,
-                end_time: endTime
+                start_time: startDateTime.toISOString(),
+                end_time: endDateTime.toISOString()
             });
             onSuccess();
             onClose();
@@ -197,21 +207,10 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                             </div>
 
                             <div className="form-group">
-                                <label htmlFor="startDate">Start Date</label>
-                                <input
-                                    id="startDate"
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    disabled={isSubmitting}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="startTime">Start Time</label>
+                                <label htmlFor="startTime">Start Date & Time</label>
                                 <input
                                     id="startTime"
-                                    type="time"
+                                    type="datetime-local"
                                     value={startTime}
                                     onChange={(e) => setStartTime(e.target.value)}
                                     disabled={isSubmitting}
@@ -219,21 +218,10 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                             </div>
 
                             <div className="form-group">
-                                <label htmlFor="endDate">End Date</label>
-                                <input
-                                    id="endDate"
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    disabled={isSubmitting}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="endTime">End Time</label>
+                                <label htmlFor="endTime">End Date & Time</label>
                                 <input
                                     id="endTime"
-                                    type="time"
+                                    type="datetime-local"
                                     value={endTime}
                                     onChange={(e) => setEndTime(e.target.value)}
                                     disabled={isSubmitting}
