@@ -7,17 +7,15 @@ import (
 )
 
 type Event struct {
-	ID          string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	ClubID      string    `gorm:"type:uuid;not null" json:"club_id"`
-	Name        string    `gorm:"not null" json:"name"`
-	StartDate   string    `gorm:"not null" json:"start_date"`
-	StartTime   string    `gorm:"not null" json:"start_time"`
-	EndDate     string    `gorm:"not null" json:"end_date"`
-	EndTime     string    `gorm:"not null" json:"end_time"`
-	CreatedAt   time.Time `json:"created_at"`
-	CreatedBy   string    `json:"created_by" gorm:"type:uuid"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	UpdatedBy   string    `json:"updated_by" gorm:"type:uuid"`
+	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	ClubID    string    `gorm:"type:uuid;not null" json:"club_id"`
+	Name      string    `gorm:"not null" json:"name"`
+	StartTime time.Time `gorm:"not null" json:"start_time"`
+	EndTime   time.Time `gorm:"not null" json:"end_time"`
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
 }
 
 type EventRSVP struct {
@@ -34,13 +32,11 @@ type EventRSVP struct {
 }
 
 // CreateEvent creates a new event for the club
-func (c *Club) CreateEvent(name string, startDate, startTime, endDate, endTime string, createdBy string) (*Event, error) {
+func (c *Club) CreateEvent(name string, startTime, endTime time.Time, createdBy string) (*Event, error) {
 	event := Event{
 		ClubID:    c.ID,
 		Name:      name,
-		StartDate: startDate,
 		StartTime: startTime,
-		EndDate:   endDate,
 		EndTime:   endTime,
 		CreatedBy: createdBy,
 		UpdatedBy: createdBy,
@@ -57,7 +53,7 @@ func (c *Club) CreateEvent(name string, startDate, startTime, endDate, endTime s
 // GetEvents returns all events for the club
 func (c *Club) GetEvents() ([]Event, error) {
 	var events []Event
-	err := database.Db.Where("club_id = ?", c.ID).Order("start_date ASC, start_time ASC").Find(&events).Error
+	err := database.Db.Where("club_id = ?", c.ID).Order("start_time ASC").Find(&events).Error
 	return events, err
 }
 
@@ -65,14 +61,13 @@ func (c *Club) GetEvents() ([]Event, error) {
 func (c *Club) GetUpcomingEvents() ([]Event, error) {
 	var events []Event
 	now := time.Now()
-	today := now.Format("2006-01-02")
-	err := database.Db.Where("club_id = ? AND start_date >= ?", c.ID, today).
-		Order("start_date ASC, start_time ASC").Find(&events).Error
+	err := database.Db.Where("club_id = ? AND start_time >= ?", c.ID, now).
+		Order("start_time ASC").Find(&events).Error
 	return events, err
 }
 
 // UpdateEvent updates an existing event
-func (c *Club) UpdateEvent(eventID string, name string, startDate, startTime, endDate, endTime string, updatedBy string) (*Event, error) {
+func (c *Club) UpdateEvent(eventID string, name string, startTime, endTime time.Time, updatedBy string) (*Event, error) {
 	var event Event
 	err := database.Db.Where("id = ? AND club_id = ?", eventID, c.ID).First(&event).Error
 	if err != nil {
@@ -80,9 +75,7 @@ func (c *Club) UpdateEvent(eventID string, name string, startDate, startTime, en
 	}
 
 	event.Name = name
-	event.StartDate = startDate
 	event.StartTime = startTime
-	event.EndDate = endDate
 	event.EndTime = endTime
 	event.UpdatedBy = updatedBy
 

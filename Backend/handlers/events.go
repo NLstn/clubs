@@ -97,9 +97,7 @@ func handleGetEvents(w http.ResponseWriter, r *http.Request) {
 func handleCreateEvent(w http.ResponseWriter, r *http.Request) {
 	type CreateEventRequest struct {
 		Name      string `json:"name"`
-		StartDate string `json:"start_date"`
 		StartTime string `json:"start_time"`
-		EndDate   string `json:"end_date"`
 		EndTime   string `json:"end_time"`
 	}
 
@@ -132,32 +130,25 @@ func handleCreateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse dates and times for validation
-	_, err = time.Parse("2006-01-02", req.StartDate)
+	// Parse timestamps
+	startTime, err := time.Parse(time.RFC3339, req.StartTime)
 	if err != nil {
-		http.Error(w, "Invalid start date format", http.StatusBadRequest)
+		http.Error(w, "Invalid start time format. Expected RFC3339 timestamp", http.StatusBadRequest)
 		return
 	}
 
-	_, err = time.Parse("15:04", req.StartTime)
+	endTime, err := time.Parse(time.RFC3339, req.EndTime)
 	if err != nil {
-		http.Error(w, "Invalid start time format", http.StatusBadRequest)
+		http.Error(w, "Invalid end time format. Expected RFC3339 timestamp", http.StatusBadRequest)
 		return
 	}
 
-	_, err = time.Parse("2006-01-02", req.EndDate)
-	if err != nil {
-		http.Error(w, "Invalid end date format", http.StatusBadRequest)
+	if startTime.After(endTime) || startTime.Equal(endTime) {
+		http.Error(w, "Start time must be before end time", http.StatusBadRequest)
 		return
 	}
 
-	_, err = time.Parse("15:04", req.EndTime)
-	if err != nil {
-		http.Error(w, "Invalid end time format", http.StatusBadRequest)
-		return
-	}
-
-	event, err := club.CreateEvent(req.Name, req.StartDate, req.StartTime, req.EndDate, req.EndTime, user.ID)
+	event, err := club.CreateEvent(req.Name, startTime, endTime, user.ID)
 	if err != nil {
 		http.Error(w, "Failed to create event", http.StatusInternalServerError)
 		return
@@ -172,9 +163,7 @@ func handleCreateEvent(w http.ResponseWriter, r *http.Request) {
 func handleUpdateEvent(w http.ResponseWriter, r *http.Request) {
 	type UpdateEventRequest struct {
 		Name      string `json:"name"`
-		StartDate string `json:"start_date"`
 		StartTime string `json:"start_time"`
-		EndDate   string `json:"end_date"`
 		EndTime   string `json:"end_time"`
 	}
 
@@ -213,32 +202,25 @@ func handleUpdateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Parse dates and times for validation
-	_, err = time.Parse("2006-01-02", req.StartDate)
+	// Parse timestamps
+	startTime, err := time.Parse(time.RFC3339, req.StartTime)
 	if err != nil {
-		http.Error(w, "Invalid start date format", http.StatusBadRequest)
+		http.Error(w, "Invalid start time format. Expected RFC3339 timestamp", http.StatusBadRequest)
 		return
 	}
 
-	_, err = time.Parse("15:04", req.StartTime)
+	endTime, err := time.Parse(time.RFC3339, req.EndTime)
 	if err != nil {
-		http.Error(w, "Invalid start time format", http.StatusBadRequest)
+		http.Error(w, "Invalid end time format. Expected RFC3339 timestamp", http.StatusBadRequest)
 		return
 	}
 
-	_, err = time.Parse("2006-01-02", req.EndDate)
-	if err != nil {
-		http.Error(w, "Invalid end date format", http.StatusBadRequest)
+	if startTime.After(endTime) || startTime.Equal(endTime) {
+		http.Error(w, "Start time must be before end time", http.StatusBadRequest)
 		return
 	}
 
-	_, err = time.Parse("15:04", req.EndTime)
-	if err != nil {
-		http.Error(w, "Invalid end time format", http.StatusBadRequest)
-		return
-	}
-
-	event, err := club.UpdateEvent(eventID, req.Name, req.StartDate, req.StartTime, req.EndDate, req.EndTime, user.ID)
+	event, err := club.UpdateEvent(eventID, req.Name, startTime, endTime, user.ID)
 	if err != nil {
 		http.Error(w, "Failed to update event", http.StatusInternalServerError)
 		return

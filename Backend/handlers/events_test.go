@@ -25,10 +25,8 @@ func TestEventRoutes(t *testing.T) {
 	t.Run("Create Event", func(t *testing.T) {
 		payload := map[string]string{
 			"name":       "Test Event",
-			"start_date": "2024-06-01",
-			"start_time": "10:00",
-			"end_date":   "2024-06-01",
-			"end_time":   "12:00",
+			"start_time": "2024-06-01T10:00:00Z",
+			"end_time":   "2024-06-01T12:00:00Z",
 		}
 		
 		body, _ := json.Marshal(payload)

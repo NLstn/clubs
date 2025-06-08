@@ -266,8 +266,13 @@ func handleCreateEventShift(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if shift.StartTime.After(shift.EndTime) || shift.StartTime.Equal(shift.EndTime) {
+		http.Error(w, "Start time must be before end time", http.StatusBadRequest)
+		return
+	}
+
 	// Set the eventID from the URL path
-	shiftID, err := club.CreateShift(shift.StartTime.Time, shift.EndTime.Time, user.ID, eventID)
+	shiftID, err := club.CreateShift(shift.StartTime, shift.EndTime, user.ID, eventID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
