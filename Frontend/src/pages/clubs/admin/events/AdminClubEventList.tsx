@@ -7,9 +7,7 @@ import api from "../../../../utils/api";
 interface Event {
     id: string;
     name: string;
-    start_date: string;
     start_time: string;
-    end_date: string;
     end_time: string;
 }
 
@@ -99,24 +97,14 @@ const AdminClubEventList = () => {
         }
     };
 
-    const formatDateTime = (date: string, time: string) => {
+    const formatDateTime = (timestamp: string) => {
         // Handle undefined, null, or empty values
-        if (!date || !time || date === 'null' || time === 'null') {
+        if (!timestamp || timestamp === 'null') {
             return 'Not set';
         }
         
         try {
-            // Validate date format (YYYY-MM-DD)
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-                return 'Invalid date format';
-            }
-            
-            // Validate time format (HH:MM)
-            if (!/^\d{2}:\d{2}$/.test(time)) {
-                return 'Invalid time format';
-            }
-            
-            const dateTime = new Date(`${date}T${time}`);
+            const dateTime = new Date(timestamp);
             // Check if the date is valid
             if (isNaN(dateTime.getTime())) {
                 return 'Invalid date/time';
@@ -162,8 +150,8 @@ const AdminClubEventList = () => {
                                     return (
                                         <tr key={event.id}>
                                             <td>{event.name}</td>
-                                            <td>{formatDateTime(event.start_date, event.start_time)}</td>
-                                            <td>{formatDateTime(event.end_date, event.end_time)}</td>
+                                            <td>{formatDateTime(event.start_time)}</td>
+                                            <td>{formatDateTime(event.end_time)}</td>
                                             <td>
                                                 <span style={{color: 'green'}}>Yes: {yesCount}</span>{' '}
                                                 <span style={{color: 'red'}}>No: {noCount}</span>
