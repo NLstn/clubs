@@ -676,6 +676,16 @@ input:disabled + .slider {
   text-align: center;
 }
 
+.login-box .message.success {
+  background-color: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.login-box .message.error {
+  background-color: var(--color-error-bg);
+  color: var(--color-error-text);
+}
+
 .login-box .form-group {
   margin-bottom: var(--space-lg);
 }
@@ -699,4 +709,19 @@ input:disabled + .slider {
 .login-box button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 480px) {
+  .login-container {
+    padding: var(--space-sm);
+  }
+  
+  .login-box {
+    padding: var(--space-lg);
+  }
+  
+  .login-box h1 {
+    font-size: 1.75rem;
+  }
 }
