@@ -92,42 +92,53 @@ input {
 
 /* Button styles */
 button {
-  border-radius: var(--border-radius-md);
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--border-radius-sm);
+  font-size: 1rem;
   font-weight: 500;
   font-family: inherit;
-  background-color: var(--color-background-light);
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: background-color 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .button-accept {
   background-color: var(--color-primary);
-  color: #fff;
+  color: white;
 }
 
-.button-accept:hover {
+.button-accept:hover:not(:disabled) {
   background-color: var(--color-primary-hover);
 }
 
 .button-cancel {
   background-color: var(--color-cancel);
-  color: #fff;
+  color: white;
 }
 
-.button-cancel:hover {
+.button-cancel:hover:not(:disabled) {
   background-color: var(--color-cancel-hover);
-}
-
-button:hover {
-  border-color: var(--color-secondary);
 }
 
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Full-width button variant */
+.button-full-width {
+  width: 100%;
 }
 
 /*table styles */
@@ -692,23 +703,6 @@ input:disabled + .slider {
 
 .login-box button {
   width: 100%;
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--border-radius-sm);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.login-box button:hover:not(:disabled) {
-  background-color: var(--color-primary-hover);
-}
-
-.login-box button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 /* Magic link page styles */
