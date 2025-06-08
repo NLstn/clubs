@@ -39,7 +39,11 @@ const Login: React.FC = () => {
         <h1>Login</h1>
         <p>Enter your email to receive a magic link for logging in.</p>
 
-        {message && <div className="message">{message}</div>}
+        {message && (
+          <div className={`message ${message.includes('Error') || message.includes('error') ? 'error' : 'success'}`}>
+            {message}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
