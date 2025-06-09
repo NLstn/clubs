@@ -62,6 +62,7 @@ func handleRequestMagicLink(w http.ResponseWriter, r *http.Request) {
 
 	token, err := models.CreateMagicLink(req.Email)
 	if err != nil {
+		log.Printf("Failed to create magic link for email %s: %v", req.Email, err)
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
@@ -70,6 +71,7 @@ func handleRequestMagicLink(w http.ResponseWriter, r *http.Request) {
 
 	err = auth.SendMagicLinkEmail(req.Email, link)
 	if err != nil {
+		log.Printf("Failed to send magic link email to %s: %v", req.Email, err)
 		http.Error(w, "Failed to send magic link email", http.StatusInternalServerError)
 		return
 	}
@@ -87,6 +89,9 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 
 	email, valid, err := models.VerifyMagicLink(token)
 	if err != nil || !valid {
+		if err != nil {
+			log.Printf("Magic link verification failed for token: %v", err)
+		}
 		http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
 		return
 	}
@@ -94,6 +99,7 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 	// Find or create user
 	user, err := models.FindOrCreateUser(email)
 	if err != nil {
+		log.Printf("Failed to find or create user for email %s: %v", email, err)
 		http.Error(w, "User error", http.StatusInternalServerError)
 		return
 	}
@@ -101,18 +107,21 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 	// Create session token or JWT
 	accessToken, err := auth.GenerateAccessToken(user.ID)
 	if err != nil {
+		log.Printf("Failed to generate access token for user %s: %v", user.ID, err)
 		http.Error(w, "JWT error", http.StatusInternalServerError)
 		return
 	}
 
 	refreshToken, err := auth.GenerateRefreshToken(user.ID)
 	if err != nil {
+		log.Printf("Failed to generate refresh token for user %s: %v", user.ID, err)
 		http.Error(w, "Refresh token error", http.StatusInternalServerError)
 		return
 	}
 
 	// Store refresh token in the database
 	if err := user.StoreRefreshToken(refreshToken); err != nil {
+		log.Printf("Failed to store refresh token for user %s: %v", user.ID, err)
 		http.Error(w, "Failed to store refresh token", http.StatusInternalServerError)
 		return
 	}
@@ -125,7 +134,7 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 
 	if err := models.DeleteMagicLink(token); err != nil {
 		// Log the error for debugging and monitoring purposes
-		// Replace this with your logging framework if applicable
+		log.Printf("Failed to delete magic link after successful verification: %v", err)
 		http.Error(w, "Failed to delete magic link", http.StatusInternalServerError)
 		return
 	}
