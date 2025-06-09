@@ -15,13 +15,14 @@ type Config struct {
 	User     string
 	Password string
 	DBName   string
+	SSLMode  string
 }
 
 var Db *gorm.DB
 
 func NewConnection(config *Config) error {
-	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		config.Host, config.Port, config.User, config.Password, config.DBName)
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		config.Host, config.Port, config.User, config.Password, config.DBName, config.SSLMode)
 
 	var err error
 	Db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
@@ -60,12 +61,25 @@ func Init() error {
 		return fmt.Errorf("DATABASE_USER_PASSWORD environment variable is required")
 	}
 
+	// Database name with default value
+	dbName := os.Getenv("DATABASE_NAME")
+	if dbName == "" {
+		dbName = "clubs"
+	}
+
+	// SSL mode with default value (false means disable)
+	sslMode := os.Getenv("DATABASE_SSL_MODE")
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+
 	config := &Config{
 		Host:     dbUrl,
 		Port:     dbPortInt,
 		User:     dbUser,
 		Password: dbUserPassword,
-		DBName:   "clubs",
+		DBName:   dbName,
+		SSLMode:  sslMode,
 	}
 
 	return NewConnection(config)

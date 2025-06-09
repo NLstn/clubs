@@ -293,6 +293,8 @@ func MockEnvironmentVariables(t *testing.T) {
 	os.Setenv("DATABASE_PORT", "5432")
 	os.Setenv("DATABASE_USER", "test")
 	os.Setenv("DATABASE_USER_PASSWORD", "test")
+	os.Setenv("DATABASE_NAME", "test_clubs")
+	os.Setenv("DATABASE_SSL_MODE", "disable")
 
 	// Set Azure environment variables to avoid initialization errors
 	os.Setenv("AZURE_CLIENT_ID", "test-client-id")
