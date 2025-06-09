@@ -90,7 +90,7 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 	email, valid, err := models.VerifyMagicLink(token)
 	if err != nil || !valid {
 		if err != nil {
-			log.Printf("Magic link verification failed for token: %v", err)
+			log.Printf("Magic link verification error: %v", err)
 		}
 		http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
 		return
