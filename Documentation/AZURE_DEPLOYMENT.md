@@ -57,6 +57,8 @@ Example healthy response:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `FRONTEND_URL` | Frontend URL for CORS | `http://localhost:5173` |
+| `DATABASE_NAME` | Database name | `clubs` |
+| `DATABASE_SSL_MODE` | PostgreSQL SSL mode | `disable` |
 | `AZURE_ACS_ENDPOINT` | Azure Communication Services endpoint | |
 | `AZURE_ACS_SENDER_ADDRESS` | Email sender address | |
 
@@ -179,7 +181,7 @@ Ensure your PostgreSQL database is configured with:
 
 1. **PostgreSQL Extensions**: The application requires the `pgcrypto` extension
 2. **Network Access**: Allow connections from Azure Container Apps
-3. **SSL/TLS**: Recommended for production environments
+3. **SSL/TLS**: Recommended for production environments. Configure `DATABASE_SSL_MODE` environment variable as needed (`disable`, `require`, `prefer`, etc.)
 4. **Connection Limits**: Configure appropriate connection limits
 
 Example database initialization:
@@ -188,6 +190,8 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE USER clubs WITH PASSWORD 'your-secure-password';
 CREATE DATABASE clubs OWNER clubs;
 ```
+
+**Note**: The database name and SSL mode can be customized using the `DATABASE_NAME` and `DATABASE_SSL_MODE` environment variables respectively.
 
 ## Monitoring and Logging
 
