@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import CookieConsent from '../../components/CookieConsent';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -62,6 +63,7 @@ const Login: React.FC = () => {
           </button>
         </form>
       </div>
+      <CookieConsent />
     </div>
   );
 };

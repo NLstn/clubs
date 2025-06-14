@@ -1,5 +1,6 @@
 import React from 'react';
 import Header from './Header';
+import CookieConsent from '../CookieConsent';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ const Layout: React.FC<LayoutProps> = ({ children, title }) => {
     <div className="layout">
       <Header title={title} />
       <main className="main-content">{children}</main>
+      <CookieConsent />
     </div>
   );
 };
