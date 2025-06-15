@@ -3,8 +3,31 @@ import { jwtDecode } from 'jwt-decode';
 
 const API_BASE_URL = import.meta.env.VITE_API_HOST || '';
 
+// Cookie utility functions
+const getCookie = (name: string): string | null => {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+};
+
+const getAccessToken = (): string | null => {
+  // Try cookie first, then fall back to localStorage for backwards compatibility
+  return getCookie('access_token') || localStorage.getItem('auth_token');
+};
+
+const getRefreshToken = (): string | null => {
+  // Try cookie first, then fall back to localStorage for backwards compatibility
+  return getCookie('refresh_token') || localStorage.getItem('refresh_token');
+};
+
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // Enable sending cookies with requests
 });
 
 let isRefreshing = false;
@@ -36,7 +59,7 @@ const isTokenExpired = (token: string): boolean => {
 };
 
 const refreshAuthToken = async () => {
-  const refreshToken = localStorage.getItem('refresh_token');
+  const refreshToken = getRefreshToken();
   if (!refreshToken) {
     // No refresh token available - logout and redirect to login
     localStorage.removeItem('auth_token');
@@ -48,14 +71,26 @@ const refreshAuthToken = async () => {
   console.log('Refreshing token...');
 
   try {
+    // With cookies enabled, we don't need to send the token in the header
+    // The cookie will be sent automatically. But we keep header support for backwards compatibility.
+    const headers: Record<string, string> = {};
+    if (!getCookie('refresh_token')) {
+      // Only set header if not using cookies
+      headers['Authorization'] = refreshToken;
+    }
+
     const response = await axios.post(`${API_BASE_URL}/api/v1/auth/refreshToken`, {}, {
-      headers: {
-        'Authorization': refreshToken
-      }
+      headers,
+      withCredentials: true,
     });
 
     const { access: newAccessToken } = response.data;
-    localStorage.setItem('auth_token', newAccessToken);
+    
+    // Store in localStorage for backwards compatibility if cookies aren't being used
+    if (!getCookie('access_token')) {
+      localStorage.setItem('auth_token', newAccessToken);
+    }
+    
     return newAccessToken;
   } catch (error) {
     localStorage.removeItem('auth_token');
@@ -68,14 +103,17 @@ const refreshAuthToken = async () => {
 // Request interceptor to add auth token and handle token refresh
 api.interceptors.request.use(
   async (config) => {
-    let token = localStorage.getItem('auth_token');
+    let token = getAccessToken();
     
     if (token && isTokenExpired(token)) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({
             resolve: (newToken) => {
-              config.headers.Authorization = `Bearer ${newToken}`;
+              // Only set Authorization header if not using cookies
+              if (!getCookie('access_token')) {
+                config.headers.Authorization = `Bearer ${newToken}`;
+              }
               resolve(config);
             },
             reject
@@ -95,7 +133,8 @@ api.interceptors.request.use(
       }
     }
 
-    if (token) {
+    // Only set Authorization header if not using cookies
+    if (token && !getCookie('access_token')) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
