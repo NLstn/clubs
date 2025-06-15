@@ -162,14 +162,36 @@ func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Delete the old refresh token to invalidate it
+	if err := user.DeleteRefreshToken(refreshToken); err != nil {
+		log.Printf("Failed to delete old refresh token for user %s: %v", user.ID, err)
+		http.Error(w, "Failed to invalidate refresh token", http.StatusInternalServerError)
+		return
+	}
+
 	newAccessToken, err := auth.GenerateAccessToken(user.ID)
 	if err != nil {
 		http.Error(w, "Failed to generate access token", http.StatusInternalServerError)
 		return
 	}
 
+	// Generate a new refresh token
+	newRefreshToken, err := auth.GenerateRefreshToken(user.ID)
+	if err != nil {
+		http.Error(w, "Failed to generate refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	// Store the new refresh token in the database
+	if err := user.StoreRefreshToken(newRefreshToken); err != nil {
+		log.Printf("Failed to store new refresh token for user %s: %v", user.ID, err)
+		http.Error(w, "Failed to store refresh token", http.StatusInternalServerError)
+		return
+	}
+
 	json.NewEncoder(w).Encode(map[string]string{
-		"access": newAccessToken,
+		"access":  newAccessToken,
+		"refresh": newRefreshToken,
 	})
 }
 

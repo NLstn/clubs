@@ -38,8 +38,13 @@ func generateJWT(userID string, expiration time.Duration) (string, error) {
 		return "", fmt.Errorf("cannot generate JWT with empty userID")
 	}
 
+	// Generate a unique identifier for each token to ensure uniqueness
+	tokenID := GenerateToken()
+
 	claims := jwt.MapClaims{
 		"user_id": userID,
+		"jti":     tokenID, // JWT ID to ensure uniqueness
+		"iat":     time.Now().Unix(), // Issued at timestamp
 		"exp":     time.Now().Add(expiration).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
