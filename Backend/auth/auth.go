@@ -60,15 +60,21 @@ func GenerateRefreshToken(userID string) (string, error) {
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Get Authorization header
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			log.Default().Println("Missing or invalid Authorization header")
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
+		var tokenStr string
+		
+		// Try to get token from cookie first
+		if cookie, err := r.Cookie("access_token"); err == nil && cookie.Value != "" {
+			tokenStr = cookie.Value
+		} else {
+			// Fall back to Authorization header
+			authHeader := r.Header.Get("Authorization")
+			if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+				log.Default().Println("Missing or invalid Authorization header and no access token cookie")
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+			tokenStr = strings.TrimPrefix(authHeader, "Bearer ")
 		}
-
-		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 
 		// Parse and validate JWT
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
