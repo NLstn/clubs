@@ -256,4 +256,132 @@ func TestAuthEndpoints(t *testing.T) {
 			CheckResponseCode(t, http.StatusMethodNotAllowed, rr.Code)
 		}
 	})
+
+	t.Run("Cookie Authentication", func(t *testing.T) {
+		t.Run("Verify Magic Link Sets Cookies", func(t *testing.T) {
+			// Create a user and magic link
+			email := "cookie-test@example.com"  
+			_, _ = CreateTestUser(t, email)
+			
+			token, err := models.CreateMagicLink(email)
+			assert.NoError(t, err)
+
+			url := "/api/v1/auth/verifyMagicLink?token=" + token
+			req := MakeRequest(t, "GET", url, nil, "")
+			rr := ExecuteRequest(t, handler, req)
+
+			CheckResponseCode(t, http.StatusOK, rr.Code)
+
+			// Check that cookies are set in the response
+			cookies := rr.Result().Cookies()
+			var accessCookie, refreshCookie *http.Cookie
+
+			for _, cookie := range cookies {
+				if cookie.Name == "access_token" {
+					accessCookie = cookie
+				}
+				if cookie.Name == "refresh_token" {
+					refreshCookie = cookie
+				}
+			}
+
+			// Verify cookies are set with secure attributes
+			assert.NotNil(t, accessCookie, "Access token cookie should be set")
+			assert.NotNil(t, refreshCookie, "Refresh token cookie should be set")
+			
+			if accessCookie != nil {
+				assert.True(t, accessCookie.HttpOnly, "Access token cookie should be HttpOnly")
+				assert.Equal(t, http.SameSiteStrictMode, accessCookie.SameSite, "Access token cookie should have SameSite=Strict")
+				assert.NotEmpty(t, accessCookie.Value, "Access token cookie should have a value")
+			}
+			
+			if refreshCookie != nil {
+				assert.True(t, refreshCookie.HttpOnly, "Refresh token cookie should be HttpOnly")
+				assert.Equal(t, http.SameSiteStrictMode, refreshCookie.SameSite, "Refresh token cookie should have SameSite=Strict")
+				assert.NotEmpty(t, refreshCookie.Value, "Refresh token cookie should have a value")
+			}
+		})
+
+		t.Run("Refresh Token From Cookie", func(t *testing.T) {
+			// Create a user and refresh token
+			user, _ := CreateTestUser(t, "cookie-refresh@example.com")
+			
+			refreshToken, err := auth.GenerateRefreshToken(user.ID)
+			assert.NoError(t, err)
+			
+			err = user.StoreRefreshToken(refreshToken)
+			assert.NoError(t, err)
+
+			// Make request with refresh token in cookie
+			req := MakeRequest(t, "POST", "/api/v1/auth/refreshToken", nil, "")
+			req.AddCookie(&http.Cookie{
+				Name:  "refresh_token",
+				Value: refreshToken,
+			})
+
+			rr := ExecuteRequest(t, handler, req)
+			CheckResponseCode(t, http.StatusOK, rr.Code)
+
+			// Check that new access token cookie is set
+			cookies := rr.Result().Cookies()
+			var accessCookie *http.Cookie
+
+			for _, cookie := range cookies {
+				if cookie.Name == "access_token" {
+					accessCookie = cookie
+				}
+			}
+
+			assert.NotNil(t, accessCookie, "New access token cookie should be set")
+			if accessCookie != nil {
+				assert.True(t, accessCookie.HttpOnly, "Access token cookie should be HttpOnly")
+				assert.NotEmpty(t, accessCookie.Value, "Access token cookie should have a value")
+			}
+		})
+
+		t.Run("Logout Clears Cookies", func(t *testing.T) {
+			// Create a user and refresh token
+			user, _ := CreateTestUser(t, "cookie-logout@example.com")
+			
+			refreshToken, err := auth.GenerateRefreshToken(user.ID)
+			assert.NoError(t, err)
+			
+			err = user.StoreRefreshToken(refreshToken)
+			assert.NoError(t, err)
+
+			// Make logout request with refresh token in cookie
+			req := MakeRequest(t, "POST", "/api/v1/auth/logout", nil, "")
+			req.AddCookie(&http.Cookie{
+				Name:  "refresh_token",
+				Value: refreshToken,
+			})
+
+			rr := ExecuteRequest(t, handler, req)
+			CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+			// Check that cookies are cleared (should have MaxAge=-1)
+			cookies := rr.Result().Cookies()
+			var accessCookie, refreshCookie *http.Cookie
+
+			for _, cookie := range cookies {
+				if cookie.Name == "access_token" {
+					accessCookie = cookie
+				}
+				if cookie.Name == "refresh_token" {
+					refreshCookie = cookie
+				}
+			}
+
+			// Cookies should be present with MaxAge=-1 to clear them
+			assert.NotNil(t, accessCookie, "Access token cookie should be present for clearing")
+			assert.NotNil(t, refreshCookie, "Refresh token cookie should be present for clearing")
+			
+			if accessCookie != nil {
+				assert.Equal(t, -1, accessCookie.MaxAge, "Access token cookie should have MaxAge=-1 for clearing")
+			}
+			if refreshCookie != nil {
+				assert.Equal(t, -1, refreshCookie.MaxAge, "Refresh token cookie should have MaxAge=-1 for clearing")
+			}
+		})
+	})
 }

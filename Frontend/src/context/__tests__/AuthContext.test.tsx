@@ -24,6 +24,17 @@ Object.defineProperty(window, 'localStorage', { value: localStorageMock })
 // Mock environment variable
 vi.stubEnv('VITE_API_HOST', 'http://localhost:3000')
 
+// Mock document.cookie
+const mockCookie = {
+  get: vi.fn(() => ''),
+  set: vi.fn(),
+}
+Object.defineProperty(document, 'cookie', {
+  get: () => mockCookie.get(),
+  set: (value) => mockCookie.set(value),
+  configurable: true,
+})
+
 // Test component that uses the AuthContext
 const TestComponent = () => {
   const { isAuthenticated, accessToken, refreshToken, login, logout } = useAuth()
@@ -45,6 +56,7 @@ describe('AuthContext', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorageMock.getItem.mockReturnValue(null)
+    mockCookie.get.mockReturnValue('')
   })
 
   afterEach(() => {
@@ -184,8 +196,10 @@ describe('AuthContext', () => {
       {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': 'existing-refresh-token'
-        }
+        },
+        credentials: 'include'
       }
     )
 

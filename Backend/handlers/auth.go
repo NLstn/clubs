@@ -4,11 +4,58 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
 	frontend "github.com/NLstn/clubs/tools"
 )
+
+// setSecureCookie sets a secure HTTP cookie with the given name and value
+func setSecureCookie(w http.ResponseWriter, name, value string, maxAge int) {
+	// In production with HTTPS, set Secure flag
+	// For now, we detect this by checking if we have a FRONTEND_URL that starts with https
+	isSecure := strings.HasPrefix(os.Getenv("FRONTEND_URL"), "https://")
+	
+	cookie := &http.Cookie{
+		Name:     name,
+		Value:    value,
+		Path:     "/",
+		MaxAge:   maxAge,
+		HttpOnly: true,
+		Secure:   isSecure,
+		SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(w, cookie)
+}
+
+// clearCookie clears a cookie by setting its MaxAge to -1
+func clearCookie(w http.ResponseWriter, name string) {
+	isSecure := strings.HasPrefix(os.Getenv("FRONTEND_URL"), "https://")
+	
+	cookie := &http.Cookie{
+		Name:     name,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   isSecure,
+		SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(w, cookie)
+}
+
+// getTokenFromCookieOrHeader tries to get token from cookie first, then from Authorization header
+func getTokenFromCookieOrHeader(r *http.Request, cookieName string) string {
+	// Try cookie first
+	if cookie, err := r.Cookie(cookieName); err == nil && cookie.Value != "" {
+		return cookie.Value
+	}
+	
+	// Fall back to Authorization header for backwards compatibility
+	return r.Header.Get("Authorization")
+}
 
 func registerAuthRoutes(mux *http.ServeMux) {
 	mux.Handle("/api/v1/auth/requestMagicLink", RateLimitMiddleware(authLimiter)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -126,7 +173,11 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return token
+	// Set secure cookies
+	setSecureCookie(w, "access_token", accessToken, 15*60)        // 15 minutes
+	setSecureCookie(w, "refresh_token", refreshToken, 30*24*3600) // 30 days
+
+	// Return token (for backwards compatibility)
 	json.NewEncoder(w).Encode(map[string]string{
 		"access":  accessToken,
 		"refresh": refreshToken,
@@ -142,7 +193,7 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 
 // endpoint: POST /api/v1/auth/refresh
 func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
-	refreshToken := r.Header.Get("Authorization")
+	refreshToken := getTokenFromCookieOrHeader(r, "refresh_token")
 	if refreshToken == "" {
 		http.Error(w, "Refresh token required", http.StatusUnauthorized)
 		return
@@ -168,6 +219,9 @@ func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Set new access token cookie
+	setSecureCookie(w, "access_token", newAccessToken, 15*60) // 15 minutes
+
 	json.NewEncoder(w).Encode(map[string]string{
 		"access": newAccessToken,
 	})
@@ -175,7 +229,7 @@ func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 
 // endpoint: POST /api/v1/auth/logout
 func handleLogout(w http.ResponseWriter, r *http.Request) {
-	refreshToken := r.Header.Get("Authorization")
+	refreshToken := getTokenFromCookieOrHeader(r, "refresh_token")
 	if refreshToken == "" {
 		http.Error(w, "Refresh token required", http.StatusUnauthorized)
 		return
@@ -198,6 +252,10 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to delete refresh tokens", http.StatusInternalServerError)
 		return
 	}
+
+	// Clear cookies
+	clearCookie(w, "access_token")
+	clearCookie(w, "refresh_token")
 
 	w.WriteHeader(http.StatusNoContent)
 }

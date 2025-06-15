@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -21,9 +22,20 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 func CorsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// Get allowed origin from environment variable, fallback to wildcard for development
+		allowedOrigin := os.Getenv("FRONTEND_URL")
+		if allowedOrigin == "" {
+			allowedOrigin = "*"
+		}
+		
+		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE, PUT, PATCH")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		
+		// Allow credentials for cookie-based authentication
+		if allowedOrigin != "*" {
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
 
 		// Handle preflight request
 		if r.Method == "OPTIONS" {
