@@ -182,7 +182,25 @@ func TestAuthEndpoints(t *testing.T) {
 					var response map[string]string
 					ParseJSONResponse(t, rr, &response)
 					assert.Contains(t, response, "access")
+					assert.Contains(t, response, "refresh")
 					assert.NotEmpty(t, response["access"])
+					assert.NotEmpty(t, response["refresh"])
+					
+					// Verify the new refresh token is different from the old one
+					assert.NotEqual(t, refreshToken, response["refresh"])
+					
+					// Verify the old refresh token is now invalid
+					req2 := MakeRequest(t, "POST", "/api/v1/auth/refreshToken", nil, "")
+					req2.Header.Set("Authorization", refreshToken)
+					rr2 := ExecuteRequest(t, handler, req2)
+					CheckResponseCode(t, http.StatusUnauthorized, rr2.Code)
+					AssertContains(t, rr2.Body.String(), "Invalid refresh token")
+					
+					// Verify the new refresh token works
+					req3 := MakeRequest(t, "POST", "/api/v1/auth/refreshToken", nil, "")
+					req3.Header.Set("Authorization", response["refresh"])
+					rr3 := ExecuteRequest(t, handler, req3)
+					CheckResponseCode(t, http.StatusOK, rr3.Code)
 				}
 			})
 		}
