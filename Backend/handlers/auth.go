@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
@@ -12,13 +14,17 @@ import (
 
 // setSecureCookie sets a secure HTTP cookie with the given name and value
 func setSecureCookie(w http.ResponseWriter, name, value string, maxAge int) {
+	// In production with HTTPS, set Secure flag
+	// For now, we detect this by checking if we have a FRONTEND_URL that starts with https
+	isSecure := strings.HasPrefix(os.Getenv("FRONTEND_URL"), "https://")
+	
 	cookie := &http.Cookie{
 		Name:     name,
 		Value:    value,
 		Path:     "/",
 		MaxAge:   maxAge,
 		HttpOnly: true,
-		Secure:   false, // Set to true in production with HTTPS
+		Secure:   isSecure,
 		SameSite: http.SameSiteStrictMode,
 	}
 	http.SetCookie(w, cookie)
@@ -26,13 +32,15 @@ func setSecureCookie(w http.ResponseWriter, name, value string, maxAge int) {
 
 // clearCookie clears a cookie by setting its MaxAge to -1
 func clearCookie(w http.ResponseWriter, name string) {
+	isSecure := strings.HasPrefix(os.Getenv("FRONTEND_URL"), "https://")
+	
 	cookie := &http.Cookie{
 		Name:     name,
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
 		HttpOnly: true,
-		Secure:   false, // Set to true in production with HTTPS
+		Secure:   isSecure,
 		SameSite: http.SameSiteStrictMode,
 	}
 	http.SetCookie(w, cookie)
