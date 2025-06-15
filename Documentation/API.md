@@ -66,7 +66,7 @@ The API uses JWT-based authentication with magic link email authentication. Most
 **Authentication:** Refresh token in Authorization header  
 **Rate Limit:** Auth limiter (5/min)
 
-**Description:** Refresh an expired access token using a valid refresh token.
+**Description:** Refresh an expired access token using a valid refresh token. This endpoint implements refresh token rotation - the old refresh token is invalidated and a new one is issued along with the new access token.
 
 **Headers:**
 - `Authorization: {refresh_token}`
@@ -74,15 +74,16 @@ The API uses JWT-based authentication with magic link email authentication. Most
 **Response:**
 ```json
 {
-  "access": "new_jwt_access_token"
+  "access": "new_jwt_access_token",
+  "refresh": "new_jwt_refresh_token"
 }
 ```
 
 **Responses:**
-- `200 OK` - New access token generated
+- `200 OK` - New access and refresh tokens generated
 - `401 Unauthorized` - Refresh token required or invalid
 - `404 Not Found` - User not found
-- `500 Internal Server Error` - Failed to generate access token
+- `500 Internal Server Error` - Failed to generate tokens or invalidate old refresh token
 
 ---
 
