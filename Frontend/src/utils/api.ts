@@ -54,8 +54,9 @@ const refreshAuthToken = async () => {
       }
     });
 
-    const { access: newAccessToken } = response.data;
+    const { access: newAccessToken, refresh: newRefreshToken } = response.data;
     localStorage.setItem('auth_token', newAccessToken);
+    localStorage.setItem('refresh_token', newRefreshToken);
     return newAccessToken;
   } catch (error) {
     localStorage.removeItem('auth_token');
