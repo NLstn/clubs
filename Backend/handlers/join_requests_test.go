@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -58,13 +59,16 @@ func TestJoinRequestEndpoints(t *testing.T) {
 		CheckResponseCode(t, http.StatusCreated, rr.Code)
 
 		// Verify that the join request was created with proper created_by field
-		joinRequests, err := club.GetJoinRequests()
+		// Since this is an admin invite (admin_approved=true), it should NOT appear in the club's pending requests
+		// but should be stored in the database. Let's check the database directly.
+		var allRequests []models.JoinRequest
+		err := database.Db.Where("club_id = ?", club.ID).Find(&allRequests).Error
 		assert.NoError(t, err)
-		assert.GreaterOrEqual(t, len(joinRequests), 1)
+		assert.GreaterOrEqual(t, len(allRequests), 1)
 		
 		// Find our join request
 		var foundRequest *models.JoinRequest
-		for _, jr := range joinRequests {
+		for _, jr := range allRequests {
 			if jr.Email == "newmember3@example.com" {
 				foundRequest = &jr
 				break
@@ -73,6 +77,8 @@ func TestJoinRequestEndpoints(t *testing.T) {
 		assert.NotNil(t, foundRequest, "Join request should be found")
 		assert.Equal(t, owner.ID, foundRequest.CreatedBy, "CreatedBy should be set to the owner's ID")
 		assert.Equal(t, owner.ID, foundRequest.UpdatedBy, "UpdatedBy should be set to the owner's ID")
+		assert.True(t, foundRequest.AdminApproved, "AdminApproved should be true for admin invites")
+		assert.False(t, foundRequest.UserApproved, "UserApproved should be false for admin invites")
 	})
 
 	t.Run("Create Join Request - Missing Email", func(t *testing.T) {
@@ -124,9 +130,12 @@ func TestJoinRequestEndpoints(t *testing.T) {
 	t.Run("Get Join Requests - Valid", func(t *testing.T) {
 		owner, ownerToken := CreateTestUser(t, "owner8@example.com")
 		club := CreateTestClub(t, owner, "Test Club")
+		
+		// Create a user who will request to join
+		requestingUser, _ := CreateTestUser(t, "newmember8@example.com")
 
-		// Create a join request first
-		club.CreateJoinRequest("newmember8@example.com", owner.ID)
+		// Create a join request where user is requesting to join (admin needs to approve)
+		club.CreateJoinRequest(requestingUser.Email, requestingUser.ID, false, true)
 
 		req := MakeRequest(t, "GET", "/api/v1/clubs/"+club.ID+"/joinRequests", nil, ownerToken)
 		rr := ExecuteRequest(t, handler, req)
@@ -158,7 +167,7 @@ func TestJoinRequestEndpoints(t *testing.T) {
 		// Create a join request for this user
 		owner, _ := CreateTestUser(t, "owner10@example.com")
 		club := CreateTestClub(t, owner, "Test Club")
-		club.CreateJoinRequest(user.Email, owner.ID)
+		club.CreateJoinRequest(user.Email, owner.ID, true, false)
 
 		req := MakeRequest(t, "GET", "/api/v1/joinRequests", nil, userToken)
 		rr := ExecuteRequest(t, handler, req)
