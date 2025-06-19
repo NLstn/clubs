@@ -254,6 +254,86 @@ tr:hover {
   margin-top: 20px;
 }
 
+/* Dashboard styles */
+.dashboard-section {
+  margin-bottom: var(--space-xl);
+}
+
+.dashboard-section h2 {
+  color: var(--color-text);
+  margin-bottom: var(--space-md);
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: var(--space-xs);
+}
+
+.news-list, .events-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.news-item, .event-item {
+  position: relative;
+  background-color: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  padding: var(--space-md);
+  border-radius: var(--border-radius-md);
+  transition: all 0.2s ease;
+}
+
+.news-item:hover, .event-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary);
+}
+
+.news-header, .event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-xs);
+  gap: var(--space-sm);
+}
+
+.news-header h4, .event-header h4 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 1.1rem;
+  flex: 1;
+}
+
+.club-badge {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.news-content {
+  color: var(--color-text);
+  margin: var(--space-xs) 0;
+  line-height: 1.5;
+  max-height: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.news-meta, .event-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-sm);
+}
+
+.news-meta .date, .event-meta .date {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
 /* Form styles */
 .form-group {
   margin-bottom: var(--space-lg);
