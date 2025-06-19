@@ -134,7 +134,7 @@ func TestAuthEndpoints(t *testing.T) {
 		assert.NoError(t, err)
 		
 		// Store it in database
-		err = user.StoreRefreshToken(refreshToken)
+		err = user.StoreRefreshToken(refreshToken, "test-user-agent", "127.0.0.1")
 		assert.NoError(t, err)
 
 		tests := []struct {
@@ -215,7 +215,7 @@ func TestAuthEndpoints(t *testing.T) {
 		assert.NoError(t, err)
 		
 		// Store it in database
-		err = user.StoreRefreshToken(refreshToken)
+		err = user.StoreRefreshToken(refreshToken, "test-user-agent", "127.0.0.1")
 		assert.NoError(t, err)
 
 		tests := []struct {
