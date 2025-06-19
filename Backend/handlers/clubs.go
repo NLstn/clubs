@@ -26,6 +26,8 @@ func registerClubRoutes(mux *http.ServeMux) {
 			handleGetClubByID(w, r)
 		case http.MethodPatch:
 			handleUpdateClub(w, r)
+		case http.MethodDelete:
+			handleDeleteClub(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -37,7 +39,8 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 
 	user := extractUser(r)
 
-	clubs, err := models.GetAllClubs()
+	// Get all clubs including deleted ones for owners to see
+	clubs, err := models.GetAllClubsIncludingDeleted()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -46,6 +49,10 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 	var authorizedClubs []models.Club
 	for _, club := range clubs {
 		if club.IsMember(user) {
+			// If club is deleted, only show to owners
+			if club.Deleted && !club.IsOwner(user) {
+				continue
+			}
 			authorizedClubs = append(authorizedClubs, club)
 		}
 	}
@@ -75,6 +82,12 @@ func handleGetClubByID(w http.ResponseWriter, r *http.Request) {
 
 	if !club.IsMember(user) {
 		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
+	// If club is deleted, only allow owners to access it
+	if club.Deleted && !club.IsOwner(user) {
+		http.Error(w, "Club not found", http.StatusNotFound)
 		return
 	}
 
@@ -152,4 +165,32 @@ func handleUpdateClub(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(club)
+}
+
+// endpoint: DELETE /api/v1/clubs/{clubid}
+func handleDeleteClub(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+	clubID := extractPathParam(r, "clubs")
+
+	club, err := models.GetClubByID(clubID)
+	if err == gorm.ErrRecordNotFound {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if !club.IsOwner(user) {
+		http.Error(w, "Unauthorized - only owners can delete clubs", http.StatusForbidden)
+		return
+	}
+
+	if err := club.SoftDelete(user.ID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

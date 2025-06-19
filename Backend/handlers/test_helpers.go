@@ -65,7 +65,10 @@ func SetupTestDB(t *testing.T) {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			created_by TEXT,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
+			updated_by TEXT,
+			deleted BOOLEAN DEFAULT FALSE,
+			deleted_at DATETIME,
+			deleted_by TEXT
 		)
 	`)
 	testDB.Exec(`
@@ -485,6 +488,17 @@ func registerClubRoutesForTest(mux *http.ServeMux) {
 			return
 		}
 
+		// Check if this is an individual fine endpoint (fines/{fineid})
+		if strings.Contains(r.URL.Path, "/fines/") && !strings.Contains(r.URL.Path, "/fine-templates") {
+			switch r.Method {
+			case http.MethodDelete:
+				handleDeleteFine(w, r)
+			default:
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			}
+			return
+		}
+
 		// Check if this is a fine-templates endpoint
 		if strings.Contains(r.URL.Path, "/fine-templates") {
 			if strings.Contains(r.URL.Path, "/fine-templates/") {
@@ -517,6 +531,8 @@ func registerClubRoutesForTest(mux *http.ServeMux) {
 			handleGetClubByID(w, r)
 		case http.MethodPatch:
 			handleUpdateClub(w, r)
+		case http.MethodDelete:
+			handleDeleteClub(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
