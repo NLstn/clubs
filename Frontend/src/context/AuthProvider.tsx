@@ -25,10 +25,36 @@ const getRefreshToken = (): string | null => {
 };
 
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  // Initialize with tokens from cookies or localStorage
+  // Initialize with tokens from cookies
   const [accessToken, setAccessToken] = useState<string | null>(() => getAccessToken());
   const [refreshToken, setRefreshToken] = useState<string | null>(() => getRefreshToken());
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!getAccessToken());
+
+  // Check for delayed cookie availability on startup
+  useEffect(() => {
+    // If we don't have tokens initially, check a few times in case cookies are delayed
+    if (!accessToken) {
+      let attempts = 0;
+      const maxAttempts = 10; // Check for up to 2 seconds (10 * 200ms)
+      
+      const checkForCookies = () => {
+        const currentAccessToken = getAccessToken();
+        const currentRefreshToken = getRefreshToken();
+        
+        if (currentAccessToken) {
+          // Found cookies! Update state
+          setAccessToken(currentAccessToken);
+          setRefreshToken(currentRefreshToken);
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          setTimeout(checkForCookies, 200);
+        }
+      };
+      
+      // Start checking after a small delay
+      setTimeout(checkForCookies, 100);
+    }
+  }, []); // Only run once on mount
 
   useEffect(() => {
     // Update authentication state based on cookie presence
@@ -37,15 +63,26 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     } else {
       setIsAuthenticated(false);
     }
-  }, [accessToken, refreshToken]);
+  }, [accessToken]); // Only depend on accessToken since that's what we check
 
   const login = () => {
     // With cookie-only auth, tokens are set automatically as cookies
-    // Just update the state to reflect the current cookie state
-    const currentAccessToken = getAccessToken();
-    const currentRefreshToken = getRefreshToken();
-    setAccessToken(currentAccessToken);
-    setRefreshToken(currentRefreshToken);
+    // Add a small delay to ensure cookies are available after being set by the browser
+    const checkCookiesWithRetry = (attempts = 0) => {
+      const currentAccessToken = getAccessToken();
+      const currentRefreshToken = getRefreshToken();
+      
+      if (currentAccessToken || attempts >= 5) {
+        // Either we found tokens or we've exhausted our attempts
+        setAccessToken(currentAccessToken);
+        setRefreshToken(currentRefreshToken);
+      } else {
+        // Retry after a short delay
+        setTimeout(() => checkCookiesWithRetry(attempts + 1), 50);
+      }
+    };
+    
+    checkCookiesWithRetry();
   };
 
   const logout = async () => {
