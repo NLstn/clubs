@@ -63,5 +63,5 @@ jobs:
         inlineScript: |
           az containerapp update --name clubs-staging-backend \
             --resource-group clubs-staging-rg \
-            --image ghcr.io/NLstn/clubs/backend:latest
+            --image ghcr.io/nlstn/clubs/backend:latest
           az containerapp revision copy --name clubs-staging-backend --resource-group clubs-staging-rg
