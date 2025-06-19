@@ -94,7 +94,7 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
         if (isOpen) {
             refetchClubSettings();
         }
-    }, [isOpen]);
+    }, [isOpen, refetchClubSettings]);
 
     // Reset to event tab if shifts become unavailable
     useEffect(() => {
