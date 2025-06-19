@@ -279,13 +279,6 @@ tr:hover {
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-lg);
   padding: var(--space-md);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.dashboard-news-card:hover,
-.dashboard-event-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
 }
 
 .news-header,
@@ -317,17 +310,11 @@ tr:hover {
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius-lg);
   padding: var(--space-md);
-  transition: transform 0.2s, box-shadow 0.2s;
   cursor: pointer;
   color: black;
   display: flex;
   flex-direction: column;
   height: 100%;
-}
-
-.club-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
 }
 
 .club-card-header {
