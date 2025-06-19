@@ -27,9 +27,12 @@ const AdminClubFineList = () => {
     const fetchFines = useCallback(async () => {
         try {
             const response = await api.get(`/api/v1/clubs/${id}/fines`);
-            setFines(response.data);
+            // Ensure we always have an array, even if API returns null/undefined
+            setFines(Array.isArray(response.data) ? response.data : []);
         } catch (err) {
             setError("Failed to fetch fines: " + err);
+            // Reset fines to empty array on error to prevent stale data issues
+            setFines([]);
         }
     }, [id]);
 
@@ -37,7 +40,7 @@ const AdminClubFineList = () => {
         fetchFines();
     }, [fetchFines]);
 
-    const displayedFines = showAllFines ? fines : fines.filter(fine => !fine.paid);
+    const displayedFines = showAllFines ? fines : (fines || []).filter(fine => !fine.paid);
 
     return (
         <div>
