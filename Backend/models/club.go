@@ -18,7 +18,7 @@ type Club struct {
 	UpdatedBy   string     `json:"updated_by" gorm:"type:uuid"`
 	Deleted     bool       `json:"deleted" gorm:"default:false"`
 	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
-	DeletedBy   string     `json:"deleted_by,omitempty" gorm:"type:uuid"`
+	DeletedBy   *string    `json:"deleted_by,omitempty" gorm:"type:uuid"`
 }
 
 func GetAllClubs() ([]Club, error) {
@@ -92,6 +92,6 @@ func (c *Club) SoftDelete(deletedBy string) error {
 	return database.Db.Model(c).Updates(map[string]interface{}{
 		"deleted":    true,
 		"deleted_at": &now,
-		"deleted_by": deletedBy,
+		"deleted_by": &deletedBy,
 	}).Error
 }

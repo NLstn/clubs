@@ -174,7 +174,8 @@ func TestClubEndpoints(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, deletedClub.Deleted)
 		assert.NotNil(t, deletedClub.DeletedAt)
-		assert.Equal(t, owner.ID, deletedClub.DeletedBy)
+		assert.NotNil(t, deletedClub.DeletedBy)
+		assert.Equal(t, owner.ID, *deletedClub.DeletedBy)
 	})
 
 	t.Run("Deleted Club Visibility", func(t *testing.T) {
