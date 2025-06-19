@@ -254,6 +254,115 @@ tr:hover {
   margin-top: 20px;
 }
 
+/* Dashboard specific styles */
+.dashboard-section {
+  margin-bottom: var(--space-xl);
+}
+
+.dashboard-section h2 {
+  margin-bottom: var(--space-md);
+  color: var(--color-text);
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: var(--space-xs);
+}
+
+.dashboard-news,
+.dashboard-events {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--space-md);
+}
+
+.dashboard-news-card,
+.dashboard-event-card {
+  background-color: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-md);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-news-card:hover,
+.dashboard-event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.news-header,
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-sm);
+}
+
+.club-badge {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 4px 12px;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  flex-shrink: 0;
+  margin-left: var(--space-sm);
+}
+
+.club-badge:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.club-card {
+  background-color: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-md);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  color: black;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.club-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.club-card-header {
+  margin-bottom: var(--space-sm);
+}
+
+.club-card-header h4 {
+  margin: 0;
+  color: var(--color-primary);
+}
+
+.club-description {
+  flex-grow: 1;
+  margin-bottom: var(--space-sm);
+  line-height: 1.5;
+}
+
+.club-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.club-link {
+  color: var(--color-primary);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.event-title,
+.news-title {
+  margin: 0 0 var(--space-xs) 0;
+  color: var(--color-text);
+}
+
 /* Form styles */
 .form-group {
   margin-bottom: var(--space-lg);
