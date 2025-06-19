@@ -101,7 +101,7 @@ func handleJoinRequestCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = club.CreateJoinRequest(payload.Email, user.ID)
+	err = club.CreateJoinRequest(payload.Email, user.ID, true, false)
 	if err != nil {
 		http.Error(w, "Failed to create join request", http.StatusInternalServerError)
 		return
@@ -287,7 +287,7 @@ func handleJoinClubViaLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a join request with the user's email
-	err = club.CreateJoinRequest(user.Email, user.ID)
+	err = club.CreateJoinRequest(user.Email, user.ID, false, true)
 	if err != nil {
 		http.Error(w, "Failed to create join request", http.StatusInternalServerError)
 		return
