@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
@@ -160,6 +161,15 @@ func SetupTestDB(t *testing.T) {
 			response TEXT NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS event_rsvp_histories (
+			id TEXT PRIMARY KEY,
+			event_id TEXT NOT NULL,
+			user_id TEXT NOT NULL,
+			response TEXT NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)
 	`)
 	testDB.Exec(`
@@ -367,6 +377,27 @@ func CreateTestMember(t *testing.T, user models.User, club models.Club, role str
 	}
 
 	return member
+}
+
+// CreateTestEvent creates a test event for a club
+func CreateTestEvent(t *testing.T, club models.Club, user models.User, name string) models.Event {
+	eventID := uuid.New().String()
+
+	event := models.Event{
+		ID:        eventID,
+		ClubID:    club.ID,
+		Name:      name,
+		StartTime: time.Now().Add(24 * time.Hour),
+		EndTime:   time.Now().Add(26 * time.Hour),
+		CreatedBy: user.ID,
+		UpdatedBy: user.ID,
+	}
+
+	if err := testDB.Create(&event).Error; err != nil {
+		t.Fatalf("Failed to create test event: %v", err)
+	}
+
+	return event
 }
 
 // ParseJSONResponse parses a JSON response body into the provided interface

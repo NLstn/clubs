@@ -81,4 +81,83 @@ func TestEventRoutes(t *testing.T) {
 
 		assert.Equal(t, http.StatusForbidden, w.Code)
 	})
+
+	t.Run("RSVP History", func(t *testing.T) {
+		// First create an event to test with
+		event := CreateTestEvent(t, club, user, "RSVP Test Event")
+		assert.NotEmpty(t, event.ID)
+		t.Logf("Created event with ID: %s", event.ID)
+
+		// Create initial RSVP
+		err := user.CreateOrUpdateRSVP(event.ID, "yes")
+		assert.NoError(t, err)
+
+		// Update RSVP to create history
+		err = user.CreateOrUpdateRSVP(event.ID, "no")
+		assert.NoError(t, err)
+
+		// Update again
+		err = user.CreateOrUpdateRSVP(event.ID, "yes")
+		assert.NoError(t, err)
+
+		// Test getting RSVP history
+		testURL := "/api/v1/clubs/"+club.ID+"/rsvp-history?eventid="+event.ID+"&userid="+user.ID
+		t.Logf("Test URL: %s", testURL)
+		req := httptest.NewRequest("GET", testURL, nil)
+		req.Header.Set("Authorization", "Bearer "+accessToken)
+		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
+		
+		w := httptest.NewRecorder()
+		mux := http.NewServeMux()
+		registerEventRoutes(mux)
+		mux.ServeHTTP(w, req)
+
+		// Debug: print the response body for non-200 responses
+		if w.Code != 200 {
+			t.Logf("Response code: %d", w.Code)
+			t.Logf("Response body: %s", w.Body.String())
+		}
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var response map[string]interface{}
+		err = json.NewDecoder(w.Body).Decode(&response)
+		assert.NoError(t, err)
+
+		history, ok := response["history"].([]interface{})
+		assert.True(t, ok)
+		assert.Len(t, history, 3) // Should have 3 entries in history
+
+		// Only check history entries if we have them
+		if len(history) >= 3 {
+			// Verify the history entries are in chronological order
+			firstEntry := history[0].(map[string]interface{})
+			assert.Equal(t, "yes", firstEntry["response"])
+			
+			secondEntry := history[1].(map[string]interface{})
+			assert.Equal(t, "no", secondEntry["response"])
+			
+			thirdEntry := history[2].(map[string]interface{})
+			assert.Equal(t, "yes", thirdEntry["response"])
+		}
+	})
+
+	t.Run("RSVP History - Unauthorized", func(t *testing.T) {
+		// Create another user who is not an admin
+		otherUser, otherToken := CreateTestUser(t, "other2@example.com")
+		
+		// Create an event for testing
+		event := CreateTestEvent(t, club, user, "RSVP Test Event 2")
+
+		req := httptest.NewRequest("GET", "/api/v1/clubs/"+club.ID+"/rsvp-history?eventid="+event.ID+"&userid="+user.ID, nil)
+		req.Header.Set("Authorization", "Bearer "+otherToken)
+		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, otherUser.ID))
+		
+		w := httptest.NewRecorder()
+		mux := http.NewServeMux()
+		registerEventRoutes(mux)
+		mux.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusForbidden, w.Code)
+	})
 }

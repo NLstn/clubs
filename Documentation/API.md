@@ -1271,6 +1271,62 @@ The API uses JWT-based authentication with magic link email authentication. Most
 
 ---
 
+### Get User RSVP History
+**Endpoint:** `GET /api/v1/clubs/{clubid}/rsvp-history?eventid={eventid}&userid={userid}`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Get RSVP history for a specific user and event. This shows all RSVP changes made by the user for the event, allowing admins to see if users changed their minds. Only club admins/owners can access this endpoint.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Query Parameters:**
+- `eventid` (UUID) - Event identifier
+- `userid` (UUID) - User identifier
+
+**Response:**
+```json
+{
+  "history": [
+    {
+      "id": "history-uuid",
+      "event_id": "event-uuid",
+      "user_id": "user-uuid",
+      "response": "yes",
+      "created_at": "2024-01-01T10:00:00Z",
+      "user": {
+        "id": "user-uuid",
+        "name": "User Name",
+        "email": "user@example.com"
+      }
+    },
+    {
+      "id": "history-uuid-2",
+      "event_id": "event-uuid",
+      "user_id": "user-uuid",
+      "response": "no",
+      "created_at": "2024-01-01T11:00:00Z",
+      "user": {
+        "id": "user-uuid",
+        "name": "User Name",
+        "email": "user@example.com"
+      }
+    }
+  ]
+}
+```
+
+**Responses:**
+- `200 OK` - RSVP history retrieved successfully
+- `400 Bad Request` - Invalid club/event/user ID format, or missing required parameters
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not an admin/owner of the club
+- `404 Not Found` - Club or event not found
+- `500 Internal Server Error` - Database error
+
+---
+
 ## Club Settings Endpoints
 
 ### Get Club Settings

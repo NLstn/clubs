@@ -49,6 +49,14 @@ func registerEventRoutes(mux *http.ServeMux) {
 		}
 	})))
 
+	mux.Handle("/api/v1/clubs/{clubid}/rsvp-history", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetUserRSVPHistory(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
 	mux.Handle("/api/v1/clubs/{clubid}/events/{eventid}/rsvps", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
 			handleGetEventRSVPs(w, r)
@@ -439,6 +447,77 @@ func handleGetEventRSVPs(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"counts": counts,
 		"rsvps":  rsvps,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+// GET /api/v1/clubs/{clubid}/rsvp-history?eventid={eventid}&userid={userid}
+func handleGetUserRSVPHistory(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+	clubID := extractPathParam(r, "clubs")
+	eventID := r.URL.Query().Get("eventid")
+	userID := r.URL.Query().Get("userid")
+
+	// Debug logging
+	//fmt.Printf("DEBUG: Path: %s, ClubID: %s, EventID: %s, UserID: %s\n", r.URL.Path, clubID, eventID, userID)
+
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	if eventID == "" {
+		http.Error(w, "Event ID is required", http.StatusBadRequest)
+		return
+	}
+
+	if _, err := uuid.Parse(eventID); err != nil {
+		http.Error(w, "Invalid event ID format", http.StatusBadRequest)
+		return
+	}
+
+	if userID == "" {
+		http.Error(w, "User ID is required", http.StatusBadRequest)
+		return
+	}
+
+	if _, err := uuid.Parse(userID); err != nil {
+		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
+		return
+	}
+
+	club, err := models.GetClubByID(clubID)
+	if err == gorm.ErrRecordNotFound {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Failed to get club information", http.StatusInternalServerError)
+		return
+	}
+
+	if !club.IsOwner(user) {
+		http.Error(w, "Unauthorized - admin access required", http.StatusForbidden)
+		return
+	}
+
+	// Verify event exists and belongs to this club
+	_, err = club.GetEventByID(eventID)
+	if err != nil {
+		http.Error(w, "Event not found", http.StatusNotFound)
+		return
+	}
+
+	history, err := models.GetUserRSVPHistory(eventID, userID)
+	if err != nil {
+		http.Error(w, "Failed to get RSVP history", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"history": history,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

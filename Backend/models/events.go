@@ -31,6 +31,18 @@ type EventRSVP struct {
 	User  User  `gorm:"foreignKey:UserID" json:"user,omitempty"`
 }
 
+type EventRSVPHistory struct {
+	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	EventID   string    `gorm:"type:uuid;not null" json:"event_id"`
+	UserID    string    `gorm:"type:uuid;not null" json:"user_id"`
+	Response  string    `gorm:"not null" json:"response"` // "yes" or "no"
+	CreatedAt time.Time `json:"created_at"`
+
+	// Relationships
+	Event Event `gorm:"foreignKey:EventID" json:"event,omitempty"`
+	User  User  `gorm:"foreignKey:UserID" json:"user,omitempty"`
+}
+
 // CreateEvent creates a new event for the club
 func (c *Club) CreateEvent(name string, startTime, endTime time.Time, createdBy string) (*Event, error) {
 	event := Event{
@@ -114,6 +126,16 @@ func (u *User) CreateOrUpdateRSVP(eventID string, response string) error {
 	var rsvp EventRSVP
 	err := database.Db.Where("event_id = ? AND user_id = ?", eventID, u.ID).First(&rsvp).Error
 	
+	// Always log to history
+	history := EventRSVPHistory{
+		EventID:  eventID,
+		UserID:   u.ID,
+		Response: response,
+	}
+	if err := database.Db.Create(&history).Error; err != nil {
+		return err
+	}
+	
 	if err != nil {
 		// Create new RSVP
 		rsvp = EventRSVP{
@@ -169,4 +191,14 @@ func (u *User) GetUserRSVP(eventID string) (*EventRSVP, error) {
 		return nil, err
 	}
 	return &rsvp, nil
+}
+
+// GetUserRSVPHistory returns RSVP history for a specific user and event
+func GetUserRSVPHistory(eventID string, userID string) ([]EventRSVPHistory, error) {
+	var history []EventRSVPHistory
+	err := database.Db.Where("event_id = ? AND user_id = ?", eventID, userID).
+		Preload("User").
+		Order("created_at ASC").
+		Find(&history).Error
+	return history, err
 }
