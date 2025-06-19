@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import EditEvent from "./EditEvent";
 import AddEvent from "./AddEvent";
+import EventRSVPViewer from "./EventRSVPViewer";
 import api from "../../../../utils/api";
 
 interface Event {
@@ -28,6 +29,8 @@ const AdminClubEventList = () => {
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isRSVPViewerOpen, setIsRSVPViewerOpen] = useState(false);
+    const [selectedEventForRSVP, setSelectedEventForRSVP] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [rsvpCounts, setRsvpCounts] = useState<Record<string, RSVPCounts>>({});
@@ -81,6 +84,16 @@ const AdminClubEventList = () => {
     const handleCloseEditModal = () => {
         setSelectedEvent(null);
         setIsEditModalOpen(false);
+    };
+
+    const handleViewRSVPs = (event: Event) => {
+        setSelectedEventForRSVP(event);
+        setIsRSVPViewerOpen(true);
+    };
+
+    const handleCloseRSVPViewer = () => {
+        setSelectedEventForRSVP(null);
+        setIsRSVPViewerOpen(false);
     };
 
     const handleDeleteEvent = async (eventId: string) => {
@@ -155,6 +168,14 @@ const AdminClubEventList = () => {
                                             <td>
                                                 <span style={{color: 'green'}}>Yes: {yesCount}</span>{' '}
                                                 <span style={{color: 'red'}}>No: {noCount}</span>
+                                                <br />
+                                                <button
+                                                    onClick={() => handleViewRSVPs(event)}
+                                                    className="button-accept"
+                                                    style={{ fontSize: '12px', padding: '2px 6px', marginTop: '4px' }}
+                                                >
+                                                    View Details
+                                                </button>
                                             </td>
                                             <td>
                                                 <span style={{color: shifts.length > 0 ? 'blue' : 'gray'}}>
@@ -200,6 +221,15 @@ const AdminClubEventList = () => {
                 clubId={id || ''}
                 onSuccess={fetchEvents}
             />
+            {selectedEventForRSVP && (
+                <EventRSVPViewer
+                    isOpen={isRSVPViewerOpen}
+                    onClose={handleCloseRSVPViewer}
+                    clubId={id || ''}
+                    eventId={selectedEventForRSVP.id}
+                    eventName={selectedEventForRSVP.name}
+                />
+            )}
         </div>
     );
 };
