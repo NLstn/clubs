@@ -197,6 +197,23 @@ func TestMemberEndpoints(t *testing.T) {
 		var response map[string]interface{}
 		ParseJSONResponse(t, rr, &response)
 		assert.Equal(t, true, response["isAdmin"])
+		assert.Equal(t, true, response["isOwner"])
+	})
+
+	t.Run("Check Admin Rights - Admin (Non-Owner)", func(t *testing.T) {
+		owner, _ := CreateTestUser(t, "owner15b@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		admin, adminToken := CreateTestUser(t, "admin15b@example.com")
+		CreateTestMember(t, admin, club, "admin")
+
+		req := MakeRequest(t, "GET", "/api/v1/clubs/"+club.ID+"/isAdmin", nil, adminToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusOK, rr.Code)
+
+		var response map[string]interface{}
+		ParseJSONResponse(t, rr, &response)
+		assert.Equal(t, true, response["isAdmin"])
+		assert.Equal(t, false, response["isOwner"])
 	})
 
 	t.Run("Check Admin Rights - Non Admin", func(t *testing.T) {
@@ -212,6 +229,7 @@ func TestMemberEndpoints(t *testing.T) {
 		var response map[string]interface{}
 		ParseJSONResponse(t, rr, &response)
 		assert.Equal(t, false, response["isAdmin"])
+		assert.Equal(t, false, response["isOwner"])
 	})
 
 	t.Run("Check Admin Rights - Club Not Found", func(t *testing.T) {
