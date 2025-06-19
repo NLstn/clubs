@@ -5,7 +5,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   accessToken: string | null;
   refreshToken: string | null;
-  login: (accessToken: string, refreshToken: string) => void;
+  login: () => void;
   logout: () => void;
   api: typeof api;
 }

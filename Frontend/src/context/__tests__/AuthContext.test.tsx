@@ -44,7 +44,7 @@ const TestComponent = () => {
       <div data-testid="isAuthenticated">{isAuthenticated.toString()}</div>
       <div data-testid="accessToken">{accessToken || 'null'}</div>
       <div data-testid="refreshToken">{refreshToken || 'null'}</div>
-      <button onClick={() => login('new-access-token', 'new-refresh-token')}>
+      <button onClick={() => login()}>
         Login
       </button>
       <button onClick={logout}>Logout</button>
@@ -113,6 +113,9 @@ describe('AuthContext', () => {
 
     // Initially not authenticated
     expect(screen.getByTestId('isAuthenticated')).toHaveTextContent('false')
+
+    // Mock cookies being set (as if by backend after successful auth)
+    mockCookie.get.mockReturnValue('access_token=new-access-token; refresh_token=new-refresh-token')
 
     // Trigger login
     act(() => {

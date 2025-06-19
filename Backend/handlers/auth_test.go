@@ -111,14 +111,24 @@ func TestAuthEndpoints(t *testing.T) {
 					AssertContains(t, rr.Body.String(), tt.shouldContain)
 				}
 
-				// If successful, check response structure
-				if tt.expectedStatus == http.StatusOK {
-					var response map[string]string
-					ParseJSONResponse(t, rr, &response)
-					assert.Contains(t, response, "access")
-					assert.Contains(t, response, "refresh")
-					assert.NotEmpty(t, response["access"])
-					assert.NotEmpty(t, response["refresh"])
+				// If successful, check cookies are set (since we use cookie-only auth)
+				if tt.expectedStatus == http.StatusNoContent {
+					cookies := rr.Result().Cookies()
+					var accessCookie, refreshCookie *http.Cookie
+					
+					for _, cookie := range cookies {
+						if cookie.Name == "access_token" {
+							accessCookie = cookie
+						}
+						if cookie.Name == "refresh_token" {
+							refreshCookie = cookie
+						}
+					}
+					
+					assert.NotNil(t, accessCookie, "Access token cookie should be set")
+					assert.NotNil(t, refreshCookie, "Refresh token cookie should be set")
+					assert.NotEmpty(t, accessCookie.Value, "Access token should have value")
+					assert.NotEmpty(t, refreshCookie.Value, "Refresh token should have value")
 				}
 			})
 		}

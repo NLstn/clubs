@@ -39,9 +39,13 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     }
   }, [accessToken, refreshToken]);
 
-  const login = (newAccessToken: string, newRefreshToken: string) => {
-    setAccessToken(newAccessToken);
-    setRefreshToken(newRefreshToken);
+  const login = () => {
+    // With cookie-only auth, tokens are set automatically as cookies
+    // Just update the state to reflect the current cookie state
+    const currentAccessToken = getAccessToken();
+    const currentRefreshToken = getRefreshToken();
+    setAccessToken(currentAccessToken);
+    setRefreshToken(currentRefreshToken);
   };
 
   const logout = async () => {

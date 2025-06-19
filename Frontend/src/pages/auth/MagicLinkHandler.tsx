@@ -29,11 +29,13 @@ const MagicLinkHandler: React.FC = () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_HOST}/api/v1/auth/verifyMagicLink?token=${token}`, {
           method: 'GET',
+          credentials: 'include', // Include cookies
         });
 
         if (response.ok) {
-          const data = await response.json();
-          login(data.access, data.refresh);
+          // With cookie-only auth, tokens are set automatically as cookies
+          // Update auth state to reflect the new authentication
+          login();
           setStatus('success');
           
           // Redirect after short delay
