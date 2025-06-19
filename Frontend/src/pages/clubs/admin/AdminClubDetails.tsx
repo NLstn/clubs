@@ -95,7 +95,7 @@ const AdminClubDetails = () => {
         try {
             await api.delete(`/api/v1/clubs/${id}`);
             // Navigate to clubs list after deletion
-            navigate('/clubs');
+            navigate('/');
         } catch (err: Error | unknown) {
             console.error('Error deleting club:', err instanceof Error ? err.message : 'Unknown error');
             setError('Failed to delete club');
