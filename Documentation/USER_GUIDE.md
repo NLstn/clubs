@@ -17,7 +17,7 @@ There are two ways for users to join clubs in the system:
 1. You will receive an email notification about the invitation
 2. Log into the club management system
 3. Navigate to your profile → "Club Invitations"
-4. You will see the pending invitation
+4. You will see the pending invitation (admin has already approved, waiting for your acceptance)
 5. Click "Accept" to join the club or "Decline" to reject the invitation
 
 ### Method 2: Invitation Link
@@ -33,22 +33,34 @@ There are two ways for users to join clubs in the system:
 1. Click on the invitation link shared by the club admin
 2. If you're not logged in, you'll be redirected to the login page first
 3. After logging in, you'll see the club information and join request page
-4. Click "Request to Join" to send a join request
-5. The club admin will need to approve your request
+4. Click "Request to Join" to send a join request (you are expressing interest)
+5. Your request will appear in the club admin's pending requests list
+6. Wait for the admin to approve your request before becoming a member
 
 ### Important Notes
 
-- **Both methods require admin approval:** Whether you join via email invitation or invitation link, your request must be approved by a club admin before you become a member.
+- **Dual approval system:** The system uses a two-step approval process to ensure both parties agree to the membership.
+- **Email invitations (Admin → User):** When an admin invites someone via email, the admin has already approved the request. The invited user will see this as a pending invitation they can accept or decline.
+- **Invitation links (User → Admin):** When someone joins via an invitation link, they are expressing interest in joining. The user's request will appear in the admin's pending requests list for approval.
+- **Both approvals required:** A user only becomes a member when both the admin and user have approved. This prevents unwanted memberships and ensures clear consent from both parties.
 - **Email invitations are personalized:** They are sent to specific email addresses and can only be accepted by the intended recipient.
-- **Invitation links are shareable:** Anyone with the link can request to join the club, but still requires admin approval.
+- **Invitation links are shareable:** Anyone with the link can request to join the club.
 - **Security:** Invitation links are secured by the authentication system - users must have an account and be logged in to use them.
 
 ### For Club Admins: Managing Join Requests
 
+**Pending Invitations (Admin invited, waiting for user):**
+- These are people you have invited via email
+- They appear in your "Sent Invitations" list
+- No action needed - waiting for the user to accept
+
+**Pending Requests (User requested, waiting for admin approval):**
 1. Navigate to your club's admin panel
 2. Go to the "Members" section
-3. Click "View Pending Invites" to see all pending join requests
+3. Click "View Pending Requests" to see all pending join requests from users
 4. Review requests and approve or reject them as needed
+
+**Note:** Users only become members when both admin and user have approved the membership.
 
 ### User Authentication
 
