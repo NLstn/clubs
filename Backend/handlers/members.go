@@ -217,7 +217,11 @@ func handleCheckAdminRights(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isAdmin := role == "owner" || role == "admin"
+	isOwner := role == "owner"
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]bool{"isAdmin": isAdmin})
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"isAdmin": isAdmin,
+		"isOwner": isOwner,
+	})
 }
