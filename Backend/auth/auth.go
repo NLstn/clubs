@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/NLstn/clubs/azure/acs"
@@ -60,21 +59,14 @@ func GenerateRefreshToken(userID string) (string, error) {
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var tokenStr string
-		
-		// Try to get token from cookie first
-		if cookie, err := r.Cookie("access_token"); err == nil && cookie.Value != "" {
-			tokenStr = cookie.Value
-		} else {
-			// Fall back to Authorization header
-			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-				log.Default().Println("Missing or invalid Authorization header and no access token cookie")
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
-			tokenStr = strings.TrimPrefix(authHeader, "Bearer ")
+		// Get token from access_token cookie only
+		cookie, err := r.Cookie("access_token")
+		if err != nil || cookie.Value == "" {
+			log.Default().Println("Missing access token cookie")
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
 		}
+		tokenStr := cookie.Value
 
 		// Parse and validate JWT
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {

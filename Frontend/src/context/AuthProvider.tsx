@@ -15,13 +15,13 @@ const getCookie = (name: string): string | null => {
 };
 
 const getAccessToken = (): string | null => {
-  // Try cookie first, then fall back to localStorage for backwards compatibility
-  return getCookie('access_token') || localStorage.getItem('auth_token');
+  // Only use cookies
+  return getCookie('access_token');
 };
 
 const getRefreshToken = (): string | null => {
-  // Try cookie first, then fall back to localStorage for backwards compatibility
-  return getCookie('refresh_token') || localStorage.getItem('refresh_token');
+  // Only use cookies
+  return getCookie('refresh_token');
 };
 
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
@@ -31,18 +31,10 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!getAccessToken());
 
   useEffect(() => {
-    // Maintain localStorage for backwards compatibility when not using cookies
+    // Update authentication state based on cookie presence
     if (accessToken) {
-      if (!getCookie('access_token')) {
-        localStorage.setItem('auth_token', accessToken);
-      }
-      if (refreshToken && !getCookie('refresh_token')) {
-        localStorage.setItem('refresh_token', refreshToken);
-      }
       setIsAuthenticated(true);
     } else {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('refresh_token');
       setIsAuthenticated(false);
     }
   }, [accessToken, refreshToken]);
@@ -56,18 +48,12 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     const currentRefreshToken = getRefreshToken();
     if (currentRefreshToken) {
       try {
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
-        
-        // Only set Authorization header if not using cookies
-        if (!getCookie('refresh_token')) {
-          headers['Authorization'] = currentRefreshToken;
-        }
-
+        // Cookies are sent automatically with credentials: 'include'
         await fetch(`${import.meta.env.VITE_API_HOST}/api/v1/auth/logout`, {
           method: 'POST',
-          headers,
+          headers: {
+            'Content-Type': 'application/json',
+          },
           credentials: 'include', // Include cookies
         });
       } catch (error) {

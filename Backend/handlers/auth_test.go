@@ -80,8 +80,7 @@ func TestAuthEndpoints(t *testing.T) {
 			{
 				name:           "Valid token",
 				token:          token,
-				expectedStatus: http.StatusOK,
-				shouldContain:  "access",
+				expectedStatus: http.StatusNoContent,
 			},
 			{
 				name:           "Missing token",
@@ -139,25 +138,24 @@ func TestAuthEndpoints(t *testing.T) {
 
 		tests := []struct {
 			name           string
-			authHeader     string
+			cookie         *http.Cookie
 			expectedStatus int
 			shouldContain  string
 		}{
 			{
 				name:           "Valid refresh token",
-				authHeader:     refreshToken,
-				expectedStatus: http.StatusOK,
-				shouldContain:  "access",
+				cookie:         &http.Cookie{Name: "refresh_token", Value: refreshToken},
+				expectedStatus: http.StatusNoContent,
 			},
 			{
 				name:           "Missing refresh token",
-				authHeader:     "",
+				cookie:         nil,
 				expectedStatus: http.StatusUnauthorized,
 				shouldContain:  "Refresh token required",
 			},
 			{
 				name:           "Invalid refresh token",
-				authHeader:     "invalid-token",
+				cookie:         &http.Cookie{Name: "refresh_token", Value: "invalid-token"},
 				expectedStatus: http.StatusUnauthorized,
 				shouldContain:  "Invalid refresh token",
 			},
@@ -166,8 +164,8 @@ func TestAuthEndpoints(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				req := MakeRequest(t, "POST", "/api/v1/auth/refreshToken", nil, "")
-				if tt.authHeader != "" {
-					req.Header.Set("Authorization", tt.authHeader)
+				if tt.cookie != nil {
+					req.AddCookie(tt.cookie)
 				}
 
 				rr := ExecuteRequest(t, handler, req)
@@ -175,14 +173,6 @@ func TestAuthEndpoints(t *testing.T) {
 				CheckResponseCode(t, tt.expectedStatus, rr.Code)
 				if tt.shouldContain != "" {
 					AssertContains(t, rr.Body.String(), tt.shouldContain)
-				}
-
-				// If successful, check response structure
-				if tt.expectedStatus == http.StatusOK {
-					var response map[string]string
-					ParseJSONResponse(t, rr, &response)
-					assert.Contains(t, response, "access")
-					assert.NotEmpty(t, response["access"])
 				}
 			})
 		}
@@ -202,24 +192,24 @@ func TestAuthEndpoints(t *testing.T) {
 
 		tests := []struct {
 			name           string
-			authHeader     string
+			cookie         *http.Cookie
 			expectedStatus int
 			shouldContain  string
 		}{
 			{
 				name:           "Valid refresh token",
-				authHeader:     refreshToken,
+				cookie:         &http.Cookie{Name: "refresh_token", Value: refreshToken},
 				expectedStatus: http.StatusNoContent,
 			},
 			{
 				name:           "Missing refresh token",
-				authHeader:     "",
+				cookie:         nil,
 				expectedStatus: http.StatusUnauthorized,
 				shouldContain:  "Refresh token required",
 			},
 			{
 				name:           "Invalid refresh token",
-				authHeader:     "invalid-token",
+				cookie:         &http.Cookie{Name: "refresh_token", Value: "invalid-token"},
 				expectedStatus: http.StatusUnauthorized,
 				shouldContain:  "Invalid refresh token",
 			},
@@ -228,8 +218,8 @@ func TestAuthEndpoints(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				req := MakeRequest(t, "POST", "/api/v1/auth/logout", nil, "")
-				if tt.authHeader != "" {
-					req.Header.Set("Authorization", tt.authHeader)
+				if tt.cookie != nil {
+					req.AddCookie(tt.cookie)
 				}
 
 				rr := ExecuteRequest(t, handler, req)
@@ -270,7 +260,7 @@ func TestAuthEndpoints(t *testing.T) {
 			req := MakeRequest(t, "GET", url, nil, "")
 			rr := ExecuteRequest(t, handler, req)
 
-			CheckResponseCode(t, http.StatusOK, rr.Code)
+			CheckResponseCode(t, http.StatusNoContent, rr.Code)
 
 			// Check that cookies are set in the response
 			cookies := rr.Result().Cookies()
@@ -320,7 +310,7 @@ func TestAuthEndpoints(t *testing.T) {
 			})
 
 			rr := ExecuteRequest(t, handler, req)
-			CheckResponseCode(t, http.StatusOK, rr.Code)
+			CheckResponseCode(t, http.StatusNoContent, rr.Code)
 
 			// Check that new access token cookie is set
 			cookies := rr.Result().Cookies()

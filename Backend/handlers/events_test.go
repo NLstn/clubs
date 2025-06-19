@@ -31,7 +31,7 @@ func TestEventRoutes(t *testing.T) {
 		
 		body, _ := json.Marshal(payload)
 		req := httptest.NewRequest("POST", "/api/v1/clubs/"+club.ID+"/events", bytes.NewBuffer(body))
-		req.Header.Set("Authorization", "Bearer "+accessToken)
+		req.AddCookie(&http.Cookie{Name: "access_token", Value: accessToken})
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
 		
 		w := httptest.NewRecorder()
@@ -50,7 +50,7 @@ func TestEventRoutes(t *testing.T) {
 
 	t.Run("Get Events", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/v1/clubs/"+club.ID+"/events", nil)
-		req.Header.Set("Authorization", "Bearer "+accessToken)
+		req.AddCookie(&http.Cookie{Name: "access_token", Value: accessToken})
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
 		
 		w := httptest.NewRecorder()
@@ -71,7 +71,7 @@ func TestEventRoutes(t *testing.T) {
 		otherUser, otherToken := CreateTestUser(t, "other@example.com")
 
 		req := httptest.NewRequest("GET", "/api/v1/clubs/"+club.ID+"/events", nil)
-		req.Header.Set("Authorization", "Bearer "+otherToken)
+		req.AddCookie(&http.Cookie{Name: "access_token", Value: otherToken})
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, otherUser.ID))
 		
 		w := httptest.NewRecorder()

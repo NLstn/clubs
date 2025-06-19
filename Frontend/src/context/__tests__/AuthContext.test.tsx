@@ -88,12 +88,8 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('refreshToken')).toHaveTextContent('null')
   })
 
-  it('initializes with authentication when tokens exist in localStorage', () => {
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'auth_token') return 'existing-access-token'
-      if (key === 'refresh_token') return 'existing-refresh-token'
-      return null
-    })
+  it('initializes with authentication when tokens exist in cookies', () => {
+    mockCookie.get.mockReturnValue('access_token=existing-access-token; refresh_token=existing-refresh-token')
 
     render(
       <AuthProvider>
@@ -106,8 +102,8 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('refreshToken')).toHaveTextContent('existing-refresh-token')
   })
 
-  it('updates state and localStorage when login is called', () => {
-    localStorageMock.getItem.mockReturnValue(null)
+  it('updates state when login is called', () => {
+    mockCookie.get.mockReturnValue('')
 
     render(
       <AuthProvider>
@@ -128,17 +124,12 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('accessToken')).toHaveTextContent('new-access-token')
     expect(screen.getByTestId('refreshToken')).toHaveTextContent('new-refresh-token')
 
-    // Should update localStorage
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('auth_token', 'new-access-token')
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('refresh_token', 'new-refresh-token')
+    // No localStorage calls should be made since we only use cookies
+    expect(localStorageMock.setItem).not.toHaveBeenCalled()
   })
 
-  it('clears state and localStorage when logout is called without refresh token', async () => {
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'auth_token') return 'existing-access-token'
-      if (key === 'refresh_token') return null
-      return null
-    })
+  it('clears state when logout is called without refresh token', async () => {
+    mockCookie.get.mockReturnValue('access_token=existing-access-token')
 
     render(
       <AuthProvider>
@@ -159,20 +150,15 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('accessToken')).toHaveTextContent('null')
     expect(screen.getByTestId('refreshToken')).toHaveTextContent('null')
 
-    // Should clear localStorage
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth_token')
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('refresh_token')
+    // No localStorage calls should be made since we only use cookies
+    expect(localStorageMock.removeItem).not.toHaveBeenCalled()
 
     // Should not call logout API
     expect(mockFetch).not.toHaveBeenCalled()
   })
 
   it('calls logout API and clears state when logout is called with refresh token', async () => {
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'auth_token') return 'existing-access-token'
-      if (key === 'refresh_token') return 'existing-refresh-token'
-      return null
-    })
+    mockCookie.get.mockReturnValue('access_token=existing-access-token; refresh_token=existing-refresh-token')
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -197,7 +183,6 @@ describe('AuthContext', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'existing-refresh-token'
         },
         credentials: 'include'
       }
@@ -205,16 +190,12 @@ describe('AuthContext', () => {
 
     // Should be logged out
     expect(screen.getByTestId('isAuthenticated')).toHaveTextContent('false')
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth_token')
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('refresh_token')
+    // No localStorage calls should be made since we only use cookies
+    expect(localStorageMock.removeItem).not.toHaveBeenCalled()
   })
 
   it('handles logout API error gracefully', async () => {
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'auth_token') return 'existing-access-token'
-      if (key === 'refresh_token') return 'existing-refresh-token'
-      return null
-    })
+    mockCookie.get.mockReturnValue('access_token=existing-access-token; refresh_token=existing-refresh-token')
 
     mockFetch.mockRejectedValueOnce(new Error('Network error'))
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -232,8 +213,8 @@ describe('AuthContext', () => {
 
     // Should still clear state even if API call fails
     expect(screen.getByTestId('isAuthenticated')).toHaveTextContent('false')
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('auth_token')
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('refresh_token')
+    // No localStorage calls should be made since we only use cookies
+    expect(localStorageMock.removeItem).not.toHaveBeenCalled()
     expect(consoleSpy).toHaveBeenCalledWith('Error during logout:', expect.any(Error))
 
     consoleSpy.mockRestore()

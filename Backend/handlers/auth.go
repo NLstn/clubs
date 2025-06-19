@@ -46,15 +46,12 @@ func clearCookie(w http.ResponseWriter, name string) {
 	http.SetCookie(w, cookie)
 }
 
-// getTokenFromCookieOrHeader tries to get token from cookie first, then from Authorization header
-func getTokenFromCookieOrHeader(r *http.Request, cookieName string) string {
-	// Try cookie first
-	if cookie, err := r.Cookie(cookieName); err == nil && cookie.Value != "" {
+// getRefreshTokenFromCookie gets refresh token from cookie only
+func getRefreshTokenFromCookie(r *http.Request) string {
+	if cookie, err := r.Cookie("refresh_token"); err == nil && cookie.Value != "" {
 		return cookie.Value
 	}
-	
-	// Fall back to Authorization header for backwards compatibility
-	return r.Header.Get("Authorization")
+	return ""
 }
 
 func registerAuthRoutes(mux *http.ServeMux) {
@@ -177,11 +174,7 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 	setSecureCookie(w, "access_token", accessToken, 15*60)        // 15 minutes
 	setSecureCookie(w, "refresh_token", refreshToken, 30*24*3600) // 30 days
 
-	// Return token (for backwards compatibility)
-	json.NewEncoder(w).Encode(map[string]string{
-		"access":  accessToken,
-		"refresh": refreshToken,
-	})
+	w.WriteHeader(http.StatusNoContent)
 
 	if err := models.DeleteMagicLink(token); err != nil {
 		// Log the error for debugging and monitoring purposes
@@ -193,7 +186,7 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 
 // endpoint: POST /api/v1/auth/refresh
 func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
-	refreshToken := getTokenFromCookieOrHeader(r, "refresh_token")
+	refreshToken := getRefreshTokenFromCookie(r)
 	if refreshToken == "" {
 		http.Error(w, "Refresh token required", http.StatusUnauthorized)
 		return
@@ -222,14 +215,12 @@ func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 	// Set new access token cookie
 	setSecureCookie(w, "access_token", newAccessToken, 15*60) // 15 minutes
 
-	json.NewEncoder(w).Encode(map[string]string{
-		"access": newAccessToken,
-	})
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // endpoint: POST /api/v1/auth/logout
 func handleLogout(w http.ResponseWriter, r *http.Request) {
-	refreshToken := getTokenFromCookieOrHeader(r, "refresh_token")
+	refreshToken := getRefreshTokenFromCookie(r)
 	if refreshToken == "" {
 		http.Error(w, "Refresh token required", http.StatusUnauthorized)
 		return

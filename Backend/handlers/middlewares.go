@@ -30,7 +30,7 @@ func CorsMiddleware(next http.Handler) http.Handler {
 		
 		w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE, PUT, PATCH")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 		
 		// Allow credentials for cookie-based authentication
 		if allowedOrigin != "*" {

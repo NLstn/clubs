@@ -265,7 +265,11 @@ func MakeRequest(t *testing.T, method, url string, body interface{}, token strin
 	req.Header.Set("Content-Type", "application/json")
 
 	if token != "" {
-		req.Header.Set("Authorization", "Bearer "+token)
+		// Set access token as cookie instead of Authorization header
+		req.AddCookie(&http.Cookie{
+			Name:  "access_token",
+			Value: token,
+		})
 	}
 
 	return req

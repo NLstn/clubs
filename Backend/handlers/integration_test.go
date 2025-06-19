@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -28,7 +27,7 @@ func TestCookieAuthenticationFlow(t *testing.T) {
 		verifyReq := MakeRequest(t, "GET", "/api/v1/auth/verifyMagicLink?token="+token, nil, "")
 		verifyRR := ExecuteRequest(t, handler, verifyReq)
 
-		CheckResponseCode(t, http.StatusOK, verifyRR.Code)
+		CheckResponseCode(t, http.StatusNoContent, verifyRR.Code)
 
 		// Extract cookies from response
 		cookies := verifyRR.Result().Cookies()
@@ -57,7 +56,7 @@ func TestCookieAuthenticationFlow(t *testing.T) {
 		refreshReq.AddCookie(refreshCookie)
 		refreshRR := ExecuteRequest(t, handler, refreshReq)
 
-		CheckResponseCode(t, http.StatusOK, refreshRR.Code)
+		CheckResponseCode(t, http.StatusNoContent, refreshRR.Code)
 
 		// Should get new access token cookie
 		refreshCookies := refreshRR.Result().Cookies()
@@ -94,35 +93,5 @@ func TestCookieAuthenticationFlow(t *testing.T) {
 		assert.NotNil(t, clearedRefreshCookie)
 		assert.Equal(t, -1, clearedAccessCookie.MaxAge)
 		assert.Equal(t, -1, clearedRefreshCookie.MaxAge)
-	})
-
-	t.Run("Mixed Cookie and Header Authentication", func(t *testing.T) {
-		// Create a user and tokens
-		user, _ := CreateTestUser(t, "mixed@example.com")
-		accessToken, err := auth.GenerateAccessToken(user.ID)
-		assert.NoError(t, err)
-
-		refreshToken, err := auth.GenerateRefreshToken(user.ID)
-		assert.NoError(t, err)
-		err = user.StoreRefreshToken(refreshToken)
-		assert.NoError(t, err)
-
-		// Test 1: Use header for access token
-		req1 := MakeRequest(t, "GET", "/api/v1/me", nil, "")
-		req1.Header.Set("Authorization", "Bearer "+accessToken)
-		rr1 := ExecuteRequest(t, handler, req1)
-		CheckResponseCode(t, http.StatusOK, rr1.Code)
-
-		// Test 2: Use cookie for refresh token
-		req2 := MakeRequest(t, "POST", "/api/v1/auth/refreshToken", nil, "")
-		req2.AddCookie(&http.Cookie{Name: "refresh_token", Value: refreshToken})
-		rr2 := ExecuteRequest(t, handler, req2)
-		CheckResponseCode(t, http.StatusOK, rr2.Code)
-
-		// Test 3: Use header for refresh token (backwards compatibility)
-		req3 := MakeRequest(t, "POST", "/api/v1/auth/refreshToken", nil, "")
-		req3.Header.Set("Authorization", refreshToken)
-		rr3 := ExecuteRequest(t, handler, req3)
-		CheckResponseCode(t, http.StatusOK, rr3.Code)
 	})
 }

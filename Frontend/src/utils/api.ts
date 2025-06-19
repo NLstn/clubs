@@ -16,13 +16,13 @@ const getCookie = (name: string): string | null => {
 };
 
 const getAccessToken = (): string | null => {
-  // Try cookie first, then fall back to localStorage for backwards compatibility
-  return getCookie('access_token') || localStorage.getItem('auth_token');
+  // Only use cookies
+  return getCookie('access_token');
 };
 
 const getRefreshToken = (): string | null => {
-  // Try cookie first, then fall back to localStorage for backwards compatibility
-  return getCookie('refresh_token') || localStorage.getItem('refresh_token');
+  // Only use cookies
+  return getCookie('refresh_token');
 };
 
 const api = axios.create({
@@ -31,14 +31,14 @@ const api = axios.create({
 });
 
 let isRefreshing = false;
-let failedQueue: { resolve: (token: string) => void; reject: (error: unknown) => void; }[] = [];
+let failedQueue: { resolve: () => void; reject: (error: unknown) => void; }[] = [];
 
-const processQueue = (error: unknown, token: string | null = null) => {
+const processQueue = (error: unknown) => {
   failedQueue.forEach(prom => {
     if (error) {
       prom.reject(error);
     } else {
-      prom.resolve(token!);
+      prom.resolve();
     }
   });
   failedQueue = [];
@@ -61,9 +61,7 @@ const isTokenExpired = (token: string): boolean => {
 const refreshAuthToken = async () => {
   const refreshToken = getRefreshToken();
   if (!refreshToken) {
-    // No refresh token available - logout and redirect to login
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
+    // No refresh token available - redirect to login
     window.location.href = '/login';
     throw new Error('No refresh token available');
   }
@@ -71,36 +69,21 @@ const refreshAuthToken = async () => {
   console.log('Refreshing token...');
 
   try {
-    // With cookies enabled, we don't need to send the token in the header
-    // The cookie will be sent automatically. But we keep header support for backwards compatibility.
-    const headers: Record<string, string> = {};
-    if (!getCookie('refresh_token')) {
-      // Only set header if not using cookies
-      headers['Authorization'] = refreshToken;
-    }
-
-    const response = await axios.post(`${API_BASE_URL}/api/v1/auth/refreshToken`, {}, {
-      headers,
+    // Cookies are sent automatically with withCredentials: true
+    await axios.post(`${API_BASE_URL}/api/v1/auth/refreshToken`, {}, {
       withCredentials: true,
     });
 
-    const { access: newAccessToken } = response.data;
-    
-    // Store in localStorage for backwards compatibility if cookies aren't being used
-    if (!getCookie('access_token')) {
-      localStorage.setItem('auth_token', newAccessToken);
-    }
-    
-    return newAccessToken;
+    // Response is now 204 No Content, no JSON body
+    // The new access token is set as a cookie automatically
+    return getCookie('access_token') || '';
   } catch (error) {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
     window.location.href = '/login';
     throw error;
   }
 };
 
-// Request interceptor to add auth token and handle token refresh
+// Request interceptor to handle token refresh
 api.interceptors.request.use(
   async (config) => {
     let token = getAccessToken();
@@ -109,11 +92,8 @@ api.interceptors.request.use(
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({
-            resolve: (newToken) => {
-              // Only set Authorization header if not using cookies
-              if (!getCookie('access_token')) {
-                config.headers.Authorization = `Bearer ${newToken}`;
-              }
+            resolve: () => {
+              // Cookies are handled automatically, no need to set headers
               resolve(config);
             },
             reject
@@ -124,19 +104,17 @@ api.interceptors.request.use(
       isRefreshing = true;
       try {
         token = await refreshAuthToken();
-        processQueue(null, token);
+        processQueue(null);
       } catch (error) {
-        processQueue(error, null);
+        processQueue(error);
         throw error;
       } finally {
         isRefreshing = false;
       }
     }
 
-    // Only set Authorization header if not using cookies
-    if (token && !getCookie('access_token')) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // Cookies are sent automatically with withCredentials: true
+    // No need to set Authorization headers
     return config;
   },
   (error) => Promise.reject(error)

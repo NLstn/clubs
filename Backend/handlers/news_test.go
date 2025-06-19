@@ -30,7 +30,7 @@ func TestNewsRoutes(t *testing.T) {
 		
 		body, _ := json.Marshal(payload)
 		req := httptest.NewRequest("POST", "/api/v1/clubs/"+club.ID+"/news", bytes.NewBuffer(body))
-		req.Header.Set("Authorization", "Bearer "+accessToken)
+		req.AddCookie(&http.Cookie{Name: "access_token", Value: accessToken})
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
 		
 		w := httptest.NewRecorder()
@@ -49,7 +49,7 @@ func TestNewsRoutes(t *testing.T) {
 
 	t.Run("Get News", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/v1/clubs/"+club.ID+"/news", nil)
-		req.Header.Set("Authorization", "Bearer "+accessToken)
+		req.AddCookie(&http.Cookie{Name: "access_token", Value: accessToken})
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
 		
 		w := httptest.NewRecorder()
@@ -82,7 +82,7 @@ func TestNewsRoutes(t *testing.T) {
 		t.Logf("Update URL: %s", url)
 		
 		req := httptest.NewRequest("PUT", url, bytes.NewBuffer(body))
-		req.Header.Set("Authorization", "Bearer "+accessToken)
+		req.AddCookie(&http.Cookie{Name: "access_token", Value: accessToken})
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
 		
 		w := httptest.NewRecorder()
@@ -110,7 +110,7 @@ func TestNewsRoutes(t *testing.T) {
 		t.Logf("Delete URL: %s", url)
 
 		req := httptest.NewRequest("DELETE", url, nil)
-		req.Header.Set("Authorization", "Bearer "+accessToken)
+		req.AddCookie(&http.Cookie{Name: "access_token", Value: accessToken})
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
 		
 		w := httptest.NewRecorder()
