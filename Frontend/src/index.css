@@ -363,6 +363,15 @@ tr:hover {
   color: var(--color-text);
 }
 
+.empty-state {
+  background-color: var(--color-background-light);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
 /* Form styles */
 .form-group {
   margin-bottom: var(--space-lg);
