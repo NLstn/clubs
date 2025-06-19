@@ -629,6 +629,30 @@ func registerJoinRequestRoutesForTest(mux *http.ServeMux) {
 		}
 	}))
 
+	mux.Handle("/api/v1/clubs/{clubid}/inviteLink", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetInviteLink(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/clubs/{clubid}/join", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			handleJoinClubViaLink(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/clubs/{clubid}/info", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetClubInfo(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
 	mux.Handle("/api/v1/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:

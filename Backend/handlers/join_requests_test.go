@@ -195,4 +195,90 @@ func TestJoinRequestEndpoints(t *testing.T) {
 			CheckResponseCode(t, http.StatusMethodNotAllowed, rr.Code)
 		}
 	})
+
+	// Test new approval flow scenarios
+	t.Run("Join Via Link - User Requests to Join", func(t *testing.T) {
+		owner, _ := CreateTestUser(t, "owner_link@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		user, userToken := CreateTestUser(t, "user_link@example.com")
+
+		// User joins via link
+		req := MakeRequest(t, "POST", "/api/v1/clubs/"+club.ID+"/join", nil, userToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusCreated, rr.Code)
+
+		// Verify request was created with correct approval flags
+		var allRequests []models.JoinRequest
+		err := database.Db.Where("club_id = ? AND email = ?", club.ID, user.Email).Find(&allRequests).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(allRequests))
+		
+		request := allRequests[0]
+		assert.False(t, request.AdminApproved, "AdminApproved should be false for user-initiated requests")
+		assert.True(t, request.UserApproved, "UserApproved should be true for user-initiated requests")
+		assert.Equal(t, user.ID, request.CreatedBy, "CreatedBy should be the user who requested to join")
+
+		// Verify it shows up in admin's pending requests but not user's
+		adminRequests, _ := club.GetJoinRequests()
+		assert.Equal(t, 1, len(adminRequests), "Admin should see the user's request to join")
+		
+		userRequests, _ := user.GetJoinRequests()
+		assert.Equal(t, 0, len(userRequests), "User should not see their own request as an invite")
+	})
+
+	t.Run("Admin Partially Accepts User Request (Approval Logic)", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "owner_partial@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		user, _ := CreateTestUser(t, "user_partial@example.com")
+
+		// Create user request to join where user has NOT approved yet (so completion won't happen)
+		err := club.CreateJoinRequest(user.Email, user.ID, false, false)
+		assert.NoError(t, err)
+
+		// Get the request ID
+		var requests []models.JoinRequest
+		err = database.Db.Where("club_id = ? AND email = ?", club.ID, user.Email).Find(&requests).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(requests))
+		requestID := requests[0].ID
+
+		// Admin accepts the request (but since user hasn't approved, it won't complete)
+		req := MakeRequest(t, "POST", "/api/v1/joinRequests/"+requestID+"/accept", nil, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+		// Verify admin approval was set but request still exists
+		err = database.Db.Where("id = ?", requestID).First(&requests[0]).Error
+		assert.NoError(t, err)
+		assert.True(t, requests[0].AdminApproved, "Admin approval should be set")
+		assert.False(t, requests[0].UserApproved, "User approval should still be false")
+	})
+
+	t.Run("User Partially Accepts Admin Invite (Approval Logic)", func(t *testing.T) {
+		owner, _ := CreateTestUser(t, "owner_partial2@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		user, userToken := CreateTestUser(t, "user_partial2@example.com")
+
+		// Create admin invite where admin has NOT approved yet (so completion won't happen)
+		err := club.CreateJoinRequest(user.Email, owner.ID, false, false)
+		assert.NoError(t, err)
+
+		// Get the request ID
+		var requests []models.JoinRequest
+		err = database.Db.Where("club_id = ? AND email = ?", club.ID, user.Email).Find(&requests).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(requests))
+		requestID := requests[0].ID
+
+		// User accepts the invite (but since admin hasn't approved, it won't complete)
+		req := MakeRequest(t, "POST", "/api/v1/joinRequests/"+requestID+"/accept", nil, userToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+		// Verify user approval was set but request still exists
+		err = database.Db.Where("id = ?", requestID).First(&requests[0]).Error
+		assert.NoError(t, err)
+		assert.False(t, requests[0].AdminApproved, "Admin approval should still be false")
+		assert.True(t, requests[0].UserApproved, "User approval should be set")
+	})
 }
