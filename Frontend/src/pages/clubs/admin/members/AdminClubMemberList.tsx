@@ -21,6 +21,8 @@ const AdminClubMemberList = () => {
     const [members, setMembers] = useState<Member[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showPendingInvites, setShowPendingInvites] = useState(false);
+    const [showInviteLink, setShowInviteLink] = useState(false);
+    const [inviteLink, setInviteLink] = useState('');
     const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +51,29 @@ const AdminClubMemberList = () => {
     const handleShowPendingInvites = () => {
         fetchJoinRequests();
         setShowPendingInvites(true);
+    };
+
+    const handleShowInviteLink = async () => {
+        try {
+            const response = await api.get(`/api/v1/clubs/${id}/inviteLink`);
+            const fullLink = `${window.location.origin}${response.data.inviteLink}`;
+            setInviteLink(fullLink);
+            setShowInviteLink(true);
+        } catch (error) {
+            console.error("Error fetching invite link:", error);
+            setError("Failed to generate invite link");
+        }
+    };
+
+    const copyToClipboard = async () => {
+        try {
+            await navigator.clipboard.writeText(inviteLink);
+            // You could add a toast notification here
+            alert('Invite link copied to clipboard!');
+        } catch (err) {
+            console.error('Failed to copy link:', err);
+            alert('Failed to copy link. Please copy manually.');
+        }
     };
 
     useEffect(() => {
@@ -160,6 +185,7 @@ const AdminClubMemberList = () => {
             </table>
             <div className="member-actions buttons" style={{ marginTop: 'var(--space-md)' }}>
                 <button onClick={() => setIsModalOpen(true)} className="button-accept">Invite Member</button>
+                <button onClick={handleShowInviteLink} className="button-accept">Generate Invite Link</button>
                 <button onClick={handleShowPendingInvites}>View Pending Invites</button>
             </div>
             <InviteMember
@@ -167,6 +193,36 @@ const AdminClubMemberList = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={sendInvite}
             />
+
+            {showInviteLink && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <h2>Club Invitation Link</h2>
+                        <p>Share this link with people you want to invite to the club:</p>
+                        <div className="invite-link-container" style={{ 
+                            background: '#f5f5f5', 
+                            padding: '10px', 
+                            borderRadius: '5px', 
+                            marginBottom: '15px',
+                            wordBreak: 'break-all'
+                        }}>
+                            {inviteLink}
+                        </div>
+                        <div className="modal-actions">
+                            <button onClick={copyToClipboard} className="button-accept">
+                                Copy Link
+                            </button>
+                            <button onClick={() => setShowInviteLink(false)} className="button-cancel">
+                                Close
+                            </button>
+                        </div>
+                        <div style={{ marginTop: '15px', fontSize: '0.9em', color: '#666' }}>
+                            <p><strong>Note:</strong> Anyone with this link can request to join your club. 
+                            Join requests still require admin approval.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
             
             {showPendingInvites && (
                 <div className="modal">

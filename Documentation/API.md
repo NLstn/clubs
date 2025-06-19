@@ -829,6 +829,79 @@ The API uses JWT-based authentication with magic link email authentication. Most
 
 ---
 
+### Get Club Invitation Link
+**Endpoint:** `GET /api/v1/clubs/{clubid}/inviteLink`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Generate an invitation link for a club. Only club owners and admins can generate invitation links.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Response:**
+```json
+{
+  "inviteLink": "/join/club-uuid"
+}
+```
+
+**Responses:**
+- `200 OK` - Invitation link generated successfully
+- `400 Bad Request` - Invalid club ID format
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not a club owner or admin
+- `404 Not Found` - Club not found
+
+---
+
+### Join Club via Link
+**Endpoint:** `POST /api/v1/clubs/{clubid}/join`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Create a join request by accessing a club via invitation link. Creates a join request that requires admin approval.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Responses:**
+- `201 Created` - Join request created successfully
+- `400 Bad Request` - Invalid club ID format
+- `401 Unauthorized` - Invalid or missing token
+- `404 Not Found` - Club not found
+- `409 Conflict` - User is already a member of this club
+- `500 Internal Server Error` - Database error
+
+---
+
+### Get Club Information for Invitation
+**Endpoint:** `GET /api/v1/clubs/{clubid}/info`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Get basic club information for invitation purposes. Returns minimal club details without requiring membership.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Response:**
+```json
+{
+  "id": "club-uuid",
+  "name": "Club Name",
+  "description": "Club Description"
+}
+```
+
+**Responses:**
+- `200 OK` - Club information retrieved successfully
+- `400 Bad Request` - Invalid club ID format
+- `401 Unauthorized` - Invalid or missing token
+- `404 Not Found` - Club not found
+
+---
+
 ## User Profile Endpoints
 
 ### Get Current User Profile
