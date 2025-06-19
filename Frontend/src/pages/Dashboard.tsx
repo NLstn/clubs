@@ -62,9 +62,9 @@ const Dashboard = () => {
                     <div>Loading dashboard...</div>
                 ) : (
                     <>
-                        {news.length > 0 && (
-                            <div className="dashboard-section">
-                                <h2>Latest News</h2>
+                        <div className="dashboard-section">
+                            <h2>Latest News</h2>
+                            {news.length > 0 ? (
                                 <div className="dashboard-news">
                                     {news.slice(0, 5).map(newsItem => (
                                         <div key={newsItem.id} className="dashboard-news-card">
@@ -84,13 +84,17 @@ const Dashboard = () => {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="empty-state">
+                                    <p>No recent news from your clubs.</p>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Events Section */}
-                        {events.length > 0 && (
-                            <div className="dashboard-section">
-                                <h2>Upcoming Events</h2>
+                        <div className="dashboard-section">
+                            <h2>Upcoming Events</h2>
+                            {events.length > 0 ? (
                                 <div className="dashboard-events">
                                     {events.slice(0, 5).map(event => (
                                         <div key={event.id} className="dashboard-event-card">
@@ -120,8 +124,12 @@ const Dashboard = () => {
                                         </div>
                                     ))}
                                 </div>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="empty-state">
+                                    <p>No upcoming events from your clubs.</p>
+                                </div>
+                            )}
+                        </div>
                     </>
                 )}
 
