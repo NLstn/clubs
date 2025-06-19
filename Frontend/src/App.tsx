@@ -3,6 +3,7 @@ import Dashboard from './pages/Dashboard';
 import ClubDetails from './pages/clubs/ClubDetails';
 import AdminClubDetails from './pages/clubs/admin/AdminClubDetails';
 import CreateClub from './pages/clubs/CreateClub';
+import JoinClub from './pages/clubs/JoinClub';
 import Login from './pages/auth/Login';
 import MagicLinkHandler from './pages/auth/MagicLinkHandler';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -68,6 +69,7 @@ function App() {
 
                     <Route path="/login" element={<Login />} />
                     <Route path="/auth/magic" element={<MagicLinkHandler />} />
+                    <Route path="/join/:clubId" element={<JoinClub />} />
 
                 </Routes>
             </BrowserRouter>
