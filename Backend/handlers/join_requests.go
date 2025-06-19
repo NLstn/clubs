@@ -20,6 +20,30 @@ func registerJoinRequestRoutes(mux *http.ServeMux) {
 		}
 	})))
 
+	mux.Handle("/api/v1/clubs/{clubid}/inviteLink", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetInviteLink(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}/join", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			handleJoinClubViaLink(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}/info", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetClubInfo(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
 	mux.Handle("/api/v1/joinRequests", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
@@ -204,4 +228,95 @@ func handleGetUserJoinRequests(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(apiRequests)
+}
+
+// endpoint: GET /api/v1/clubs/{clubid}/inviteLink
+func handleGetInviteLink(w http.ResponseWriter, r *http.Request) {
+	clubID := extractPathParam(r, "clubs")
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+
+	user := extractUser(r)
+	if !club.IsOwner(user) && !club.IsAdmin(user) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
+	// For now, we'll use a simple format: club ID as the invitation parameter
+	// In production, you might want to add a secure token or expiration
+	inviteLink := map[string]string{
+		"inviteLink": "/join/" + clubID,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(inviteLink)
+}
+
+// endpoint: POST /api/v1/clubs/{clubid}/join
+func handleJoinClubViaLink(w http.ResponseWriter, r *http.Request) {
+	clubID := extractPathParam(r, "clubs")
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+
+	user := extractUser(r)
+	if user.ID == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Check if user is already a member
+	if club.IsMember(user) {
+		http.Error(w, "User is already a member of this club", http.StatusConflict)
+		return
+	}
+
+	// Create a join request with the user's email
+	err = club.CreateJoinRequest(user.Email, user.ID)
+	if err != nil {
+		http.Error(w, "Failed to create join request", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
+// endpoint: GET /api/v1/clubs/{clubid}/info
+func handleGetClubInfo(w http.ResponseWriter, r *http.Request) {
+clubID := extractPathParam(r, "clubs")
+if _, err := uuid.Parse(clubID); err != nil {
+http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+return
+}
+
+club, err := models.GetClubByID(clubID)
+if err != nil {
+http.Error(w, "Club not found", http.StatusNotFound)
+return
+}
+
+// Return only basic club information for invitation purposes
+clubInfo := map[string]string{
+"id":          club.ID,
+"name":        club.Name,
+"description": club.Description,
+}
+
+w.Header().Set("Content-Type", "application/json")
+json.NewEncoder(w).Encode(clubInfo)
 }

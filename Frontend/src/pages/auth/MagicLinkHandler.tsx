@@ -38,7 +38,13 @@ const MagicLinkHandler: React.FC = () => {
           
           // Redirect after short delay
           setTimeout(() => {
-            navigate('/');
+            const redirectPath = localStorage.getItem('loginRedirect');
+            if (redirectPath) {
+              localStorage.removeItem('loginRedirect');
+              navigate(redirectPath);
+            } else {
+              navigate('/');
+            }
           }, 2000);
         } else {
           const error = await response.text();
