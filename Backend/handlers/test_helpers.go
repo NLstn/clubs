@@ -54,7 +54,10 @@ func SetupTestDB(t *testing.T) {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id TEXT NOT NULL,
 			token TEXT NOT NULL UNIQUE,
-			expires_at DATETIME
+			expires_at DATETIME,
+			user_agent TEXT,
+			ip_address TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)
 	`)
 	testDB.Exec(`

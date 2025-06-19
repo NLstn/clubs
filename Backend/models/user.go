@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/NLstn/clubs/database"
@@ -20,6 +22,9 @@ type RefreshToken struct {
 	UserID    string `gorm:"type:uuid;not null"`
 	Token     string `gorm:"uniqueIndex;not null"`
 	ExpiresAt time.Time
+	UserAgent string    // Browser/device information
+	IPAddress string    // IP address for session tracking
+	CreatedAt time.Time
 }
 
 func FindOrCreateUser(email string) (User, error) {
@@ -72,15 +77,47 @@ func (u *User) UpdateUserName(name string) error {
 	return database.Db.Exec(`UPDATE users SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, name, u.ID).Error
 }
 
-func (u *User) StoreRefreshToken(token string) error {
-	// Delete all existing refresh tokens for this user first
-	if err := u.DeleteAllRefreshTokens(); err != nil {
-		fmt.Printf("Error deleting all refresh tokens for user %s: %v\n", u.ID, err)
-		return err
+func (u *User) StoreRefreshToken(token, userAgent, ipAddress string) error {
+	refreshToken := RefreshToken{
+		UserID:    u.ID,
+		Token:     token,
+		ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
+		UserAgent: userAgent,
+		IPAddress: ipAddress,
+		CreatedAt: time.Now(),
 	}
+	return database.Db.Exec(`INSERT INTO refresh_tokens (user_id, token, expires_at, user_agent, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?)`, 
+		refreshToken.UserID, refreshToken.Token, refreshToken.ExpiresAt, refreshToken.UserAgent, refreshToken.IPAddress, refreshToken.CreatedAt).Error
+}
 
-	refreshToken := RefreshToken{UserID: u.ID, Token: token, ExpiresAt: time.Now().Add(30 * 24 * time.Hour)}
-	return database.Db.Exec(`INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)`, refreshToken.UserID, refreshToken.Token, refreshToken.ExpiresAt).Error
+// Helper function to extract device information from HTTP request
+func GetDeviceInfo(r *http.Request) (userAgent, ipAddress string) {
+	userAgent = r.Header.Get("User-Agent")
+	if userAgent == "" {
+		userAgent = "Unknown"
+	}
+	
+	// Try to get real IP from various headers (common proxy headers)
+	ipAddress = r.Header.Get("X-Forwarded-For")
+	if ipAddress == "" {
+		ipAddress = r.Header.Get("X-Real-IP")
+	}
+	if ipAddress == "" {
+		ipAddress = r.RemoteAddr
+	}
+	
+	// Clean up the IP address (remove port if present)
+	if colon := strings.LastIndex(ipAddress, ":"); colon != -1 {
+		if bracket := strings.LastIndex(ipAddress, "]"); bracket == -1 || bracket < colon {
+			ipAddress = ipAddress[:colon]
+		}
+	}
+	
+	if ipAddress == "" {
+		ipAddress = "Unknown"
+	}
+	
+	return userAgent, ipAddress
 }
 
 func (u *User) ValidateRefreshToken(token string) error {

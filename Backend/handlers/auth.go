@@ -120,7 +120,8 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store refresh token in the database
-	if err := user.StoreRefreshToken(refreshToken); err != nil {
+	userAgent, ipAddress := models.GetDeviceInfo(r)
+	if err := user.StoreRefreshToken(refreshToken, userAgent, ipAddress); err != nil {
 		log.Printf("Failed to store refresh token for user %s: %v", user.ID, err)
 		http.Error(w, "Failed to store refresh token", http.StatusInternalServerError)
 		return
@@ -183,7 +184,8 @@ func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store the new refresh token in the database
-	if err := user.StoreRefreshToken(newRefreshToken); err != nil {
+	userAgent, ipAddress := models.GetDeviceInfo(r)
+	if err := user.StoreRefreshToken(newRefreshToken, userAgent, ipAddress); err != nil {
 		log.Printf("Failed to store new refresh token for user %s: %v", user.ID, err)
 		http.Error(w, "Failed to store refresh token", http.StatusInternalServerError)
 		return
