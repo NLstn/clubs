@@ -9,16 +9,25 @@ import (
 )
 
 type Club struct {
-	ID          string    `json:"id" gorm:"type:uuid;primary_key"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
-	CreatedBy   string    `json:"created_by" gorm:"type:uuid"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	UpdatedBy   string    `json:"updated_by" gorm:"type:uuid"`
+	ID          string     `json:"id" gorm:"type:uuid;primary_key"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	CreatedAt   time.Time  `json:"created_at"`
+	CreatedBy   string     `json:"created_by" gorm:"type:uuid"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	UpdatedBy   string     `json:"updated_by" gorm:"type:uuid"`
+	Deleted     bool       `json:"deleted" gorm:"default:false"`
+	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
+	DeletedBy   string     `json:"deleted_by,omitempty" gorm:"type:uuid"`
 }
 
 func GetAllClubs() ([]Club, error) {
+	var clubs []Club
+	err := database.Db.Where("deleted = false").Find(&clubs).Error
+	return clubs, err
+}
+
+func GetAllClubsIncludingDeleted() ([]Club, error) {
 	var clubs []Club
 	err := database.Db.Find(&clubs).Error
 	return clubs, err
@@ -75,5 +84,14 @@ func (c *Club) Update(name, description, updatedBy string) error {
 		"name":        name,
 		"description": description,
 		"updated_by":  updatedBy,
+	}).Error
+}
+
+func (c *Club) SoftDelete(deletedBy string) error {
+	now := time.Now()
+	return database.Db.Model(c).Updates(map[string]interface{}{
+		"deleted":    true,
+		"deleted_at": &now,
+		"deleted_by": deletedBy,
 	}).Error
 }

@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/models"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 func registerFineRoutes(mux *http.ServeMux) {
@@ -24,6 +26,15 @@ func registerFineRoutes(mux *http.ServeMux) {
 			handleCreateFine(w, r)
 		case http.MethodGet:
 			handleGetFines(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}/fines/{fineid}", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodDelete:
+			handleDeleteFine(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -128,4 +139,44 @@ func handleCreateFine(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(fine)
+}
+
+// endpoint: DELETE /api/v1/clubs/{clubid}/fines/{fineid}
+func handleDeleteFine(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+	clubID := extractPathParam(r, "clubs")
+	fineID := extractPathParam(r, "fines")
+
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	if _, err := uuid.Parse(fineID); err != nil {
+		http.Error(w, "Invalid fine ID format", http.StatusBadRequest)
+		return
+	}
+
+	club, err := models.GetClubByID(clubID)
+	if err == gorm.ErrRecordNotFound {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Failed to get club information", http.StatusInternalServerError)
+		return
+	}
+
+	if !club.IsOwner(user) && !club.IsAdmin(user) {
+		http.Error(w, "Unauthorized - admin access required", http.StatusForbidden)
+		return
+	}
+
+	err = club.DeleteFine(fineID)
+	if err != nil {
+		http.Error(w, "Failed to delete fine", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

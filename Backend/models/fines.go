@@ -57,3 +57,7 @@ func (c *Club) GetFines() ([]Fine, error) {
 	}
 	return fines, nil
 }
+
+func (c *Club) DeleteFine(fineID string) error {
+	return database.Db.Where("id = ? AND club_id = ?", fineID, c.ID).Delete(&Fine{}).Error
+}

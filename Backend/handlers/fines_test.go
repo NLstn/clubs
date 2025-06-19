@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/NLstn/clubs/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -209,5 +210,86 @@ func TestFinesEndpoints(t *testing.T) {
 		
 		// Verify response content type is set correctly
 		assert.Equal(t, "application/json", rr.Header().Get("Content-Type"))
+	})
+
+	t.Run("Delete Fine - Unauthorized", func(t *testing.T) {
+		user, _ := CreateTestUser(t, "finedelete1@example.com")
+		club := CreateTestClub(t, user, "Test Club")
+		fine := CreateTestFine(t, user, club, "Test Fine", 25.0, false)
+
+		// Try to delete with no token
+		req := MakeRequest(t, "DELETE", "/api/v1/clubs/"+club.ID+"/fines/"+fine.ID, nil, "")
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusUnauthorized, rr.Code)
+	})
+
+	t.Run("Delete Fine - Forbidden (Not Admin)", func(t *testing.T) {
+		owner, _ := CreateTestUser(t, "fineowner@example.com")
+		member, memberToken := CreateTestUser(t, "finemember@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		
+		// Add member as regular member (not admin)
+		CreateTestMember(t, member, club, "member")
+		fine := CreateTestFine(t, member, club, "Test Fine", 25.0, false)
+
+		req := MakeRequest(t, "DELETE", "/api/v1/clubs/"+club.ID+"/fines/"+fine.ID, nil, memberToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusForbidden, rr.Code)
+		AssertContains(t, rr.Body.String(), "admin access required")
+	})
+
+	t.Run("Delete Fine - Success by Owner", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "fineowner2@example.com")
+		member, _ := CreateTestUser(t, "finemember2@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		CreateTestMember(t, member, club, "member")
+		fine := CreateTestFine(t, member, club, "Test Fine", 25.0, false)
+
+		req := MakeRequest(t, "DELETE", "/api/v1/clubs/"+club.ID+"/fines/"+fine.ID, nil, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+		// Verify fine is deleted
+		var deletedFine models.Fine
+		err := testDB.First(&deletedFine, "id = ?", fine.ID).Error
+		assert.Error(t, err) // Should get "record not found" error
+	})
+
+	t.Run("Delete Fine - Success by Admin", func(t *testing.T) {
+		owner, _ := CreateTestUser(t, "fineowner3@example.com")
+		admin, adminToken := CreateTestUser(t, "fineadmin@example.com")
+		member, _ := CreateTestUser(t, "finemember3@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		CreateTestMember(t, admin, club, "admin")
+		CreateTestMember(t, member, club, "member")
+		fine := CreateTestFine(t, member, club, "Test Fine", 25.0, false)
+
+		req := MakeRequest(t, "DELETE", "/api/v1/clubs/"+club.ID+"/fines/"+fine.ID, nil, adminToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+		// Verify fine is deleted
+		var deletedFine models.Fine
+		err := testDB.First(&deletedFine, "id = ?", fine.ID).Error
+		assert.Error(t, err) // Should get "record not found" error
+	})
+
+	t.Run("Delete Fine - Invalid Fine ID", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "fineowner4@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+
+		req := MakeRequest(t, "DELETE", "/api/v1/clubs/"+club.ID+"/fines/invalid-id", nil, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
+		AssertContains(t, rr.Body.String(), "Invalid fine ID format")
+	})
+
+	t.Run("Delete Fine - Club Not Found", func(t *testing.T) {
+		_, ownerToken := CreateTestUser(t, "fineowner5@example.com")
+
+		req := MakeRequest(t, "DELETE", "/api/v1/clubs/invalid-club-id/fines/invalid-fine-id", nil, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
+		AssertContains(t, rr.Body.String(), "Invalid club ID format")
 	})
 }
