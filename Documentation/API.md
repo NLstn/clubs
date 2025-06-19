@@ -229,6 +229,25 @@ The API uses JWT-based authentication with magic link email authentication. Most
 
 ---
 
+### Delete Club
+**Endpoint:** `DELETE /api/v1/clubs/{clubid}`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Soft delete a club. Only the club owner can delete. The club is marked as deleted and becomes invisible to all members except owners.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Responses:**
+- `204 No Content` - Club deleted successfully
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not the club owner
+- `404 Not Found` - Club not found
+- `500 Internal Server Error` - Database error
+
+---
+
 ## Member Management Endpoints
 
 ### Get Club Members
@@ -564,6 +583,27 @@ The API uses JWT-based authentication with magic link email authentication. Most
 - `401 Unauthorized` - Invalid or missing token
 - `403 Forbidden` - User is not an admin/owner
 - `404 Not Found` - Club not found
+- `500 Internal Server Error` - Database error
+
+---
+
+### Delete Fine
+**Endpoint:** `DELETE /api/v1/clubs/{clubid}/fines/{fineid}`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Delete a fine. Only admins/owners can delete fines.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+- `fineid` (UUID) - Fine identifier
+
+**Responses:**
+- `204 No Content` - Fine deleted successfully
+- `400 Bad Request` - Invalid club/fine ID format
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not an admin/owner
+- `404 Not Found` - Club or fine not found
 - `500 Internal Server Error` - Database error
 
 ---
