@@ -85,6 +85,8 @@ func SetupTestDB(t *testing.T) {
 			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
 			email TEXT NOT NULL,
+			admin_approved BOOLEAN DEFAULT FALSE,
+			user_approved BOOLEAN DEFAULT FALSE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			created_by TEXT,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
