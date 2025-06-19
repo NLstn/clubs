@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { BrowserRouter } from 'react-router-dom';
 import Login from '../Login';
 
 // Mock environment variable
@@ -8,13 +9,21 @@ vi.stubEnv('VITE_API_HOST', 'http://localhost:3000');
 // Mock fetch
 global.fetch = vi.fn();
 
+const renderWithRouter = (component: React.ReactElement) => {
+  return render(
+    <BrowserRouter>
+      {component}
+    </BrowserRouter>
+  );
+};
+
 describe('Login Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('renders with proper styling classes', () => {
-    render(<Login />);
+    renderWithRouter(<Login />);
     
     // Check if form elements are present and properly structured
     expect(screen.getByRole('heading', { name: /login/i })).toBeInTheDocument();
@@ -23,12 +32,12 @@ describe('Login Component', () => {
   });
   
   it('displays instruction text', () => {
-    render(<Login />);
+    renderWithRouter(<Login />);
     expect(screen.getByText(/enter your email to receive a magic link/i)).toBeInTheDocument();
   });
   
   it('has the correct container structure for styling', () => {
-    const { container } = render(<Login />);
+    const { container } = renderWithRouter(<Login />);
     
     // Check if the login container div exists
     const loginContainer = container.querySelector('.login-container');
@@ -45,7 +54,7 @@ describe('Login Component', () => {
       ok: true,
     } as Response);
 
-    render(<Login />);
+    renderWithRouter(<Login />);
     
     const emailInput = screen.getByLabelText(/email/i);
     const submitButton = screen.getByRole('button', { name: /send magic link/i });
@@ -67,7 +76,7 @@ describe('Login Component', () => {
       text: () => Promise.resolve('Invalid email'),
     } as Response);
 
-    render(<Login />);
+    renderWithRouter(<Login />);
     
     const emailInput = screen.getByLabelText(/email/i);
     const submitButton = screen.getByRole('button', { name: /send magic link/i });
