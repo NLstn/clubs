@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../utils/api';
@@ -18,19 +18,7 @@ const JoinClub: React.FC = () => {
   const [message, setMessage] = useState('');
   const [isJoining, setIsJoining] = useState(false);
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      // Store current URL for redirect after login
-      localStorage.setItem('loginRedirect', window.location.pathname);
-      // Redirect to login with return URL
-      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
-      return;
-    }
-
-    fetchClubInfo();
-  }, [clubId, isAuthenticated, navigate]);
-
-  const fetchClubInfo = async () => {
+  const fetchClubInfo = useCallback(async () => {
     if (!clubId) {
       setMessage('Invalid club invitation link');
       setLoading(false);
@@ -48,7 +36,19 @@ const JoinClub: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [clubId]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      // Store current URL for redirect after login
+      localStorage.setItem('loginRedirect', window.location.pathname);
+      // Redirect to login with return URL
+      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+
+    fetchClubInfo();
+  }, [clubId, isAuthenticated, navigate, fetchClubInfo]);
 
   const handleJoinClub = async () => {
     if (!clubId) return;
@@ -65,13 +65,18 @@ const JoinClub: React.FC = () => {
           navigate('/profile/invites');
         }, 3000);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error joining club:', error);
-      if (error.response?.status === 409) {
-        setMessage('You are already a member of this club.');
-      } else if (error.response?.status === 401) {
-        setMessage('Please log in to join this club.');
-        navigate('/login');
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number } };
+        if (axiosError.response?.status === 409) {
+          setMessage('You are already a member of this club.');
+        } else if (axiosError.response?.status === 401) {
+          setMessage('Please log in to join this club.');
+          navigate('/login');
+        } else {
+          setMessage('Failed to join club. Please try again.');
+        }
       } else {
         setMessage('Failed to join club. Please try again.');
       }
