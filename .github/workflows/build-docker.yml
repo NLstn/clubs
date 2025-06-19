@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build Docker Image and Deploy to Azure
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
     paths:
       - 'Backend/**'
       - 'Backend/Dockerfile'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -50,6 +51,17 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
         platforms: linux/amd64,linux/arm64
-
-    - name: Image digest
-      run: echo ${{ steps.meta.outputs.digest }}
+    
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Deploy to Azure Container Apps
+      uses: azure/CLI@v1
+      with:
+        inlineScript: |
+          az containerapp update --name clubs-staging-backend \
+            --resource-group clubs-staging-rg \
+            --image ghcr.io/${{ github.repository }}/backend:latest
+          az containerapp revision copy --name clubs-staging-backend --resource-group clubs-staging-rg
