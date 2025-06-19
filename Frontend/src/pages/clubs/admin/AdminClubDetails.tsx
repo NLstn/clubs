@@ -13,6 +13,7 @@ interface Club {
     id: string;
     name: string;
     description: string;
+    deleted?: boolean;
 }
 
 const AdminClubDetails = () => {
@@ -27,6 +28,7 @@ const AdminClubDetails = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({ name: '', description: '' });
     const [activeTab, setActiveTab] = useState('overview');
+    const [isOwner, setIsOwner] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -43,6 +45,7 @@ const AdminClubDetails = () => {
                 }
 
                 setClub(clubResponse.data);
+                setIsOwner(adminResponse.data.isOwner || false);
                 setLoading(false);
             } catch (err: Error | unknown) {
                 console.error('Error fetching club details:', err instanceof Error ? err.message : 'Unknown error');
@@ -78,6 +81,24 @@ const AdminClubDetails = () => {
         if (club) {
             setEditForm({ name: club.name, description: club.description });
             setIsEditing(true);
+        }
+    };
+
+    const handleDeleteClub = async () => {
+        if (!club) return;
+        
+        const confirmText = `Are you sure you want to delete "${club.name}"? This will mark the club as deleted and make it invisible to all members except owners.`;
+        if (!confirm(confirmText)) {
+            return;
+        }
+
+        try {
+            await api.delete(`/api/v1/clubs/${id}`);
+            // Navigate to clubs list after deletion
+            navigate('/clubs');
+        } catch (err: Error | unknown) {
+            console.error('Error deleting club:', err instanceof Error ? err.message : 'Unknown error');
+            setError('Failed to delete club');
         }
     };
 
@@ -163,9 +184,31 @@ const AdminClubDetails = () => {
                                 <>
                                     <div className="club-header">
                                         <h2>{club.name}</h2>
-                                        <button onClick={handleEdit}>Edit Club</button>
+                                        <div className="club-actions">
+                                            <button onClick={handleEdit} className="button-accept">Edit Club</button>
+                                            {isOwner && (
+                                                <button 
+                                                    onClick={handleDeleteClub} 
+                                                    className="button-cancel"
+                                                    style={{ marginLeft: '10px' }}
+                                                >
+                                                    Delete Club
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                     <p>{club.description}</p>
+                                    {club.deleted && (
+                                        <div className="club-deleted-notice" style={{ 
+                                            backgroundColor: '#ffebee', 
+                                            border: '1px solid #f44336', 
+                                            padding: '10px', 
+                                            marginTop: '10px',
+                                            borderRadius: '4px'
+                                        }}>
+                                            <strong>This club has been deleted</strong> and is only visible to owners.
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </div>

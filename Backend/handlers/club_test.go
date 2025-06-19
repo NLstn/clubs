@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/NLstn/clubs/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -123,7 +124,7 @@ func TestClubEndpoints(t *testing.T) {
 		_, token := CreateTestUser(t, "clubmethod@example.com")
 
 		// Test unsupported methods
-		methods := []string{"PUT", "DELETE"}
+		methods := []string{"PUT"}
 		endpoints := []string{"/api/v1/clubs", "/api/v1/clubs/test-id"}
 
 		for _, method := range methods {
@@ -133,5 +134,66 @@ func TestClubEndpoints(t *testing.T) {
 				CheckResponseCode(t, http.StatusMethodNotAllowed, rr.Code)
 			}
 		}
+	})
+
+	t.Run("Delete Club - Unauthorized", func(t *testing.T) {
+		user, _ := CreateTestUser(t, "clubdelete1@example.com")
+		club := CreateTestClub(t, user, "Club To Delete")
+
+		// Try to delete with no token
+		req := MakeRequest(t, "DELETE", "/api/v1/clubs/"+club.ID, nil, "")
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusUnauthorized, rr.Code)
+	})
+
+	t.Run("Delete Club - Forbidden (Not Owner)", func(t *testing.T) {
+		owner, _ := CreateTestUser(t, "clubowner@example.com")
+		nonOwner, nonOwnerToken := CreateTestUser(t, "nonowner@example.com")
+		club := CreateTestClub(t, owner, "Club To Delete")
+
+		// Add non-owner as regular member using test helper
+		CreateTestMember(t, nonOwner, club, "member")
+
+		req := MakeRequest(t, "DELETE", "/api/v1/clubs/"+club.ID, nil, nonOwnerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusForbidden, rr.Code)
+		AssertContains(t, rr.Body.String(), "only owners can delete clubs")
+	})
+
+	t.Run("Delete Club - Success", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "clubowner2@example.com")
+		club := CreateTestClub(t, owner, "Club To Delete")
+
+		req := MakeRequest(t, "DELETE", "/api/v1/clubs/"+club.ID, nil, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+		// Verify club is soft deleted
+		var deletedClub models.Club
+		err := testDB.First(&deletedClub, "id = ?", club.ID).Error
+		assert.NoError(t, err)
+		assert.True(t, deletedClub.Deleted)
+		assert.NotNil(t, deletedClub.DeletedAt)
+		assert.Equal(t, owner.ID, deletedClub.DeletedBy)
+	})
+
+	t.Run("Deleted Club Visibility", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "clubowner3@example.com")
+		member, memberToken := CreateTestUser(t, "member3@example.com")
+		club := CreateTestClub(t, owner, "Club To Delete")
+		CreateTestMember(t, member, club, "member")
+
+		// Delete the club
+		club.SoftDelete(owner.ID)
+
+		// Owner should still see the club
+		req := MakeRequest(t, "GET", "/api/v1/clubs/"+club.ID, nil, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusOK, rr.Code)
+
+		// Member should not see the club
+		req = MakeRequest(t, "GET", "/api/v1/clubs/"+club.ID, nil, memberToken)
+		rr = ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNotFound, rr.Code)
 	})
 }

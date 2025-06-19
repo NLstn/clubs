@@ -36,6 +36,19 @@ const AdminClubFineList = () => {
         }
     }, [id]);
 
+    const handleDeleteFine = async (fineId: string) => {
+        if (!confirm("Are you sure you want to delete this fine?")) {
+            return;
+        }
+
+        try {
+            await api.delete(`/api/v1/clubs/${id}/fines/${fineId}`);
+            fetchFines(); // Refresh the list
+        } catch (err) {
+            setError("Failed to delete fine: " + err);
+        }
+    };
+
     useEffect(() => {
         fetchFines();
     }, [fetchFines]);
@@ -68,6 +81,7 @@ const AdminClubFineList = () => {
                         <th>Created At</th>
                         <th>Updated At</th>
                         <th>Paid</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -79,6 +93,14 @@ const AdminClubFineList = () => {
                             <td>{new Date(fine.createdAt).toLocaleString()}</td>
                             <td>{new Date(fine.updatedAt).toLocaleString()}</td>
                             <td>{fine.paid ? "Yes" : "No"}</td>
+                            <td>
+                                <button 
+                                    onClick={() => handleDeleteFine(fine.id)}
+                                    className="button-cancel"
+                                >
+                                    Delete
+                                </button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
