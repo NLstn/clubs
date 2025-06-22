@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
+import { useT } from '../../../../hooks/useTranslation';
 
 interface FineTemplate {
     id: string;
@@ -14,6 +15,7 @@ interface FineTemplate {
 }
 
 const AdminClubFineTemplateList = () => {
+    const { t } = useT();
     const { id: clubId } = useParams();
     const [templates, setTemplates] = useState<FineTemplate[]>([]);
     const [loading, setLoading] = useState(true);
@@ -29,7 +31,7 @@ const AdminClubFineTemplateList = () => {
             setLoading(false);
         } catch (err: Error | unknown) {
             console.error('Error fetching fine templates:', err instanceof Error ? err.message : 'Unknown error');
-            setError('Error fetching fine templates');
+            setError(t('fines.errors.fetchingTemplates'));
             setLoading(false);
         }
     }, [clubId]);
@@ -41,7 +43,7 @@ const AdminClubFineTemplateList = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.description || formData.amount <= 0) {
-            setError('Please provide a valid description and amount');
+            setError(t('fines.validationError'));
             return;
         }
 
@@ -60,7 +62,7 @@ const AdminClubFineTemplateList = () => {
             await fetchTemplates();
         } catch (err: Error | unknown) {
             console.error('Error saving fine template:', err instanceof Error ? err.message : 'Unknown error');
-            setError('Error saving fine template');
+            setError(t('fines.errors.savingTemplate'));
         }
     };
 
@@ -71,14 +73,14 @@ const AdminClubFineTemplateList = () => {
     };
 
     const handleDelete = async (templateId: string) => {
-        if (!confirm('Are you sure you want to delete this fine template?')) return;
+        if (!confirm(t('fines.deleteConfirmation'))) return;
 
         try {
             await api.delete(`/api/v1/clubs/${clubId}/fine-templates/${templateId}`);
             await fetchTemplates();
         } catch (err: Error | unknown) {
             console.error('Error deleting fine template:', err instanceof Error ? err.message : 'Unknown error');
-            setError('Error deleting fine template');
+            setError(t('fines.errors.deletingTemplate'));
         }
     };
 
@@ -89,17 +91,17 @@ const AdminClubFineTemplateList = () => {
         setError(null);
     };
 
-    if (loading) return <div>Loading fine templates...</div>;
+    if (loading) return <div>{t('clubs.loading.fineTemplates')}</div>;
 
     return (
         <div style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3>Fine Templates</h3>
+                <h3>{t('fines.fineTemplates')}</h3>
                 <button 
                     onClick={() => setIsAdding(true)}
                     disabled={isAdding}
                 >
-                    Add Template
+                    {t('fines.addTemplate')}
                 </button>
             </div>
 
@@ -107,9 +109,9 @@ const AdminClubFineTemplateList = () => {
 
             {isAdding && (
                 <form onSubmit={handleSubmit} style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '4px' }}>
-                    <h4>{editingId ? 'Edit Template' : 'Add New Template'}</h4>
+                    <h4>{editingId ? t('fines.editTemplate') : t('fines.addNewTemplate')}</h4>
                     <div className="form-group">
-                        <label htmlFor="description">Description</label>
+                        <label htmlFor="description">{t('fines.description')}</label>
                         <input
                             id="description"
                             type="text"
@@ -120,7 +122,7 @@ const AdminClubFineTemplateList = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="amount">Amount</label>
+                        <label htmlFor="amount">{t('fines.amount')}</label>
                         <input
                             id="amount"
                             type="number"
@@ -134,24 +136,24 @@ const AdminClubFineTemplateList = () => {
                     </div>
                     <div className="form-actions">
                         <button type="submit" className="button-accept">
-                            {editingId ? 'Update' : 'Add'} Template
+                            {editingId ? t('fines.updateTemplate') : t('fines.addTemplate')}
                         </button>
                         <button type="button" onClick={handleCancel} className="button-cancel">
-                            Cancel
+                            {t('common.cancel')}
                         </button>
                     </div>
                 </form>
             )}
 
             {templates.length === 0 ? (
-                <p>No fine templates found. Add one to get started!</p>
+                <p>{t('fines.noTemplates')}</p>
             ) : (
                 <table>
                     <thead>
                         <tr>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Actions</th>
+                            <th>{t('fines.description')}</th>
+                            <th>{t('fines.amount')}</th>
+                            <th>{t('common.actions')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -165,13 +167,13 @@ const AdminClubFineTemplateList = () => {
                                         className="button-accept"
                                         style={{ marginRight: '0.5rem' }}
                                     >
-                                        Edit
+                                        {t('common.edit')}
                                     </button>
                                     <button 
                                         onClick={() => handleDelete(template.id)}
                                         className="button-cancel"
                                     >
-                                        Delete
+                                        {t('common.delete')}
                                     </button>
                                 </td>
                             </tr>

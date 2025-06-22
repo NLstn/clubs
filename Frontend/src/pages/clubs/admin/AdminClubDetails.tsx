@@ -8,6 +8,7 @@ import AdminClubEventList from './events/AdminClubEventList';
 import AdminClubNewsList from './news/AdminClubNewsList';
 import AdminClubSettings from './settings/AdminClubSettings';
 import { useClubSettings } from '../../../hooks/useClubSettings';
+import { useT } from '../../../hooks/useTranslation';
 
 interface Club {
     id: string;
@@ -17,6 +18,7 @@ interface Club {
 }
 
 const AdminClubDetails = () => {
+    const { t } = useT();
     const { id } = useParams();
     const navigate = useNavigate();
     const [club, setClub] = useState<Club | null>(null);
@@ -87,7 +89,7 @@ const AdminClubDetails = () => {
     const handleDeleteClub = async () => {
         if (!club) return;
         
-        const confirmText = `Are you sure you want to delete "${club.name}"? This will mark the club as deleted and make it invisible to all members except owners.`;
+        const confirmText = t('clubs.deleteConfirmation', { clubName: club.name });
         if (!confirm(confirmText)) {
             return;
         }
@@ -115,20 +117,20 @@ const AdminClubDetails = () => {
                             className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
                             onClick={() => setActiveTab('overview')}
                         >
-                            Overview
+                            {t('clubs.overview')}
                         </button>
                         <button 
                             className={`tab-button ${activeTab === 'members' ? 'active' : ''}`}
                             onClick={() => setActiveTab('members')}
                         >
-                            Members
+                            {t('clubs.members')}
                         </button>
                         {clubSettings?.finesEnabled && (
                             <button 
                                 className={`tab-button ${activeTab === 'fines' ? 'active' : ''}`}
                                 onClick={() => setActiveTab('fines')}
                             >
-                                Fines
+                                {t('clubs.fines')}
                             </button>
                         )}
 
@@ -136,19 +138,19 @@ const AdminClubDetails = () => {
                             className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
                             onClick={() => setActiveTab('events')}
                         >
-                            Events
+                            {t('clubs.events')}
                         </button>
                         <button 
                             className={`tab-button ${activeTab === 'news' ? 'active' : ''}`}
                             onClick={() => setActiveTab('news')}
                         >
-                            News
+                            {t('clubs.news')}
                         </button>
                         <button 
                             className={`tab-button ${activeTab === 'settings' ? 'active' : ''}`}
                             onClick={() => setActiveTab('settings')}
                         >
-                            Settings
+                            {t('clubs.settings')}
                         </button>
                     </nav>
 
@@ -157,27 +159,27 @@ const AdminClubDetails = () => {
                             {isEditing ? (
                                 <div className="edit-form">
                                     <div className="form-group">
-                                        <label htmlFor="clubName">Club Name</label>
+                                        <label htmlFor="clubName">{t('clubs.clubName')}</label>
                                         <input
                                             id="clubName"
                                             type="text"
                                             value={editForm.name}
                                             onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                            placeholder="Club Name"
+                                            placeholder={t('clubs.clubName')}
                                         />
                                     </div>
                                     <div className="form-group">
-                                        <label htmlFor="clubDescription">Description</label>
+                                        <label htmlFor="clubDescription">{t('clubs.description')}</label>
                                         <textarea
                                             id="clubDescription"
                                             value={editForm.description}
                                             onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                                            placeholder="Club Description"
+                                            placeholder={t('clubs.clubDescription')}
                                         />
                                     </div>
                                     <div className="form-actions">
-                                        <button onClick={updateClub} className="button-accept">Save</button>
-                                        <button onClick={() => setIsEditing(false)} className="button-cancel">Cancel</button>
+                                        <button onClick={updateClub} className="button-accept">{t('common.save')}</button>
+                                        <button onClick={() => setIsEditing(false)} className="button-cancel">{t('common.cancel')}</button>
                                     </div>
                                 </div>
                             ) : (
@@ -185,14 +187,14 @@ const AdminClubDetails = () => {
                                     <div className="club-header">
                                         <h2>{club.name}</h2>
                                         <div className="club-actions">
-                                            <button onClick={handleEdit} className="button-accept">Edit Club</button>
+                                            <button onClick={handleEdit} className="button-accept">{t('clubs.editClub')}</button>
                                             {isOwner && (
                                                 <button 
                                                     onClick={handleDeleteClub} 
                                                     className="button-cancel"
                                                     style={{ marginLeft: '10px' }}
                                                 >
-                                                    Delete Club
+                                                    {t('clubs.deleteClub')}
                                                 </button>
                                             )}
                                         </div>
@@ -206,7 +208,7 @@ const AdminClubDetails = () => {
                                             marginTop: '10px',
                                             borderRadius: '4px'
                                         }}>
-                                            <strong>This club has been deleted</strong> and is only visible to owners.
+                                            <strong>{t('clubs.clubDeleted')}</strong>
                                         </div>
                                     )}
                                 </>

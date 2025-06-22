@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../utils/api";
+import { useT } from "../../hooks/useTranslation";
 
 interface News {
     id: string;
@@ -11,6 +12,7 @@ interface News {
 }
 
 const ClubNews = () => {
+    const { t } = useT();
     const { id } = useParams();
     const [news, setNews] = useState<News[]>([]);
     const [loading, setLoading] = useState(true);
@@ -37,34 +39,34 @@ const ClubNews = () => {
 
     const formatDateTime = (timestamp: string) => {
         if (!timestamp || timestamp === 'null') {
-            return 'Not set';
+            return t('dates.notSet');
         }
         
         try {
             const dateTime = new Date(timestamp);
             if (isNaN(dateTime.getTime())) {
-                return 'Invalid date/time';
+                return t('dates.invalidDateTime');
             }
             return dateTime.toLocaleDateString();
         } catch {
-            return 'Parse error';
+            return t('dates.parseError');
         }
     };
 
-    if (loading) return <div>Loading news...</div>;
-    if (error) return <div className="error">Error loading news: {error}</div>;
+    if (loading) return <div>{t('clubs.loading.news')}</div>;
+    if (error) return <div className="error">{t('clubs.errors.loadingNews', { error })}</div>;
     if (!news || news.length === 0) return null; // Don't show the section if there's no news
 
     return (
         <div className="news-section">
-            <h3>Latest News</h3>
+            <h3>{t('clubs.latestNews')}</h3>
             <div>
                 {news.map(newsItem => (
                     <div key={newsItem.id} className="news-card">
                         <h4 className="news-title">{newsItem.title}</h4>
                         <p className="news-content">{newsItem.content}</p>
                         <small className="news-meta">
-                            Posted on {formatDateTime(newsItem.created_at)}
+                            {t('news.postedOn')} {formatDateTime(newsItem.created_at)}
                         </small>
                     </div>
                 ))}

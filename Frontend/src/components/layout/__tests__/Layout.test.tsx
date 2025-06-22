@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 import Layout from '../Layout';
+import { TestI18nProvider } from '../../../test/i18n-test-utils';
 
 // Mock the useAuth hook
 const mockUseAuth = vi.fn();
@@ -40,11 +41,13 @@ describe('Layout', () => {
 
   it('renders Layout with CookieConsent component', () => {
     render(
-      <BrowserRouter>
-        <Layout title="Test Title">
-          <div>Test Content</div>
-        </Layout>
-      </BrowserRouter>
+      <TestI18nProvider>
+        <BrowserRouter>
+          <Layout title="Test Title">
+            <div>Test Content</div>
+          </Layout>
+        </BrowserRouter>
+      </TestI18nProvider>
     );
 
     expect(screen.getByText('Test Title')).toBeInTheDocument();
@@ -54,11 +57,13 @@ describe('Layout', () => {
 
   it('renders Layout without title', () => {
     render(
-      <BrowserRouter>
-        <Layout>
-          <div>Test Content</div>
-        </Layout>
-      </BrowserRouter>
+      <TestI18nProvider>
+        <BrowserRouter>
+          <Layout>
+            <div>Test Content</div>
+          </Layout>
+        </BrowserRouter>
+      </TestI18nProvider>
     );
 
     expect(screen.getByText('Clubs')).toBeInTheDocument(); // Default title from Header
