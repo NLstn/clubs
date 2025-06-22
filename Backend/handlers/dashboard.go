@@ -59,7 +59,9 @@ type ActivityItem struct {
 	ClubID      string                 `json:"club_id"`
 	CreatedAt   string                 `json:"created_at"`
 	UpdatedAt   string                 `json:"updated_at"`
-	Metadata    map[string]interface{} `json:"metadata,omitempty"` // For extensibility
+	CreatedBy   string                 `json:"created_by,omitempty"`   // User ID who created the activity
+	CreatorName string                 `json:"creator_name,omitempty"` // Name of the user who created the activity
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`     // For extensibility
 }
 
 // GET /api/v1/dashboard/news
@@ -146,6 +148,7 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var activities []ActivityItem
+	var creatorIDs []string
 
 	// Collect news as activities
 	for _, club := range clubs {
@@ -165,8 +168,12 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 					ClubID:    club.ID,
 					CreatedAt: news.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 					UpdatedAt: news.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+					CreatedBy: news.CreatedBy,
 				}
 				activities = append(activities, activity)
+				if news.CreatedBy != "" {
+					creatorIDs = append(creatorIDs, news.CreatedBy)
+				}
 			}
 		}
 	}
@@ -204,9 +211,45 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 					ClubID:    club.ID,
 					CreatedAt: event.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 					UpdatedAt: event.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+					CreatedBy: event.CreatedBy,
 					Metadata:  metadata,
 				}
 				activities = append(activities, activity)
+				if event.CreatedBy != "" {
+					creatorIDs = append(creatorIDs, event.CreatedBy)
+				}
+			}
+		}
+	}
+
+	// Fetch creator information for all activities
+	if len(creatorIDs) > 0 {
+		// Remove duplicates from creatorIDs
+		uniqueCreatorIDs := make([]string, 0, len(creatorIDs))
+		seen := make(map[string]bool)
+		for _, id := range creatorIDs {
+			if !seen[id] {
+				uniqueCreatorIDs = append(uniqueCreatorIDs, id)
+				seen[id] = true
+			}
+		}
+
+		creators, err := models.GetUsersByIDs(uniqueCreatorIDs)
+		if err == nil {
+			// Create a map for quick lookup
+			creatorMap := make(map[string]models.User)
+			for _, creator := range creators {
+				creatorMap[creator.ID] = creator
+			}
+
+			// Add creator names to activities
+			for i := range activities {
+				if creator, exists := creatorMap[activities[i].CreatedBy]; exists {
+					activities[i].CreatorName = creator.Name
+					if activities[i].CreatorName == "" {
+						activities[i].CreatorName = creator.Email // Fallback to email if name is empty
+					}
+				}
 			}
 		}
 	}

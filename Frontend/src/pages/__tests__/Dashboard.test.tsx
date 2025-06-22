@@ -41,6 +41,8 @@ describe('Dashboard', () => {
         club_id: '1',
         created_at: '2024-01-01T10:00:00Z',
         updated_at: '2024-01-01T10:00:00Z',
+        created_by: 'user1',
+        creator_name: 'John Doe',
       },
       {
         id: '2',
@@ -51,6 +53,8 @@ describe('Dashboard', () => {
         club_id: '1',
         created_at: '2024-01-01T11:00:00Z',
         updated_at: '2024-01-01T11:00:00Z',
+        created_by: 'user2',
+        creator_name: 'Jane Smith',
         metadata: {
           start_time: '2024-01-01T15:00:00Z',
           end_time: '2024-01-01T17:00:00Z',
@@ -79,6 +83,10 @@ describe('Dashboard', () => {
     expect(screen.getByText('Test Event')).toBeInTheDocument();
     expect(screen.getByText('news')).toBeInTheDocument();
     expect(screen.getByText('event')).toBeInTheDocument();
+    
+    // Check if creator information is displayed
+    expect(screen.getByText(/Created by John Doe/)).toBeInTheDocument();
+    expect(screen.getByText(/Created by Jane Smith/)).toBeInTheDocument();
   });
 
   it('renders empty state when no activities are available', () => {

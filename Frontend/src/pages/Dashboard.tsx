@@ -45,6 +45,9 @@ const Dashboard = () => {
                                                 <p className="activity-content">{activity.content}</p>
                                             )}
                                             <small className="activity-meta">
+                                                {activity.creator_name && (
+                                                    <>Created by {activity.creator_name} • </>
+                                                )}
                                                 Posted on {formatDateTime(activity.created_at)}
                                             </small>
                                         </div>
