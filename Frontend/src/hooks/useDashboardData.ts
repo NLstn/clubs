@@ -32,6 +32,8 @@ export interface ActivityItem {
   club_id: string;
   created_at: string;
   updated_at: string;
+  created_by?: string;   // User ID who created the activity
+  creator_name?: string; // Name of the user who created the activity
   metadata?: {
     start_time?: string;
     end_time?: string;
