@@ -45,7 +45,7 @@ const RecentClubsDropdown: React.FC = () => {
         onClick={() => setIsOpen(!isOpen)}
         title="Recent Clubs"
       >
-        <span className="clubs-icon">🏛️</span>
+        <span className="clubs-text">Recent clubs</span>
       </div>
 
       {isOpen && (
