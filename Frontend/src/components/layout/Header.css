@@ -29,6 +29,11 @@
 
 .userSection {
   position: relative;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
   margin-right: 50px;
 }
 

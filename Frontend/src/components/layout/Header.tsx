@@ -2,15 +2,17 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import logo from '../../assets/logo.png';
+import RecentClubsDropdown from './RecentClubsDropdown';
 import './Header.css';
 
 interface HeaderProps {
   title?: string;
   isClubAdmin?: boolean;
   clubId?: string;
+  showRecentClubs?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId }) => {
+const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentClubs = false }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -44,50 +46,55 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId }) => {
         style={{ cursor: 'pointer', height: '40px' }} 
       />
       <h1>{title || 'Clubs'}</h1>
-      <div className="userSection" ref={dropdownRef}>
-        <div 
-          className="userIcon" 
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        >
-          {'U'}
-        </div>
-        
-        {isDropdownOpen && (
-          <div className="dropdown">
-            {isClubAdmin && clubId && (
+      <div className="header-actions">
+        {showRecentClubs && <RecentClubsDropdown />}
+        <div className="userSection" ref={dropdownRef}>
+          <div 
+            className="userIcon" 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          >
+            {'U'}
+          </div>
+          
+          {isDropdownOpen && (
+            <div className="dropdown">
+              {isClubAdmin && clubId && (
+                <button
+                  className="dropdownItem"
+                  onClick={() => navigate(`/clubs/${clubId}/admin`)}
+                >
+                  Admin Panel
+                </button>
+              )}
+              {!showRecentClubs && (
+                <button
+                  className="dropdownItem"
+                  onClick={() => navigate('/clubs')}
+                >
+                  My Clubs
+                </button>
+              )}
               <button
                 className="dropdownItem"
-                onClick={() => navigate(`/clubs/${clubId}/admin`)}
+                onClick={() => navigate('/profile')}
               >
-                Admin Panel
+                Profile
               </button>
-            )}
-            <button
-              className="dropdownItem"
-              onClick={() => navigate('/clubs')}
-            >
-              My Clubs
-            </button>
-            <button
-              className="dropdownItem"
-              onClick={() => navigate('/profile')}
-            >
-              Profile
-            </button>
-            <button 
-              className="dropdownItem" 
-              onClick={() => navigate('/createClub')}
-            >
-              Create New Club
-            </button>
-            <button 
-              className="dropdownItem" 
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
-          </div>
-        )}
+              <button 
+                className="dropdownItem" 
+                onClick={() => navigate('/createClub')}
+              >
+                Create New Club
+              </button>
+              <button 
+                className="dropdownItem" 
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
