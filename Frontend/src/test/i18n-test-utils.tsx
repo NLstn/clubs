@@ -43,6 +43,11 @@ testI18n
             checkEmail: "Check your email for a login link!",
             networkError: "Network error. Please try again.",
             redirectMessage: "Please log in to continue to your requested page."
+          },
+          profile: {
+            profile: "Profile",
+            language: "Language",
+            selectLanguage: "Select Language"
           }
         }
       }

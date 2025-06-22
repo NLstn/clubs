@@ -51,12 +51,17 @@
     "configureFeatures": "Configure which features are enabled for your club.",
     "fines": "Fines",
     "finesDescription": "Allow club admins to create and manage fines for members.",
-    "shifts": "Shifts",
+    "shifts": "Shifts in Events",
+    "shiftsDescription": "Enable shift scheduling and management for club events.",
     "events": "Events",
     "news": "News",
     "latestNews": "Latest News",
     "overview": "Overview",
     "members": "Members",
+    "editClub": "Edit Club",
+    "deleteClub": "Delete Club",
+    "deleteConfirmation": "Are you sure you want to delete \"{{clubName}}\"? This will mark the club as deleted and make it invisible to all members except owners.",
+    "clubDeleted": "This club has been marked as deleted and is only visible to owners.",
     "loading": {
       "settings": "Loading settings...",
       "news": "Loading news...",
@@ -74,8 +79,17 @@
     "addTemplate": "Add Template",
     "editTemplate": "Edit Template",
     "addNewTemplate": "Add New Template",
+    "updateTemplate": "Update Template",
     "amount": "Amount",
-    "description": "Description"
+    "description": "Description",
+    "noTemplates": "No fine templates found. Add one to get started!",
+    "validationError": "Please provide a valid description and amount",
+    "deleteConfirmation": "Are you sure you want to delete this fine template?",
+    "errors": {
+      "fetchingTemplates": "Error fetching fine templates",
+      "savingTemplate": "Error saving fine template",
+      "deletingTemplate": "Error deleting fine template"
+    }
   },
   "news": {
     "postedOn": "Posted on",
