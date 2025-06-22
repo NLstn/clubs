@@ -359,6 +359,69 @@ tr:hover {
   color: var(--color-text-secondary);
 }
 
+/* Activity Feed styles */
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.activity-item {
+  background-color: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-md);
+  transition: box-shadow 0.2s ease;
+}
+
+.activity-item:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.activity-type-badge {
+  background-color: var(--color-primary);
+  color: white;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.activity-title {
+  margin: 0 0 var(--space-xs) 0;
+  color: var(--color-text);
+  font-size: 1.1rem;
+}
+
+.activity-content {
+  margin: 0 0 var(--space-sm) 0;
+  color: var(--color-text);
+  line-height: 1.5;
+}
+
+.activity-event-details {
+  margin: 0 0 var(--space-sm) 0;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  background-color: var(--color-background);
+  padding: var(--space-sm);
+  border-radius: var(--border-radius-sm);
+  border-left: 3px solid var(--color-primary);
+}
+
+.activity-meta {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
 /* Form styles */
 .form-group {
   margin-bottom: var(--space-lg);
