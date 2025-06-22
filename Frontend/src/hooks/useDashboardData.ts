@@ -32,7 +32,14 @@ export interface ActivityItem {
   club_id: string;
   created_at: string;
   updated_at: string;
-  metadata?: Record<string, unknown>; // For extensibility
+  metadata?: {
+    start_time?: string;
+    end_time?: string;
+    user_rsvp?: {
+      response: string;
+    };
+    [key: string]: unknown;
+  }; // For extensibility
 }
 
 export const useDashboardData = () => {
