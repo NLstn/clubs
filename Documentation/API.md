@@ -1022,6 +1022,58 @@ The API uses JWT-based authentication with magic link email authentication. Most
 
 ---
 
+### Get Current User's Active Sessions
+**Endpoint:** `GET /api/v1/me/sessions`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Get all active login sessions for the authenticated user.
+
+**Response:**
+```json
+[
+  {
+    "id": "session-uuid",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "ipAddress": "192.168.1.100",
+    "createdAt": "2024-01-01T10:00:00Z",
+    "isCurrent": true
+  },
+  {
+    "id": "session-uuid-2",
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
+    "ipAddress": "192.168.1.101",
+    "createdAt": "2024-01-01T08:00:00Z",
+    "isCurrent": false
+  }
+]
+```
+
+**Responses:**
+- `200 OK` - List of user's active sessions
+- `401 Unauthorized` - Invalid or missing token
+- `500 Internal Server Error` - Database error
+
+---
+
+### Delete User Session
+**Endpoint:** `DELETE /api/v1/me/sessions/{sessionId}`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Delete a specific active session. Cannot delete the current session.
+
+**Path Parameters:**
+- `sessionId` (UUID) - Session identifier
+
+**Responses:**
+- `204 No Content` - Session deleted successfully
+- `400 Bad Request` - Session ID required or invalid format
+- `401 Unauthorized` - Invalid or missing token
+- `500 Internal Server Error` - Failed to delete session
+
+---
+
 ## Event Management Endpoints
 
 ### Get Club Events

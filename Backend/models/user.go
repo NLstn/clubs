@@ -161,3 +161,16 @@ func (u *User) GetUnpaidFines() ([]Fine, error) {
 	}
 	return fines, nil
 }
+
+func (u *User) GetActiveSessions() ([]RefreshToken, error) {
+	var sessions []RefreshToken
+	err := database.Db.Raw(`SELECT * FROM refresh_tokens WHERE user_id = ? AND expires_at > ?`, u.ID, time.Now()).Scan(&sessions).Error
+	if err != nil {
+		return nil, err
+	}
+	return sessions, nil
+}
+
+func (u *User) DeleteSession(sessionID string) error {
+	return database.Db.Exec(`DELETE FROM refresh_tokens WHERE user_id = ? AND id = ?`, u.ID, sessionID).Error
+}
