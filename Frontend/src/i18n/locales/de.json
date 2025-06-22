@@ -1,0 +1,95 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "add": "Hinzufügen",
+    "create": "Erstellen",
+    "update": "Aktualisieren",
+    "submit": "Senden",
+    "close": "Schließen",
+    "yes": "Ja",
+    "no": "Nein",
+    "ok": "OK",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Vorherige",
+    "search": "Suchen",
+    "filter": "Filter",
+    "sort": "Sortieren",
+    "actions": "Aktionen"
+  },
+  "navigation": {
+    "home": "Startseite",
+    "clubs": "Vereine",
+    "myClubs": "Meine Vereine",
+    "profile": "Profil",
+    "adminPanel": "Admin-Panel",
+    "createNewClub": "Neuen Verein erstellen",
+    "logout": "Abmelden",
+    "login": "Anmelden"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "loginInstruction": "Geben Sie Ihre E-Mail-Adresse ein, um einen Magic-Link zum Anmelden zu erhalten.",
+    "email": "E-Mail",
+    "sendMagicLink": "Magic-Link senden",
+    "sending": "Wird gesendet...",
+    "checkEmail": "Überprüfen Sie Ihre E-Mails für einen Login-Link!",
+    "networkError": "Netzwerkfehler. Bitte versuchen Sie es erneut.",
+    "redirectMessage": "Bitte melden Sie sich an, um zu Ihrer angeforderten Seite zu gelangen."
+  },
+  "clubs": {
+    "clubName": "Vereinsname",
+    "clubDescription": "Vereinsbeschreibung",
+    "description": "Beschreibung",
+    "settings": "Einstellungen",
+    "clubSettings": "Vereinseinstellungen",
+    "configureFeatures": "Konfigurieren Sie, welche Funktionen für Ihren Verein aktiviert sind.",
+    "fines": "Strafen",
+    "finesDescription": "Erlauben Sie Vereinsadministratoren, Strafen für Mitglieder zu erstellen und zu verwalten.",
+    "shifts": "Schichten",
+    "events": "Ereignisse",
+    "news": "Nachrichten",
+    "latestNews": "Aktuelle Nachrichten",
+    "overview": "Übersicht",
+    "members": "Mitglieder",
+    "loading": {
+      "settings": "Einstellungen werden geladen...",
+      "news": "Nachrichten werden geladen...",
+      "fineTemplates": "Strafvorlagen werden geladen..."
+    },
+    "errors": {
+      "settingsNotFound": "Einstellungen nicht gefunden",
+      "failedToLoadSettings": "Vereinseinstellungen konnten nicht geladen werden",
+      "failedToUpdateSettings": "Einstellungen konnten nicht aktualisiert werden",
+      "loadingNews": "Fehler beim Laden der Nachrichten: {{error}}"
+    }
+  },
+  "fines": {
+    "fineTemplates": "Strafvorlagen",
+    "addTemplate": "Vorlage hinzufügen",
+    "editTemplate": "Vorlage bearbeiten",
+    "addNewTemplate": "Neue Vorlage hinzufügen",
+    "amount": "Betrag",
+    "description": "Beschreibung"
+  },
+  "news": {
+    "postedOn": "Veröffentlicht am",
+    "newsTitle": "Titel",
+    "newsContent": "Inhalt"
+  },
+  "dates": {
+    "notSet": "Nicht gesetzt",
+    "invalidDateTime": "Ungültige Datum/Zeit",
+    "parseError": "Parsing-Fehler"
+  },
+  "profile": {
+    "profile": "Profil",
+    "language": "Sprache",
+    "selectLanguage": "Sprache auswählen"
+  }
+}
