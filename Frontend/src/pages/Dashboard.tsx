@@ -1,10 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { useDashboardData } from '../hooks/useDashboardData';
 import Layout from '../components/layout/Layout';
+import { addRecentClub } from '../utils/recentClubs';
 
 const Dashboard = () => {
     const navigate = useNavigate();
     const { activities, loading: dashboardLoading, error: dashboardError } = useDashboardData();
+
+    const handleClubClick = (clubId: string, clubName: string) => {
+        addRecentClub(clubId, clubName);
+        navigate(`/clubs/${clubId}`);
+    };
 
     const formatDateTime = (timestamp: string) => {
         try {
@@ -16,7 +22,7 @@ const Dashboard = () => {
     };
 
     return (
-        <Layout title="Dashboard">
+        <Layout title="Dashboard" showRecentClubs={true}>
             <div>
                 {dashboardError && <p className="error">{dashboardError}</p>}
 
@@ -35,7 +41,7 @@ const Dashboard = () => {
                                                 <div className="activity-type-badge">{activity.type}</div>
                                                 <span 
                                                     className="club-badge"
-                                                    onClick={() => navigate(`/clubs/${activity.club_id}`)}
+                                                    onClick={() => handleClubClick(activity.club_id, activity.club_name)}
                                                 >
                                                     {activity.club_name}
                                                 </span>

@@ -6,6 +6,7 @@ import MyOpenClubFines from './MyOpenClubFines';
 import UpcomingEvents from './UpcomingEvents';
 import ClubNews from './ClubNews';
 import { useClubSettings } from '../../hooks/useClubSettings';
+import { addRecentClub } from '../../utils/recentClubs';
 
 interface Club {
     id: string;
@@ -29,8 +30,15 @@ const ClubDetails = () => {
                     api.get(`/api/v1/clubs/${id}`),
                     api.get(`/api/v1/clubs/${id}/isAdmin`)
                 ]);
-                setClub(clubResponse.data);
+                const clubData = clubResponse.data;
+                setClub(clubData);
                 setIsAdmin(adminResponse.data.isAdmin);
+                
+                // Track this club visit
+                if (clubData && clubData.id && clubData.name) {
+                    addRecentClub(clubData.id, clubData.name);
+                }
+                
                 setLoading(false);
             } catch {
                 setError('Error fetching club details');
