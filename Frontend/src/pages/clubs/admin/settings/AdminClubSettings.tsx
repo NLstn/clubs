@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
+import { useT } from '../../../../hooks/useTranslation';
 
 interface ClubSettings {
     id: string;
@@ -18,6 +19,7 @@ interface AdminClubSettingsProps {
 }
 
 const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
+    const { t } = useT();
     const { id } = useParams();
     const [settings, setSettings] = useState<ClubSettings | null>(null);
     const [loading, setLoading] = useState(true);
@@ -33,7 +35,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                 setError(null);
             } catch (err: unknown) {
                 console.error('Error fetching club settings:', err);
-                setError('Failed to load club settings');
+                setError(t('clubs.errors.failedToLoadSettings'));
             } finally {
                 setLoading(false);
             }
@@ -58,7 +60,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
             onSettingsUpdate?.();
         } catch (err: unknown) {
             console.error('Error updating club settings:', err);
-            setError('Failed to update settings');
+            setError(t('clubs.errors.failedToUpdateSettings'));
         } finally {
             setSaving(false);
         }
@@ -74,22 +76,22 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
         await updateSettings({ shiftsEnabled: !settings.shiftsEnabled });
     };
 
-    if (loading) return <div>Loading settings...</div>;
+    if (loading) return <div>{t('clubs.loading.settings')}</div>;
     if (error) return <div className="error">{error}</div>;
-    if (!settings) return <div>Settings not found</div>;
+    if (!settings) return <div>{t('clubs.errors.settingsNotFound')}</div>;
 
     return (
         <div className="club-settings">
-            <h3>Club Settings</h3>
-            <p>Configure which features are enabled for your club.</p>
+            <h3>{t('clubs.clubSettings')}</h3>
+            <p>{t('clubs.configureFeatures')}</p>
             
             {error && <div className="error">{error}</div>}
             
             <div className="settings-section">
                 <div className="setting-item">
                     <div className="setting-info">
-                        <h4>Fines</h4>
-                        <p>Allow club admins to create and manage fines for members.</p>
+                        <h4>{t('clubs.fines')}</h4>
+                        <p>{t('clubs.finesDescription')}</p>
                     </div>
                     <label className="toggle-switch">
                         <input
@@ -104,8 +106,8 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
 
                 <div className="setting-item">
                     <div className="setting-info">
-                        <h4>Shifts in Events</h4>
-                        <p>Enable shift scheduling and management for club events.</p>
+                        <h4>{t('clubs.shifts')}</h4>
+                        <p>{t('clubs.shiftsDescription')}</p>
                     </div>
                     <label className="toggle-switch">
                         <input

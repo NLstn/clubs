@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from "../../hooks/useAuth";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
 
 interface UserProfile {
     name: string;
@@ -136,6 +137,10 @@ const Profile = () => {
                                 <div style={{ padding: '8px', border: '1px solid transparent' }}>
                                     {profile.email} <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.9em' }}>(cannot be changed)</span>
                                 </div>
+                            </div>
+
+                            <div className="form-group">
+                                <LanguageSwitcher />
                             </div>
 
                             {isEditing && (

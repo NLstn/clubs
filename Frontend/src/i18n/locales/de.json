@@ -51,12 +51,17 @@
     "configureFeatures": "Konfigurieren Sie, welche Funktionen für Ihren Verein aktiviert sind.",
     "fines": "Strafen",
     "finesDescription": "Erlauben Sie Vereinsadministratoren, Strafen für Mitglieder zu erstellen und zu verwalten.",
-    "shifts": "Schichten",
+    "shifts": "Schichten in Events",
+    "shiftsDescription": "Aktivieren Sie die Schichtplanung und -verwaltung für Vereinsveranstaltungen.",
     "events": "Ereignisse",
     "news": "Nachrichten",
     "latestNews": "Aktuelle Nachrichten",
     "overview": "Übersicht",
     "members": "Mitglieder",
+    "editClub": "Verein bearbeiten",
+    "deleteClub": "Verein löschen",
+    "deleteConfirmation": "Sind Sie sicher, dass Sie \"{{clubName}}\" löschen möchten? Dadurch wird der Verein als gelöscht markiert und ist nur noch für Besitzer sichtbar.",
+    "clubDeleted": "Dieser Verein wurde als gelöscht markiert und ist nur für Besitzer sichtbar.",
     "loading": {
       "settings": "Einstellungen werden geladen...",
       "news": "Nachrichten werden geladen...",
@@ -74,8 +79,17 @@
     "addTemplate": "Vorlage hinzufügen",
     "editTemplate": "Vorlage bearbeiten",
     "addNewTemplate": "Neue Vorlage hinzufügen",
+    "updateTemplate": "Vorlage aktualisieren",
     "amount": "Betrag",
-    "description": "Beschreibung"
+    "description": "Beschreibung",
+    "noTemplates": "Keine Strafvorlagen gefunden. Fügen Sie eine hinzu, um zu beginnen!",
+    "validationError": "Bitte geben Sie eine gültige Beschreibung und einen Betrag an",
+    "deleteConfirmation": "Sind Sie sicher, dass Sie diese Strafvorlage löschen möchten?",
+    "errors": {
+      "fetchingTemplates": "Fehler beim Laden der Strafvorlagen",
+      "savingTemplate": "Fehler beim Speichern der Strafvorlage",
+      "deletingTemplate": "Fehler beim Löschen der Strafvorlage"
+    }
   },
   "news": {
     "postedOn": "Veröffentlicht am",
