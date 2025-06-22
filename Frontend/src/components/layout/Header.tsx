@@ -64,6 +64,12 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId }) => {
             )}
             <button
               className="dropdownItem"
+              onClick={() => navigate('/clubs')}
+            >
+              My Clubs
+            </button>
+            <button
+              className="dropdownItem"
               onClick={() => navigate('/profile')}
             >
               Profile

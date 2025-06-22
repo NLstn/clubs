@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
 import ClubDetails from './pages/clubs/ClubDetails';
+import ClubList from './pages/clubs/ClubList';
 import AdminClubDetails from './pages/clubs/admin/AdminClubDetails';
 import CreateClub from './pages/clubs/CreateClub';
 import JoinClub from './pages/clubs/JoinClub';
@@ -21,6 +22,12 @@ function App() {
                     <Route path="/" element={
                         <ProtectedRoute>
                             <Dashboard />
+                        </ProtectedRoute>
+                    } />
+
+                    <Route path="/clubs" element={
+                        <ProtectedRoute>
+                            <ClubList />
                         </ProtectedRoute>
                     } />
 

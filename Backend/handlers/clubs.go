@@ -34,6 +34,12 @@ func registerClubRoutes(mux *http.ServeMux) {
 	})))
 }
 
+// ClubWithRole represents a club with the user's role in that club
+type ClubWithRole struct {
+	models.Club
+	UserRole string `json:"user_role"`
+}
+
 // endpoint: GET /api/v1/clubs
 func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 
@@ -46,21 +52,31 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var authorizedClubs []models.Club
+	var authorizedClubs []ClubWithRole
 	for _, club := range clubs {
 		if club.IsMember(user) {
 			// If club is deleted, only show to owners
 			if club.Deleted && !club.IsOwner(user) {
 				continue
 			}
-			authorizedClubs = append(authorizedClubs, club)
+			
+			// Get user's role in this club
+			role, err := club.GetMemberRole(user)
+			if err != nil {
+				// If we can't get the role but they are a member, default to "member"
+				role = "member"
+			}
+			
+			clubWithRole := ClubWithRole{
+				Club:     club,
+				UserRole: role,
+			}
+			authorizedClubs = append(authorizedClubs, clubWithRole)
 		}
 	}
 
-	clubs = authorizedClubs
-
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(clubs)
+	json.NewEncoder(w).Encode(authorizedClubs)
 }
 
 // endpoint: GET /api/v1/clubs/{clubid}
