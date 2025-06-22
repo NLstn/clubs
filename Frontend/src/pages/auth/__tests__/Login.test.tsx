@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import Login from '../Login';
+import { TestI18nProvider } from '../../../test/i18n-test-utils';
 
 // Mock environment variable
 vi.stubEnv('VITE_API_HOST', 'http://localhost:3000');
@@ -11,9 +12,11 @@ global.fetch = vi.fn();
 
 const renderWithRouter = (component: React.ReactElement) => {
   return render(
-    <BrowserRouter>
-      {component}
-    </BrowserRouter>
+    <TestI18nProvider>
+      <BrowserRouter>
+        {component}
+      </BrowserRouter>
+    </TestI18nProvider>
   );
 };
 

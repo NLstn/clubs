@@ -1,0 +1,95 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "add": "Add",
+    "create": "Create",
+    "update": "Update",
+    "submit": "Submit",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "actions": "Actions"
+  },
+  "navigation": {
+    "home": "Home",
+    "clubs": "Clubs",
+    "myClubs": "My Clubs",
+    "profile": "Profile",
+    "adminPanel": "Admin Panel",
+    "createNewClub": "Create New Club",
+    "logout": "Logout",
+    "login": "Login"
+  },
+  "auth": {
+    "login": "Login",
+    "loginInstruction": "Enter your email to receive a magic link for logging in.",
+    "email": "Email",
+    "sendMagicLink": "Send Magic Link",
+    "sending": "Sending...",
+    "checkEmail": "Check your email for a login link!",
+    "networkError": "Network error. Please try again.",
+    "redirectMessage": "Please log in to continue to your requested page."
+  },
+  "clubs": {
+    "clubName": "Club Name",
+    "clubDescription": "Club Description",
+    "description": "Description",
+    "settings": "Settings",
+    "clubSettings": "Club Settings",
+    "configureFeatures": "Configure which features are enabled for your club.",
+    "fines": "Fines",
+    "finesDescription": "Allow club admins to create and manage fines for members.",
+    "shifts": "Shifts",
+    "events": "Events",
+    "news": "News",
+    "latestNews": "Latest News",
+    "overview": "Overview",
+    "members": "Members",
+    "loading": {
+      "settings": "Loading settings...",
+      "news": "Loading news...",
+      "fineTemplates": "Loading fine templates..."
+    },
+    "errors": {
+      "settingsNotFound": "Settings not found",
+      "failedToLoadSettings": "Failed to load club settings",
+      "failedToUpdateSettings": "Failed to update settings",
+      "loadingNews": "Error loading news: {{error}}"
+    }
+  },
+  "fines": {
+    "fineTemplates": "Fine Templates",
+    "addTemplate": "Add Template",
+    "editTemplate": "Edit Template",
+    "addNewTemplate": "Add New Template",
+    "amount": "Amount",
+    "description": "Description"
+  },
+  "news": {
+    "postedOn": "Posted on",
+    "newsTitle": "Title",
+    "newsContent": "Content"
+  },
+  "dates": {
+    "notSet": "Not set",
+    "invalidDateTime": "Invalid date/time",
+    "parseError": "Parse error"
+  },
+  "profile": {
+    "profile": "Profile",
+    "language": "Language",
+    "selectLanguage": "Select Language"
+  }
+}
