@@ -24,7 +24,6 @@ const Profile = () => {
         const fetchUserProfile = async () => {
             try {
                 const response = await api.get('/api/v1/me');
-                console.log('User profile response:', response.data);
                 setProfile({
                     name: response.data.Name || 'User',
                     email: response.data.Email || ''
