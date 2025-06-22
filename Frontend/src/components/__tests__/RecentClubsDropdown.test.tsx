@@ -32,13 +32,13 @@ describe('RecentClubsDropdown', () => {
     vi.clearAllMocks();
   });
 
-  it('renders the clubs icon trigger button', () => {
+  it('renders the recent clubs trigger button', () => {
     mockGetRecentClubs.mockReturnValue([]);
     
     renderWithRouter(<RecentClubsDropdown />);
     
     expect(screen.getByTitle('Recent Clubs')).toBeInTheDocument();
-    expect(screen.getByText('🏛️')).toBeInTheDocument();
+    expect(screen.getByText('Recent clubs')).toBeInTheDocument();
   });
 
   it('opens dropdown when trigger is clicked', () => {
