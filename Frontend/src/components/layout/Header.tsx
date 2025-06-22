@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useT } from '../../hooks/useTranslation';
 import logo from '../../assets/logo.png';
 import RecentClubsDropdown from './RecentClubsDropdown';
 import './Header.css';
@@ -13,6 +14,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentClubs = false }) => {
+  const { t } = useT();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -45,7 +47,7 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
         onClick={() => navigate('/')}
         style={{ cursor: 'pointer', height: '40px' }} 
       />
-      <h1>{title || 'Clubs'}</h1>
+      <h1>{title || t('navigation.clubs')}</h1>
       <div className="header-actions">
         {showRecentClubs && <RecentClubsDropdown />}
         <div className="userSection" ref={dropdownRef}>
@@ -63,7 +65,7 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
                   className="dropdownItem"
                   onClick={() => navigate(`/clubs/${clubId}/admin`)}
                 >
-                  Admin Panel
+                  {t('navigation.adminPanel')}
                 </button>
               )}
               {!showRecentClubs && (
@@ -71,26 +73,26 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
                   className="dropdownItem"
                   onClick={() => navigate('/clubs')}
                 >
-                  My Clubs
+                  {t('navigation.myClubs')}
                 </button>
               )}
               <button
                 className="dropdownItem"
                 onClick={() => navigate('/profile')}
               >
-                Profile
+                {t('navigation.profile')}
               </button>
               <button 
                 className="dropdownItem" 
                 onClick={() => navigate('/createClub')}
               >
-                Create New Club
+                {t('navigation.createNewClub')}
               </button>
               <button 
                 className="dropdownItem" 
                 onClick={handleLogout}
               >
-                Logout
+                {t('navigation.logout')}
               </button>
             </div>
           )}

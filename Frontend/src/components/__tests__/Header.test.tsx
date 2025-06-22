@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import Header from '../layout/Header'
+import { TestI18nProvider } from '../../test/i18n-test-utils'
 
 // Mock the useAuth hook
 const mockUseAuth = vi.fn()
@@ -32,9 +33,11 @@ vi.mock('../layout/RecentClubsDropdown', () => ({
 
 const renderWithRouter = (component: React.ReactElement) => {
   return render(
-    <BrowserRouter>
-      {component}
-    </BrowserRouter>
+    <TestI18nProvider>
+      <BrowserRouter>
+        {component}
+      </BrowserRouter>
+    </TestI18nProvider>
   )
 }
 

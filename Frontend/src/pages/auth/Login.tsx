@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import CookieConsent from '../../components/CookieConsent';
+import { useT } from '../../hooks/useTranslation';
 
 const Login: React.FC = () => {
+  const { t } = useT();
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
@@ -13,9 +15,9 @@ const Login: React.FC = () => {
     const params = new URLSearchParams(location.search);
     const redirectPath = params.get('redirect');
     if (redirectPath) {
-      setMessage('Please log in to continue to your requested page.');
+      setMessage(t('auth.redirectMessage'));
     }
-  }, [location]);
+  }, [location, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,14 +34,14 @@ const Login: React.FC = () => {
       });
 
       if (response.ok) {
-        setMessage('Check your email for a login link!');
+        setMessage(t('auth.checkEmail'));
         setEmail('');
       } else {
         const error = await response.text();
-        setMessage(`Error: ${error}`);
+        setMessage(`${t('common.error')}: ${error}`);
       }
     } catch {
-      setMessage('Network error. Please try again.');
+      setMessage(t('auth.networkError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -48,8 +50,8 @@ const Login: React.FC = () => {
   return (
     <div className="login-container">
       <div className="login-box">
-        <h1>Login</h1>
-        <p>Enter your email to receive a magic link for logging in.</p>
+        <h1>{t('auth.login')}</h1>
+        <p>{t('auth.loginInstruction')}</p>
 
         {message && (
           <div className={`message ${message.includes('Error') || message.includes('error') ? 'error' : 'success'}`}>
@@ -59,7 +61,7 @@ const Login: React.FC = () => {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t('auth.email')}</label>
             <input
               type="email"
               id="email"
@@ -70,7 +72,7 @@ const Login: React.FC = () => {
             />
           </div>
           <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Sending...' : 'Send Magic Link'}
+            {isSubmitting ? t('auth.sending') : t('auth.sendMagicLink')}
           </button>
         </form>
       </div>
