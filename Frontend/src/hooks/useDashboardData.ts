@@ -23,10 +23,23 @@ export interface DashboardEvent {
   };
 }
 
+export interface ActivityItem {
+  id: string;
+  type: string; // "news" or "event"
+  title: string;
+  content?: string;
+  club_name: string;
+  club_id: string;
+  created_at: string;
+  updated_at: string;
+  metadata?: Record<string, unknown>; // For extensibility
+}
+
 export const useDashboardData = () => {
   const { api } = useAuth();
   const [news, setNews] = useState<DashboardNews[]>([]);
   const [events, setEvents] = useState<DashboardEvent[]>([]);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,18 +48,21 @@ export const useDashboardData = () => {
     setError(null);
     
     try {
-      const [newsResponse, eventsResponse] = await Promise.all([
+      const [newsResponse, eventsResponse, activitiesResponse] = await Promise.all([
         api.get('/api/v1/dashboard/news'),
-        api.get('/api/v1/dashboard/events')
+        api.get('/api/v1/dashboard/events'),
+        api.get('/api/v1/dashboard/activities')
       ]);
       
       setNews(newsResponse.data || []);
       setEvents(eventsResponse.data || []);
+      setActivities(activitiesResponse.data || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setError('Failed to load dashboard data');
       setNews([]);
       setEvents([]);
+      setActivities([]);
     } finally {
       setLoading(false);
     }
@@ -58,18 +74,21 @@ export const useDashboardData = () => {
       setError(null);
       
       try {
-        const [newsResponse, eventsResponse] = await Promise.all([
+        const [newsResponse, eventsResponse, activitiesResponse] = await Promise.all([
           api.get('/api/v1/dashboard/news'),
-          api.get('/api/v1/dashboard/events')
+          api.get('/api/v1/dashboard/events'),
+          api.get('/api/v1/dashboard/activities')
         ]);
         
         setNews(newsResponse.data || []);
         setEvents(eventsResponse.data || []);
+        setActivities(activitiesResponse.data || []);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         setError('Failed to load dashboard data');
         setNews([]);
         setEvents([]);
+        setActivities([]);
       } finally {
         setLoading(false);
       }
@@ -81,6 +100,7 @@ export const useDashboardData = () => {
   return {
     news,
     events,
+    activities,
     loading,
     error,
     refetch: fetchDashboardData

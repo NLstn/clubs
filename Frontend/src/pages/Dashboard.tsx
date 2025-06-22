@@ -15,7 +15,7 @@ const Dashboard = () => {
     const { api } = useAuth();
     const [clubs, setClubs] = useState<Club[]>([]);
     const [message, setMessage] = useState('');
-    const { news, events, loading: dashboardLoading, error: dashboardError } = useDashboardData();
+    const { news, events, activities, loading: dashboardLoading, error: dashboardError } = useDashboardData();
 
     useEffect(() => {
         const fetchClubs = async () => {
@@ -57,11 +57,64 @@ const Dashboard = () => {
                 </p>}
                 {dashboardError && <p className="error">{dashboardError}</p>}
 
-                {/* News Section */}
+                {/* Activity Feed Section */}
                 {dashboardLoading ? (
                     <div>Loading dashboard...</div>
                 ) : (
                     <>
+                        <div className="dashboard-section">
+                            <h2>Activity Feed</h2>
+                            {activities.length > 0 ? (
+                                <div className="activity-feed">
+                                    {activities.map(activity => (
+                                        <div key={`${activity.type}-${activity.id}`} className="activity-item">
+                                            <div className="activity-header">
+                                                <div className="activity-type-badge">{activity.type}</div>
+                                                <span 
+                                                    className="club-badge"
+                                                    onClick={() => navigate(`/clubs/${activity.club_id}`)}
+                                                >
+                                                    {activity.club_name}
+                                                </span>
+                                            </div>
+                                            <h4 className="activity-title">{activity.title}</h4>
+                                            {activity.content && (
+                                                <p className="activity-content">{activity.content}</p>
+                                            )}
+                                            {activity.type === 'event' && activity.metadata?.start_time && (
+                                                <p className="activity-event-details">
+                                                    <strong>Start:</strong> {formatEventDateTime(activity.metadata.start_time)}
+                                                    {activity.metadata?.end_time && (
+                                                        <>
+                                                            <br />
+                                                            <strong>End:</strong> {formatEventDateTime(activity.metadata.end_time)}
+                                                        </>
+                                                    )}
+                                                    {activity.metadata?.user_rsvp && (
+                                                        <>
+                                                            <br />
+                                                            <strong>RSVP:</strong> 
+                                                            <span className={`rsvp-status ${activity.metadata.user_rsvp.response}`}>
+                                                                {activity.metadata.user_rsvp.response === 'yes' ? 'Yes' : 'No'}
+                                                            </span>
+                                                        </>
+                                                    )}
+                                                </p>
+                                            )}
+                                            <small className="activity-meta">
+                                                Posted on {formatDateTime(activity.created_at)}
+                                            </small>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="empty-state">
+                                    <p>No recent activities from your clubs.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Legacy News Section - keeping for backward compatibility */}
                         <div className="dashboard-section">
                             <h2>Latest News</h2>
                             {news.length > 0 ? (
@@ -91,7 +144,7 @@ const Dashboard = () => {
                             )}
                         </div>
 
-                        {/* Events Section */}
+                        {/* Legacy Events Section - keeping for backward compatibility */}
                         <div className="dashboard-section">
                             <h2>Upcoming Events</h2>
                             {events.length > 0 ? (
