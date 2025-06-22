@@ -11,6 +11,7 @@ import { AuthProvider } from './context/AuthProvider';
 import Profile from './pages/profile/Profile';
 import ProfileInvites from './pages/profile/ProfileInvites';
 import ProfileFines from './pages/profile/ProfileFines';
+import ProfileSessions from './pages/profile/ProfileSessions';
 
 function App() {
     return (
@@ -64,6 +65,11 @@ function App() {
                     <Route path="/profile/fines"  element={
                         <ProtectedRoute>
                             <ProfileFines />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/profile/sessions"  element={
+                        <ProtectedRoute>
+                            <ProfileSessions />
                         </ProtectedRoute>
                     } />
 
