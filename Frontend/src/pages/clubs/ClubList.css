@@ -1,0 +1,150 @@
+.clubs-container {
+    padding: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.clubs-section {
+    margin-bottom: 2rem;
+}
+
+.clubs-section h2 {
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.clubs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.club-card {
+    background: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.club-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.club-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.club-header h3 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.role-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.role-badge.owner {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+}
+
+.role-badge.admin {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+.role-badge.member {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.club-description {
+    color: var(--text-color-secondary);
+    margin: 0.5rem 0 0 0;
+    line-height: 1.4;
+}
+
+.club-deleted-badge {
+    background-color: #ffebee;
+    color: #d32f2f;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    display: inline-block;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.empty-state h2 {
+    color: var(--text-color);
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    color: var(--text-color-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.button-primary {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.button-primary:hover {
+    background-color: var(--accent-color-dark);
+}
+
+/* Fallback colors for browsers that don't support CSS variables */
+.clubs-section h2 {
+    color: #333;
+}
+
+.club-header h3 {
+    color: #333;
+}
+
+.club-description {
+    color: #666;
+}
+
+.empty-state h2 {
+    color: #333;
+}
+
+.empty-state p {
+    color: #666;
+}
+
+.club-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+}
+
+.button-primary {
+    background-color: #007bff;
+}
+
+.button-primary:hover {
+    background-color: #0056b3;
+}
