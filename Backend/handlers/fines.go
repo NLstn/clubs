@@ -95,6 +95,7 @@ func handleGetFines(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(fineList)
 }
@@ -137,8 +138,29 @@ func handleCreateFine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	type FineResponse struct {
+		ID        string  `json:"id"`
+		UserID    string  `json:"userId"`
+		Reason    string  `json:"reason"`
+		Amount    float64 `json:"amount"`
+		CreatedAt string  `json:"createdAt"`
+		UpdatedAt string  `json:"updatedAt"`
+		Paid      bool    `json:"paid"`
+	}
+
+	resp := FineResponse{
+		ID:        fine.ID,
+		UserID:    fine.UserID,
+		Reason:    fine.Reason,
+		Amount:    fine.Amount,
+		CreatedAt: fine.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: fine.UpdatedAt.Format(time.RFC3339),
+		Paid:      fine.Paid,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(fine)
+	json.NewEncoder(w).Encode(resp)
 }
 
 // endpoint: DELETE /api/v1/clubs/{clubid}/fines/{fineid}
