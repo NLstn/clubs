@@ -10,7 +10,8 @@ const navItems: ProfileNavItem[] = [
   { label: 'Profile', path: '/profile' },
   { label: 'Invites', path: '/profile/invites' },
   { label: 'Fines', path: '/profile/fines' },
-  { label: 'Sessions', path: '/profile/sessions' }
+  { label: 'Sessions', path: '/profile/sessions' },
+  { label: 'Notifications', path: '/profile/notifications' }
 ];
 
 const ProfileSidebar = () => {

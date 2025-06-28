@@ -192,6 +192,36 @@ func SetupTestDB(t *testing.T) {
 			updated_by TEXT
 		)
 	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS notifications (
+			id TEXT PRIMARY KEY,
+			user_id TEXT NOT NULL,
+			type TEXT NOT NULL,
+			title TEXT NOT NULL,
+			message TEXT NOT NULL,
+			read BOOLEAN DEFAULT FALSE,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			club_id TEXT,
+			event_id TEXT,
+			fine_id TEXT
+		)
+	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS user_notification_preferences (
+			id TEXT PRIMARY KEY,
+			user_id TEXT NOT NULL UNIQUE,
+			member_added_in_app BOOLEAN DEFAULT TRUE,
+			member_added_email BOOLEAN DEFAULT TRUE,
+			event_created_in_app BOOLEAN DEFAULT TRUE,
+			event_created_email BOOLEAN DEFAULT FALSE,
+			fine_assigned_in_app BOOLEAN DEFAULT TRUE,
+			fine_assigned_email BOOLEAN DEFAULT TRUE,
+			news_created_in_app BOOLEAN DEFAULT TRUE,
+			news_created_email BOOLEAN DEFAULT FALSE,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
 }
 
 // TeardownTestDB cleans up the test database
@@ -403,6 +433,7 @@ func GetTestHandler() http.Handler {
 	registerShiftRoutesForTest(mux)
 	registerJoinRequestRoutesForTest(mux)
 	registerFineRoutesForTest(mux)
+	registerNotificationRoutesForTest(mux)
 
 	return mux
 }
@@ -714,4 +745,12 @@ func registerClubSettingsRoutesForTest(mux *http.ServeMux) {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	}))
+}
+
+func registerNotificationRoutesForTest(mux *http.ServeMux) {
+	mux.Handle("/api/v1/notifications", withAuth(GetNotifications))
+	mux.Handle("/api/v1/notifications/count", withAuth(GetNotificationCount))
+	mux.Handle("/api/v1/notifications/", withAuth(handleNotificationByID))
+	mux.Handle("/api/v1/notifications/mark-all-read", withAuth(MarkAllNotificationsRead))
+	mux.Handle("/api/v1/notification-preferences", withAuth(handleNotificationPreferences))
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/NLstn/clubs/database"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // Notification represents an in-app notification for a user
@@ -40,7 +41,7 @@ type UserNotificationPreferences struct {
 }
 
 // BeforeCreate sets the ID for new notifications
-func (n *Notification) BeforeCreate() error {
+func (n *Notification) BeforeCreate(tx *gorm.DB) error {
 	if n.ID == "" {
 		n.ID = uuid.New().String()
 	}
@@ -48,7 +49,7 @@ func (n *Notification) BeforeCreate() error {
 }
 
 // BeforeCreate sets the ID for new user notification preferences
-func (p *UserNotificationPreferences) BeforeCreate() error {
+func (p *UserNotificationPreferences) BeforeCreate(tx *gorm.DB) error {
 	if p.ID == "" {
 		p.ID = uuid.New().String()
 	}
