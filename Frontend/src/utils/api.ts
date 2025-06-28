@@ -45,8 +45,6 @@ const refreshAuthToken = async () => {
     throw new Error('No refresh token available');
   }
 
-  console.log('Refreshing token...');
-
   try {
     const response = await axios.post(`${API_BASE_URL}/api/v1/auth/refreshToken`, {}, {
       headers: {
