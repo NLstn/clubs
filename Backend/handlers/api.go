@@ -23,6 +23,7 @@ func Handler_v1() http.Handler {
 	registerFineRoutes(mux)
 	registerFineTemplateRoutes(mux)
 	registerDashboardRoutes(mux)
+	registerNotificationRoutes(mux)
 
 	registerUserRoutes(mux)
 

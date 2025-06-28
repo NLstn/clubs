@@ -23,3 +23,11 @@ func MakeMagicLink(token string) string {
 func MakeClubLink(clubID string) string {
 	return fmt.Sprintf("%s/clubs/%s", frontendUrl, clubID)
 }
+
+func MakeEventLink(clubID, eventID string) string {
+	return fmt.Sprintf("%s/clubs/%s/events/%s", frontendUrl, clubID, eventID)
+}
+
+func MakeFineLink(clubID, fineID string) string {
+	return fmt.Sprintf("%s/clubs/%s/fines/%s", frontendUrl, clubID, fineID)
+}

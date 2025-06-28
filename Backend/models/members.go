@@ -127,6 +127,10 @@ func (m *Member) notifyAdded() {
 		return
 	}
 
+	// Send in-app notification based on preferences
+	SendMemberAddedNotifications(user.ID, user.Email, club.ID, club.Name)
+	
+	// Also send the traditional email notification for backward compatibility
 	notifications.SendMemberAddedNotification(user.Email, club.ID, club.Name)
 }
 
