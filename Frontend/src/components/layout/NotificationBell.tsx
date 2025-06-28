@@ -19,9 +19,9 @@ const NotificationBell = () => {
 
   return (
     <div className="notification-section" ref={ref}>
-      <div className="bell" onClick={() => setOpen(!open)}>
+      <button className="bell" onClick={() => setOpen(!open)} aria-label="Toggle notifications">
         🔔
-      </div>
+      </button>
       {open && (
         <div className="notification-dropdown">
           {notifications.length === 0 && (
