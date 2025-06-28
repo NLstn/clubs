@@ -48,7 +48,7 @@ func registerAuthRoutes(mux *http.ServeMux) {
 	})))
 }
 
-// endpoint: GET /api/v1/auth/requestMagicLink
+// endpoint: POST /api/v1/auth/requestMagicLink
 func handleRequestMagicLink(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Email string `json:"email"`
