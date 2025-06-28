@@ -76,7 +76,6 @@ func handleGetShifts(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
 // GET /api/v1/clubs/{clubid}/shifts/{shiftid}/members
 func handleGetShiftMembers(w http.ResponseWriter, r *http.Request) {
 
