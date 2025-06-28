@@ -61,13 +61,11 @@ func Init() error {
 		return fmt.Errorf("DATABASE_USER_PASSWORD environment variable is required")
 	}
 
-	// Database name with default value
 	dbName := os.Getenv("DATABASE_NAME")
 	if dbName == "" {
 		dbName = "clubs"
 	}
 
-	// SSL mode with default value (false means disable)
 	sslMode := os.Getenv("DATABASE_SSL_MODE")
 	if sslMode == "" {
 		sslMode = "disable"
