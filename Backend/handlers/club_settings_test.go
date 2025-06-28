@@ -10,12 +10,11 @@ import (
 )
 
 func TestClubSettingsEndpoints(t *testing.T) {
-	// Set up test environment
+
 	MockEnvironmentVariables(t)
 	SetupTestDB(t)
 	defer TeardownTestDB(t)
 
-	// Create test user and club
 	testUser, token := CreateTestUser(t, "test@example.com")
 	club := CreateTestClub(t, testUser, "Test Club")
 
@@ -33,10 +32,10 @@ func TestClubSettingsEndpoints(t *testing.T) {
 		rr := ExecuteRequest(t, handler, req)
 
 		CheckResponseCode(t, http.StatusOK, rr.Code)
-		
+
 		var settings models.ClubSettings
 		ParseJSONResponse(t, rr, &settings)
-		
+
 		// Default settings should have both enabled
 		assert.True(t, settings.FinesEnabled)
 		assert.True(t, settings.ShiftsEnabled)

@@ -33,18 +33,16 @@ func SendMagicLinkEmail(email, link string) error {
 }
 
 func generateJWT(userID string, expiration time.Duration) (string, error) {
-	// Validate userID is not empty
 	if userID == "" {
 		return "", fmt.Errorf("cannot generate JWT with empty userID")
 	}
 
-	// Generate a unique identifier for each token to ensure uniqueness
 	tokenID := GenerateToken()
 
 	claims := jwt.MapClaims{
 		"user_id": userID,
-		"jti":     tokenID, // JWT ID to ensure uniqueness
-		"iat":     time.Now().Unix(), // Issued at timestamp
+		"jti":     tokenID,
+		"iat":     time.Now().Unix(),
 		"exp":     time.Now().Add(expiration).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -65,7 +63,6 @@ func GenerateRefreshToken(userID string) (string, error) {
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Get Authorization header
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			log.Default().Println("Missing or invalid Authorization header")
@@ -75,9 +72,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 
-		// Parse and validate JWT
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-			// Validate the alg
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				log.Default().Printf("Unexpected signing method: %v", token.Header["alg"])
 				return nil, jwt.ErrSignatureInvalid
@@ -97,7 +92,6 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Extract user ID
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			log.Default().Println("Could not parse claims as MapClaims")
@@ -118,16 +112,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Add user ID to context
 		ctx := context.WithValue(r.Context(), UserIDKey, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func ValidateRefreshToken(tokenStr string) (string, error) {
-	// Parse and validate JWT
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-		// Validate the alg
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			log.Default().Printf("Unexpected signing method: %v", token.Header["alg"])
 			return nil, jwt.ErrSignatureInvalid
@@ -145,7 +136,6 @@ func ValidateRefreshToken(tokenStr string) (string, error) {
 		return "", fmt.Errorf("invalid token")
 	}
 
-	// Extract user ID
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		log.Default().Println("Could not parse claims as MapClaims")

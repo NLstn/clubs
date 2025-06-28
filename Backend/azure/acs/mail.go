@@ -32,13 +32,12 @@ type Content struct {
 }
 
 func SendMail(recipients []Recipient, subject, plainText, htmlContent string) error {
-	// Get authentication token from auth.go
+
 	token := azure.GetACSToken()
 	if token == "" {
 		return fmt.Errorf("failed to get ACS token for sending email")
 	}
 
-	// Get ACS endpoint from environment variable
 	endpoint := os.Getenv("AZURE_ACS_ENDPOINT")
 	if endpoint == "" {
 		return fmt.Errorf("AZURE_ACS_ENDPOINT environment variable not set")
@@ -49,7 +48,6 @@ func SendMail(recipients []Recipient, subject, plainText, htmlContent string) er
 		return fmt.Errorf("AZURE_ACS_SENDER_ADDRESS environment variable not set")
 	}
 
-	// Create email request
 	emailReq := EmailRequest{
 		SenderAddress: senderAddress,
 		Recipients: Recipients{
@@ -62,24 +60,20 @@ func SendMail(recipients []Recipient, subject, plainText, htmlContent string) er
 		},
 	}
 
-	// Marshal request to JSON
 	jsonData, err := json.Marshal(emailReq)
 	if err != nil {
 		return fmt.Errorf("failed to marshal email request: %v", err)
 	}
 
-	// Create HTTP request
 	url := fmt.Sprintf("%s/emails:send?api-version=2023-03-31", endpoint)
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("failed to create HTTP request: %v", err)
 	}
 
-	// Set headers
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+token)
 
-	// Send request
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
