@@ -28,12 +28,12 @@ func TestEventRoutes(t *testing.T) {
 			"start_time": "2024-06-01T10:00:00Z",
 			"end_time":   "2024-06-01T12:00:00Z",
 		}
-		
+
 		body, _ := json.Marshal(payload)
 		req := httptest.NewRequest("POST", "/api/v1/clubs/"+club.ID+"/events", bytes.NewBuffer(body))
 		req.Header.Set("Authorization", "Bearer "+accessToken)
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
-		
+
 		w := httptest.NewRecorder()
 		mux := http.NewServeMux()
 		registerEventRoutes(mux)
@@ -48,11 +48,39 @@ func TestEventRoutes(t *testing.T) {
 		assert.Equal(t, club.ID, response.ClubID)
 	})
 
+	t.Run("Create Event as Admin", func(t *testing.T) {
+		adminUser, adminToken := CreateTestUser(t, "admin@example.com")
+		CreateTestMember(t, adminUser, club, "admin")
+
+		payload := map[string]string{
+			"name":       "Admin Event",
+			"start_time": "2024-07-01T10:00:00Z",
+			"end_time":   "2024-07-01T12:00:00Z",
+		}
+
+		body, _ := json.Marshal(payload)
+		req := httptest.NewRequest("POST", "/api/v1/clubs/"+club.ID+"/events", bytes.NewBuffer(body))
+		req.Header.Set("Authorization", "Bearer "+adminToken)
+		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, adminUser.ID))
+
+		w := httptest.NewRecorder()
+		mux := http.NewServeMux()
+		registerEventRoutes(mux)
+		mux.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusCreated, w.Code)
+
+		var response models.Event
+		err := json.NewDecoder(w.Body).Decode(&response)
+		assert.NoError(t, err)
+		assert.Equal(t, club.ID, response.ClubID)
+	})
+
 	t.Run("Get Events", func(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/v1/clubs/"+club.ID+"/events", nil)
 		req.Header.Set("Authorization", "Bearer "+accessToken)
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
-		
+
 		w := httptest.NewRecorder()
 		mux := http.NewServeMux()
 		registerEventRoutes(mux)
@@ -73,7 +101,7 @@ func TestEventRoutes(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/v1/clubs/"+club.ID+"/events", nil)
 		req.Header.Set("Authorization", "Bearer "+otherToken)
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, otherUser.ID))
-		
+
 		w := httptest.NewRecorder()
 		mux := http.NewServeMux()
 		registerEventRoutes(mux)
