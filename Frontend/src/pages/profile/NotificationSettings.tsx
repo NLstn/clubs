@@ -3,13 +3,20 @@ import ProfileSidebar from "./ProfileSidebar";
 import { useNotificationSettings } from "../../hooks/useNotificationSettings";
 import { useState } from "react";
 
+type NotificationSetting = {
+  clubId?: string;
+  email: boolean;
+  inApp: boolean;
+  id?: string;
+};
+
 const NotificationSettings = () => {
-  const { settings, setSettings, saveSettings } = useNotificationSettings();
+  const { settings, setSettings, saveSettings } = useNotificationSettings<NotificationSetting[]>();
   const [message, setMessage] = useState("");
 
   const handleToggle = (index: number, field: "email" | "inApp") => {
     const copy = [...settings];
-    (copy[index] as any)[field] = !(copy[index] as any)[field];
+    copy[index][field] = !copy[index][field];
     setSettings(copy);
   };
 
