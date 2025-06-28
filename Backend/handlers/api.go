@@ -25,6 +25,8 @@ func Handler_v1() http.Handler {
 	registerDashboardRoutes(mux)
 
 	registerUserRoutes(mux)
+	registerNotificationRoutes(mux)
+	registerNotificationSettingsRoutes(mux)
 
 	return LoggingMiddleware(CorsMiddleware(mux))
 }

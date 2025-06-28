@@ -37,6 +37,8 @@ func main() {
 		&models.EventRSVP{},
 		&models.News{},
 		&models.ClubSettings{},
+		&models.Notification{},
+		&models.NotificationSetting{},
 	)
 	if err != nil {
 		log.Fatal("Could not migrate database:", err)

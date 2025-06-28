@@ -1,93 +1,119 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import ClubDetails from './pages/clubs/ClubDetails';
-import ClubList from './pages/clubs/ClubList';
-import AdminClubDetails from './pages/clubs/admin/AdminClubDetails';
-import CreateClub from './pages/clubs/CreateClub';
-import JoinClub from './pages/clubs/JoinClub';
-import Login from './pages/auth/Login';
-import MagicLinkHandler from './pages/auth/MagicLinkHandler';
-import ProtectedRoute from './components/auth/ProtectedRoute';
-import { AuthProvider } from './context/AuthProvider';
-import Profile from './pages/profile/Profile';
-import ProfileInvites from './pages/profile/ProfileInvites';
-import ProfileFines from './pages/profile/ProfileFines';
-import ProfileSessions from './pages/profile/ProfileSessions';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Dashboard from "./pages/Dashboard";
+import ClubDetails from "./pages/clubs/ClubDetails";
+import ClubList from "./pages/clubs/ClubList";
+import AdminClubDetails from "./pages/clubs/admin/AdminClubDetails";
+import CreateClub from "./pages/clubs/CreateClub";
+import JoinClub from "./pages/clubs/JoinClub";
+import Login from "./pages/auth/Login";
+import MagicLinkHandler from "./pages/auth/MagicLinkHandler";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { AuthProvider } from "./context/AuthProvider";
+import Profile from "./pages/profile/Profile";
+import ProfileInvites from "./pages/profile/ProfileInvites";
+import ProfileFines from "./pages/profile/ProfileFines";
+import ProfileSessions from "./pages/profile/ProfileSessions";
+import NotificationSettings from "./pages/profile/NotificationSettings";
 
 function App() {
-    return (
-        <AuthProvider>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/" element={
-                        <ProtectedRoute>
-                            <Dashboard />
-                        </ProtectedRoute>
-                    } />
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route path="/clubs" element={
-                        <ProtectedRoute>
-                            <ClubList />
-                        </ProtectedRoute>
-                    } />
+          <Route
+            path="/clubs"
+            element={
+              <ProtectedRoute>
+                <ClubList />
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route
-                        path="/clubs/:id"
-                        element={
-                            <ProtectedRoute>
-                                <ClubDetails />
-                            </ProtectedRoute>
-                        }
-                    />
+          <Route
+            path="/clubs/:id"
+            element={
+              <ProtectedRoute>
+                <ClubDetails />
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route
-                        path="/clubs/:id/admin"
-                        element={
-                            <ProtectedRoute>
-                                <AdminClubDetails />
-                            </ProtectedRoute>
-                        }
-                    />
+          <Route
+            path="/clubs/:id/admin"
+            element={
+              <ProtectedRoute>
+                <AdminClubDetails />
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route
-                        path="/createClub"
-                        element={
-                            <ProtectedRoute>
-                                <CreateClub />
-                            </ProtectedRoute>
-                        }
-                    />
+          <Route
+            path="/createClub"
+            element={
+              <ProtectedRoute>
+                <CreateClub />
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route path="/profile"  element={
-                        <ProtectedRoute>
-                            <Profile />
-                        </ProtectedRoute>
-                    } />
-                    
-                    <Route path="/profile/invites"  element={
-                        <ProtectedRoute>
-                            <ProfileInvites />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/profile/fines"  element={
-                        <ProtectedRoute>
-                            <ProfileFines />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/profile/sessions"  element={
-                        <ProtectedRoute>
-                            <ProfileSessions />
-                        </ProtectedRoute>
-                    } />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
 
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/auth/magic" element={<MagicLinkHandler />} />
-                    <Route path="/join/:clubId" element={<JoinClub />} />
+          <Route
+            path="/profile/invites"
+            element={
+              <ProtectedRoute>
+                <ProfileInvites />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/fines"
+            element={
+              <ProtectedRoute>
+                <ProfileFines />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/sessions"
+            element={
+              <ProtectedRoute>
+                <ProfileSessions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationSettings />
+              </ProtectedRoute>
+            }
+          />
 
-                </Routes>
-            </BrowserRouter>
-        </AuthProvider>
-    );
+          <Route path="/login" element={<Login />} />
+          <Route path="/auth/magic" element={<MagicLinkHandler />} />
+          <Route path="/join/:clubId" element={<JoinClub />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
 }
 
 export default App;

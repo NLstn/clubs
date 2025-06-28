@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -127,7 +128,12 @@ func (m *Member) notifyAdded() {
 		return
 	}
 
+	// send email notification
 	notifications.SendMemberAddedNotification(user.Email, club.ID, club.Name)
+
+	// create in-app notification entry
+	message := fmt.Sprintf("You have been added to %s", club.Name)
+	CreateNotification(user.ID, club.ID, message)
 }
 
 func (c *Club) canChangeRole(changingUser User, oldRole, newRole string) (bool, error) {
