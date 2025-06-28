@@ -49,7 +49,7 @@ func TestFinesEndpoints(t *testing.T) {
 
 		var fines []map[string]interface{}
 		ParseJSONResponse(t, rr, &fines)
-		
+
 		// After fix, this should only return unpaid fines
 		assert.Equal(t, 1, len(fines))
 
@@ -78,7 +78,7 @@ func TestFinesEndpoints(t *testing.T) {
 
 		var fines []map[string]interface{}
 		ParseJSONResponse(t, rr, &fines)
-		
+
 		// After fix, this should only return unpaid fines (2 fines)
 		assert.Equal(t, 2, len(fines))
 
@@ -106,11 +106,11 @@ func TestFinesEndpoints(t *testing.T) {
 		userWithFines, token := CreateTestUser(t, "user_with_fines@example.com")
 		creator1, _ := CreateTestUser(t, "creator1@example.com")
 		creator2, _ := CreateTestUser(t, "creator2@example.com")
-		
+
 		// Create clubs
 		club1 := CreateTestClub(t, creator1, "Club 1")
 		club2 := CreateTestClub(t, creator2, "Club 2")
-		
+
 		// Add userWithFines as member to both clubs
 		CreateTestMember(t, userWithFines, club1, "member")
 		CreateTestMember(t, userWithFines, club2, "member")
@@ -128,7 +128,7 @@ func TestFinesEndpoints(t *testing.T) {
 
 		var fines []map[string]interface{}
 		ParseJSONResponse(t, rr, &fines)
-		
+
 		// Should get all 4 unpaid fines
 		assert.Equal(t, 4, len(fines))
 
@@ -136,7 +136,7 @@ func TestFinesEndpoints(t *testing.T) {
 		for _, fine := range fines {
 			assert.NotEmpty(t, fine["createdByName"], "Creator name should be populated")
 			assert.NotEmpty(t, fine["clubName"], "Club name should be populated")
-			
+
 			if fine["id"] == fine1.ID || fine["id"] == fine2.ID {
 				assert.Equal(t, creator1.Name, fine["createdByName"], "Creator1 name should match")
 				assert.Equal(t, club1.Name, fine["clubName"], "Club1 name should match")
@@ -154,7 +154,7 @@ func TestFinesEndpoints(t *testing.T) {
 
 		// Create another user to assign fines to
 		memberUser, _ := CreateTestUser(t, "member@example.com")
-		
+
 		// Add member to the club
 		CreateTestMember(t, memberUser, club, "member")
 
@@ -162,13 +162,13 @@ func TestFinesEndpoints(t *testing.T) {
 		unpaidFine := CreateTestFine(t, memberUser, club, "Late arrival", 25.0, false)
 		paidFine := CreateTestFine(t, memberUser, club, "Missed meeting", 10.0, true)
 
-		req := MakeRequest(t, "GET", "/api/v1/clubs/" + club.ID + "/fines", nil, adminToken)
+		req := MakeRequest(t, "GET", "/api/v1/clubs/"+club.ID+"/fines", nil, adminToken)
 		rr := ExecuteRequest(t, handler, req)
 		CheckResponseCode(t, http.StatusOK, rr.Code)
 
 		var fines []map[string]interface{}
 		ParseJSONResponse(t, rr, &fines)
-		
+
 		// Admin should see ALL fines (both paid and unpaid)
 		assert.Equal(t, 2, len(fines))
 
@@ -203,11 +203,11 @@ func TestFinesEndpoints(t *testing.T) {
 
 		var fines []map[string]interface{}
 		ParseJSONResponse(t, rr, &fines)
-		
+
 		// Verify empty array is returned
 		assert.Equal(t, 0, len(fines))
 		assert.NotNil(t, fines) // Should be empty array, not nil
-		
+
 		// Verify response content type is set correctly
 		assert.Equal(t, "application/json", rr.Header().Get("Content-Type"))
 	})
@@ -227,7 +227,7 @@ func TestFinesEndpoints(t *testing.T) {
 		owner, _ := CreateTestUser(t, "fineowner@example.com")
 		member, memberToken := CreateTestUser(t, "finemember@example.com")
 		club := CreateTestClub(t, owner, "Test Club")
-		
+
 		// Add member as regular member (not admin)
 		CreateTestMember(t, member, club, "member")
 		fine := CreateTestFine(t, member, club, "Test Fine", 25.0, false)
@@ -291,5 +291,30 @@ func TestFinesEndpoints(t *testing.T) {
 		rr := ExecuteRequest(t, handler, req)
 		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
 		AssertContains(t, rr.Body.String(), "Invalid club ID format")
+	})
+
+	t.Run("Create Fine - Response Uses CamelCase Fields", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "fineowner6@example.com")
+		member, _ := CreateTestUser(t, "finecamel@example.com")
+		club := CreateTestClub(t, owner, "Camel Club")
+		CreateTestMember(t, member, club, "member")
+
+		payload := map[string]interface{}{
+			"userId": member.ID,
+			"reason": "Late arrival",
+			"amount": 15.0,
+		}
+
+		req := MakeRequest(t, "POST", "/api/v1/clubs/"+club.ID+"/fines", payload, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusCreated, rr.Code)
+		assert.Equal(t, "application/json", rr.Header().Get("Content-Type"))
+
+		var resp map[string]interface{}
+		ParseJSONResponse(t, rr, &resp)
+		assert.Contains(t, resp, "createdAt")
+		assert.Contains(t, resp, "updatedAt")
+		assert.NotContains(t, resp, "created_at")
+		assert.NotContains(t, resp, "updated_at")
 	})
 }
