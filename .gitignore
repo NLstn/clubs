@@ -2,8 +2,9 @@ node_modules/
 
 .env
 
-# Backend binary
+# Backend binaries
 Backend/clubs
+Backend/main
 
 # Logs
 logs
