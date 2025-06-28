@@ -119,7 +119,7 @@ func handleCreateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !club.IsOwner(user) {
+	if !club.IsOwner(user) && !club.IsAdmin(user) {
 		http.Error(w, "Unauthorized - admin access required", http.StatusForbidden)
 		return
 	}
@@ -310,12 +310,12 @@ func handleGetUpcomingEvents(w http.ResponseWriter, r *http.Request) {
 	var eventsWithRSVP []EventWithRSVP
 	for _, event := range events {
 		eventWithRSVP := EventWithRSVP{Event: event}
-		
+
 		userRSVP, err := user.GetUserRSVP(event.ID)
 		if err == nil {
 			eventWithRSVP.UserRSVP = userRSVP
 		}
-		
+
 		eventsWithRSVP = append(eventsWithRSVP, eventWithRSVP)
 	}
 
