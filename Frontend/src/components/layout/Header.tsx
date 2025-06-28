@@ -2,8 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useT } from '../../hooks/useTranslation';
+import { useNotifications } from '../../hooks/useNotifications';
 import logo from '../../assets/logo.png';
 import RecentClubsDropdown from './RecentClubsDropdown';
+import NotificationDropdown from './NotificationDropdown';
 import './Header.css';
 
 interface HeaderProps {
@@ -19,6 +21,15 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
   const { logout } = useAuth();
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Use notification hooks
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    refreshNotifications,
+  } = useNotifications();
 
   const handleLogout = async () => {
     logout();
@@ -50,6 +61,13 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
       <h1>{title || t('navigation.clubs')}</h1>
       <div className="header-actions">
         {showRecentClubs && <RecentClubsDropdown />}
+        <NotificationDropdown
+          notifications={notifications}
+          unreadCount={unreadCount}
+          onMarkAsRead={markAsRead}
+          onMarkAllAsRead={markAllAsRead}
+          onRefresh={refreshNotifications}
+        />
         <div className="userSection" ref={dropdownRef}>
           <div 
             className="userIcon" 
