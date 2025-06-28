@@ -13,6 +13,7 @@ import Profile from './pages/profile/Profile';
 import ProfileInvites from './pages/profile/ProfileInvites';
 import ProfileFines from './pages/profile/ProfileFines';
 import ProfileSessions from './pages/profile/ProfileSessions';
+import NotificationSettings from './pages/settings/NotificationSettings';
 
 function App() {
     return (
@@ -77,6 +78,11 @@ function App() {
                     <Route path="/profile/sessions"  element={
                         <ProtectedRoute>
                             <ProfileSessions />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/profile/notifications"  element={
+                        <ProtectedRoute>
+                            <NotificationSettings />
                         </ProtectedRoute>
                     } />
 
