@@ -9,12 +9,12 @@ import (
 func TestInit_WithEnvironmentVariables(t *testing.T) {
 	// Save original environment
 	originalEnvVars := map[string]string{
-		"DATABASE_URL":          os.Getenv("DATABASE_URL"),
-		"DATABASE_PORT":         os.Getenv("DATABASE_PORT"),
-		"DATABASE_USER":         os.Getenv("DATABASE_USER"),
+		"DATABASE_URL":           os.Getenv("DATABASE_URL"),
+		"DATABASE_PORT":          os.Getenv("DATABASE_PORT"),
+		"DATABASE_USER":          os.Getenv("DATABASE_USER"),
 		"DATABASE_USER_PASSWORD": os.Getenv("DATABASE_USER_PASSWORD"),
-		"DATABASE_NAME":         os.Getenv("DATABASE_NAME"),
-		"DATABASE_SSL_MODE":     os.Getenv("DATABASE_SSL_MODE"),
+		"DATABASE_NAME":          os.Getenv("DATABASE_NAME"),
+		"DATABASE_SSL_MODE":      os.Getenv("DATABASE_SSL_MODE"),
 	}
 
 	// Cleanup function to restore environment
@@ -30,18 +30,18 @@ func TestInit_WithEnvironmentVariables(t *testing.T) {
 	defer cleanup()
 
 	tests := []struct {
-		name           string
-		envVars        map[string]string
-		expectedDBName string
+		name            string
+		envVars         map[string]string
+		expectedDBName  string
 		expectedSSLMode string
-		shouldError    bool
+		shouldError     bool
 	}{
 		{
 			name: "Default database name and SSL mode",
 			envVars: map[string]string{
-				"DATABASE_URL":          "localhost",
-				"DATABASE_PORT":         "5432",
-				"DATABASE_USER":         "test",
+				"DATABASE_URL":           "localhost",
+				"DATABASE_PORT":          "5432",
+				"DATABASE_USER":          "test",
 				"DATABASE_USER_PASSWORD": "test",
 			},
 			expectedDBName:  "clubs",
@@ -51,12 +51,12 @@ func TestInit_WithEnvironmentVariables(t *testing.T) {
 		{
 			name: "Custom database name and SSL mode",
 			envVars: map[string]string{
-				"DATABASE_URL":          "localhost",
-				"DATABASE_PORT":         "5432",
-				"DATABASE_USER":         "test",
+				"DATABASE_URL":           "localhost",
+				"DATABASE_PORT":          "5432",
+				"DATABASE_USER":          "test",
 				"DATABASE_USER_PASSWORD": "test",
-				"DATABASE_NAME":         "custom_db",
-				"DATABASE_SSL_MODE":     "require",
+				"DATABASE_NAME":          "custom_db",
+				"DATABASE_SSL_MODE":      "require",
 			},
 			expectedDBName:  "custom_db",
 			expectedSSLMode: "require",
@@ -65,12 +65,12 @@ func TestInit_WithEnvironmentVariables(t *testing.T) {
 		{
 			name: "Empty database name falls back to default",
 			envVars: map[string]string{
-				"DATABASE_URL":          "localhost",
-				"DATABASE_PORT":         "5432",
-				"DATABASE_USER":         "test",
+				"DATABASE_URL":           "localhost",
+				"DATABASE_PORT":          "5432",
+				"DATABASE_USER":          "test",
 				"DATABASE_USER_PASSWORD": "test",
-				"DATABASE_NAME":         "",
-				"DATABASE_SSL_MODE":     "prefer",
+				"DATABASE_NAME":          "",
+				"DATABASE_SSL_MODE":      "prefer",
 			},
 			expectedDBName:  "clubs",
 			expectedSSLMode: "prefer",
@@ -79,12 +79,12 @@ func TestInit_WithEnvironmentVariables(t *testing.T) {
 		{
 			name: "Empty SSL mode falls back to default",
 			envVars: map[string]string{
-				"DATABASE_URL":          "localhost",
-				"DATABASE_PORT":         "5432",
-				"DATABASE_USER":         "test",
+				"DATABASE_URL":           "localhost",
+				"DATABASE_PORT":          "5432",
+				"DATABASE_USER":          "test",
 				"DATABASE_USER_PASSWORD": "test",
-				"DATABASE_NAME":         "test_db",
-				"DATABASE_SSL_MODE":     "",
+				"DATABASE_NAME":          "test_db",
+				"DATABASE_SSL_MODE":      "",
 			},
 			expectedDBName:  "test_db",
 			expectedSSLMode: "disable",
@@ -93,8 +93,8 @@ func TestInit_WithEnvironmentVariables(t *testing.T) {
 		{
 			name: "Missing required DATABASE_URL",
 			envVars: map[string]string{
-				"DATABASE_PORT":         "5432",
-				"DATABASE_USER":         "test",
+				"DATABASE_PORT":          "5432",
+				"DATABASE_USER":          "test",
 				"DATABASE_USER_PASSWORD": "test",
 			},
 			shouldError: true,

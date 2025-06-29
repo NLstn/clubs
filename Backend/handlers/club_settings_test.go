@@ -33,10 +33,10 @@ func TestClubSettingsEndpoints(t *testing.T) {
 		rr := ExecuteRequest(t, handler, req)
 
 		CheckResponseCode(t, http.StatusOK, rr.Code)
-		
+
 		var settings models.ClubSettings
 		ParseJSONResponse(t, rr, &settings)
-		
+
 		// Default settings should have both enabled
 		assert.True(t, settings.FinesEnabled)
 		assert.True(t, settings.ShiftsEnabled)

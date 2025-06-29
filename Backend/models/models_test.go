@@ -13,7 +13,7 @@ func TestModels(t *testing.T) {
 			Name:  "Test User",
 			Email: "test@example.com",
 		}
-		
+
 		assert.Equal(t, "test-id", user.ID)
 		assert.Equal(t, "Test User", user.Name)
 		assert.Equal(t, "test@example.com", user.Email)
@@ -26,7 +26,7 @@ func TestModels(t *testing.T) {
 			Description: "Test Description",
 			CreatedBy:   "creator-id",
 		}
-		
+
 		assert.Equal(t, "club-id", club.ID)
 		assert.Equal(t, "Test Club", club.Name)
 		assert.Equal(t, "Test Description", club.Description)
@@ -40,7 +40,7 @@ func TestModels(t *testing.T) {
 			ClubID: "club-id",
 			Role:   "admin",
 		}
-		
+
 		assert.Equal(t, "member-id", member.ID)
 		assert.Equal(t, "user-id", member.UserID)
 		assert.Equal(t, "club-id", member.ClubID)
@@ -56,7 +56,7 @@ func TestModels(t *testing.T) {
 			Amount: 25.50,
 			Paid:   false,
 		}
-		
+
 		assert.Equal(t, "fine-id", fine.ID)
 		assert.Equal(t, "user-id", fine.UserID)
 		assert.Equal(t, "club-id", fine.ClubID)
@@ -71,7 +71,7 @@ func TestModels(t *testing.T) {
 			ClubID: "club-id",
 			Email:  "requester@example.com",
 		}
-		
+
 		assert.Equal(t, "request-id", request.ID)
 		assert.Equal(t, "club-id", request.ClubID)
 		assert.Equal(t, "requester@example.com", request.Email)
@@ -83,7 +83,7 @@ func TestModels(t *testing.T) {
 			UserID: "user-id",
 			Token:  "refresh-token-value",
 		}
-		
+
 		assert.Equal(t, "token-id", token.ID)
 		assert.Equal(t, "user-id", token.UserID)
 		assert.Equal(t, "refresh-token-value", token.Token)

@@ -44,9 +44,9 @@ type NewsWithClub struct {
 // EventWithClub represents event with club information and RSVP status
 type EventWithClub struct {
 	models.Event
-	ClubName string             `json:"club_name"`
-	ClubID   string             `json:"club_id"`
-	UserRSVP *models.EventRSVP  `json:"user_rsvp,omitempty"`
+	ClubName string            `json:"club_name"`
+	ClubID   string            `json:"club_id"`
+	UserRSVP *models.EventRSVP `json:"user_rsvp,omitempty"`
 }
 
 // ActivityItem represents a unified activity feed item
@@ -81,7 +81,7 @@ func handleGetDashboardNews(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				continue // Skip clubs where we can't fetch news, don't fail entirely
 			}
-			
+
 			for _, news := range clubNews {
 				newsWithClub := NewsWithClub{
 					News:     news,
@@ -114,20 +114,20 @@ func handleGetDashboardEvents(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				continue // Skip clubs where we can't fetch events, don't fail entirely
 			}
-			
+
 			for _, event := range clubEvents {
 				eventWithClub := EventWithClub{
 					Event:    event,
 					ClubName: club.Name,
 					ClubID:   club.ID,
 				}
-				
+
 				// Add user's RSVP status if available
 				userRSVP, err := user.GetUserRSVP(event.ID)
 				if err == nil {
 					eventWithClub.UserRSVP = userRSVP
 				}
-				
+
 				allEvents = append(allEvents, eventWithClub)
 			}
 		}
@@ -157,7 +157,7 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				continue // Skip clubs where we can't fetch news
 			}
-			
+
 			for _, news := range clubNews {
 				activity := ActivityItem{
 					ID:        news.ID,
@@ -185,7 +185,7 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				continue // Skip clubs where we can't fetch events
 			}
-			
+
 			for _, event := range clubEvents {
 				// Create event content description
 				eventContent := "Event scheduled"

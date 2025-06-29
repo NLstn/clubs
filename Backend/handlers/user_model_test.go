@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"testing"
 	"github.com/NLstn/clubs/models"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestGetUsersByIDsEdgeCases(t *testing.T) {
@@ -47,7 +47,7 @@ func TestGetUsersByIDsEdgeCases(t *testing.T) {
 	t.Run("Mixed valid and empty IDs", func(t *testing.T) {
 		// Test the scenario where we might have mixed valid and empty IDs
 		testUser, _ := CreateTestUser(t, "test_empty_ids@example.com")
-		
+
 		// Test with mixed IDs including empty strings
 		users, err := models.GetUsersByIDs([]string{testUser.ID, "", "invalid-id"})
 		assert.NoError(t, err)

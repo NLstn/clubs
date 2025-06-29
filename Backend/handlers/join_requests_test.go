@@ -65,7 +65,7 @@ func TestJoinRequestEndpoints(t *testing.T) {
 		err := database.Db.Where("club_id = ?", club.ID).Find(&allRequests).Error
 		assert.NoError(t, err)
 		assert.GreaterOrEqual(t, len(allRequests), 1)
-		
+
 		// Find our join request
 		var foundRequest *models.JoinRequest
 		for _, jr := range allRequests {
@@ -130,7 +130,7 @@ func TestJoinRequestEndpoints(t *testing.T) {
 	t.Run("Get Join Requests - Valid", func(t *testing.T) {
 		owner, ownerToken := CreateTestUser(t, "owner8@example.com")
 		club := CreateTestClub(t, owner, "Test Club")
-		
+
 		// Create a user who will request to join
 		requestingUser, _ := CreateTestUser(t, "newmember8@example.com")
 
@@ -212,7 +212,7 @@ func TestJoinRequestEndpoints(t *testing.T) {
 		err := database.Db.Where("club_id = ? AND email = ?", club.ID, user.Email).Find(&allRequests).Error
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(allRequests))
-		
+
 		request := allRequests[0]
 		assert.False(t, request.AdminApproved, "AdminApproved should be false for user-initiated requests")
 		assert.True(t, request.UserApproved, "UserApproved should be true for user-initiated requests")
@@ -221,7 +221,7 @@ func TestJoinRequestEndpoints(t *testing.T) {
 		// Verify it shows up in admin's pending requests but not user's
 		adminRequests, _ := club.GetJoinRequests()
 		assert.Equal(t, 1, len(adminRequests), "Admin should see the user's request to join")
-		
+
 		userRequests, _ := user.GetJoinRequests()
 		assert.Equal(t, 0, len(userRequests), "User should not see their own request as an invite")
 	})

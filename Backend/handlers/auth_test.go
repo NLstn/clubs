@@ -67,7 +67,7 @@ func TestAuthEndpoints(t *testing.T) {
 		email := "verify@example.com"
 		// Create the user first (since FindOrCreateUser has issues with SQLite)
 		_, _ = CreateTestUser(t, email)
-		
+
 		token, err := models.CreateMagicLink(email)
 		assert.NoError(t, err)
 
@@ -128,11 +128,11 @@ func TestAuthEndpoints(t *testing.T) {
 	t.Run("Refresh Token", func(t *testing.T) {
 		// Create a user and refresh token
 		user, _ := CreateTestUser(t, "refresh@example.com")
-		
+
 		// Generate a refresh token
 		refreshToken, err := auth.GenerateRefreshToken(user.ID)
 		assert.NoError(t, err)
-		
+
 		// Store it in database
 		err = user.StoreRefreshToken(refreshToken, "test-user-agent", "127.0.0.1")
 		assert.NoError(t, err)
@@ -185,17 +185,17 @@ func TestAuthEndpoints(t *testing.T) {
 					assert.Contains(t, response, "refresh")
 					assert.NotEmpty(t, response["access"])
 					assert.NotEmpty(t, response["refresh"])
-					
+
 					// Verify the new refresh token is different from the old one
 					assert.NotEqual(t, refreshToken, response["refresh"])
-					
+
 					// Verify the old refresh token is now invalid
 					req2 := MakeRequest(t, "POST", "/api/v1/auth/refreshToken", nil, "")
 					req2.Header.Set("Authorization", refreshToken)
 					rr2 := ExecuteRequest(t, handler, req2)
 					CheckResponseCode(t, http.StatusUnauthorized, rr2.Code)
 					AssertContains(t, rr2.Body.String(), "Invalid refresh token")
-					
+
 					// Verify the new refresh token works
 					req3 := MakeRequest(t, "POST", "/api/v1/auth/refreshToken", nil, "")
 					req3.Header.Set("Authorization", response["refresh"])
@@ -209,11 +209,11 @@ func TestAuthEndpoints(t *testing.T) {
 	t.Run("Logout", func(t *testing.T) {
 		// Create a user and refresh token
 		user, _ := CreateTestUser(t, "logout@example.com")
-		
+
 		// Generate a refresh token
 		refreshToken, err := auth.GenerateRefreshToken(user.ID)
 		assert.NoError(t, err)
-		
+
 		// Store it in database
 		err = user.StoreRefreshToken(refreshToken, "test-user-agent", "127.0.0.1")
 		assert.NoError(t, err)
