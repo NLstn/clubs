@@ -43,9 +43,11 @@ func (c *Club) IsAdmin(user User) bool {
 	return false
 }
 
+// IsMember reports whether the provided user belongs to the club. If the
+// user has an empty ID the function simply returns false.
 func (c *Club) IsMember(user User) bool {
 	if user.ID == "" {
-		log.Fatal("User ID is empty")
+		log.Default().Println("IsMember called with empty user ID")
 		return false
 	}
 
