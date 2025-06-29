@@ -4,6 +4,7 @@ node_modules/
 
 # Backend binary
 Backend/clubs
+Backend/main
 
 # Logs
 logs
