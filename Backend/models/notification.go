@@ -26,18 +26,18 @@ type Notification struct {
 
 // UserNotificationPreferences represents user's notification settings
 type UserNotificationPreferences struct {
-	ID                    string    `json:"id" gorm:"type:uuid;primary_key"`
-	UserID                string    `json:"userId" gorm:"type:uuid;not null;unique"`
-	MemberAddedInApp      bool      `json:"memberAddedInApp" gorm:"default:true"`
-	MemberAddedEmail      bool      `json:"memberAddedEmail" gorm:"default:true"`
-	EventCreatedInApp     bool      `json:"eventCreatedInApp" gorm:"default:true"`
-	EventCreatedEmail     bool      `json:"eventCreatedEmail" gorm:"default:false"`
-	FineAssignedInApp     bool      `json:"fineAssignedInApp" gorm:"default:true"`
-	FineAssignedEmail     bool      `json:"fineAssignedEmail" gorm:"default:true"`
-	NewsCreatedInApp      bool      `json:"newsCreatedInApp" gorm:"default:true"`
-	NewsCreatedEmail      bool      `json:"newsCreatedEmail" gorm:"default:false"`
-	CreatedAt             time.Time `json:"createdAt"`
-	UpdatedAt             time.Time `json:"updatedAt"`
+	ID                string    `json:"id" gorm:"type:uuid;primary_key"`
+	UserID            string    `json:"userId" gorm:"type:uuid;not null;unique"`
+	MemberAddedInApp  bool      `json:"memberAddedInApp" gorm:"default:true"`
+	MemberAddedEmail  bool      `json:"memberAddedEmail" gorm:"default:true"`
+	EventCreatedInApp bool      `json:"eventCreatedInApp" gorm:"default:true"`
+	EventCreatedEmail bool      `json:"eventCreatedEmail" gorm:"default:false"`
+	FineAssignedInApp bool      `json:"fineAssignedInApp" gorm:"default:true"`
+	FineAssignedEmail bool      `json:"fineAssignedEmail" gorm:"default:true"`
+	NewsCreatedInApp  bool      `json:"newsCreatedInApp" gorm:"default:true"`
+	NewsCreatedEmail  bool      `json:"newsCreatedEmail" gorm:"default:false"`
+	CreatedAt         time.Time `json:"createdAt"`
+	UpdatedAt         time.Time `json:"updatedAt"`
 }
 
 // BeforeCreate sets the ID for new notifications
@@ -119,15 +119,15 @@ func GetUserNotificationPreferences(userID string) (UserNotificationPreferences,
 // CreateDefaultUserNotificationPreferences creates default notification preferences for a user
 func CreateDefaultUserNotificationPreferences(userID string) (UserNotificationPreferences, error) {
 	preferences := UserNotificationPreferences{
-		UserID:                userID,
-		MemberAddedInApp:      true,
-		MemberAddedEmail:      true,
-		EventCreatedInApp:     true,
-		EventCreatedEmail:     false,
-		FineAssignedInApp:     true,
-		FineAssignedEmail:     true,
-		NewsCreatedInApp:      true,
-		NewsCreatedEmail:      false,
+		UserID:            userID,
+		MemberAddedInApp:  true,
+		MemberAddedEmail:  true,
+		EventCreatedInApp: true,
+		EventCreatedEmail: false,
+		FineAssignedInApp: true,
+		FineAssignedEmail: true,
+		NewsCreatedInApp:  true,
+		NewsCreatedEmail:  false,
 	}
 	err := database.Db.Create(&preferences).Error
 	return preferences, err
@@ -163,6 +163,6 @@ func SendMemberAddedNotifications(userID, userEmail, clubID, clubName string) er
 	// Import the notifications package for email sending
 	// We'll use a simplified approach here to avoid circular imports
 	// The email sending will be handled by the caller
-	
+
 	return nil
 }

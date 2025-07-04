@@ -22,8 +22,8 @@ type RefreshToken struct {
 	UserID    string `gorm:"type:uuid;not null"`
 	Token     string `gorm:"uniqueIndex;not null"`
 	ExpiresAt time.Time
-	UserAgent string    // Browser/device information
-	IPAddress string    // IP address for session tracking
+	UserAgent string // Browser/device information
+	IPAddress string // IP address for session tracking
 	CreatedAt time.Time
 }
 
@@ -86,7 +86,7 @@ func (u *User) StoreRefreshToken(token, userAgent, ipAddress string) error {
 		IPAddress: ipAddress,
 		CreatedAt: time.Now(),
 	}
-	return database.Db.Exec(`INSERT INTO refresh_tokens (user_id, token, expires_at, user_agent, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?)`, 
+	return database.Db.Exec(`INSERT INTO refresh_tokens (user_id, token, expires_at, user_agent, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
 		refreshToken.UserID, refreshToken.Token, refreshToken.ExpiresAt, refreshToken.UserAgent, refreshToken.IPAddress, refreshToken.CreatedAt).Error
 }
 
@@ -96,7 +96,7 @@ func GetDeviceInfo(r *http.Request) (userAgent, ipAddress string) {
 	if userAgent == "" {
 		userAgent = "Unknown"
 	}
-	
+
 	// Try to get real IP from various headers (common proxy headers)
 	ipAddress = r.Header.Get("X-Forwarded-For")
 	if ipAddress == "" {
@@ -105,18 +105,18 @@ func GetDeviceInfo(r *http.Request) (userAgent, ipAddress string) {
 	if ipAddress == "" {
 		ipAddress = r.RemoteAddr
 	}
-	
+
 	// Clean up the IP address (remove port if present)
 	if colon := strings.LastIndex(ipAddress, ":"); colon != -1 {
 		if bracket := strings.LastIndex(ipAddress, "]"); bracket == -1 || bracket < colon {
 			ipAddress = ipAddress[:colon]
 		}
 	}
-	
+
 	if ipAddress == "" {
 		ipAddress = "Unknown"
 	}
-	
+
 	return userAgent, ipAddress
 }
 

@@ -59,14 +59,14 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 			if club.Deleted && !club.IsOwner(user) {
 				continue
 			}
-			
+
 			// Get user's role in this club
 			role, err := club.GetMemberRole(user)
 			if err != nil {
 				// If we can't get the role but they are a member, default to "member"
 				role = "member"
 			}
-			
+
 			clubWithRole := ClubWithRole{
 				Club:     club,
 				UserRole: role,

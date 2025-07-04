@@ -298,25 +298,25 @@ func handleJoinClubViaLink(w http.ResponseWriter, r *http.Request) {
 
 // endpoint: GET /api/v1/clubs/{clubid}/info
 func handleGetClubInfo(w http.ResponseWriter, r *http.Request) {
-clubID := extractPathParam(r, "clubs")
-if _, err := uuid.Parse(clubID); err != nil {
-http.Error(w, "Invalid club ID format", http.StatusBadRequest)
-return
-}
+	clubID := extractPathParam(r, "clubs")
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
 
-club, err := models.GetClubByID(clubID)
-if err != nil {
-http.Error(w, "Club not found", http.StatusNotFound)
-return
-}
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
 
-// Return only basic club information for invitation purposes
-clubInfo := map[string]string{
-"id":          club.ID,
-"name":        club.Name,
-"description": club.Description,
-}
+	// Return only basic club information for invitation purposes
+	clubInfo := map[string]string{
+		"id":          club.ID,
+		"name":        club.Name,
+		"description": club.Description,
+	}
 
-w.Header().Set("Content-Type", "application/json")
-json.NewEncoder(w).Encode(clubInfo)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(clubInfo)
 }

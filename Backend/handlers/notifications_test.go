@@ -55,14 +55,14 @@ func TestNotificationEndpoints(t *testing.T) {
 		var preferences models.UserNotificationPreferences
 		ParseJSONResponse(t, rr, &preferences)
 		assert.Equal(t, user.ID, preferences.UserID)
-		assert.True(t, preferences.MemberAddedInApp)  // Should create default preferences
+		assert.True(t, preferences.MemberAddedInApp) // Should create default preferences
 	})
 
 	t.Run("Update Notification Preferences - Valid", func(t *testing.T) {
 		_, token := CreateTestUser(t, "update@example.com")
 
 		updateData := map[string]interface{}{
-			"memberAddedEmail": false,
+			"memberAddedEmail":  false,
 			"eventCreatedInApp": false,
 		}
 

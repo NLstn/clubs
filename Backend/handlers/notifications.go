@@ -117,7 +117,7 @@ func MarkNotificationRead(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Notification ID is required", http.StatusBadRequest)
 		return
 	}
-	
+
 	notificationID := path
 
 	err := models.MarkNotificationAsRead(notificationID, user.ID)
