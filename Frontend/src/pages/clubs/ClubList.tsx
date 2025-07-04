@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import api from '../../utils/api';
 import './ClubList.css';
+import { createErrorHandler } from '../../utils/errorHandling';
 
 interface Club {
     id: string;
@@ -19,21 +20,23 @@ const ClubList = () => {
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchClubs();
-    }, []);
+    const handleError = createErrorHandler("ClubList", setError, "Failed to fetch clubs");
 
-    const fetchClubs = async () => {
+    const fetchClubs = useCallback(async () => {
         try {
             const response = await api.get('/api/v1/clubs');
             setClubs(response.data);
+            setError(null);
         } catch (err: Error | unknown) {
-            console.error('Error fetching clubs:', err);
-            setError('Failed to fetch clubs');
+            handleError(err);
         } finally {
             setLoading(false);
         }
-    };
+    }, [handleError]);
+
+    useEffect(() => {
+        fetchClubs();
+    }, [fetchClubs]);
 
     const handleClubClick = (clubId: string) => {
         navigate(`/clubs/${clubId}`);

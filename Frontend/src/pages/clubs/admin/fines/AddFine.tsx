@@ -1,6 +1,7 @@
 import { FC, useState, useEffect } from "react";
 import api from "../../../../utils/api";
 import TypeAheadDropdown from "../../../../components/TypeAheadDropdown";
+import { createErrorHandler } from "../../../../utils/errorHandling";
 
 interface Member {
     id: string;
@@ -53,17 +54,15 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
     const [selectedTemplate, setSelectedTemplate] = useState<FineTemplateOption | null>(null);
     const [templateOptions, setTemplateOptions] = useState<FineTemplateOption[]>([]);
 
+    const handleError = createErrorHandler("AddFine", setError);
+
     useEffect(() => {
         const fetchMembers = async () => {
             try {
                 const response = await api.get(`/api/v1/clubs/${clubId}/members`);
                 setMembers(response.data);
             } catch (error: unknown) {
-                if (error instanceof Error) {
-                    setError("Failed to fetch members: " + error.message);
-                } else {
-                    setError("Failed to fetch members: Unknown error");
-                }
+                handleError(error);
             }
         };
 
@@ -72,11 +71,7 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                 const response = await api.get(`/api/v1/clubs/${clubId}/fine-templates`);
                 setFineTemplates(response.data);
             } catch (error: unknown) {
-                if (error instanceof Error) {
-                    setError("Failed to fetch fine templates: " + error.message);
-                } else {
-                    setError("Failed to fetch fine templates: Unknown error");
-                }
+                handleError(error);
             }
         };
 
@@ -84,7 +79,7 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
             fetchMembers();
             fetchFineTemplates();
         }
-    }, [clubId, isOpen]);
+    }, [clubId, isOpen, handleError]);
 
     if (!isOpen) return null;
 
@@ -108,11 +103,7 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
             onSuccess();
             onClose();
         } catch (error: unknown) {
-            if (error instanceof Error) {
-                setError("Failed to add fine: " + error.message);
-            } else {
-                setError("Failed to add fine: Unknown error");
-            }
+            handleError(error);
         } finally {
             setIsSubmitting(false);
         }

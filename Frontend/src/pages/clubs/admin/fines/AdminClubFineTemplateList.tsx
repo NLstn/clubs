@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
+import { createErrorHandler } from '../../../../utils/errorHandling';
 
 interface FineTemplate {
     id: string;
@@ -24,17 +25,19 @@ const AdminClubFineTemplateList = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState({ description: '', amount: 0 });
 
+    const handleError = createErrorHandler("AdminClubFineTemplateList", setError);
+
     const fetchTemplates = useCallback(async () => {
         try {
             const response = await api.get(`/api/v1/clubs/${clubId}/fine-templates`);
             setTemplates(response.data);
             setLoading(false);
+            setError(null);
         } catch (err: Error | unknown) {
-            console.error('Error fetching fine templates:', err instanceof Error ? err.message : 'Unknown error');
-            setError(t('fines.errors.fetchingTemplates'));
+            handleError(err);
             setLoading(false);
         }
-    }, [clubId]);
+    }, [clubId, handleError]);
 
     useEffect(() => {
         fetchTemplates();

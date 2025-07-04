@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
+import { createErrorHandler } from '../../../../utils/errorHandling';
 
 interface ClubSettings {
     id: string;
@@ -26,6 +27,8 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
     const [error, setError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
+    const handleError = createErrorHandler("AdminClubSettings", setError);
+
     useEffect(() => {
         const fetchSettings = async () => {
             try {
@@ -34,15 +37,14 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                 setSettings(response.data);
                 setError(null);
             } catch (err: unknown) {
-                console.error('Error fetching club settings:', err);
-                setError(t('clubs.errors.failedToLoadSettings'));
+                handleError(err);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchSettings();
-    }, [id]);
+    }, [id, t, handleError]);
 
     const updateSettings = async (newSettings: Partial<Pick<ClubSettings, 'finesEnabled' | 'shiftsEnabled'>>) => {
         if (!settings) return;
@@ -59,8 +61,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
             // Notify parent component that settings have been updated
             onSettingsUpdate?.();
         } catch (err: unknown) {
-            console.error('Error updating club settings:', err);
-            setError(t('clubs.errors.failedToUpdateSettings'));
+            handleError(err);
         } finally {
             setSaving(false);
         }

@@ -1,6 +1,8 @@
 import { FC, useState, useEffect, useCallback } from "react";
 import api from "../../../../utils/api";
 import { useClubSettings } from "../../../../hooks/useClubSettings";
+import { formatDateTimeLocal } from "../../../../utils/dateHelpers";
+import { createErrorHandler } from "../../../../utils/errorHandling";
 
 interface Event {
     id: string;
@@ -39,6 +41,8 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
     const [isAddingShift, setIsAddingShift] = useState(false);
     const [activeTab, setActiveTab] = useState<'event' | 'shifts'>('event');
 
+    const handleError = createErrorHandler("EditEvent", setError);
+
     const fetchEventShifts = useCallback(async () => {
         if (!event || !clubId || !clubSettings?.shiftsEnabled) return;
         
@@ -46,38 +50,18 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
             const response = await api.get(`/api/v1/clubs/${clubId}/events/${event.id}/shifts`);
             setShifts(response.data || []);
         } catch (error) {
-            console.error("Error fetching event shifts:", error);
+            handleError(error);
         }
-    }, [event, clubId, clubSettings?.shiftsEnabled]);
+    }, [event, clubId, clubSettings?.shiftsEnabled, handleError]);
 
     useEffect(() => {
         if (event) {
             setName(event.name || '');
             
-            // Convert timestamps to datetime-local format (YYYY-MM-DDTHH:MM)
+            // Convert timestamps to datetime-local format using utility
             try {
-                if (event.start_time) {
-                    const startDate = new Date(event.start_time);
-                    if (!isNaN(startDate.getTime())) {
-                        setStartTime(startDate.toISOString().slice(0, 16));
-                    } else {
-                        setStartTime('');
-                    }
-                } else {
-                    setStartTime('');
-                }
-
-                if (event.end_time) {
-                    const endDate = new Date(event.end_time);
-                    if (!isNaN(endDate.getTime())) {
-                        setEndTime(endDate.toISOString().slice(0, 16));
-                    } else {
-                        setEndTime('');
-                    }
-                } else {
-                    setEndTime('');
-                }
-                
+                setStartTime(formatDateTimeLocal(event.start_time));
+                setEndTime(formatDateTimeLocal(event.end_time));
                 setError(null);
             } catch {
                 setError("This event has invalid date/time data. Please enter valid dates and times to update.");
@@ -168,11 +152,7 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
             onSuccess();
             onClose();
         } catch (error: unknown) {
-            if (error instanceof Error) {
-                setError("Failed to update event: " + error.message);
-            } else {
-                setError("Failed to update event: Unknown error");
-            }
+            handleError(error);
         } finally {
             setIsSubmitting(false);
         }

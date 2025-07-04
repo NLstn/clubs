@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from "../../hooks/useAuth";
+import { formatDateTime } from "../../utils/dateHelpers";
+import { createErrorHandler } from "../../utils/errorHandling";
 
 interface Session {
   id: string;
@@ -17,11 +19,9 @@ const ProfileSessions = () => {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchSessions();
-  }, []);
+  const handleError = createErrorHandler("ProfileSessions", (error) => setMessage(error || ""), "Failed to perform operation");
 
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await api.get('/api/v1/me/sessions');
@@ -29,12 +29,15 @@ const ProfileSessions = () => {
         setSessions(response.data || []);
       }
     } catch (error) {
-      console.error('Error fetching sessions:', error);
-      setMessage('Failed to load sessions');
+      handleError(error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [api, handleError]);
+
+  useEffect(() => {
+    fetchSessions();
+  }, [fetchSessions]);
 
   const handleDeleteSession = async (sessionId: string) => {
     try {
@@ -43,8 +46,7 @@ const ProfileSessions = () => {
       setMessage('Session deleted successfully');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
-      console.error('Error deleting session:', error);
-      setMessage('Failed to delete session');
+      handleError(error);
     }
   };
 
@@ -55,10 +57,6 @@ const ProfileSessions = () => {
     if (userAgent.includes('Safari')) return 'Safari';
     if (userAgent.includes('Edge')) return 'Edge';
     return userAgent.length > 50 ? userAgent.substring(0, 50) + '...' : userAgent;
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString();
   };
 
   return (
@@ -132,7 +130,7 @@ const ProfileSessions = () => {
                         {session.ipAddress}
                       </td>
                       <td style={{ padding: '12px' }}>
-                        {formatDate(session.createdAt)}
+                        {formatDateTime(session.createdAt)}
                       </td>
                       <td style={{ padding: '12px' }}>
                         {session.isCurrent ? (

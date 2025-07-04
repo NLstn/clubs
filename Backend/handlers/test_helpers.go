@@ -316,6 +316,22 @@ func ExecuteRequest(t *testing.T, handler http.Handler, req *http.Request) *http
 	return rr
 }
 
+// Constants for test environment configuration
+const (
+	TestDatabaseURL      = "localhost"
+	TestDatabasePort     = "5432"
+	TestDatabaseUser     = "test"
+	TestDatabasePassword = "test"
+	TestDatabaseName     = "test_clubs"
+	TestSSLMode         = "disable"
+	
+	// Azure test constants
+	TestAzureClientID     = "test-client-id"
+	TestAzureClientSecret = "test-client-secret"
+	TestAzureTenantID     = "test-tenant-id"
+	TestACSConnectionString = "test-connection-string"
+)
+
 // CheckResponseCode verifies the HTTP response code
 func CheckResponseCode(t *testing.T, expected, actual int) {
 	if expected != actual {
@@ -327,18 +343,18 @@ func CheckResponseCode(t *testing.T, expected, actual int) {
 func MockEnvironmentVariables(t *testing.T) {
 	// Set minimal environment variables for testing
 	// We don't need real Azure/database configs for unit tests
-	os.Setenv("DATABASE_URL", "localhost")
-	os.Setenv("DATABASE_PORT", "5432")
-	os.Setenv("DATABASE_USER", "test")
-	os.Setenv("DATABASE_USER_PASSWORD", "test")
-	os.Setenv("DATABASE_NAME", "test_clubs")
-	os.Setenv("DATABASE_SSL_MODE", "disable")
+	os.Setenv("DATABASE_URL", TestDatabaseURL)
+	os.Setenv("DATABASE_PORT", TestDatabasePort)
+	os.Setenv("DATABASE_USER", TestDatabaseUser)
+	os.Setenv("DATABASE_USER_PASSWORD", TestDatabasePassword)
+	os.Setenv("DATABASE_NAME", TestDatabaseName)
+	os.Setenv("DATABASE_SSL_MODE", TestSSLMode)
 
 	// Set Azure environment variables to avoid initialization errors
-	os.Setenv("AZURE_CLIENT_ID", "test-client-id")
-	os.Setenv("AZURE_CLIENT_SECRET", "test-client-secret")
-	os.Setenv("AZURE_TENANT_ID", "test-tenant-id")
-	os.Setenv("ACS_CONNECTION_STRING", "test-connection-string")
+	os.Setenv("AZURE_CLIENT_ID", TestAzureClientID)
+	os.Setenv("AZURE_CLIENT_SECRET", TestAzureClientSecret)
+	os.Setenv("AZURE_TENANT_ID", TestAzureTenantID)
+	os.Setenv("ACS_CONNECTION_STRING", TestACSConnectionString)
 }
 
 // CreateTestFine creates a test fine for a user in a club

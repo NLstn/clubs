@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import api from "../../../../utils/api";
 import AddFine from "./AddFine";
 import AdminClubFineTemplateList from "./AdminClubFineTemplateList";
+import { formatDateTime } from "../../../../utils/dateHelpers";
+import { createErrorHandler } from "../../../../utils/errorHandling";
 
 interface Fine {
     id: string;
@@ -24,17 +26,20 @@ const AdminClubFineList = () => {
     const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    const handleError = createErrorHandler("AdminClubFineList", setError, "Failed to perform operation");
+
     const fetchFines = useCallback(async () => {
         try {
             const response = await api.get(`/api/v1/clubs/${id}/fines`);
             // Ensure we always have an array, even if API returns null/undefined
             setFines(Array.isArray(response.data) ? response.data : []);
+            setError(null);
         } catch (err) {
-            setError("Failed to fetch fines: " + err);
+            handleError(err);
             // Reset fines to empty array on error to prevent stale data issues
             setFines([]);
         }
-    }, [id]);
+    }, [id, handleError]);
 
     const handleDeleteFine = async (fineId: string) => {
         if (!confirm("Are you sure you want to delete this fine?")) {
@@ -45,7 +50,7 @@ const AdminClubFineList = () => {
             await api.delete(`/api/v1/clubs/${id}/fines/${fineId}`);
             fetchFines(); // Refresh the list
         } catch (err) {
-            setError("Failed to delete fine: " + err);
+            handleError(err);
         }
     };
 
@@ -90,8 +95,8 @@ const AdminClubFineList = () => {
                             <td>{fine.userName}</td>
                             <td>{fine.amount}</td>
                             <td>{fine.reason}</td>
-                            <td>{new Date(fine.createdAt).toLocaleString()}</td>
-                            <td>{new Date(fine.updatedAt).toLocaleString()}</td>
+                            <td>{formatDateTime(fine.createdAt)}</td>
+                            <td>{formatDateTime(fine.updatedAt)}</td>
                             <td>{fine.paid ? "Yes" : "No"}</td>
                             <td>
                                 <button 
