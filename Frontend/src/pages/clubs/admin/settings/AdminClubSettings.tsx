@@ -42,7 +42,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
         };
 
         fetchSettings();
-    }, [id]);
+    }, [id, t]);
 
     const updateSettings = async (newSettings: Partial<Pick<ClubSettings, 'finesEnabled' | 'shiftsEnabled'>>) => {
         if (!settings) return;

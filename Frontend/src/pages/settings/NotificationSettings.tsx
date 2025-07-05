@@ -24,7 +24,7 @@ const NotificationSettings: React.FC = () => {
       
       setSaveMessage('Settings saved successfully!');
       setTimeout(() => setSaveMessage(null), 3000);
-    } catch (err) {
+    } catch {
       setSaveMessage('Failed to save settings. Please try again.');
       setTimeout(() => setSaveMessage(null), 5000);
     } finally {
