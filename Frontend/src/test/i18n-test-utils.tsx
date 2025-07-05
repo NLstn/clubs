@@ -59,5 +59,3 @@ export const TestI18nProvider = ({ children }: { children: React.ReactNode }) =>
     {children}
   </I18nextProvider>
 );
-
-export default testI18n;

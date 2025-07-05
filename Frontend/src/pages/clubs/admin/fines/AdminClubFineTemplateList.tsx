@@ -34,7 +34,7 @@ const AdminClubFineTemplateList = () => {
             setError(t('fines.errors.fetchingTemplates'));
             setLoading(false);
         }
-    }, [clubId]);
+    }, [clubId, t]);
 
     useEffect(() => {
         fetchTemplates();
