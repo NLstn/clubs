@@ -5,18 +5,21 @@ import { useAuth } from "../../hooks/useAuth";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 
 interface UserProfile {
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
 }
 
 const Profile = () => {
     const { api } = useAuth();
     const [profile, setProfile] = useState<UserProfile>({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: ''
     });
     const [isEditing, setIsEditing] = useState(false);
-    const [editedName, setEditedName] = useState('');
+    const [editedFirstName, setEditedFirstName] = useState('');
+    const [editedLastName, setEditedLastName] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [message, setMessage] = useState('');
 
@@ -25,17 +28,21 @@ const Profile = () => {
             try {
                 const response = await api.get('/api/v1/me');
                 setProfile({
-                    name: response.data.Name || 'User',
+                    firstName: response.data.FirstName || '',
+                    lastName: response.data.LastName || '',
                     email: response.data.Email || ''
                 });
-                setEditedName(response.data.Name || 'User');
+                setEditedFirstName(response.data.FirstName || '');
+                setEditedLastName(response.data.LastName || '');
             } catch (error) {
                 console.error('Error fetching user profile:', error);
                 setProfile({
-                    name: 'Demo User',
+                    firstName: 'Demo',
+                    lastName: 'User',
                     email: 'user@example.com'
                 });
-                setEditedName('Demo User');
+                setEditedFirstName('Demo');
+                setEditedLastName('User');
             } finally {
                 setIsLoading(false);
             }
@@ -52,12 +59,14 @@ const Profile = () => {
         setIsLoading(true);
         try {
             await api.put('/api/v1/me', {
-                name: editedName
+                firstName: editedFirstName,
+                lastName: editedLastName
             });
 
             setProfile({
                 ...profile,
-                name: editedName
+                firstName: editedFirstName,
+                lastName: editedLastName
             });
             setMessage('Profile updated successfully!');
             setTimeout(() => setMessage(''), 3000);
@@ -71,7 +80,8 @@ const Profile = () => {
     };
 
     const handleCancel = () => {
-        setEditedName(profile.name);
+        setEditedFirstName(profile.firstName);
+        setEditedLastName(profile.lastName);
         setIsEditing(false);
     };
 
@@ -109,12 +119,36 @@ const Profile = () => {
                     ) : (
                         <div className="profile-container" style={{ maxWidth: '600px' }}>
                             <div className="form-group">
-                                <label>Name:</label>
+                                <label>First Name:</label>
                                 {isEditing ? (
                                     <input
                                         type="text"
-                                        value={editedName}
-                                        onChange={(e) => setEditedName(e.target.value)}
+                                        value={editedFirstName}
+                                        onChange={(e) => setEditedFirstName(e.target.value)}
+                                        style={{ width: '100%', padding: '8px', marginBottom: '10px' }}
+                                    />
+                                ) : (
+                                    <div style={{ 
+                                        padding: '8px',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        border: '1px solid transparent',
+                                        marginBottom: '10px'
+                                    }}>
+                                        <span>{profile.firstName}</span>
+                                        <button onClick={handleEdit} style={{ padding: '5px 10px' }}>Edit</button>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <div className="form-group">
+                                <label>Last Name:</label>
+                                {isEditing ? (
+                                    <input
+                                        type="text"
+                                        value={editedLastName}
+                                        onChange={(e) => setEditedLastName(e.target.value)}
                                         style={{ width: '100%', padding: '8px' }}
                                     />
                                 ) : (
@@ -125,8 +159,8 @@ const Profile = () => {
                                         alignItems: 'center',
                                         border: '1px solid transparent'
                                     }}>
-                                        <span>{profile.name}</span>
-                                        <button onClick={handleEdit} style={{ padding: '5px 10px' }}>Edit</button>
+                                        <span>{profile.lastName}</span>
+                                        {!isEditing && <div style={{ width: '80px' }}></div>}
                                     </div>
                                 )}
                             </div>
@@ -144,7 +178,13 @@ const Profile = () => {
 
                             {isEditing && (
                                 <div className="form-actions" style={{ marginTop: '20px' }}>
-                                    <button onClick={handleSave} className="button-accept">Save</button>
+                                    <button 
+                                        onClick={handleSave} 
+                                        className="button-accept"
+                                        disabled={!editedFirstName.trim() || !editedLastName.trim()}
+                                    >
+                                        Save
+                                    </button>
                                     <button onClick={handleCancel} className="button-cancel">Cancel</button>
                                 </div>
                             )}

@@ -86,7 +86,7 @@ func handleGetFines(w http.ResponseWriter, r *http.Request) {
 		fineList = append(fineList, Fine{
 			ID:        fine.ID,
 			UserID:    fine.UserID,
-			UserName:  user.Name,
+			UserName:  user.GetFullName(),
 			Reason:    fine.Reason,
 			Amount:    fine.Amount,
 			CreatedAt: fine.CreatedAt.Format(time.RFC3339),

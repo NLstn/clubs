@@ -11,7 +11,8 @@ import (
 
 type User struct {
 	ID        string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	Name      string
+	FirstName string
+	LastName  string
 	Email     string `gorm:"uniqueIndex;not null"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -73,8 +74,21 @@ func GetUsersByIDs(userIDs []string) ([]User, error) {
 	return users, err
 }
 
-func (u *User) UpdateUserName(name string) error {
-	return database.Db.Exec(`UPDATE users SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, name, u.ID).Error
+func (u *User) UpdateUserName(firstName, lastName string) error {
+	return database.Db.Exec(`UPDATE users SET first_name = ?, last_name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, firstName, lastName, u.ID).Error
+}
+
+// Helper method to get full name
+func (u *User) GetFullName() string {
+	if u.FirstName == "" && u.LastName == "" {
+		return ""
+	}
+	return strings.TrimSpace(u.FirstName + " " + u.LastName)
+}
+
+// Helper method to check if user has completed profile setup
+func (u *User) IsProfileComplete() bool {
+	return u.FirstName != "" && u.LastName != ""
 }
 
 func (u *User) StoreRefreshToken(token, userAgent, ipAddress string) error {

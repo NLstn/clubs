@@ -245,7 +245,7 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 			// Add creator names to activities
 			for i := range activities {
 				if creator, exists := creatorMap[activities[i].CreatedBy]; exists {
-					activities[i].CreatorName = creator.Name
+					activities[i].CreatorName = creator.GetFullName()
 					if activities[i].CreatorName == "" {
 						activities[i].CreatorName = creator.Email // Fallback to email if name is empty
 					}

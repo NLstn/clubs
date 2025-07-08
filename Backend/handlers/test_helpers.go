@@ -241,9 +241,10 @@ func CreateTestUser(t *testing.T, email string) (models.User, string) {
 
 	// Create user directly in database
 	user := models.User{
-		ID:    userID,
-		Email: email,
-		Name:  "Test User",
+		ID:        userID,
+		Email:     email,
+		FirstName: "Test",
+		LastName:  "User",
 	}
 
 	if err := testDB.Create(&user).Error; err != nil {

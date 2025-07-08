@@ -127,10 +127,11 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return token
-	json.NewEncoder(w).Encode(map[string]string{
-		"access":  accessToken,
-		"refresh": refreshToken,
+	// Return token and profile completion status
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"access":           accessToken,
+		"refresh":          refreshToken,
+		"profileComplete":  user.IsProfileComplete(),
 	})
 
 	if err := models.DeleteMagicLink(token); err != nil {

@@ -51,7 +51,7 @@ func handleGetMe(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-// endpoint: POST /api/v1/me
+// endpoint: PUT /api/v1/me
 func handleUpdateMe(w http.ResponseWriter, r *http.Request) {
 	user := extractUser(r)
 	if user.ID == "" {
@@ -60,19 +60,20 @@ func handleUpdateMe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Name string `json:"name"`
+		FirstName string `json:"firstName"`
+		LastName  string `json:"lastName"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	if req.Name == "" {
-		http.Error(w, "Name required", http.StatusBadRequest)
+	if req.FirstName == "" || req.LastName == "" {
+		http.Error(w, "First name and last name are required", http.StatusBadRequest)
 		return
 	}
 
-	if err := user.UpdateUserName(req.Name); err != nil {
+	if err := user.UpdateUserName(req.FirstName, req.LastName); err != nil {
 		http.Error(w, "Failed to update user", http.StatusInternalServerError)
 		return
 	}
@@ -184,7 +185,7 @@ func handleGetMyFines(w http.ResponseWriter, r *http.Request) {
 		fine.UpdatedAt = fines[i].UpdatedAt
 		fine.Paid = fines[i].Paid
 		fine.ClubName = club.Name
-		fine.CreatedByName = creator.Name
+		fine.CreatedByName = creator.GetFullName()
 
 		result = append(result, fine)
 	}

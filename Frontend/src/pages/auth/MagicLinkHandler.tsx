@@ -36,14 +36,18 @@ const MagicLinkHandler: React.FC = () => {
           login(data.access, data.refresh);
           setStatus('success');
           
-          // Redirect after short delay
+          // Redirect based on profile completion status
           setTimeout(() => {
-            const redirectPath = localStorage.getItem('loginRedirect');
-            if (redirectPath) {
-              localStorage.removeItem('loginRedirect');
-              navigate(redirectPath);
+            if (!data.profileComplete) {
+              navigate('/signup');
             } else {
-              navigate('/');
+              const redirectPath = localStorage.getItem('loginRedirect');
+              if (redirectPath) {
+                localStorage.removeItem('loginRedirect');
+                navigate(redirectPath);
+              } else {
+                navigate('/');
+              }
             }
           }, 2000);
         } else {

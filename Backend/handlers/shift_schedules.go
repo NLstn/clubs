@@ -112,7 +112,7 @@ func handleGetShiftMembers(w http.ResponseWriter, r *http.Request) {
 		}
 		apiMembers = append(apiMembers, ApiMember{
 			ID:   member.UserID,
-			Name: user.Name,
+			Name: user.GetFullName(),
 		})
 	}
 
