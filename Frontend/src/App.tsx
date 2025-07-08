@@ -7,6 +7,7 @@ import CreateClub from './pages/clubs/CreateClub';
 import JoinClub from './pages/clubs/JoinClub';
 import Login from './pages/auth/Login';
 import MagicLinkHandler from './pages/auth/MagicLinkHandler';
+import Signup from './pages/auth/Signup';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthProvider';
 import Profile from './pages/profile/Profile';
@@ -88,6 +89,11 @@ function App() {
 
                     <Route path="/login" element={<Login />} />
                     <Route path="/auth/magic" element={<MagicLinkHandler />} />
+                    <Route path="/signup" element={
+                        <ProtectedRoute>
+                            <Signup />
+                        </ProtectedRoute>
+                    } />
                     <Route path="/join/:clubId" element={<JoinClub />} />
 
                 </Routes>
