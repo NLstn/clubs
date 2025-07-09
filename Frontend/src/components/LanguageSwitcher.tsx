@@ -2,7 +2,7 @@ import React from 'react';
 import { useT } from '../hooks/useTranslation';
 
 const LanguageSwitcher: React.FC = () => {
-  const { t, changeLanguage, getCurrentLanguage } = useT();
+  const { changeLanguage, getCurrentLanguage } = useT();
   
   const languages = [
     { code: 'en', name: 'English' },
@@ -15,7 +15,6 @@ const LanguageSwitcher: React.FC = () => {
   
   return (
     <div className="language-switcher">
-      <label htmlFor="language-select">{t('profile.language')}</label>
       <select 
         id="language-select"
         value={getCurrentLanguage()}
