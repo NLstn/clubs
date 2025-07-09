@@ -13,11 +13,12 @@ const CreateClub = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await api.post('/api/v1/clubs', { name: clubName, description });
+            const response = await api.post('/api/v1/clubs', { name: clubName, description });
+            const createdClub = response.data;
             setMessage('Club created successfully!');
             setTimeout(() => {
-                navigate('/');
-            }, 1500);
+                navigate(`/clubs/${createdClub.id}`);
+            }, 1000);
         } catch (error) {
             setMessage('Error creating club');
             console.error(error);
@@ -40,6 +41,7 @@ const CreateClub = () => {
                             type="text"
                             value={clubName}
                             onChange={(e) => setClubName(e.target.value)}
+                            autoComplete="off"
                             required
                         />
                     </div>
@@ -48,6 +50,7 @@ const CreateClub = () => {
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
+                            autoComplete="off"
                         />
                     </div>
                     <div className="form-actions">
