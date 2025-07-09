@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/clubs/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -168,6 +170,33 @@ func TestMemberEndpoints(t *testing.T) {
 		req := MakeRequest(t, "PATCH", "/api/v1/clubs/"+club.ID+"/members/"+memberRecord.ID, roleData, ownerToken)
 		rr := ExecuteRequest(t, handler, req)
 		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+	})
+
+	t.Run("Update Member Role - Notification Sent", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "owner-notif@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		member, _ := CreateTestUser(t, "member-notif@example.com")
+		memberRecord := CreateTestMember(t, member, club, "member")
+
+		roleData := map[string]string{
+			"role": "admin",
+		}
+
+		req := MakeRequest(t, "PATCH", "/api/v1/clubs/"+club.ID+"/members/"+memberRecord.ID, roleData, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+		// Verify notification was created for the member whose role changed
+		var notifications []models.Notification
+		err := database.Db.Where("user_id = ? AND type = ?", member.ID, "role_changed").Find(&notifications).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(notifications))
+
+		notification := notifications[0]
+		assert.Equal(t, "Role Updated in Test Club", notification.Title)
+		assert.Contains(t, notification.Message, "Your role in Test Club has been changed from member to admin")
+		assert.Equal(t, club.ID, *notification.ClubID)
+		assert.False(t, notification.Read)
 	})
 
 	t.Run("Update Member Role - Invalid Role", func(t *testing.T) {

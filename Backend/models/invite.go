@@ -26,7 +26,15 @@ func (c *Club) CreateInvite(email, createdBy string) error {
 		Email:     email,
 		CreatedBy: createdBy,
 	}
-	return database.Db.Create(invite).Error
+	err := database.Db.Create(invite).Error
+	if err != nil {
+		return err
+	}
+
+	// Send invite notification to the user
+	SendInviteReceivedNotifications(email, c.ID, c.Name, invite.ID)
+
+	return nil
 }
 
 // GetInvites returns all pending invites for a club (admin view)
@@ -75,11 +83,14 @@ func AcceptInvite(inviteId, userId string) error {
 		return fmt.Errorf("user email does not match invite")
 	}
 
-	// Add user to club
-	err = club.AddMember(user.ID, "member")
+	// Add user to club via invite (this will skip the member_added notification)
+	err = club.AddMemberViaInvite(user.ID, "member")
 	if err != nil {
 		return err
 	}
+
+	// Remove any invite notifications for this invite
+	RemoveInviteNotifications(inviteId)
 
 	// Delete the invite since it's now complete
 	return database.Db.Delete(&Invite{}, "id = ?", inviteId).Error
@@ -87,6 +98,9 @@ func AcceptInvite(inviteId, userId string) error {
 
 // RejectInvite rejects an invitation
 func RejectInvite(inviteId string) error {
+	// Remove any invite notifications for this invite
+	RemoveInviteNotifications(inviteId)
+
 	return database.Db.Delete(&Invite{}, "id = ?", inviteId).Error
 }
 

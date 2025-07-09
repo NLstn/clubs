@@ -28,6 +28,7 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
     unreadCount,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
     refreshNotifications,
   } = useNotifications();
 
@@ -67,6 +68,7 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
           onMarkAsRead={markAsRead}
           onMarkAllAsRead={markAllAsRead}
           onRefresh={refreshNotifications}
+          onDeleteNotification={deleteNotification}
         />
         <div className="userSection" ref={dropdownRef}>
           <div 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -29,6 +30,11 @@ func GenerateToken() string {
 }
 
 func SendMagicLinkEmail(email, link string) error {
+	// Skip Azure Communication Services email calls in test environment
+	if os.Getenv("GO_ENV") == "test" {
+		return nil
+	}
+
 	return acs.SendMail([]acs.Recipient{{Address: email}}, "Magic Link", "Click the link to login: "+link, "<a href='"+link+"'>Click here to login</a>")
 }
 

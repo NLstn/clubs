@@ -13,31 +13,36 @@ import (
 type Notification struct {
 	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
 	UserID    string    `json:"userId" gorm:"type:uuid;not null"`
-	Type      string    `json:"type" gorm:"not null"` // e.g., "member_added", "event_created", "fine_assigned"
+	Type      string    `json:"type" gorm:"not null"` // e.g., "member_added", "event_created", "fine_assigned", "invite_received"
 	Title     string    `json:"title" gorm:"not null"`
 	Message   string    `json:"message" gorm:"not null"`
 	Read      bool      `json:"read" gorm:"default:false"`
 	CreatedAt time.Time `json:"createdAt"`
 	// Optional data for linking to specific resources
-	ClubID  *string `json:"clubId,omitempty" gorm:"type:uuid"`
-	EventID *string `json:"eventId,omitempty" gorm:"type:uuid"`
-	FineID  *string `json:"fineId,omitempty" gorm:"type:uuid"`
+	ClubID   *string `json:"clubId,omitempty" gorm:"type:uuid"`
+	EventID  *string `json:"eventId,omitempty" gorm:"type:uuid"`
+	FineID   *string `json:"fineId,omitempty" gorm:"type:uuid"`
+	InviteID *string `json:"inviteId,omitempty" gorm:"type:uuid"`
 }
 
 // UserNotificationPreferences represents user's notification settings
 type UserNotificationPreferences struct {
-	ID                    string    `json:"id" gorm:"type:uuid;primary_key"`
-	UserID                string    `json:"userId" gorm:"type:uuid;not null;unique"`
-	MemberAddedInApp      bool      `json:"memberAddedInApp" gorm:"default:true"`
-	MemberAddedEmail      bool      `json:"memberAddedEmail" gorm:"default:true"`
-	EventCreatedInApp     bool      `json:"eventCreatedInApp" gorm:"default:true"`
-	EventCreatedEmail     bool      `json:"eventCreatedEmail" gorm:"default:false"`
-	FineAssignedInApp     bool      `json:"fineAssignedInApp" gorm:"default:true"`
-	FineAssignedEmail     bool      `json:"fineAssignedEmail" gorm:"default:true"`
-	NewsCreatedInApp      bool      `json:"newsCreatedInApp" gorm:"default:true"`
-	NewsCreatedEmail      bool      `json:"newsCreatedEmail" gorm:"default:false"`
-	CreatedAt             time.Time `json:"createdAt"`
-	UpdatedAt             time.Time `json:"updatedAt"`
+	ID                  string    `json:"id" gorm:"type:uuid;primary_key"`
+	UserID              string    `json:"userId" gorm:"type:uuid;not null;unique"`
+	MemberAddedInApp    bool      `json:"memberAddedInApp" gorm:"default:true"`
+	MemberAddedEmail    bool      `json:"memberAddedEmail" gorm:"default:true"`
+	InviteReceivedInApp bool      `json:"inviteReceivedInApp" gorm:"default:true"`
+	InviteReceivedEmail bool      `json:"inviteReceivedEmail" gorm:"default:true"`
+	EventCreatedInApp   bool      `json:"eventCreatedInApp" gorm:"default:true"`
+	EventCreatedEmail   bool      `json:"eventCreatedEmail" gorm:"default:false"`
+	FineAssignedInApp   bool      `json:"fineAssignedInApp" gorm:"default:true"`
+	FineAssignedEmail   bool      `json:"fineAssignedEmail" gorm:"default:true"`
+	NewsCreatedInApp    bool      `json:"newsCreatedInApp" gorm:"default:true"`
+	NewsCreatedEmail    bool      `json:"newsCreatedEmail" gorm:"default:false"`
+	RoleChangedInApp    bool      `json:"roleChangedInApp" gorm:"default:true"`
+	RoleChangedEmail    bool      `json:"roleChangedEmail" gorm:"default:true"`
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
 }
 
 // BeforeCreate sets the ID for new notifications
@@ -88,6 +93,11 @@ func MarkAllNotificationsAsRead(userID string) error {
 		Update("read", true).Error
 }
 
+// DeleteNotification deletes a notification for a user
+func DeleteNotification(notificationID, userID string) error {
+	return database.Db.Where("id = ? AND user_id = ?", notificationID, userID).Delete(&Notification{}).Error
+}
+
 // CreateNotification creates a new notification
 func CreateNotification(userID, notificationType, title, message string, clubID, eventID, fineID *string) error {
 	notification := Notification{
@@ -98,6 +108,21 @@ func CreateNotification(userID, notificationType, title, message string, clubID,
 		ClubID:  clubID,
 		EventID: eventID,
 		FineID:  fineID,
+	}
+	return database.Db.Create(&notification).Error
+}
+
+// CreateNotificationWithInvite creates a new notification with invite reference
+func CreateNotificationWithInvite(userID, notificationType, title, message string, clubID, eventID, fineID, inviteID *string) error {
+	notification := Notification{
+		UserID:   userID,
+		Type:     notificationType,
+		Title:    title,
+		Message:  message,
+		ClubID:   clubID,
+		EventID:  eventID,
+		FineID:   fineID,
+		InviteID: inviteID,
 	}
 	return database.Db.Create(&notification).Error
 }
@@ -119,15 +144,19 @@ func GetUserNotificationPreferences(userID string) (UserNotificationPreferences,
 // CreateDefaultUserNotificationPreferences creates default notification preferences for a user
 func CreateDefaultUserNotificationPreferences(userID string) (UserNotificationPreferences, error) {
 	preferences := UserNotificationPreferences{
-		UserID:                userID,
-		MemberAddedInApp:      true,
-		MemberAddedEmail:      true,
-		EventCreatedInApp:     true,
-		EventCreatedEmail:     false,
-		FineAssignedInApp:     true,
-		FineAssignedEmail:     true,
-		NewsCreatedInApp:      true,
-		NewsCreatedEmail:      false,
+		UserID:              userID,
+		MemberAddedInApp:    true,
+		MemberAddedEmail:    true,
+		InviteReceivedInApp: true,
+		InviteReceivedEmail: true,
+		EventCreatedInApp:   true,
+		EventCreatedEmail:   false,
+		FineAssignedInApp:   true,
+		FineAssignedEmail:   true,
+		NewsCreatedInApp:    true,
+		NewsCreatedEmail:    false,
+		RoleChangedInApp:    true,
+		RoleChangedEmail:    true,
 	}
 	err := database.Db.Create(&preferences).Error
 	return preferences, err
@@ -163,6 +192,84 @@ func SendMemberAddedNotifications(userID, userEmail, clubID, clubName string) er
 	// Import the notifications package for email sending
 	// We'll use a simplified approach here to avoid circular imports
 	// The email sending will be handled by the caller
-	
+
+	return nil
+}
+
+// SendInviteReceivedNotifications handles both in-app and email notifications for invite received
+func SendInviteReceivedNotifications(userEmail, clubID, clubName, inviteID string) error {
+	// Find user by email to get their preferences
+	var user User
+	err := database.Db.Where("email = ?", userEmail).First(&user).Error
+	if err != nil {
+		// User might not be registered yet, so we'll skip notification preferences
+		// but still create a basic notification if they register later
+		return nil
+	}
+
+	// Get user notification preferences
+	preferences, err := GetUserNotificationPreferences(user.ID)
+	if err != nil {
+		// If preferences don't exist, create default ones and continue
+		preferences, err = CreateDefaultUserNotificationPreferences(user.ID)
+		if err != nil {
+			return fmt.Errorf("failed to create notification preferences: %v", err)
+		}
+	}
+
+	// Send in-app notification if enabled
+	if preferences.InviteReceivedInApp {
+		title := "Invitation to " + clubName
+		message := fmt.Sprintf("You have been invited to join the club %s.", clubName)
+		err := CreateNotificationWithInvite(user.ID, "invite_received", title, message, &clubID, nil, nil, &inviteID)
+		if err != nil {
+			return fmt.Errorf("failed to create in-app notification: %v", err)
+		}
+	}
+
+	// Email sending will be handled by the caller if needed
+
+	return nil
+}
+
+// RemoveInviteNotifications removes invite notifications when an invite is accepted or rejected
+func RemoveInviteNotifications(inviteID string) error {
+	return database.Db.Where("invite_id = ? AND type = ?", inviteID, "invite_received").Delete(&Notification{}).Error
+}
+
+// SendRoleChangedNotifications handles both in-app and email notifications for role changes
+func SendRoleChangedNotifications(userID, clubID, clubName, oldRole, newRole string) error {
+	// Get user notification preferences
+	preferences, err := GetUserNotificationPreferences(userID)
+	if err != nil {
+		// If preferences don't exist, create default ones and continue
+		preferences, err = CreateDefaultUserNotificationPreferences(userID)
+		if err != nil {
+			return fmt.Errorf("failed to create notification preferences: %v", err)
+		}
+	}
+
+	// Send in-app notification if enabled
+	if preferences.RoleChangedInApp {
+		title := "Role Updated in " + clubName
+		message := fmt.Sprintf("Your role in %s has been changed from %s to %s.", clubName, oldRole, newRole)
+		err := CreateNotification(userID, "role_changed", title, message, &clubID, nil, nil)
+		if err != nil {
+			return fmt.Errorf("failed to create in-app notification: %v", err)
+		}
+	}
+
+	// Send email notification if enabled
+	if preferences.RoleChangedEmail {
+		var user User
+		if err := database.Db.Where("id = ?", userID).First(&user).Error; err != nil {
+			return fmt.Errorf("failed to find user for email notification: %v", err)
+		}
+
+		// Import the notifications package for email sending
+		// Using a simplified approach to avoid circular imports
+		// The email sending will be handled by the caller using the notification package functions
+	}
+
 	return nil
 }

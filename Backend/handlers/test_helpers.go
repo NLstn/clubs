@@ -87,7 +87,8 @@ func SetupTestDB(t *testing.T) {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			created_by TEXT,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
+			updated_by TEXT,
+			accepted_via_invite INTEGER DEFAULT 0
 		)
 	`)
 	testDB.Exec(`
@@ -214,7 +215,8 @@ func SetupTestDB(t *testing.T) {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			club_id TEXT,
 			event_id TEXT,
-			fine_id TEXT
+			fine_id TEXT,
+			invite_id TEXT
 		)
 	`)
 	testDB.Exec(`
@@ -223,12 +225,16 @@ func SetupTestDB(t *testing.T) {
 			user_id TEXT NOT NULL UNIQUE,
 			member_added_in_app BOOLEAN DEFAULT TRUE,
 			member_added_email BOOLEAN DEFAULT TRUE,
+			invite_received_in_app BOOLEAN DEFAULT TRUE,
+			invite_received_email BOOLEAN DEFAULT TRUE,
 			event_created_in_app BOOLEAN DEFAULT TRUE,
 			event_created_email BOOLEAN DEFAULT FALSE,
 			fine_assigned_in_app BOOLEAN DEFAULT TRUE,
 			fine_assigned_email BOOLEAN DEFAULT TRUE,
 			news_created_in_app BOOLEAN DEFAULT TRUE,
 			news_created_email BOOLEAN DEFAULT FALSE,
+			role_changed_in_app BOOLEAN DEFAULT TRUE,
+			role_changed_email BOOLEAN DEFAULT TRUE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)

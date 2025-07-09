@@ -55,14 +55,14 @@ func TestNotificationEndpoints(t *testing.T) {
 		var preferences models.UserNotificationPreferences
 		ParseJSONResponse(t, rr, &preferences)
 		assert.Equal(t, user.ID, preferences.UserID)
-		assert.True(t, preferences.MemberAddedInApp)  // Should create default preferences
+		assert.True(t, preferences.MemberAddedInApp) // Should create default preferences
 	})
 
 	t.Run("Update Notification Preferences - Valid", func(t *testing.T) {
 		_, token := CreateTestUser(t, "update@example.com")
 
 		updateData := map[string]interface{}{
-			"memberAddedEmail": false,
+			"memberAddedEmail":  false,
 			"eventCreatedInApp": false,
 		}
 
@@ -139,5 +139,39 @@ func TestNotificationEndpoints(t *testing.T) {
 		req := MakeRequest(t, "POST", "/api/v1/notifications", nil, token)
 		rr := ExecuteRequest(t, handler, req)
 		CheckResponseCode(t, http.StatusMethodNotAllowed, rr.Code)
+	})
+
+	t.Run("Delete Notification", func(t *testing.T) {
+		user, token := CreateTestUser(t, "delete@example.com")
+
+		// Create a test notification
+		clubID := "test-club-id"
+		err := models.CreateNotification(user.ID, "test_notification", "Test Title", "Test Message", &clubID, nil, nil)
+		assert.NoError(t, err)
+
+		// Get the notification
+		notifications, err := models.GetUserNotifications(user.ID, 10)
+		assert.NoError(t, err)
+		assert.Greater(t, len(notifications), 0)
+
+		notification := notifications[0]
+
+		// Delete the notification
+		req := MakeRequest(t, "DELETE", "/api/v1/notifications/"+notification.ID, nil, token)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusOK, rr.Code)
+
+		// Verify it's deleted
+		updatedNotifications, err := models.GetUserNotifications(user.ID, 10)
+		assert.NoError(t, err)
+
+		found := false
+		for _, n := range updatedNotifications {
+			if n.ID == notification.ID {
+				found = true
+				break
+			}
+		}
+		assert.False(t, found)
 	})
 }

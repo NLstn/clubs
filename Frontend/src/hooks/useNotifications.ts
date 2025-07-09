@@ -12,6 +12,7 @@ export interface Notification {
   clubId?: string;
   eventId?: string;
   fineId?: string;
+  inviteId?: string;
 }
 
 export interface NotificationPreferences {
@@ -95,6 +96,25 @@ export const useNotifications = () => {
     }
   }, []);
 
+  const deleteNotification = useCallback(async (notificationId: string) => {
+    try {
+      await api.delete(`/api/v1/notifications/${notificationId}`);
+      
+      // Update local state
+      setNotifications(prev => 
+        prev.filter(notification => notification.id !== notificationId)
+      );
+      
+      // Update unread count if the deleted notification was unread
+      const deletedNotification = notifications.find(n => n.id === notificationId);
+      if (deletedNotification && !deletedNotification.read) {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (err) {
+      console.error('Error deleting notification:', err);
+    }
+  }, [notifications]);
+
   const refreshNotifications = useCallback(() => {
     fetchNotifications();
     fetchUnreadCount();
@@ -123,6 +143,7 @@ export const useNotifications = () => {
     fetchUnreadCount,
     markAsRead,
     markAllAsRead,
+    deleteNotification,
     refreshNotifications,
   };
 };
