@@ -87,8 +87,7 @@ func SetupTestDB(t *testing.T) {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			created_by TEXT,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT,
-			accepted_via_invite INTEGER DEFAULT 0
+			updated_by TEXT
 		)
 	`)
 	testDB.Exec(`

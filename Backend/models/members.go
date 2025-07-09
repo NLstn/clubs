@@ -11,15 +11,14 @@ import (
 )
 
 type Member struct {
-	ID                string    `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID            string    `json:"club_id" gorm:"type:uuid"`
-	UserID            string    `json:"user_id" gorm:"type:uuid"`
-	Role              string    `json:"role" gorm:"default:member"`
-	CreatedAt         time.Time `json:"created_at"`
-	CreatedBy         string    `json:"created_by" gorm:"type:uuid"`
-	UpdatedAt         time.Time `json:"updated_at"`
-	UpdatedBy         string    `json:"updated_by" gorm:"type:uuid"`
-	AcceptedViaInvite bool      `json:"accepted_via_invite" gorm:"default:false"`
+	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
+	ClubID    string    `json:"club_id" gorm:"type:uuid"`
+	UserID    string    `json:"user_id" gorm:"type:uuid"`
+	Role      string    `json:"role" gorm:"default:member"`
+	CreatedAt time.Time `json:"created_at"`
+	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
+	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
 }
 
 func (c *Club) IsOwner(user User) bool {
@@ -70,6 +69,14 @@ func (c *Club) GetClubMembers() ([]Member, error) {
 }
 
 func (c *Club) AddMember(userId, role string) error {
+	return c.addMember(userId, role, true)
+}
+
+func (c *Club) AddMemberViaInvite(userId, role string) error {
+	return c.addMember(userId, role, false)
+}
+
+func (c *Club) addMember(userId, role string, sendNotification bool) error {
 	var member Member
 	member.ID = uuid.New().String()
 	member.ClubID = c.ID
@@ -82,7 +89,9 @@ func (c *Club) AddMember(userId, role string) error {
 	if err != nil {
 		return err
 	}
-	member.notifyAdded()
+	if sendNotification {
+		member.notifyAdded()
+	}
 	return nil
 }
 
@@ -133,11 +142,6 @@ func (c *Club) UpdateMemberRole(changingUser User, memberID, role string) error 
 }
 
 func (m *Member) notifyAdded() {
-	// Skip notifications if member was added via invite acceptance
-	if m.AcceptedViaInvite {
-		return
-	}
-
 	var club Club
 	if err := database.Db.Where("id = ?", m.ClubID).First(&club).Error; err != nil {
 		return
@@ -191,22 +195,4 @@ func (c *Club) canChangeRole(changingUser User, oldRole, newRole string) (bool, 
 		return true, nil
 	}
 	return false, nil
-}
-
-func (c *Club) AddMemberViaInvite(userId, role string) error {
-	var member Member
-	member.ID = uuid.New().String()
-	member.ClubID = c.ID
-	member.UserID = userId
-	member.Role = role
-	member.AcceptedViaInvite = true
-	// For now, set created_by to the user being added since we don't have the adding user's ID
-	member.CreatedBy = userId
-	member.UpdatedBy = userId
-	err := database.Db.Create(&member).Error
-	if err != nil {
-		return err
-	}
-	member.notifyAdded() // This will skip notification due to AcceptedViaInvite flag
-	return nil
 }

@@ -258,11 +258,12 @@ func TestInviteEndpoints(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(memberNotifications))
 
-		// Verify user is now a member with AcceptedViaInvite flag set
+		// Verify user is now a member (but no member_added notification should have been sent)
 		var member models.Member
 		err = database.Db.Where("club_id = ? AND user_id = ?", club.ID, invitedUser.ID).First(&member).Error
 		assert.NoError(t, err)
-		assert.True(t, member.AcceptedViaInvite)
+		// Verify the member exists and has the correct role
+		assert.Equal(t, "member", member.Role)
 	})
 
 	t.Run("Reject Invite - Removes Notification", func(t *testing.T) {
