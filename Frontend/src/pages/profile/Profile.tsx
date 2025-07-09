@@ -87,105 +87,109 @@ const Profile = () => {
 
     return (
         <Layout title="User Profile">
-            <div style={{ 
-                display: 'flex', 
-                minHeight: 'calc(100vh - 90px)',
-                width: '100%',
-                position: 'relative'
-            }}>
+            <div className="profile-layout">
                 <ProfileSidebar />
-                <div style={{ 
-                    flex: '1 1 auto',
-                    padding: '20px',
-                    maxWidth: 'calc(100% - 200px)'
-                }}>
-                    <h2>My Profile</h2>
+                <div className="profile-content">
+                    <div className="profile-header">
+                        <h2>My Profile</h2>
+                    </div>
                     
                     {message && (
-                        <div className={message.includes('Failed') ? 'error' : 'success'} 
-                             style={{ 
-                                padding: '10px', 
-                                marginBottom: '20px',
-                                backgroundColor: message.includes('Failed') ? 'var(--color-error-bg)' : 'var(--color-success-bg)',
-                                color: message.includes('Failed') ? 'var(--color-error-text)' : 'var(--color-success-text)',
-                                borderRadius: '4px'
-                             }}>
+                        <div className={message.includes('Failed') ? 'error-message' : 'success-message'}>
                             {message}
                         </div>
                     )}
                     
                     {isLoading ? (
-                        <p>Loading profile...</p>
+                        <div style={{ 
+                            textAlign: 'center', 
+                            padding: 'var(--space-xl)',
+                            color: 'var(--color-text-secondary)'
+                        }}>
+                            <p>Loading profile...</p>
+                        </div>
                     ) : (
-                        <div className="profile-container" style={{ maxWidth: '600px' }}>
-                            <div className="form-group">
-                                <label>First Name:</label>
-                                {isEditing ? (
-                                    <input
-                                        type="text"
-                                        value={editedFirstName}
-                                        onChange={(e) => setEditedFirstName(e.target.value)}
-                                        style={{ width: '100%', padding: '8px', marginBottom: '10px' }}
-                                    />
-                                ) : (
-                                    <div style={{ 
-                                        padding: '8px',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        border: '1px solid transparent',
-                                        marginBottom: '10px'
-                                    }}>
-                                        <span>{profile.firstName}</span>
-                                        <button onClick={handleEdit} style={{ padding: '5px 10px' }}>Edit</button>
+                        <div className="profile-container" style={{ maxWidth: '700px' }}>
+                            <div className="profile-section">
+                                <div style={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center',
+                                    marginBottom: 'var(--space-md)'
+                                }}>
+                                    <h3 className="profile-section-title" style={{ margin: 0 }}>Personal Information</h3>
+                                    {!isEditing && (
+                                        <button onClick={handleEdit} className="edit-button">
+                                            Edit Profile
+                                        </button>
+                                    )}
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="firstName">First Name</label>
+                                    {isEditing ? (
+                                        <input
+                                            id="firstName"
+                                            type="text"
+                                            value={editedFirstName}
+                                            onChange={(e) => setEditedFirstName(e.target.value)}
+                                            placeholder="Enter your first name"
+                                        />
+                                    ) : (
+                                        <div className="form-field-display">
+                                            <span>{profile.firstName || 'Not set'}</span>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="lastName">Last Name</label>
+                                    {isEditing ? (
+                                        <input
+                                            id="lastName"
+                                            type="text"
+                                            value={editedLastName}
+                                            onChange={(e) => setEditedLastName(e.target.value)}
+                                            placeholder="Enter your last name"
+                                        />
+                                    ) : (
+                                        <div className="form-field-display">
+                                            <span>{profile.lastName || 'Not set'}</span>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="email">Email Address</label>
+                                    <div className="form-field-display form-field-readonly">
+                                        <span>{profile.email}</span>
+                                        <span className="field-note">Cannot be changed</span>
                                     </div>
-                                )}
-                            </div>
-                            
-                            <div className="form-group">
-                                <label>Last Name:</label>
-                                {isEditing ? (
-                                    <input
-                                        type="text"
-                                        value={editedLastName}
-                                        onChange={(e) => setEditedLastName(e.target.value)}
-                                        style={{ width: '100%', padding: '8px' }}
-                                    />
-                                ) : (
-                                    <div style={{ 
-                                        padding: '8px',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        border: '1px solid transparent'
-                                    }}>
-                                        <span>{profile.lastName}</span>
-                                        {!isEditing && <div style={{ width: '80px' }}></div>}
-                                    </div>
-                                )}
-                            </div>
-                            
-                            <div className="form-group">
-                                <label>Email:</label>
-                                <div style={{ padding: '8px', border: '1px solid transparent' }}>
-                                    {profile.email} <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.9em' }}>(cannot be changed)</span>
                                 </div>
                             </div>
 
-                            <div className="form-group">
-                                <LanguageSwitcher />
+                            <div className="profile-section">
+                                <h3 className="profile-section-title">Preferences</h3>
+                                <div className="form-group">
+                                    <label>Language</label>
+                                    <div style={{ marginTop: 'var(--space-xs)' }}>
+                                        <LanguageSwitcher />
+                                    </div>
+                                </div>
                             </div>
 
                             {isEditing && (
-                                <div className="form-actions" style={{ marginTop: '20px' }}>
+                                <div className="form-actions">
                                     <button 
                                         onClick={handleSave} 
                                         className="button-accept"
                                         disabled={!editedFirstName.trim() || !editedLastName.trim()}
                                     >
-                                        Save
+                                        Save Changes
                                     </button>
-                                    <button onClick={handleCancel} className="button-cancel">Cancel</button>
+                                    <button onClick={handleCancel} className="button-cancel">
+                                        Cancel
+                                    </button>
                                 </div>
                             )}
                         </div>
