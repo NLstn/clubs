@@ -108,4 +108,9 @@ api.interceptors.response.use(
   (error) => Promise.reject(error)
 );
 
+// Club API functions
+export const hardDeleteClub = async (clubId: string) => {
+  return api.delete(`/api/v1/clubs/${clubId}/hard-delete`);
+};
+
 export default api;

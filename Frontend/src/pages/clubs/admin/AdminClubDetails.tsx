@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../../../utils/api';
+import api, { hardDeleteClub } from '../../../utils/api';
 import Layout from '../../../components/layout/Layout';
 import AdminClubMemberList from './members/AdminClubMemberList';
 import AdminClubFineList from './fines/AdminClubFineList';
@@ -31,6 +31,8 @@ const AdminClubDetails = () => {
     const [editForm, setEditForm] = useState({ name: '', description: '' });
     const [activeTab, setActiveTab] = useState('overview');
     const [isOwner, setIsOwner] = useState(false);
+    const [showDeletePopup, setShowDeletePopup] = useState(false);
+    const [showHardDeletePopup, setShowHardDeletePopup] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -89,10 +91,11 @@ const AdminClubDetails = () => {
     const handleDeleteClub = async () => {
         if (!club) return;
         
-        const confirmText = t('clubs.deleteConfirmation', { clubName: club.name });
-        if (!confirm(confirmText)) {
-            return;
-        }
+        setShowDeletePopup(true);
+    };
+
+    const confirmDeleteClub = async () => {
+        if (!club) return;
 
         try {
             await api.delete(`/api/v1/clubs/${id}`);
@@ -101,6 +104,30 @@ const AdminClubDetails = () => {
         } catch (err: Error | unknown) {
             console.error('Error deleting club:', err instanceof Error ? err.message : 'Unknown error');
             setError('Failed to delete club');
+        }
+        setShowDeletePopup(false);
+    };
+
+    const handleHardDeleteClub = async () => {
+        if (!club) return;
+        
+        setShowHardDeletePopup(true);
+    };
+
+    const confirmHardDeleteClub = async () => {
+        if (!club) return;
+
+        try {
+            await hardDeleteClub(club.id);
+            
+            // Show success message and navigate back to clubs list
+            alert(t('clubs.hardDeleteSuccess'));
+            navigate('/clubs');
+        } catch (error) {
+            console.error('Error permanently deleting club:', error);
+            alert(t('clubs.hardDeleteError'));
+        } finally {
+            setShowHardDeletePopup(false);
         }
     };
 
@@ -187,14 +214,27 @@ const AdminClubDetails = () => {
                                     <div className="club-header">
                                         <h2>{club.name}</h2>
                                         <div className="club-actions">
-                                            <button onClick={handleEdit} className="button-accept">{t('clubs.editClub')}</button>
-                                            {isOwner && (
+                                            {!club.deleted && (
+                                                <>
+                                                    <button onClick={handleEdit} className="button-accept">{t('clubs.editClub')}</button>
+                                                    {isOwner && (
+                                                        <button 
+                                                            onClick={handleDeleteClub} 
+                                                            className="button-cancel"
+                                                            style={{ marginLeft: '10px' }}
+                                                        >
+                                                            {t('clubs.deleteClub')}
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
+                                            {club.deleted && isOwner && (
                                                 <button 
-                                                    onClick={handleDeleteClub} 
+                                                    onClick={handleHardDeleteClub} 
                                                     className="button-cancel"
-                                                    style={{ marginLeft: '10px' }}
+                                                    style={{ backgroundColor: '#d32f2f', borderColor: '#d32f2f' }}
                                                 >
-                                                    {t('clubs.deleteClub')}
+                                                    {t('clubs.hardDeleteClub')}
                                                 </button>
                                             )}
                                         </div>
@@ -202,11 +242,13 @@ const AdminClubDetails = () => {
                                     <p>{club.description}</p>
                                     {club.deleted && (
                                         <div className="club-deleted-notice" style={{ 
-                                            backgroundColor: '#ffebee', 
-                                            border: '1px solid #f44336', 
-                                            padding: '10px', 
-                                            marginTop: '10px',
-                                            borderRadius: '4px'
+                                            backgroundColor: '#f44336', 
+                                            color: 'white', 
+                                            padding: '15px', 
+                                            marginTop: '15px',
+                                            borderRadius: '4px',
+                                            fontWeight: 'bold',
+                                            border: '1px solid #d32f2f'
                                         }}>
                                             <strong>{t('clubs.clubDeleted')}</strong>
                                         </div>
@@ -240,6 +282,55 @@ const AdminClubDetails = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Delete Confirmation Popup */}
+            {showDeletePopup && (
+                <div className="modal" onClick={() => setShowDeletePopup(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <h2>{t('clubs.deleteClub')}</h2>
+                        <p>{t('clubs.deleteConfirmation', { clubName: club?.name })}</p>
+                        <div className="modal-actions">
+                            <button 
+                                onClick={confirmDeleteClub} 
+                                className="button-cancel"
+                            >
+                                {t('common.delete')}
+                            </button>
+                            <button 
+                                onClick={() => setShowDeletePopup(false)} 
+                                className="button-accept"
+                            >
+                                {t('common.cancel')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Hard Delete Confirmation Popup */}
+            {showHardDeletePopup && (
+                <div className="modal" onClick={() => setShowHardDeletePopup(false)}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <h2>{t('clubs.hardDeleteClub')}</h2>
+                        <p>{t('clubs.hardDeleteConfirmation', { clubName: club?.name })}</p>
+                        <div className="modal-actions">
+                            <button 
+                                onClick={confirmHardDeleteClub} 
+                                className="button-cancel"
+                                style={{ backgroundColor: '#d32f2f', borderColor: '#d32f2f' }}
+                            >
+                                {t('clubs.hardDeleteClub')}
+                            </button>
+                            <button 
+                                onClick={() => setShowHardDeletePopup(false)} 
+                                className="button-accept"
+                            >
+                                {t('common.cancel')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </Layout>
     );
 };

@@ -32,6 +32,15 @@ func registerClubRoutes(mux *http.ServeMux) {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}/hard-delete", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodDelete:
+			handleHardDeleteClub(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
 }
 
 // ClubWithRole represents a club with the user's role in that club
@@ -59,14 +68,14 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 			if club.Deleted && !club.IsOwner(user) {
 				continue
 			}
-			
+
 			// Get user's role in this club
 			role, err := club.GetMemberRole(user)
 			if err != nil {
 				// If we can't get the role but they are a member, default to "member"
 				role = "member"
 			}
-			
+
 			clubWithRole := ClubWithRole{
 				Club:     club,
 				UserRole: role,
@@ -204,6 +213,40 @@ func handleDeleteClub(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := club.SoftDelete(user.ID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// endpoint: DELETE /api/v1/clubs/{clubid}/hard-delete
+func handleHardDeleteClub(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+	clubID := extractPathParam(r, "clubs")
+
+	club, err := models.GetClubByID(clubID)
+	if err == gorm.ErrRecordNotFound {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if !club.IsOwner(user) {
+		http.Error(w, "Unauthorized - only owners can permanently delete clubs", http.StatusForbidden)
+		return
+	}
+
+	// Only allow hard delete if club is already soft deleted
+	if !club.Deleted {
+		http.Error(w, "Club must be soft deleted before permanent deletion", http.StatusBadRequest)
+		return
+	}
+
+	if err := models.DeleteClubPermanently(clubID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

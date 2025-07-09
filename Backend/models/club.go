@@ -95,3 +95,9 @@ func (c *Club) SoftDelete(deletedBy string) error {
 		"deleted_by": &deletedBy,
 	}).Error
 }
+
+func DeleteClubPermanently(clubID string) error {
+	// This will permanently delete the club and all related data
+	// Note: This should cascade delete related records if foreign keys are set up properly
+	return database.Db.Unscoped().Delete(&Club{}, "id = ?", clubID).Error
+}

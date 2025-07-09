@@ -60,7 +60,11 @@
     "members": "Members",
     "editClub": "Edit Club",
     "deleteClub": "Delete Club",
+    "hardDeleteClub": "Hard Delete Club",
     "deleteConfirmation": "Are you sure you want to delete \"{{clubName}}\"? This will mark the club as deleted and make it invisible to all members except owners.",
+    "hardDeleteConfirmation": "Are you sure you want to permanently delete \"{{clubName}}\"? This action cannot be undone and will permanently remove the club and all its data.",
+    "hardDeleteSuccess": "Club has been permanently deleted.",
+    "hardDeleteError": "Error permanently deleting club. Please try again.",
     "clubDeleted": "This club has been marked as deleted and is only visible to owners.",
     "loading": {
       "settings": "Loading settings...",

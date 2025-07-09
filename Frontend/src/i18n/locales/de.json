@@ -60,7 +60,11 @@
     "members": "Mitglieder",
     "editClub": "Verein bearbeiten",
     "deleteClub": "Verein löschen",
+    "hardDeleteClub": "Verein endgültig löschen",
     "deleteConfirmation": "Sind Sie sicher, dass Sie \"{{clubName}}\" löschen möchten? Dadurch wird der Verein als gelöscht markiert und ist nur noch für Besitzer sichtbar.",
+    "hardDeleteConfirmation": "Sind Sie sicher, dass Sie \"{{clubName}}\" endgültig löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden und wird den Verein und alle seine Daten dauerhaft entfernen.",
+    "hardDeleteSuccess": "Verein wurde endgültig gelöscht.",
+    "hardDeleteError": "Fehler beim endgültigen Löschen des Vereins. Bitte versuchen Sie es erneut.",
     "clubDeleted": "Dieser Verein wurde als gelöscht markiert und ist nur für Besitzer sichtbar.",
     "loading": {
       "settings": "Einstellungen werden geladen...",
