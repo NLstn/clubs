@@ -2,7 +2,6 @@ package models
 
 import (
 	"log"
-	"os"
 	"time"
 
 	"github.com/NLstn/clubs/database"
@@ -12,14 +11,15 @@ import (
 )
 
 type Member struct {
-	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID    string    `json:"club_id" gorm:"type:uuid"`
-	UserID    string    `json:"user_id" gorm:"type:uuid"`
-	Role      string    `json:"role" gorm:"default:member"`
-	CreatedAt time.Time `json:"created_at"`
-	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
-	UpdatedAt time.Time `json:"updated_at"`
-	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
+	ID                string    `json:"id" gorm:"type:uuid;primary_key"`
+	ClubID            string    `json:"club_id" gorm:"type:uuid"`
+	UserID            string    `json:"user_id" gorm:"type:uuid"`
+	Role              string    `json:"role" gorm:"default:member"`
+	CreatedAt         time.Time `json:"created_at"`
+	CreatedBy         string    `json:"created_by" gorm:"type:uuid"`
+	UpdatedAt         time.Time `json:"updated_at"`
+	UpdatedBy         string    `json:"updated_by" gorm:"type:uuid"`
+	AcceptedViaInvite bool      `json:"accepted_via_invite" gorm:"default:false"`
 }
 
 func (c *Club) IsOwner(user User) bool {
@@ -114,14 +114,27 @@ func (c *Club) UpdateMemberRole(changingUser User, memberID, role string) error 
 		return gorm.ErrInvalidData
 	}
 
+	// Store the old role before updating
+	oldRole := member.Role
 	member.Role = role
 	member.UpdatedBy = changingUser.ID
-	return database.Db.Save(&member).Error
+
+	err := database.Db.Save(&member).Error
+	if err != nil {
+		return err
+	}
+
+	// Send notification if role actually changed
+	if oldRole != role {
+		member.notifyRoleChanged(oldRole, role, c.Name)
+	}
+
+	return nil
 }
 
 func (m *Member) notifyAdded() {
-	// Skip notifications in test environment
-	if os.Getenv("GO_ENV") == "test" {
+	// Skip notifications if member was added via invite acceptance
+	if m.AcceptedViaInvite {
 		return
 	}
 
@@ -142,6 +155,30 @@ func (m *Member) notifyAdded() {
 	notifications.SendMemberAddedNotification(user.Email, club.ID, club.Name)
 }
 
+func (m *Member) notifyRoleChanged(oldRole, newRole, clubName string) {
+	// Get user notification preferences
+	preferences, err := GetUserNotificationPreferences(m.UserID)
+	if err != nil {
+		// If preferences don't exist, create default ones and continue
+		preferences, err = CreateDefaultUserNotificationPreferences(m.UserID)
+		if err != nil {
+			return
+		}
+	}
+
+	// Send in-app notification based on preferences
+	SendRoleChangedNotifications(m.UserID, m.ClubID, clubName, oldRole, newRole)
+
+	// Send email notification if enabled in preferences
+	if preferences.RoleChangedEmail {
+		var user User
+		if err := database.Db.Where("id = ?", m.UserID).First(&user).Error; err != nil {
+			return
+		}
+		notifications.SendRoleChangedNotification(user.Email, m.ClubID, clubName, oldRole, newRole)
+	}
+}
+
 func (c *Club) canChangeRole(changingUser User, oldRole, newRole string) (bool, error) {
 	changingUserRole, err := c.GetMemberRole(changingUser)
 	if err != nil {
@@ -154,4 +191,22 @@ func (c *Club) canChangeRole(changingUser User, oldRole, newRole string) (bool, 
 		return true, nil
 	}
 	return false, nil
+}
+
+func (c *Club) AddMemberViaInvite(userId, role string) error {
+	var member Member
+	member.ID = uuid.New().String()
+	member.ClubID = c.ID
+	member.UserID = userId
+	member.Role = role
+	member.AcceptedViaInvite = true
+	// For now, set created_by to the user being added since we don't have the adding user's ID
+	member.CreatedBy = userId
+	member.UpdatedBy = userId
+	err := database.Db.Create(&member).Error
+	if err != nil {
+		return err
+	}
+	member.notifyAdded() // This will skip notification due to AcceptedViaInvite flag
+	return nil
 }

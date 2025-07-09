@@ -24,6 +24,10 @@ func handleNotificationByID(w http.ResponseWriter, r *http.Request) {
 		MarkNotificationRead(w, r)
 		return
 	}
+	if r.Method == http.MethodDelete {
+		DeleteNotification(w, r)
+		return
+	}
 	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 }
 
@@ -117,12 +121,44 @@ func MarkNotificationRead(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Notification ID is required", http.StatusBadRequest)
 		return
 	}
-	
+
 	notificationID := path
 
 	err := models.MarkNotificationAsRead(notificationID, user.ID)
 	if err != nil {
 		http.Error(w, "Failed to mark notification as read", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+}
+
+// DeleteNotification handles DELETE requests to delete a notification
+func DeleteNotification(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	user := extractUser(r)
+	if user.ID == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Get notification ID from URL path
+	path := strings.TrimPrefix(r.URL.Path, "/api/v1/notifications/")
+	if path == "" || path == "mark-all-read" {
+		http.Error(w, "Notification ID is required", http.StatusBadRequest)
+		return
+	}
+
+	notificationID := path
+
+	err := models.DeleteNotification(notificationID, user.ID)
+	if err != nil {
+		http.Error(w, "Failed to delete notification", http.StatusInternalServerError)
 		return
 	}
 

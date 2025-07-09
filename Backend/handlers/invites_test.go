@@ -188,4 +188,120 @@ func TestInviteEndpoints(t *testing.T) {
 			CheckResponseCode(t, http.StatusBadRequest, rr.Code)
 		}
 	})
+
+	t.Run("Invite Notifications - User Receives Notification When Invited", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "owner-notif@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+
+		// Create a user who will be invited
+		invitedUser, _ := CreateTestUser(t, "invited@example.com")
+
+		inviteData := map[string]string{
+			"email": "invited@example.com",
+		}
+
+		// Create invite
+		req := MakeRequest(t, "POST", "/api/v1/clubs/"+club.ID+"/invites", inviteData, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusCreated, rr.Code)
+
+		// Verify notification was created for the invited user
+		var notifications []models.Notification
+		err := database.Db.Where("user_id = ? AND type = ?", invitedUser.ID, "invite_received").Find(&notifications).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(notifications))
+
+		notification := notifications[0]
+		assert.Equal(t, "Invitation to Test Club", notification.Title)
+		assert.Contains(t, notification.Message, "You have been invited to join the club Test Club")
+		assert.Equal(t, club.ID, *notification.ClubID)
+		assert.False(t, notification.Read)
+	})
+
+	t.Run("Accept Invite - Removes Notification and No Member Added Notification", func(t *testing.T) {
+		owner, _ := CreateTestUser(t, "owner-accept@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+
+		// Create a user who will be invited and accept
+		invitedUser, invitedToken := CreateTestUser(t, "invited-accept@example.com")
+
+		// Create invite directly through model to test notification
+		err := club.CreateInvite("invited-accept@example.com", owner.ID)
+		assert.NoError(t, err)
+
+		// Get the invite to find its ID
+		var invites []models.Invite
+		err = database.Db.Where("club_id = ? AND email = ?", club.ID, "invited-accept@example.com").Find(&invites).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(invites))
+		inviteID := invites[0].ID
+
+		// Verify notification was created
+		var inviteNotifications []models.Notification
+		err = database.Db.Where("user_id = ? AND type = ?", invitedUser.ID, "invite_received").Find(&inviteNotifications).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(inviteNotifications))
+
+		// Accept the invite
+		req := MakeRequest(t, "POST", "/api/v1/invites/"+inviteID+"/accept", nil, invitedToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+		// Verify invite notification was removed
+		err = database.Db.Where("user_id = ? AND type = ?", invitedUser.ID, "invite_received").Find(&inviteNotifications).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(inviteNotifications))
+
+		// Verify NO member_added notification was created (since they accepted an invite)
+		var memberNotifications []models.Notification
+		err = database.Db.Where("user_id = ? AND type = ?", invitedUser.ID, "member_added").Find(&memberNotifications).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(memberNotifications))
+
+		// Verify user is now a member with AcceptedViaInvite flag set
+		var member models.Member
+		err = database.Db.Where("club_id = ? AND user_id = ?", club.ID, invitedUser.ID).First(&member).Error
+		assert.NoError(t, err)
+		assert.True(t, member.AcceptedViaInvite)
+	})
+
+	t.Run("Reject Invite - Removes Notification", func(t *testing.T) {
+		owner, _ := CreateTestUser(t, "owner-reject@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+
+		// Create a user who will be invited and reject
+		invitedUser, invitedToken := CreateTestUser(t, "invited-reject@example.com")
+
+		// Create invite directly through model to test notification
+		err := club.CreateInvite("invited-reject@example.com", owner.ID)
+		assert.NoError(t, err)
+
+		// Get the invite to find its ID
+		var invites []models.Invite
+		err = database.Db.Where("club_id = ? AND email = ?", club.ID, "invited-reject@example.com").Find(&invites).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(invites))
+		inviteID := invites[0].ID
+
+		// Verify notification was created
+		var inviteNotifications []models.Notification
+		err = database.Db.Where("user_id = ? AND type = ?", invitedUser.ID, "invite_received").Find(&inviteNotifications).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(inviteNotifications))
+
+		// Reject the invite
+		req := MakeRequest(t, "POST", "/api/v1/invites/"+inviteID+"/reject", nil, invitedToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+		// Verify invite notification was removed
+		err = database.Db.Where("user_id = ? AND type = ?", invitedUser.ID, "invite_received").Find(&inviteNotifications).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(inviteNotifications))
+
+		// Verify user is not a member
+		var member models.Member
+		err = database.Db.Where("club_id = ? AND user_id = ?", club.ID, invitedUser.ID).First(&member).Error
+		assert.Error(t, err) // Should be "record not found"
+	})
 }
