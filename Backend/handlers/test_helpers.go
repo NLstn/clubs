@@ -568,7 +568,12 @@ func registerClubRoutesForTest(mux *http.ServeMux) {
 		case http.MethodPatch:
 			handleUpdateClub(w, r)
 		case http.MethodDelete:
-			handleDeleteClub(w, r)
+			// Check if this is hard delete
+			if strings.HasSuffix(r.URL.Path, "/hard-delete") {
+				handleHardDeleteClub(w, r)
+			} else {
+				handleDeleteClub(w, r)
+			}
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}

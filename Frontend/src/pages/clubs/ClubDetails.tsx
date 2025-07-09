@@ -7,14 +7,17 @@ import UpcomingEvents from './UpcomingEvents';
 import ClubNews from './ClubNews';
 import { useClubSettings } from '../../hooks/useClubSettings';
 import { addRecentClub } from '../../utils/recentClubs';
+import { useT } from '../../hooks/useTranslation';
 
 interface Club {
     id: string;
     name: string;
     description: string;
+    deleted?: boolean;
 }
 
 const ClubDetails = () => {
+    const { t } = useT();
     const { id } = useParams();
     const navigate = useNavigate();
     const [club, setClub] = useState<Club | null>(null);
@@ -57,6 +60,18 @@ const ClubDetails = () => {
         <Layout title={club.name}>
             <div>
                 <h2>{club.name}</h2>
+                {club.deleted && (
+                    <div className="club-deleted-notice" style={{ 
+                        backgroundColor: '#f44336', 
+                        color: 'white', 
+                        padding: '15px', 
+                        marginBottom: '20px',
+                        borderRadius: '4px',
+                        fontWeight: 'bold'
+                    }}>
+                        {t('clubs.clubDeleted')}
+                    </div>
+                )}
                 <div className="club-info">
                     <p>{club.description}</p>
                     <ClubNews />
