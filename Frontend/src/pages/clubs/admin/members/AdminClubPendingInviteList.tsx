@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../../../utils/api";
 
-interface JoinRequest {
+interface Invite {
     id: string;
     email: string;
 }
@@ -10,18 +10,18 @@ interface JoinRequest {
 const AdminClubPendingInviteList = () => {
 
     const { id } = useParams();
-    const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
+    const [invites, setInvites] = useState<Invite[]>([]);
 
     useEffect(() => {
-        const fetchJoinRequests = async () => {
+        const fetchInvites = async () => {
             try {
-                const response = await api.get(`/api/v1/clubs/${id}/joinRequests`);
-                setJoinRequests(response.data);
+                const response = await api.get(`/api/v1/clubs/${id}/invites`);
+                setInvites(response.data);
             } catch (error) {
-                console.error("Error fetching join requests:", error);
+                console.error("Error fetching invites:", error);
             }
         };
-        fetchJoinRequests();
+        fetchInvites();
     }, [id]);
 
     return (
@@ -34,9 +34,9 @@ const AdminClubPendingInviteList = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {joinRequests.map((request) => (
-                        <tr key={request.id}>
-                            <td>{request.email}</td>
+                    {invites.map((invite) => (
+                        <tr key={invite.id}>
+                            <td>{invite.email}</td>
                         </tr>
                     ))}
                 </tbody>

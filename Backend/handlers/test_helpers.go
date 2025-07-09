@@ -22,6 +22,9 @@ var testDB *gorm.DB
 
 // SetupTestDB initializes an in-memory SQLite database for testing
 func SetupTestDB(t *testing.T) {
+	// Set test environment variable
+	os.Setenv("GO_ENV", "test")
+
 	var err error
 	testDB, err = gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
@@ -91,13 +94,20 @@ func SetupTestDB(t *testing.T) {
 		CREATE TABLE IF NOT EXISTS join_requests (
 			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
+			user_id TEXT NOT NULL,
 			email TEXT NOT NULL,
-			admin_approved BOOLEAN DEFAULT FALSE,
-			user_approved BOOLEAN DEFAULT FALSE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			created_by TEXT,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS invites (
+			id TEXT PRIMARY KEY,
+			club_id TEXT NOT NULL,
+			email TEXT NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT NOT NULL,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)
 	`)
 	testDB.Exec(`
@@ -436,6 +446,7 @@ func GetTestHandler() http.Handler {
 	registerJoinRequestRoutesForTest(mux)
 	registerFineRoutesForTest(mux)
 	registerNotificationRoutesForTest(mux)
+	registerInviteRoutesForTest(mux)
 
 	return mux
 }
@@ -676,12 +687,9 @@ func registerShiftRoutesForTest(mux *http.ServeMux) {
 
 func registerJoinRequestRoutesForTest(mux *http.ServeMux) {
 	mux.Handle("/api/v1/clubs/{clubid}/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			handleJoinRequestCreate(w, r)
-		case http.MethodGet:
-			handleGetJoinEvents(w, r)
-		default:
+		if r.Method == http.MethodGet {
+			handleGetJoinRequests(w, r)
+		} else {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	}))
@@ -706,15 +714,6 @@ func registerJoinRequestRoutesForTest(mux *http.ServeMux) {
 		if r.Method == http.MethodGet {
 			handleGetClubInfo(w, r)
 		} else {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	}))
-
-	mux.Handle("/api/v1/joinRequests", withAuth(func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			handleGetUserJoinRequests(w, r)
-		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	}))
@@ -760,4 +759,41 @@ func registerNotificationRoutesForTest(mux *http.ServeMux) {
 	mux.Handle("/api/v1/notifications/", withAuth(handleNotificationByID))
 	mux.Handle("/api/v1/notifications/mark-all-read", withAuth(MarkAllNotificationsRead))
 	mux.Handle("/api/v1/notification-preferences", withAuth(handleNotificationPreferences))
+}
+
+func registerInviteRoutesForTest(mux *http.ServeMux) {
+	mux.Handle("/api/v1/clubs/{clubid}/invites", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			handleCreateInvite(w, r)
+		case http.MethodGet:
+			handleGetClubInvites(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/invites", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetUserInvites(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/invites/{inviteid}/accept", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			handleAcceptInvite(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/invites/{inviteid}/reject", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			handleRejectInvite(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
 }

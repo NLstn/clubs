@@ -2,6 +2,7 @@ package models
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/NLstn/clubs/database"
@@ -119,6 +120,11 @@ func (c *Club) UpdateMemberRole(changingUser User, memberID, role string) error 
 }
 
 func (m *Member) notifyAdded() {
+	// Skip notifications in test environment
+	if os.Getenv("GO_ENV") == "test" {
+		return
+	}
+
 	var club Club
 	if err := database.Db.Where("id = ?", m.ClubID).First(&club).Error; err != nil {
 		return
@@ -131,7 +137,7 @@ func (m *Member) notifyAdded() {
 
 	// Send in-app notification based on preferences
 	SendMemberAddedNotifications(user.ID, user.Email, club.ID, club.Name)
-	
+
 	// Also send the traditional email notification for backward compatibility
 	notifications.SendMemberAddedNotification(user.Email, club.ID, club.Name)
 }

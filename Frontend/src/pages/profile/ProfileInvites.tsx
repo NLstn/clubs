@@ -17,7 +17,7 @@ const ProfileInvites = () => {
   }, []);
 
   const fetchInvitations = async () => {
-    const response = await api.get('/api/v1/joinRequests');
+    const response = await api.get('/api/v1/invites');
     if (response.status === 200) {
       const data = response.data;
       setInvites(data);
@@ -26,7 +26,7 @@ const ProfileInvites = () => {
 
   const handleAccept = async (inviteId: string, clubName: string) => {
     try {
-      await api.post(`/api/v1/joinRequests/${inviteId}/accept`);
+      await api.post(`/api/v1/invites/${inviteId}/accept`);
       setInvites(invites.filter(invite => invite.id !== inviteId));
 
       // Show success message
@@ -40,7 +40,7 @@ const ProfileInvites = () => {
 
   const handleDecline = async (inviteId: string) => {
     try {
-      await api.post(`/api/v1/joinRequests/${inviteId}/reject`);
+      await api.post(`/api/v1/invites/${inviteId}/reject`);
       setInvites(invites.filter(invite => invite.id !== inviteId));
 
       // Show success message
