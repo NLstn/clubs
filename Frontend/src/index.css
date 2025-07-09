@@ -104,7 +104,8 @@ input {
   letter-spacing: 0.025em;
 }
 
-.form-group input {
+.form-group input,
+.form-group textarea {
   width: 100%;
   padding: 12px 16px;
   border: 2px solid var(--color-border);
@@ -114,19 +115,23 @@ input {
   color: var(--color-text);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   box-sizing: border-box;
+  font-family: inherit;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
 }
 
-.form-group input:hover:not(:focus) {
+.form-group input:hover:not(:focus),
+.form-group textarea:hover:not(:focus) {
   border-color: var(--color-primary);
 }
 
-.form-group input:disabled {
+.form-group input:disabled,
+.form-group textarea:disabled {
   background-color: var(--color-background);
   color: var(--color-text-secondary);
   border-color: var(--color-border);
@@ -621,16 +626,6 @@ tr:hover {
   margin-bottom: 8px;
   color: var(--color-text);
   font-weight: 500;
-}
-
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-sm);
-  font-size: 1rem;
-  box-sizing: border-box;
 }
 
 .form-group textarea {
