@@ -114,10 +114,11 @@ func TestAuthEndpoints(t *testing.T) {
 
 				// If successful, check response structure
 				if tt.expectedStatus == http.StatusOK {
-					var response map[string]string
+					var response map[string]interface{}
 					ParseJSONResponse(t, rr, &response)
 					assert.Contains(t, response, "access")
 					assert.Contains(t, response, "refresh")
+					assert.Contains(t, response, "profileComplete")
 					assert.NotEmpty(t, response["access"])
 					assert.NotEmpty(t, response["refresh"])
 				}

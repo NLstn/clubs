@@ -31,13 +31,15 @@ func TestUserEndpoints(t *testing.T) {
 		var userResponse map[string]interface{}
 		ParseJSONResponse(t, rr, &userResponse)
 		assert.Equal(t, user.Email, userResponse["Email"])
-		assert.Equal(t, user.Name, userResponse["Name"])
+		assert.Equal(t, user.FirstName, userResponse["FirstName"])
+		assert.Equal(t, user.LastName, userResponse["LastName"])
 		assert.Equal(t, user.ID, userResponse["ID"])
 	})
 
 	t.Run("Update Me - Unauthorized", func(t *testing.T) {
 		updateData := map[string]string{
-			"name": "Updated Name",
+			"firstName": "Updated",
+			"lastName":  "Name",
 		}
 
 		req := MakeRequest(t, "PUT", "/api/v1/me", updateData, "")
@@ -48,7 +50,8 @@ func TestUserEndpoints(t *testing.T) {
 	t.Run("Update Me - Valid", func(t *testing.T) {
 		user, token := CreateTestUser(t, "updateme@example.com")
 		updateData := map[string]string{
-			"name": "Updated Test User",
+			"firstName": "Updated",
+			"lastName":  "TestUser",
 		}
 
 		req := MakeRequest(t, "PUT", "/api/v1/me", updateData, token)
@@ -62,30 +65,59 @@ func TestUserEndpoints(t *testing.T) {
 
 		var userResponse map[string]interface{}
 		ParseJSONResponse(t, rr2, &userResponse)
-		assert.Equal(t, "Updated Test User", userResponse["Name"])
+		assert.Equal(t, "Updated", userResponse["FirstName"])
+		assert.Equal(t, "TestUser", userResponse["LastName"])
 		assert.Equal(t, user.Email, userResponse["Email"])
 	})
 
-	t.Run("Update Me - Missing Name", func(t *testing.T) {
+	t.Run("Update Me - Missing FirstName", func(t *testing.T) {
 		_, token := CreateTestUser(t, "updateme2@example.com")
-		updateData := map[string]string{}
-
-		req := MakeRequest(t, "PUT", "/api/v1/me", updateData, token)
-		rr := ExecuteRequest(t, handler, req)
-		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
-		AssertContains(t, rr.Body.String(), "Name required")
-	})
-
-	t.Run("Update Me - Empty Name", func(t *testing.T) {
-		_, token := CreateTestUser(t, "updateme3@example.com")
 		updateData := map[string]string{
-			"name": "",
+			"lastName": "User",
 		}
 
 		req := MakeRequest(t, "PUT", "/api/v1/me", updateData, token)
 		rr := ExecuteRequest(t, handler, req)
 		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
-		AssertContains(t, rr.Body.String(), "Name required")
+		AssertContains(t, rr.Body.String(), "First name and last name are required")
+	})
+
+	t.Run("Update Me - Missing LastName", func(t *testing.T) {
+		_, token := CreateTestUser(t, "updateme3@example.com")
+		updateData := map[string]string{
+			"firstName": "Test",
+		}
+
+		req := MakeRequest(t, "PUT", "/api/v1/me", updateData, token)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
+		AssertContains(t, rr.Body.String(), "First name and last name are required")
+	})
+
+	t.Run("Update Me - Empty FirstName", func(t *testing.T) {
+		_, token := CreateTestUser(t, "updateme4@example.com")
+		updateData := map[string]string{
+			"firstName": "",
+			"lastName":  "User",
+		}
+
+		req := MakeRequest(t, "PUT", "/api/v1/me", updateData, token)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
+		AssertContains(t, rr.Body.String(), "First name and last name are required")
+	})
+
+	t.Run("Update Me - Empty LastName", func(t *testing.T) {
+		_, token := CreateTestUser(t, "updateme5@example.com")
+		updateData := map[string]string{
+			"firstName": "Test",
+			"lastName":  "",
+		}
+
+		req := MakeRequest(t, "PUT", "/api/v1/me", updateData, token)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
+		AssertContains(t, rr.Body.String(), "First name and last name are required")
 	})
 
 	t.Run("Method Not Allowed", func(t *testing.T) {

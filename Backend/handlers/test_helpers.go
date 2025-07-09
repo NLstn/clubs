@@ -43,7 +43,8 @@ func SetupTestDB(t *testing.T) {
 	testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS users (
 			id TEXT PRIMARY KEY,
-			name TEXT,
+			first_name TEXT,
+			last_name TEXT,
 			email TEXT NOT NULL UNIQUE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
