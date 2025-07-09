@@ -26,7 +26,7 @@ const ClubList = () => {
     const fetchClubs = async () => {
         try {
             const response = await api.get('/api/v1/clubs');
-            setClubs(response.data);
+            setClubs(response.data || []);
         } catch (err: Error | unknown) {
             console.error('Error fetching clubs:', err);
             setError('Failed to fetch clubs');
@@ -59,7 +59,7 @@ const ClubList = () => {
     }
 
     return (
-        <Layout title="My Clubs">
+        <Layout title="My Clubs" showRecentClubs={false}>
             <div className="clubs-container">
                 {adminClubs.length > 0 && (
                     <div className="clubs-section">
@@ -112,7 +112,7 @@ const ClubList = () => {
                     </div>
                 )}
 
-                {clubs.length === 0 && (
+                {adminClubs.length === 0 && memberClubs.length === 0 && (
                     <div className="empty-state">
                         <h2>No Clubs Yet</h2>
                         <p>You're not a member of any clubs yet.</p>
