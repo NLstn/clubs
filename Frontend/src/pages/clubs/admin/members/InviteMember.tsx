@@ -25,7 +25,7 @@ const InviteMember: FC<InviteMemberProps> = ({ isOpen, onClose, onSubmit }) => {
             placeholder="Enter email"
           />
         </div>
-        <div>
+        <div className="modal-actions">
           <button onClick={() => onSubmit(email)} disabled={!email} className="button-accept">
             Send Invite
           </button>
