@@ -28,6 +28,7 @@ func main() {
 		&models.MagicLink{},
 		&models.User{},
 		&models.JoinRequest{},
+		&models.Invite{},
 		&models.RefreshToken{},
 		&models.Fine{},
 		&models.FineTemplate{},

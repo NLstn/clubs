@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import InviteMember from "./InviteMember";
+import AdminClubJoinRequestList from "./AdminClubJoinRequestList";
+import AdminClubPendingInviteList from "./AdminClubPendingInviteList";
 import api from "../../../../utils/api";
 import { useParams } from "react-router-dom";
 
@@ -10,20 +12,15 @@ interface Member {
     joinedAt: string;
 }
 
-interface JoinRequest {
-    id: string;
-    email: string;
-}
-
 const AdminClubMemberList = () => {
     const { id } = useParams();
 
     const [members, setMembers] = useState<Member[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showPendingInvites, setShowPendingInvites] = useState(false);
+    const [showJoinRequests, setShowJoinRequests] = useState(false);
     const [showInviteLink, setShowInviteLink] = useState(false);
     const [inviteLink, setInviteLink] = useState('');
-    const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [error, setError] = useState<string | null>(null);
 
     const fetchMembers = useCallback(async () => {
@@ -39,17 +36,7 @@ const AdminClubMemberList = () => {
         }
     }, [id]);
 
-    const fetchJoinRequests = async () => {
-        try {
-            const response = await api.get(`/api/v1/clubs/${id}/joinRequests`);
-            setJoinRequests(response.data);
-        } catch (error) {
-            console.error("Error fetching join requests:", error);
-        }
-    };
-
     const handleShowPendingInvites = () => {
-        fetchJoinRequests();
         setShowPendingInvites(true);
     };
 
@@ -107,7 +94,7 @@ const AdminClubMemberList = () => {
 
     const sendInvite = async (email: string) => {
         try {
-            await api.post(`/api/v1/clubs/${id}/joinRequests`, { email });
+            await api.post(`/api/v1/clubs/${id}/invites`, { email });
             setIsModalOpen(false);
         } catch {
             setError('Failed to send invite');
@@ -187,6 +174,7 @@ const AdminClubMemberList = () => {
                 <button onClick={() => setIsModalOpen(true)} className="button-accept">Invite Member</button>
                 <button onClick={handleShowInviteLink} className="button-accept">Generate Invite Link</button>
                 <button onClick={handleShowPendingInvites}>View Pending Invites</button>
+                <button onClick={() => setShowJoinRequests(true)}>View Join Requests</button>
             </div>
             <InviteMember
                 isOpen={isModalOpen}
@@ -227,27 +215,20 @@ const AdminClubMemberList = () => {
             {showPendingInvites && (
                 <div className="modal">
                     <div className="modal-content">
-                        <h2>Pending Invites</h2>
-                        {joinRequests.length === 0 ? (
-                            <p>No pending invites</p>
-                        ) : (
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Email</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {joinRequests.map((request) => (
-                                        <tr key={request.id}>
-                                            <td>{request.email}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
+                        <AdminClubPendingInviteList />
                         <div className="modal-actions">
                             <button onClick={() => setShowPendingInvites(false)} className="button-cancel">Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showJoinRequests && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <AdminClubJoinRequestList />
+                        <div className="modal-actions">
+                            <button onClick={() => setShowJoinRequests(false)} className="button-cancel">Close</button>
                         </div>
                     </div>
                 </div>

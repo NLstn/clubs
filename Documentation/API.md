@@ -750,14 +750,14 @@ The API uses JWT-based authentication with magic link email authentication. Most
 
 ---
 
-## Join Request Management Endpoints
+## Invite Management Endpoints
 
-### Create Join Request
-**Endpoint:** `POST /api/v1/clubs/{clubid}/joinRequests`  
+### Create Invite
+**Endpoint:** `POST /api/v1/clubs/{clubid}/invites`  
 **Authentication:** Bearer token required  
 **Rate Limit:** API limiter (30/5s)
 
-**Description:** Create a join request for a user to join a club. Only club owners can create join requests.
+**Description:** Create an invite for a user to join a club. Only club owners and admins can create invites.
 
 **Path Parameters:**
 - `clubid` (UUID) - Club identifier
@@ -770,21 +770,121 @@ The API uses JWT-based authentication with magic link email authentication. Most
 ```
 
 **Responses:**
-- `201 Created` - Join request created successfully
+- `201 Created` - Invite created successfully
 - `400 Bad Request` - Invalid request payload or missing email
 - `401 Unauthorized` - Invalid or missing token
-- `403 Forbidden` - User is not the club owner
+- `403 Forbidden` - User is not a club owner or admin
 - `404 Not Found` - Club not found
 - `500 Internal Server Error` - Database error
 
 ---
+
+### Get Club Invites
+**Endpoint:** `GET /api/v1/clubs/{clubid}/invites`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Get all pending invites for a club. Only club owners and admins can view invites.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Response:**
+```json
+[
+  {
+    "id": "invite-uuid",
+    "email": "user@example.com",
+    "created_at": "2024-01-01T10:00:00Z",
+    "invited_by": "admin-user-uuid"
+  }
+]
+```
+
+**Responses:**
+- `200 OK` - List of invites
+- `400 Bad Request` - Invalid club ID format
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not a club owner or admin
+- `500 Internal Server Error` - Database error
+
+---
+
+### Get User Invites
+**Endpoint:** `GET /api/v1/invites`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Get all pending invites for the authenticated user.
+
+**Response:**
+```json
+[
+  {
+    "id": "invite-uuid",
+    "club_id": "club-uuid",
+    "club_name": "Club Name",
+    "invited_by": "admin-user-uuid",
+    "created_at": "2024-01-01T10:00:00Z"
+  }
+]
+```
+
+**Responses:**
+- `200 OK` - List of user's invites
+- `401 Unauthorized` - Invalid or missing token
+- `500 Internal Server Error` - Database error
+
+---
+
+### Accept Invite
+**Endpoint:** `POST /api/v1/invites/{inviteid}/accept`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Accept an invite to join a club. Only the invited user can accept their own invite.
+
+**Path Parameters:**
+- `inviteid` (UUID) - Invite identifier
+
+**Responses:**
+- `204 No Content` - Invite accepted, user added to club
+- `400 Bad Request` - Invalid invite ID format
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not the intended recipient of this invite
+- `404 Not Found` - Invite not found
+- `500 Internal Server Error` - Database error
+
+---
+
+### Reject Invite
+**Endpoint:** `POST /api/v1/invites/{inviteid}/reject`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Reject an invite to join a club. Only the invited user can reject their own invite.
+
+**Path Parameters:**
+- `inviteid` (UUID) - Invite identifier
+
+**Responses:**
+- `204 No Content` - Invite rejected and deleted
+- `400 Bad Request` - Invalid invite ID format
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not the intended recipient of this invite
+- `404 Not Found` - Invite not found
+- `500 Internal Server Error` - Database error
+
+---
+
+## Join Request Management Endpoints
 
 ### Get Club Join Requests
 **Endpoint:** `GET /api/v1/clubs/{clubid}/joinRequests`  
 **Authentication:** Bearer token required  
 **Rate Limit:** API limiter (30/5s)
 
-**Description:** Get all join requests for a club. Only club owners can view join requests.
+**Description:** Get all pending join requests for a club. Only club owners and admins can view join requests.
 
 **Path Parameters:**
 - `clubid` (UUID) - Club identifier
@@ -794,7 +894,8 @@ The API uses JWT-based authentication with magic link email authentication. Most
 [
   {
     "id": "request-uuid",
-    "email": "user@example.com",
+    "user_id": "user-uuid",
+    "user_email": "user@example.com",
     "created_at": "2024-01-01T10:00:00Z"
   }
 ]
@@ -804,31 +905,7 @@ The API uses JWT-based authentication with magic link email authentication. Most
 - `200 OK` - List of join requests
 - `400 Bad Request` - Invalid club ID format
 - `401 Unauthorized` - Invalid or missing token
-- `403 Forbidden` - User is not the club owner
-- `500 Internal Server Error` - Database error
-
----
-
-### Get User Join Requests
-**Endpoint:** `GET /api/v1/joinRequests`  
-**Authentication:** Bearer token required  
-**Rate Limit:** API limiter (30/5s)
-
-**Description:** Get all join requests for the authenticated user.
-
-**Response:**
-```json
-[
-  {
-    "id": "request-uuid",
-    "clubName": "Club Name"
-  }
-]
-```
-
-**Responses:**
-- `200 OK` - List of user's join requests
-- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not a club owner or admin
 - `500 Internal Server Error` - Database error
 
 ---
@@ -838,15 +915,17 @@ The API uses JWT-based authentication with magic link email authentication. Most
 **Authentication:** Bearer token required  
 **Rate Limit:** API limiter (30/5s)
 
-**Description:** Accept a join request. Only authorized users can accept.
+**Description:** Accept a join request. Only club owners and admins can accept join requests.
 
 **Path Parameters:**
 - `requestid` (UUID) - Join request identifier
 
 **Responses:**
-- `204 No Content` - Join request accepted
+- `204 No Content` - Join request accepted, user added to club
 - `400 Bad Request` - Invalid request ID format
-- `401 Unauthorized` - Invalid or missing token, or user cannot edit this request
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not authorized to manage this club
+- `404 Not Found` - Join request not found
 - `500 Internal Server Error` - Database error
 
 ---
@@ -856,15 +935,17 @@ The API uses JWT-based authentication with magic link email authentication. Most
 **Authentication:** Bearer token required  
 **Rate Limit:** API limiter (30/5s)
 
-**Description:** Reject a join request. Only authorized users can reject.
+**Description:** Reject a join request. Only club owners and admins can reject join requests.
 
 **Path Parameters:**
 - `requestid` (UUID) - Join request identifier
 
 **Responses:**
-- `204 No Content` - Join request rejected
+- `204 No Content` - Join request rejected and deleted
 - `400 Bad Request` - Invalid request ID format
-- `401 Unauthorized` - Invalid or missing token, or user cannot edit this request
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not authorized to manage this club
+- `404 Not Found` - Join request not found
 - `500 Internal Server Error` - Database error
 
 ---
