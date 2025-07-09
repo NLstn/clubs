@@ -118,7 +118,7 @@ The system implements a smart notification approach for invitations:
 ### When an Invite is Accepted
 - The "Invite Received" notification is automatically removed
 - **No "Member Added" notification is sent** (to avoid duplicate notifications)
-- The member record is marked with `AcceptedViaInvite: true` for tracking
+- The system uses the invite acceptance flow which skips member addition notifications
 
 ### When an Invite is Rejected
 - The "Invite Received" notification is automatically removed
@@ -127,6 +127,6 @@ The system implements a smart notification approach for invitations:
 ### Direct Member Addition (Non-Invite)
 - When admins add members directly (not via invite)
 - Standard "Member Added" notification is sent
-- Member record has `AcceptedViaInvite: false`
+- This uses the regular member addition flow
 
 This approach ensures users receive relevant notifications without being overwhelmed by duplicate or redundant messages.
