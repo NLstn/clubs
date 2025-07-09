@@ -28,9 +28,6 @@ export const getRecentClubs = (): RecentClub[] => {
   }
 };
 
-/**
- * Add or update a club in the recent clubs list
- */
 export const addRecentClub = (clubId: string, clubName: string): void => {
   try {
     const existing = getRecentClubs();
@@ -51,9 +48,16 @@ export const addRecentClub = (clubId: string, clubName: string): void => {
   }
 };
 
-/**
- * Clear all recent clubs
- */
+export const removeRecentClub = (clubId: string): void => {
+  try {
+    const existing = getRecentClubs();
+    const filtered = existing.filter(club => club.id !== clubId);
+    localStorage.setItem(RECENT_CLUBS_KEY, JSON.stringify(filtered));
+  } catch (error) {
+    console.error('Error removing recent club:', error);
+  }
+};
+
 export const clearRecentClubs = (): void => {
   try {
     localStorage.removeItem(RECENT_CLUBS_KEY);

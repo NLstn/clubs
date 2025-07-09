@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import api from '../../utils/api';
+import ClubNotFound from './ClubNotFound';
+import { removeRecentClub } from '../../utils/recentClubs';
 
 interface Club {
   id: string;
@@ -33,6 +35,10 @@ const JoinClub: React.FC = () => {
     } catch (error) {
       console.error('Error fetching club info:', error);
       setMessage('Club not found or invitation link is invalid');
+      // Remove from recent clubs if it doesn't exist
+      if (clubId) {
+        removeRecentClub(clubId);
+      }
     } finally {
       setLoading(false);
     }
@@ -97,17 +103,7 @@ const JoinClub: React.FC = () => {
   }
 
   if (!club) {
-    return (
-      <div className="join-club-container">
-        <div className="join-club-box">
-          <h1>Club Not Found</h1>
-          <p>The club invitation link is invalid or the club no longer exists.</p>
-          <button onClick={() => navigate('/')} className="button-cancel">
-            Go to Dashboard
-          </button>
-        </div>
-      </div>
-    );
+    return <ClubNotFound clubId={clubId} title="Club Invitation Not Found" message="The club invitation link is invalid or the club no longer exists." />;
   }
 
   return (

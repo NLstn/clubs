@@ -5,8 +5,9 @@ import Layout from '../../components/layout/Layout';
 import MyOpenClubFines from './MyOpenClubFines';
 import UpcomingEvents from './UpcomingEvents';
 import ClubNews from './ClubNews';
+import ClubNotFound from './ClubNotFound';
 import { useClubSettings } from '../../hooks/useClubSettings';
-import { addRecentClub } from '../../utils/recentClubs';
+import { addRecentClub, removeRecentClub } from '../../utils/recentClubs';
 import { useT } from '../../hooks/useTranslation';
 
 interface Club {
@@ -23,6 +24,7 @@ const ClubDetails = () => {
     const [club, setClub] = useState<Club | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [clubNotFound, setClubNotFound] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const { settings: clubSettings } = useClubSettings(id);
 
@@ -43,16 +45,38 @@ const ClubDetails = () => {
                 }
                 
                 setLoading(false);
-            } catch {
-                setError('Error fetching club details');
+            } catch (err: unknown) {
+                console.error('Error fetching club details:', err);
+                
+                // Check if it's a 404 or 403 error (club not found or unauthorized)
+                if (err && typeof err === 'object' && 'response' in err) {
+                    const axiosError = err as { response?: { status?: number } };
+                    if (axiosError.response?.status === 404 || axiosError.response?.status === 403) {
+                        setClubNotFound(true);
+                        // Remove this club from recent clubs since it doesn't exist or user can't access it
+                        if (id) {
+                            removeRecentClub(id);
+                        }
+                    } else {
+                        setError(t('clubs.errors.loadingClub') || 'Error fetching club details');
+                    }
+                } else {
+                    setError(t('clubs.errors.loadingClub') || 'Error fetching club details');
+                }
                 setLoading(false);
             }
         };
 
-        fetchData();
-    }, [id]);
+        if (id) {
+            fetchData();
+        } else {
+            setError('No club ID provided');
+            setLoading(false);
+        }
+    }, [id, t]);
 
     if (loading) return <div>Loading...</div>;
+    if (clubNotFound) return <ClubNotFound clubId={id} />;
     if (error) return <div className="error">{error}</div>;
     if (!club) return <div>Club not found</div>;
 
