@@ -5,10 +5,12 @@ import RecentClubsDropdown from '../layout/RecentClubsDropdown';
 
 // Mock the recentClubs utility
 const mockGetRecentClubs = vi.fn();
+const mockRemoveRecentClub = vi.fn();
 const mockNavigate = vi.fn();
 
 vi.mock('../../utils/recentClubs', () => ({
-  getRecentClubs: () => mockGetRecentClubs()
+  getRecentClubs: () => mockGetRecentClubs(),
+  removeRecentClub: () => mockRemoveRecentClub()
 }));
 
 vi.mock('react-router-dom', async () => {
@@ -18,6 +20,13 @@ vi.mock('react-router-dom', async () => {
     useNavigate: () => mockNavigate
   };
 });
+
+// Mock the API
+vi.mock('../../utils/api', () => ({
+  default: {
+    get: vi.fn()
+  }
+}));
 
 const renderWithRouter = (component: React.ReactElement) => {
   return render(
@@ -80,11 +89,15 @@ describe('RecentClubsDropdown', () => {
     expect(screen.getByText('No recent clubs')).toBeInTheDocument();
   });
 
-  it('navigates to club when club item is clicked', () => {
+  it('navigates to club when club item is clicked', async () => {
     const mockClubs = [
       { id: '1', name: 'Club A', visitedAt: 1000 },
     ];
     mockGetRecentClubs.mockReturnValue(mockClubs);
+    
+    // Mock successful API call
+    const mockApi = await import('../../utils/api');
+    vi.mocked(mockApi.default.get).mockResolvedValue({});
     
     renderWithRouter(<RecentClubsDropdown />);
     
@@ -93,6 +106,9 @@ describe('RecentClubsDropdown', () => {
     
     const clubButton = screen.getByText('Club A');
     fireEvent.click(clubButton);
+    
+    // Wait for the async operation to complete
+    await new Promise(resolve => setTimeout(resolve, 0));
     
     expect(mockNavigate).toHaveBeenCalledWith('/clubs/1');
   });
