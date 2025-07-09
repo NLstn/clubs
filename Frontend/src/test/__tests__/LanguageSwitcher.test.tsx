@@ -16,7 +16,7 @@ describe('LanguageSwitcher', () => {
       </TestI18nProvider>
     );
 
-    expect(screen.getByLabelText('Language')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
     expect(screen.getByDisplayValue('English')).toBeInTheDocument();
   });
 

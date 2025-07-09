@@ -60,7 +60,7 @@ func TestFinesEndpoints(t *testing.T) {
 		assert.Equal(t, "Late arrival", fine["reason"])
 		assert.Equal(t, 25.0, fine["amount"])
 		assert.Equal(t, club.Name, fine["clubName"])
-		assert.Equal(t, user.Name, fine["createdByName"]) // Verify creator name is included
+		assert.Equal(t, user.GetFullName(), fine["createdByName"]) // Verify creator name is included
 	})
 
 	t.Run("Get My Fines - Only Unpaid Fines Expected", func(t *testing.T) {
@@ -138,11 +138,11 @@ func TestFinesEndpoints(t *testing.T) {
 			assert.NotEmpty(t, fine["clubName"], "Club name should be populated")
 
 			if fine["id"] == fine1.ID || fine["id"] == fine2.ID {
-				assert.Equal(t, creator1.Name, fine["createdByName"], "Creator1 name should match")
+				assert.Equal(t, creator1.GetFullName(), fine["createdByName"], "Creator1 name should match")
 				assert.Equal(t, club1.Name, fine["clubName"], "Club1 name should match")
 			}
 			if fine["id"] == fine3.ID || fine["id"] == fine4.ID {
-				assert.Equal(t, creator2.Name, fine["createdByName"], "Creator2 name should match")
+				assert.Equal(t, creator2.GetFullName(), fine["createdByName"], "Creator2 name should match")
 				assert.Equal(t, club2.Name, fine["clubName"], "Club2 name should match")
 			}
 		}
