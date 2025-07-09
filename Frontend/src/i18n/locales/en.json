@@ -20,7 +20,8 @@
     "search": "Search",
     "filter": "Filter",
     "sort": "Sort",
-    "actions": "Actions"
+    "actions": "Actions",
+    "goToDashboard": "Go to Dashboard"
   },
   "navigation": {
     "home": "Home",
@@ -66,6 +67,13 @@
     "hardDeleteSuccess": "Club has been permanently deleted.",
     "hardDeleteError": "Error permanently deleting club. Please try again.",
     "clubDeleted": "This club has been marked as deleted and is only visible to owners.",
+    "clubId": "Club ID",
+    "viewAllClubs": "View All Clubs",
+    "createClub": "Create Club",
+    "possibleReasons": "Possible reasons:",
+    "noLongerMember": "You are no longer a member of this club",
+    "invalidLink": "The link you used is invalid or expired",
+    "temporaryIssue": "There might be a temporary issue with the server",
     "loading": {
       "settings": "Loading settings...",
       "news": "Loading news...",
@@ -75,7 +83,8 @@
       "settingsNotFound": "Settings not found",
       "failedToLoadSettings": "Failed to load club settings",
       "failedToUpdateSettings": "Failed to update settings",
-      "loadingNews": "Error loading news: {{error}}"
+      "loadingNews": "Error loading news: {{error}}",
+      "loadingClub": "Error loading club details"
     }
   },
   "fines": {

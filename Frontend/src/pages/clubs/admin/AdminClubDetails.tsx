@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api, { hardDeleteClub } from '../../../utils/api';
 import Layout from '../../../components/layout/Layout';
+import ClubNotFound from '../ClubNotFound';
 import AdminClubMemberList from './members/AdminClubMemberList';
 import AdminClubFineList from './fines/AdminClubFineList';
 import AdminClubEventList from './events/AdminClubEventList';
@@ -9,6 +10,7 @@ import AdminClubNewsList from './news/AdminClubNewsList';
 import AdminClubSettings from './settings/AdminClubSettings';
 import { useClubSettings } from '../../../hooks/useClubSettings';
 import { useT } from '../../../hooks/useTranslation';
+import { removeRecentClub } from '../../../utils/recentClubs';
 
 interface Club {
     id: string;
@@ -27,6 +29,7 @@ const AdminClubDetails = () => {
     
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [clubNotFound, setClubNotFound] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({ name: '', description: '' });
     const [activeTab, setActiveTab] = useState('overview');
@@ -51,15 +54,35 @@ const AdminClubDetails = () => {
                 setClub(clubResponse.data);
                 setIsOwner(adminResponse.data.isOwner || false);
                 setLoading(false);
-            } catch (err: Error | unknown) {
-                console.error('Error fetching club details:', err instanceof Error ? err.message : 'Unknown error');
-                setError('Error fetching club details');
+            } catch (err: unknown) {
+                console.error('Error fetching club details:', err);
+                
+                // Check if it's a 404 or 403 error (club not found or unauthorized)
+                if (err && typeof err === 'object' && 'response' in err) {
+                    const axiosError = err as { response?: { status?: number } };
+                    if (axiosError.response?.status === 404 || axiosError.response?.status === 403) {
+                        setClubNotFound(true);
+                        // Remove this club from recent clubs since it doesn't exist or user can't access it
+                        if (id) {
+                            removeRecentClub(id);
+                        }
+                    } else {
+                        setError(t('clubs.errors.loadingClub') || 'Error fetching club details');
+                    }
+                } else {
+                    setError(t('clubs.errors.loadingClub') || 'Error fetching club details');
+                }
                 setLoading(false);
             }
         };
 
-        fetchData();
-    }, [id, navigate]);
+        if (id) {
+            fetchData();
+        } else {
+            setError('No club ID provided');
+            setLoading(false);
+        }
+    }, [id, navigate, t]);
 
     // Reset to valid tab if current tab becomes unavailable
     useEffect(() => {
@@ -73,7 +96,9 @@ const AdminClubDetails = () => {
     const updateClub = async () => {
         try {
             const response = await api.patch(`/api/v1/clubs/${id}`, editForm);
-            setClub(response.data);
+            const updatedClub = response.data;
+            setClub(updatedClub);
+            
             setIsEditing(false);
             setError(null);
         } catch {
@@ -99,6 +124,7 @@ const AdminClubDetails = () => {
 
         try {
             await api.delete(`/api/v1/clubs/${id}`);
+            // Note: We don't remove from recent clubs for soft delete since owners can still access it
             // Navigate to clubs list after deletion
             navigate('/');
         } catch (err: Error | unknown) {
@@ -120,6 +146,9 @@ const AdminClubDetails = () => {
         try {
             await hardDeleteClub(club.id);
             
+            // Remove the club from recent clubs since it no longer exists
+            removeRecentClub(club.id);
+            
             // Show success message and navigate back to clubs list
             alert(t('clubs.hardDeleteSuccess'));
             navigate('/clubs');
@@ -132,6 +161,7 @@ const AdminClubDetails = () => {
     };
 
     if (loading) return <div>Loading...</div>;
+    if (clubNotFound) return <ClubNotFound clubId={id} title="Club Administration Not Available" message="The club you are trying to manage does not exist or you do not have admin access to it." />;
     if (error) return <div className="error">{error}</div>;
     if (!club) return <div>Club not found</div>;
 

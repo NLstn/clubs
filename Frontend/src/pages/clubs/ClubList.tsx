@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import api from '../../utils/api';
+import { addRecentClub } from '../../utils/recentClubs';
 import './ClubList.css';
 
 interface Club {
@@ -35,7 +36,9 @@ const ClubList = () => {
         }
     };
 
-    const handleClubClick = (clubId: string) => {
+    const handleClubClick = (clubId: string, clubName: string) => {
+        // Add to recent clubs when clicking
+        addRecentClub(clubId, clubName);
         navigate(`/clubs/${clubId}`);
     };
 
@@ -69,7 +72,7 @@ const ClubList = () => {
                                 <div 
                                     key={club.id} 
                                     className="club-card"
-                                    onClick={() => handleClubClick(club.id)}
+                                    onClick={() => handleClubClick(club.id, club.name)}
                                 >
                                     <div className="club-header">
                                         <h3>{club.name}</h3>
@@ -97,7 +100,7 @@ const ClubList = () => {
                                 <div 
                                     key={club.id} 
                                     className="club-card"
-                                    onClick={() => handleClubClick(club.id)}
+                                    onClick={() => handleClubClick(club.id, club.name)}
                                 >
                                     <div className="club-header">
                                         <h3>{club.name}</h3>

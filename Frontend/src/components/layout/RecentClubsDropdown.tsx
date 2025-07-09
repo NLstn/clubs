@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getRecentClubs, RecentClub } from '../../utils/recentClubs';
+import { getRecentClubs, RecentClub, removeRecentClub } from '../../utils/recentClubs';
+import api from '../../utils/api';
 import './RecentClubsDropdown.css';
 
 const RecentClubsDropdown: React.FC = () => {
@@ -28,9 +29,22 @@ const RecentClubsDropdown: React.FC = () => {
     };
   }, []);
 
-  const handleClubClick = (clubId: string) => {
+  const handleClubClick = async (clubId: string) => {
     setIsOpen(false);
-    navigate(`/clubs/${clubId}`);
+    
+    try {
+      // First try to check if the club exists
+      await api.get(`/api/v1/clubs/${clubId}`);
+      navigate(`/clubs/${clubId}`);
+    } catch {
+      // If club doesn't exist, remove it from recent clubs
+      console.warn(`Club ${clubId} not found, removing from recent clubs`);
+      removeRecentClub(clubId);
+      setRecentClubs(getRecentClubs()); // Refresh the list
+      
+      // Still navigate to the club page, which will show the ClubNotFound component
+      navigate(`/clubs/${clubId}`);
+    }
   };
 
   const handleViewAllClubs = () => {
