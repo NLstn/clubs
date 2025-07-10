@@ -41,8 +41,8 @@ describe('Dashboard', () => {
         club_id: '1',
         created_at: '2024-01-01T10:00:00Z',
         updated_at: '2024-01-01T10:00:00Z',
-        created_by: 'user1',
-        creator_name: 'John Doe',
+        actor: 'user1',
+        actor_name: 'John Doe',
       },
       {
         id: '2',
@@ -53,8 +53,8 @@ describe('Dashboard', () => {
         club_id: '1',
         created_at: '2024-01-01T11:00:00Z',
         updated_at: '2024-01-01T11:00:00Z',
-        created_by: 'user2',
-        creator_name: 'Jane Smith',
+        actor: 'user2',
+        actor_name: 'Jane Smith',
         metadata: {
           start_time: '2024-01-01T15:00:00Z',
           end_time: '2024-01-01T17:00:00Z',

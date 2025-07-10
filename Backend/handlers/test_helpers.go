@@ -219,6 +219,20 @@ func SetupTestDB(t *testing.T) {
 		)
 	`)
 	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS activities (
+			id TEXT PRIMARY KEY,
+			club_id TEXT NOT NULL,
+			user_id TEXT NOT NULL,
+			actor_id TEXT,
+			type VARCHAR(50) NOT NULL,
+			title VARCHAR(255) NOT NULL,
+			content TEXT,
+			metadata TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS user_notification_preferences (
 			id TEXT PRIMARY KEY,
 			user_id TEXT NOT NULL UNIQUE,

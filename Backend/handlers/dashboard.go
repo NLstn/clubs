@@ -44,24 +44,24 @@ type NewsWithClub struct {
 // EventWithClub represents event with club information and RSVP status
 type EventWithClub struct {
 	models.Event
-	ClubName string             `json:"club_name"`
-	ClubID   string             `json:"club_id"`
-	UserRSVP *models.EventRSVP  `json:"user_rsvp,omitempty"`
+	ClubName string            `json:"club_name"`
+	ClubID   string            `json:"club_id"`
+	UserRSVP *models.EventRSVP `json:"user_rsvp,omitempty"`
 }
 
 // ActivityItem represents a unified activity feed item
 type ActivityItem struct {
-	ID          string                 `json:"id"`
-	Type        string                 `json:"type"` // "news" or "event"
-	Title       string                 `json:"title"`
-	Content     string                 `json:"content,omitempty"`
-	ClubName    string                 `json:"club_name"`
-	ClubID      string                 `json:"club_id"`
-	CreatedAt   string                 `json:"created_at"`
-	UpdatedAt   string                 `json:"updated_at"`
-	CreatedBy   string                 `json:"created_by,omitempty"`   // User ID who created the activity
-	CreatorName string                 `json:"creator_name,omitempty"` // Name of the user who created the activity
-	Metadata    map[string]interface{} `json:"metadata,omitempty"`     // For extensibility
+	ID        string                 `json:"id"`
+	Type      string                 `json:"type"` // "news", "event", "role_changed", "member_promoted", "member_demoted"
+	Title     string                 `json:"title"`
+	Content   string                 `json:"content,omitempty"`
+	ClubName  string                 `json:"club_name"`
+	ClubID    string                 `json:"club_id"`
+	CreatedAt string                 `json:"created_at"`
+	UpdatedAt string                 `json:"updated_at"`
+	Actor     string                 `json:"actor,omitempty"`      // User ID who created/initiated the activity
+	ActorName string                 `json:"actor_name,omitempty"` // Name of the user who created/initiated the activity
+	Metadata  map[string]interface{} `json:"metadata,omitempty"`   // For extensibility
 }
 
 // GET /api/v1/dashboard/news
@@ -81,7 +81,7 @@ func handleGetDashboardNews(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				continue // Skip clubs where we can't fetch news, don't fail entirely
 			}
-			
+
 			for _, news := range clubNews {
 				newsWithClub := NewsWithClub{
 					News:     news,
@@ -114,20 +114,20 @@ func handleGetDashboardEvents(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				continue // Skip clubs where we can't fetch events, don't fail entirely
 			}
-			
+
 			for _, event := range clubEvents {
 				eventWithClub := EventWithClub{
 					Event:    event,
 					ClubName: club.Name,
 					ClubID:   club.ID,
 				}
-				
+
 				// Add user's RSVP status if available
 				userRSVP, err := user.GetUserRSVP(event.ID)
 				if err == nil {
 					eventWithClub.UserRSVP = userRSVP
 				}
-				
+
 				allEvents = append(allEvents, eventWithClub)
 			}
 		}
@@ -149,6 +149,64 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 
 	var activities []ActivityItem
 	var creatorIDs []string
+	var userClubIDs []string
+
+	// Collect club IDs for clubs the user is a member of
+	for _, club := range clubs {
+		if club.IsMember(user) {
+			userClubIDs = append(userClubIDs, club.ID)
+		}
+	}
+
+	// Get activities from the activity store (role changes, promotions, etc.)
+	if len(userClubIDs) > 0 {
+		storedActivities, err := models.GetRecentActivities(userClubIDs, 30, 50) // Last 30 days, max 50 items
+		if err == nil {
+			for _, activity := range storedActivities {
+				// Find the club name
+				var clubName string
+				for _, club := range clubs {
+					if club.ID == activity.ClubID {
+						clubName = club.Name
+						break
+					}
+				}
+
+				// Parse metadata if it exists
+				var metadata map[string]interface{}
+				if activity.Metadata != "" {
+					json.Unmarshal([]byte(activity.Metadata), &metadata)
+				}
+
+				// For role change activities, use the actor (who made the change) as created_by
+				// For other activities, use the user who performed the action
+				var createdBy string
+				if (activity.Type == "member_promoted" || activity.Type == "member_demoted" || activity.Type == "role_changed") && activity.ActorID != nil {
+					createdBy = *activity.ActorID
+				} else {
+					createdBy = activity.UserID
+				}
+
+				activityItem := ActivityItem{
+					ID:        activity.ID,
+					Type:      activity.Type,
+					Title:     activity.Title,
+					Content:   activity.Content,
+					ClubName:  clubName,
+					ClubID:    activity.ClubID,
+					CreatedAt: activity.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+					UpdatedAt: activity.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
+					Actor:     createdBy,
+					Metadata:  metadata,
+				}
+
+				activities = append(activities, activityItem)
+				if createdBy != "" {
+					creatorIDs = append(creatorIDs, createdBy)
+				}
+			}
+		}
+	}
 
 	// Collect news as activities
 	for _, club := range clubs {
@@ -157,7 +215,7 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				continue // Skip clubs where we can't fetch news
 			}
-			
+
 			for _, news := range clubNews {
 				activity := ActivityItem{
 					ID:        news.ID,
@@ -168,7 +226,7 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 					ClubID:    club.ID,
 					CreatedAt: news.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 					UpdatedAt: news.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-					CreatedBy: news.CreatedBy,
+					Actor:     news.CreatedBy,
 				}
 				activities = append(activities, activity)
 				if news.CreatedBy != "" {
@@ -185,7 +243,7 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				continue // Skip clubs where we can't fetch events
 			}
-			
+
 			for _, event := range clubEvents {
 				// Create event content description
 				eventContent := "Event scheduled"
@@ -211,7 +269,7 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 					ClubID:    club.ID,
 					CreatedAt: event.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
 					UpdatedAt: event.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-					CreatedBy: event.CreatedBy,
+					Actor:     event.CreatedBy,
 					Metadata:  metadata,
 				}
 				activities = append(activities, activity)
@@ -234,6 +292,7 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		// Get user information for all creators
 		creators, err := models.GetUsersByIDs(uniqueCreatorIDs)
 		if err == nil {
 			// Create a map for quick lookup
@@ -244,10 +303,10 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 
 			// Add creator names to activities
 			for i := range activities {
-				if creator, exists := creatorMap[activities[i].CreatedBy]; exists {
-					activities[i].CreatorName = creator.GetFullName()
-					if activities[i].CreatorName == "" {
-						activities[i].CreatorName = creator.Email // Fallback to email if name is empty
+				if creator, exists := creatorMap[activities[i].Actor]; exists {
+					activities[i].ActorName = creator.GetFullName()
+					if activities[i].ActorName == "" {
+						activities[i].ActorName = creator.Email // Fallback to email if name is empty
 					}
 				}
 			}
