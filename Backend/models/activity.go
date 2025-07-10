@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/NLstn/clubs/database"
@@ -87,8 +86,6 @@ func GetRecentActivities(clubIDs []string, daysBack int, limit int) ([]Activity,
 
 // CreateRoleChangeActivity creates an activity when a user's role changes
 func CreateRoleChangeActivity(clubID, userID, actorID, clubName, oldRole, newRole string) error {
-	title := "Role updated"
-	content := ""
 	activityType := "role_changed"
 
 	// Determine if this is a promotion or demotion
@@ -97,15 +94,9 @@ func CreateRoleChangeActivity(clubID, userID, actorID, clubName, oldRole, newRol
 	newLevel := roleHierarchy[newRole]
 
 	if newLevel > oldLevel {
-		title = "Member promoted"
-		content = fmt.Sprintf("Role changed from %s to %s", oldRole, newRole)
 		activityType = "member_promoted"
 	} else if newLevel < oldLevel {
-		title = "Member demoted"
-		content = fmt.Sprintf("Role changed from %s to %s", oldRole, newRole)
 		activityType = "member_demoted"
-	} else {
-		content = fmt.Sprintf("Role changed from %s to %s", oldRole, newRole)
 	}
 
 	metadata := map[string]interface{}{
@@ -119,5 +110,5 @@ func CreateRoleChangeActivity(clubID, userID, actorID, clubName, oldRole, newRol
 		actor = &actorID
 	}
 
-	return CreateActivity(clubID, userID, actor, activityType, title, content, metadata)
+	return CreateActivity(clubID, userID, actor, activityType, "", "", metadata)
 }

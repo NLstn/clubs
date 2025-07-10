@@ -43,6 +43,7 @@ export interface ActivityItem {
     old_role?: string;
     new_role?: string;
     club_name?: string;
+    affected_user_id?: string; // User ID of the person whose role was changed
     [key: string]: unknown;
   }; // For extensibility
 }
