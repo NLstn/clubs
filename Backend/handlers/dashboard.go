@@ -200,6 +200,11 @@ func handleGetDashboardActivities(w http.ResponseWriter, r *http.Request) {
 					Metadata:  metadata,
 				}
 
+				// For role change activities, include the affected user ID
+				if activity.Type == "member_promoted" || activity.Type == "member_demoted" || activity.Type == "role_changed" {
+					activityItem.Metadata["affected_user_id"] = activity.UserID
+				}
+
 				activities = append(activities, activityItem)
 				if createdBy != "" {
 					creatorIDs = append(creatorIDs, createdBy)
