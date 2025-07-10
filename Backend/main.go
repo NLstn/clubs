@@ -40,6 +40,7 @@ func main() {
 		&models.ClubSettings{},
 		&models.Notification{},
 		&models.UserNotificationPreferences{},
+		&models.Activity{},
 	)
 	if err != nil {
 		log.Fatal("Could not migrate database:", err)

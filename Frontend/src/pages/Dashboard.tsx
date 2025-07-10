@@ -38,7 +38,7 @@ const Dashboard = () => {
                                     {activities.map(activity => (
                                         <div key={`${activity.type}-${activity.id}`} className="activity-item">
                                             <div className="activity-header">
-                                                <div className="activity-type-badge">{activity.type}</div>
+                                                <div className="activity-type-badge">{activity.type.replace('_', ' ')}</div>
                                                 <span 
                                                     className="club-badge"
                                                     onClick={() => handleClubClick(activity.club_id, activity.club_name)}
@@ -51,8 +51,13 @@ const Dashboard = () => {
                                                 <p className="activity-content">{activity.content}</p>
                                             )}
                                             <small className="activity-meta">
-                                                {activity.creator_name && (
-                                                    <>Created by {activity.creator_name} • </>
+                                                {activity.actor_name && (
+                                                    <>
+                                                        {(activity.type === 'member_promoted' || activity.type === 'member_demoted' || activity.type === 'role_changed') 
+                                                            ? `Promoted by ${activity.actor_name}` 
+                                                            : `Created by ${activity.actor_name}`
+                                                        } • 
+                                                    </>
                                                 )}
                                                 Posted on {formatDateTime(activity.created_at)}
                                             </small>

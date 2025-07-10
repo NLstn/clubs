@@ -25,21 +25,24 @@ export interface DashboardEvent {
 
 export interface ActivityItem {
   id: string;
-  type: string; // "news" or "event"
+  type: string; // "news", "event", "role_changed", "member_promoted", "member_demoted"
   title: string;
   content?: string;
   club_name: string;
   club_id: string;
   created_at: string;
   updated_at: string;
-  created_by?: string;   // User ID who created the activity
-  creator_name?: string; // Name of the user who created the activity
+  actor?: string;        // User ID who created/initiated the activity
+  actor_name?: string;   // Name of the user who created/initiated the activity
   metadata?: {
     start_time?: string;
     end_time?: string;
     user_rsvp?: {
       response: string;
     };
+    old_role?: string;
+    new_role?: string;
+    club_name?: string;
     [key: string]: unknown;
   }; // For extensibility
 }
