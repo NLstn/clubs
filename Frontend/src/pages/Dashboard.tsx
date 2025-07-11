@@ -111,7 +111,7 @@ const Dashboard = () => {
                                     {activities.map(activity => (
                                         <div key={`${activity.type}-${activity.id}`} className="activity-item">
                                             <div className="activity-header">
-                                                <div className="activity-type-badge">{activity.type.replace('_', ' ')}</div>
+                                                <div className="activity-type-badge">{activity.type.replace(/_/g, ' ')}</div>
                                                 <span 
                                                     className="club-badge"
                                                     onClick={() => handleClubClick(activity.club_id, activity.club_name)}
