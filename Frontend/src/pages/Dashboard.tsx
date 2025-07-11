@@ -24,25 +24,13 @@ const Dashboard = () => {
     };
 
     const getRoleChangeMessage = (activity: ActivityItem) => {
-        if (!currentUser || !activity.metadata?.affected_user_id) {
-            // Fallback to generic message if we can't determine personalization
-            return activity.actor_name 
-                ? `by ${activity.actor_name}` 
-                : '';
-        }
+        // Check if we can personalize the message
+        const canPersonalize = currentUser && activity.metadata?.affected_user_id;
 
-        const isCurrentUser = activity.metadata.affected_user_id === currentUser.ID;
-        if (isCurrentUser) {
-            // The current user is the one whose role was changed
-            return activity.actor_name 
-                ? `by ${activity.actor_name}` 
-                : '';
-        } else {
-            // Someone else's role was changed
-            return activity.actor_name 
-                ? `by ${activity.actor_name}` 
-                : '';
-        }
+        // Determine the message based on actor_name
+        return activity.actor_name 
+            ? `by ${activity.actor_name}` 
+            : '';
     };
 
     const getPersonalizedTitle = (activity: ActivityItem) => {
