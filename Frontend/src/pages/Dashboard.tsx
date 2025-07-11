@@ -120,9 +120,12 @@ const Dashboard = () => {
                                                 </span>
                                             </div>
                                             <h4 className="activity-title">{getPersonalizedTitle(activity)}</h4>
-                                            {getPersonalizedContent(activity) && (
-                                                <p className="activity-content">{getPersonalizedContent(activity)}</p>
-                                            )}
+                                            {(() => {
+                                                const personalizedContent = getPersonalizedContent(activity);
+                                                return personalizedContent && (
+                                                    <p className="activity-content">{personalizedContent}</p>
+                                                );
+                                            })()}
                                             <small className="activity-meta">
                                                 {(activity.type === 'member_promoted' || activity.type === 'member_demoted' || activity.type === 'role_changed') ? (
                                                     <>
