@@ -12,6 +12,7 @@ The club management system includes a comprehensive notification system that all
 - **Delete button** on each notification for individual removal
 - **Smart navigation** - Notifications automatically navigate to the appropriate page:
   - **Invitation notifications** → Invites page (`/profile/invites`)
+  - **Member Added notifications** → Club details page
   - **Event notifications** → Club details page
   - **Fine notifications** → Club details page
   - **News notifications** → Club details page
@@ -49,12 +50,14 @@ Users can control their notification preferences through:
 ### Frontend Components
 - `components/layout/NotificationDropdown.tsx` - Header notification display with smart navigation
   - **Invitation notifications** (`type: 'invite_received'`) → Navigate to `/profile/invites`
+  - **Member Added notifications** (`type: 'member_added'`) → Navigate to `/clubs/{clubId}`
   - **Event notifications** (`type: 'event_created'`) → Navigate to `/clubs/{clubId}`
   - **Fine notifications** (`type: 'fine_assigned'`) → Navigate to `/clubs/{clubId}`
   - **News notifications** (`type: 'news_created'`) → Navigate to `/clubs/{clubId}`
   - **Delete functionality** - × button on each notification for individual removal
   - Automatically closes dropdown when navigating
   - Displays appropriate icons for each notification type
+  - **Recent Clubs Integration** - Automatically adds visited clubs to recent clubs list
 - `pages/settings/NotificationSettings.tsx` - User preference management
 - `hooks/useNotifications.ts` - React hook for notification state management
   - `deleteNotification()` - Function to delete individual notifications
@@ -74,6 +77,7 @@ Users can control their notification preferences through:
 1. Click the bell icon in the header to view notifications
 2. **Click on notifications** to navigate directly to relevant pages:
    - **Invitation notifications** → Navigate to your invites page (`/profile/invites`)
+   - **Member Added notifications** → Navigate to the club you were added to
    - **Event, Fine, or News notifications** → Navigate to the related club page
 3. **Delete individual notifications** by clicking the × button on each notification
 4. Click on other notifications to mark them as read
@@ -96,6 +100,8 @@ The notification system is extensible for new notification types:
    // In handleNotificationClick function
    else if (notification.type === 'new_type' && notification.clubId) {
      setIsOpen(false);
+     // Add to recent clubs when navigating from notification
+     addRecentClub(notification.clubId, 'Club Name');
      navigate(`/appropriate/path/${notification.clubId}`);
    }
    ```
