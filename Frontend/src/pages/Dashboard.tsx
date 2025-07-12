@@ -24,9 +24,6 @@ const Dashboard = () => {
     };
 
     const getRoleChangeMessage = (activity: ActivityItem) => {
-        // Check if we can personalize the message
-        const canPersonalize = currentUser && activity.metadata?.affected_user_id;
-
         // Determine the message based on actor_name
         return activity.actor_name 
             ? `by ${activity.actor_name}` 
