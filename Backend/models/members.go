@@ -135,7 +135,7 @@ func (c *Club) UpdateMemberRole(changingUser User, memberID, role string) error 
 
 	// Send notification if role actually changed
 	if oldRole != role {
-		member.notifyRoleChanged(oldRole, role, c.Name)
+		member.notifyRoleChanged(oldRole, role, c.Name, changingUser.ID)
 	}
 
 	return nil
@@ -159,7 +159,14 @@ func (m *Member) notifyAdded() {
 	notifications.SendMemberAddedNotification(user.Email, club.ID, club.Name)
 }
 
-func (m *Member) notifyRoleChanged(oldRole, newRole, clubName string) {
+func (m *Member) notifyRoleChanged(oldRole, newRole, clubName, actorID string) {
+	// Create activity entry for the role change
+	err := CreateRoleChangeActivity(m.ClubID, m.UserID, actorID, clubName, oldRole, newRole)
+	if err != nil {
+		// Log error but don't fail the operation
+		// TODO: Add proper logging
+	}
+
 	// Get user notification preferences
 	preferences, err := GetUserNotificationPreferences(m.UserID)
 	if err != nil {

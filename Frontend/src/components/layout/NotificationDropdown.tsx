@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { addRecentClub } from '../../utils/recentClubs';
 import './NotificationDropdown.css';
 
 interface Notification {
@@ -65,14 +66,25 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     if (notification.type === 'invite_received') {
       setIsOpen(false); // Close the dropdown
       navigate('/profile/invites');
+    } else if (notification.type === 'member_added' && notification.clubId) {
+      setIsOpen(false); // Close the dropdown
+      // Add to recent clubs when navigating from notification
+      addRecentClub(notification.clubId, notification.title.replace('Welcome to ', ''));
+      navigate(`/clubs/${notification.clubId}`);
     } else if (notification.type === 'fine_assigned' && notification.clubId) {
       setIsOpen(false); // Close the dropdown
+      // Extract club name from notification title/message if available
+      addRecentClub(notification.clubId, notification.title.split(' - ')[0] || 'Club');
       navigate(`/clubs/${notification.clubId}`);
     } else if (notification.type === 'event_created' && notification.clubId) {
       setIsOpen(false); // Close the dropdown
+      // Extract club name from notification message if available
+      addRecentClub(notification.clubId, notification.title.split(' - ')[0] || 'Club');
       navigate(`/clubs/${notification.clubId}`);
     } else if (notification.type === 'news_created' && notification.clubId) {
       setIsOpen(false); // Close the dropdown
+      // Extract club name from notification message if available
+      addRecentClub(notification.clubId, notification.title.split(' - ')[0] || 'Club');
       navigate(`/clubs/${notification.clubId}`);
     }
   };

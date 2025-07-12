@@ -23,8 +23,8 @@ type RefreshToken struct {
 	UserID    string `gorm:"type:uuid;not null"`
 	Token     string `gorm:"uniqueIndex;not null"`
 	ExpiresAt time.Time
-	UserAgent string    // Browser/device information
-	IPAddress string    // IP address for session tracking
+	UserAgent string
+	IPAddress string
 	CreatedAt time.Time
 }
 
@@ -33,19 +33,8 @@ func FindOrCreateUser(email string) (User, error) {
 	err := database.Db.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if err.Error() == "record not found" {
-			// For new user creation, use raw SQL to insert with NULL for created_by/updated_by initially
-			// Then update after we have the user ID
-			err = database.Db.Raw(`INSERT INTO users (email, created_by, updated_by) VALUES (?, NULL, NULL) RETURNING *`, email).Scan(&user).Error
-			if err != nil {
-				// If the above fails (e.g., in SQLite), try with GORM and handle the self-reference after
-				user = User{Email: email}
-				err = database.Db.Create(&user).Error
-				if err != nil {
-					return User{}, err
-				}
-			}
-
-			err = database.Db.Save(&user).Error
+			user = User{Email: email}
+			err = database.Db.Create(&user).Error
 			if err != nil {
 				return User{}, err
 			}
@@ -100,7 +89,7 @@ func (u *User) StoreRefreshToken(token, userAgent, ipAddress string) error {
 		IPAddress: ipAddress,
 		CreatedAt: time.Now(),
 	}
-	return database.Db.Exec(`INSERT INTO refresh_tokens (user_id, token, expires_at, user_agent, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?)`, 
+	return database.Db.Exec(`INSERT INTO refresh_tokens (user_id, token, expires_at, user_agent, ip_address, created_at) VALUES (?, ?, ?, ?, ?, ?)`,
 		refreshToken.UserID, refreshToken.Token, refreshToken.ExpiresAt, refreshToken.UserAgent, refreshToken.IPAddress, refreshToken.CreatedAt).Error
 }
 
@@ -110,7 +99,7 @@ func GetDeviceInfo(r *http.Request) (userAgent, ipAddress string) {
 	if userAgent == "" {
 		userAgent = "Unknown"
 	}
-	
+
 	// Try to get real IP from various headers (common proxy headers)
 	ipAddress = r.Header.Get("X-Forwarded-For")
 	if ipAddress == "" {
@@ -119,18 +108,18 @@ func GetDeviceInfo(r *http.Request) (userAgent, ipAddress string) {
 	if ipAddress == "" {
 		ipAddress = r.RemoteAddr
 	}
-	
+
 	// Clean up the IP address (remove port if present)
 	if colon := strings.LastIndex(ipAddress, ":"); colon != -1 {
 		if bracket := strings.LastIndex(ipAddress, "]"); bracket == -1 || bracket < colon {
 			ipAddress = ipAddress[:colon]
 		}
 	}
-	
+
 	if ipAddress == "" {
 		ipAddress = "Unknown"
 	}
-	
+
 	return userAgent, ipAddress
 }
 

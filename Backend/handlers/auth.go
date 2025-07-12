@@ -129,9 +129,9 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 
 	// Return token and profile completion status
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"access":           accessToken,
-		"refresh":          refreshToken,
-		"profileComplete":  user.IsProfileComplete(),
+		"access":          accessToken,
+		"refresh":         refreshToken,
+		"profileComplete": user.IsProfileComplete(),
 	})
 
 	if err := models.DeleteMagicLink(token); err != nil {
@@ -149,8 +149,6 @@ func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Refresh token required", http.StatusUnauthorized)
 		return
 	}
-
-	log.Default().Println("Refreshing access token")
 
 	userID, err := auth.ValidateRefreshToken(refreshToken)
 	if err != nil {
