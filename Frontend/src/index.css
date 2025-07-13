@@ -1185,6 +1185,23 @@ input:disabled + .slider {
   color: var(--color-text);
 }
 
+.join-club-box .message {
+  margin-bottom: var(--space-md);
+  padding: var(--space-sm);
+  border-radius: var(--border-radius-sm);
+  text-align: center;
+}
+
+.join-club-box .message.success {
+  background-color: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.join-club-box .message.error {
+  background-color: var(--color-error-bg);
+  color: var(--color-error-text);
+}
+
 .club-info {
   background-color: rgba(76, 175, 80, 0.1);
   padding: var(--space-md);

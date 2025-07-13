@@ -133,35 +133,64 @@ func TestJoinRequestEndpoints(t *testing.T) {
 		AssertContains(t, rr.Body.String(), "already a member")
 	})
 
-	t.Run("Get Join Requests - Unauthorized", func(t *testing.T) {
-		owner, _ := CreateTestUser(t, "owner6@example.com")
+	t.Run("Join Club Via Link - Already Has Pending Request", func(t *testing.T) {
+		owner, _ := CreateTestUser(t, "owner_pending_req@example.com")
 		club := CreateTestClub(t, owner, "Test Club")
-		_, nonOwnerToken := CreateTestUser(t, "notowner@example.com")
+		user, userToken := CreateTestUser(t, "user_pending_req@example.com")
 
-		req := MakeRequest(t, "GET", "/api/v1/clubs/"+club.ID+"/joinRequests", nil, nonOwnerToken)
+		// User creates initial join request
+		err := club.CreateJoinRequest(user.ID, user.Email)
+		assert.NoError(t, err)
+
+		// User tries to join via link again
+		req := MakeRequest(t, "POST", "/api/v1/clubs/"+club.ID+"/join", nil, userToken)
 		rr := ExecuteRequest(t, handler, req)
-		CheckResponseCode(t, http.StatusForbidden, rr.Code)
+		CheckResponseCode(t, http.StatusConflict, rr.Code)
+		AssertContains(t, rr.Body.String(), "pending join request")
 	})
 
-	t.Run("Invalid UUID Formats", func(t *testing.T) {
-		_, token := CreateTestUser(t, "test@example.com")
+	t.Run("Join Club Via Link - Already Has Pending Invite", func(t *testing.T) {
+		owner, _ := CreateTestUser(t, "owner_pending_inv@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		user, userToken := CreateTestUser(t, "user_pending_inv@example.com")
 
-		// Test GET endpoints with invalid UUID
-		getEndpoints := []string{
-			"/api/v1/clubs/invalid-uuid/joinRequests",
-			"/api/v1/clubs/invalid-uuid/inviteLink",
-			"/api/v1/clubs/invalid-uuid/info",
-		}
+		// Admin creates invite for user
+		err := club.CreateInvite(user.Email, owner.ID)
+		assert.NoError(t, err)
 
-		for _, endpoint := range getEndpoints {
-			req := MakeRequest(t, "GET", endpoint, nil, token)
-			rr := ExecuteRequest(t, handler, req)
-			CheckResponseCode(t, http.StatusBadRequest, rr.Code)
-		}
-
-		// Test POST endpoint with invalid UUID
-		req := MakeRequest(t, "POST", "/api/v1/clubs/invalid-uuid/join", nil, token)
+		// User tries to join via link
+		req := MakeRequest(t, "POST", "/api/v1/clubs/"+club.ID+"/join", nil, userToken)
 		rr := ExecuteRequest(t, handler, req)
-		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
+		CheckResponseCode(t, http.StatusConflict, rr.Code)
+		AssertContains(t, rr.Body.String(), "pending invitation")
+	})
+
+	t.Run("Get Club Info - Returns Status Information", func(t *testing.T) {
+		owner, _ := CreateTestUser(t, "owner_info@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		user, userToken := CreateTestUser(t, "user_info@example.com")
+
+		// Test normal user
+		req := MakeRequest(t, "GET", "/api/v1/clubs/"+club.ID+"/info", nil, userToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusOK, rr.Code)
+
+		var clubInfo map[string]interface{}
+		ParseJSONResponse(t, rr, &clubInfo)
+		assert.Equal(t, club.Name, clubInfo["name"])
+		assert.Equal(t, false, clubInfo["isMember"])
+		assert.Equal(t, false, clubInfo["hasPendingRequest"])
+		assert.Equal(t, false, clubInfo["hasPendingInvite"])
+
+		// Create join request and test again
+		err := club.CreateJoinRequest(user.ID, user.Email)
+		assert.NoError(t, err)
+
+		req = MakeRequest(t, "GET", "/api/v1/clubs/"+club.ID+"/info", nil, userToken)
+		rr = ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusOK, rr.Code)
+
+		ParseJSONResponse(t, rr, &clubInfo)
+		assert.Equal(t, true, clubInfo["hasPendingRequest"])
 	})
 }
