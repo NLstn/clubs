@@ -9,6 +9,9 @@ interface Club {
   id: string;
   name: string;
   description: string;
+  isMember?: boolean;
+  hasPendingRequest?: boolean;
+  hasPendingInvite?: boolean;
 }
 
 const JoinClub: React.FC = () => {
@@ -74,9 +77,19 @@ const JoinClub: React.FC = () => {
     } catch (error: unknown) {
       console.error('Error joining club:', error);
       if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { status?: number } };
+        const axiosError = error as { response?: { status?: number; data?: string } };
         if (axiosError.response?.status === 409) {
-          setMessage('You are already a member of this club.');
+          // Handle different 409 conflict scenarios based on error message
+          const errorMessage = axiosError.response?.data || 'Conflict occurred';
+          if (errorMessage.includes('already a member')) {
+            setMessage('You are already a member of this club.');
+          } else if (errorMessage.includes('pending join request')) {
+            setMessage('You already have a pending join request for this club.');
+          } else if (errorMessage.includes('pending invitation')) {
+            setMessage('You already have a pending invitation for this club. Please check your profile invitations page.');
+          } else {
+            setMessage('You are already a member of this club.');
+          }
         } else if (axiosError.response?.status === 401) {
           setMessage('Please log in to join this club.');
           navigate('/login');
@@ -121,25 +134,83 @@ const JoinClub: React.FC = () => {
           </div>
         )}
 
-        <div className="join-actions">
-          <button 
-            onClick={handleJoinClub} 
-            disabled={isJoining}
-            className="button-accept"
-          >
-            {isJoining ? 'Sending Request...' : 'Request to Join'}
-          </button>
-          <button 
-            onClick={() => navigate('/')} 
-            className="button-cancel"
-          >
-            Cancel
-          </button>
-        </div>
+        {club.isMember ? (
+          <div>
+            <div className="message success">
+              You are already a member of this club!
+            </div>
+            <div className="join-actions">
+              <button 
+                onClick={() => navigate(`/clubs/${clubId}`)} 
+                className="button-accept"
+              >
+                Go to Club
+              </button>
+              <button 
+                onClick={() => navigate('/')} 
+                className="button-cancel"
+              >
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
+        ) : club.hasPendingInvite ? (
+          <div>
+            <div className="message error">
+              You have already been invited to this club! Please check your profile invitations page to accept or decline the invitation.
+            </div>
+            <div className="join-actions">
+              <button 
+                onClick={() => navigate('/profile/invites')} 
+                className="button-accept"
+              >
+                View Invitations
+              </button>
+              <button 
+                onClick={() => navigate('/')} 
+                className="button-cancel"
+              >
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
+        ) : club.hasPendingRequest ? (
+          <div>
+            <div className="message error">
+              You have already sent a join request for this club. Please wait for an admin to review your request.
+            </div>
+            <div className="join-actions">
+              <button 
+                onClick={() => navigate('/')} 
+                className="button-cancel"
+              >
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div className="join-actions">
+              <button 
+                onClick={handleJoinClub} 
+                disabled={isJoining}
+                className="button-accept"
+              >
+                {isJoining ? 'Sending Request...' : 'Request to Join'}
+              </button>
+              <button 
+                onClick={() => navigate('/')} 
+                className="button-cancel"
+              >
+                Cancel
+              </button>
+            </div>
 
-        <div className="join-info">
-          <p><strong>Note:</strong> Your join request will be sent to the club administrators for approval.</p>
-        </div>
+            <div className="join-info">
+              <p><strong>Note:</strong> Your join request will be sent to the club administrators for approval.</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

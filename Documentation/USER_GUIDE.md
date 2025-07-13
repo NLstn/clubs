@@ -46,6 +46,10 @@ There are two ways for users to join clubs in the system:
 - **Email invitations are personalized:** They are sent to specific email addresses and can only be accepted by the intended recipient.
 - **Invitation links are shareable:** Anyone with the link can request to join the club.
 - **Security:** Invitation links are secured by the authentication system - users must have an account and be logged in to use them.
+- **Duplicate prevention:** The system prevents duplicate join requests and handles existing invitations intelligently:
+  - If a user already has a pending invitation, clicking an invite link will inform them to check their profile invitations page
+  - If a user already sent a join request, they cannot send another until the first one is processed
+  - If a user is already a member, they'll be directed to the club page instead
 
 ### For Club Admins: Managing Invitations and Join Requests
 

@@ -187,6 +187,28 @@ func handleJoinClubViaLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if user already has a pending join request
+	hasPendingRequest, err := club.HasPendingJoinRequest(user.ID)
+	if err != nil {
+		http.Error(w, "Failed to check join request status", http.StatusInternalServerError)
+		return
+	}
+	if hasPendingRequest {
+		http.Error(w, "You already have a pending join request for this club", http.StatusConflict)
+		return
+	}
+
+	// Check if user already has a pending invite
+	hasPendingInvite, err := club.HasPendingInvite(user.Email)
+	if err != nil {
+		http.Error(w, "Failed to check invite status", http.StatusInternalServerError)
+		return
+	}
+	if hasPendingInvite {
+		http.Error(w, "You already have a pending invitation for this club. Please check your profile invitations page", http.StatusConflict)
+		return
+	}
+
 	// Create a join request
 	err = club.CreateJoinRequest(user.ID, user.Email)
 	if err != nil {
@@ -220,11 +242,25 @@ func handleGetClubInfo(w http.ResponseWriter, r *http.Request) {
 	// Check if user is already a member
 	isMember := club.IsMember(user)
 
+	// Check if user has pending join request
+	hasPendingRequest, err := club.HasPendingJoinRequest(user.ID)
+	if err != nil {
+		hasPendingRequest = false // Don't fail, just assume no pending request
+	}
+
+	// Check if user has pending invite
+	hasPendingInvite, err := club.HasPendingInvite(user.Email)
+	if err != nil {
+		hasPendingInvite = false // Don't fail, just assume no pending invite
+	}
+
 	clubInfo := map[string]interface{}{
-		"id":          club.ID,
-		"name":        club.Name,
-		"description": club.Description,
-		"isMember":    isMember,
+		"id":                club.ID,
+		"name":              club.Name,
+		"description":       club.Description,
+		"isMember":          isMember,
+		"hasPendingRequest": hasPendingRequest,
+		"hasPendingInvite":  hasPendingInvite,
 	}
 
 	w.Header().Set("Content-Type", "application/json")

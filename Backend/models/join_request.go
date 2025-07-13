@@ -101,3 +101,23 @@ func RejectJoinRequest(requestId, adminUserId string) error {
 
 	return database.Db.Delete(&JoinRequest{}, "id = ?", requestId).Error
 }
+
+// HasPendingJoinRequest checks if a user already has a pending join request for this club
+func (c *Club) HasPendingJoinRequest(userID string) (bool, error) {
+	var count int64
+	err := database.Db.Model(&JoinRequest{}).Where("club_id = ? AND user_id = ?", c.ID, userID).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+// HasPendingInvite checks if a user already has a pending invite for this club
+func (c *Club) HasPendingInvite(email string) (bool, error) {
+	var count int64
+	err := database.Db.Model(&Invite{}).Where("club_id = ? AND email = ?", c.ID, email).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}

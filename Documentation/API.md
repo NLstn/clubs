@@ -991,8 +991,13 @@ The API uses JWT-based authentication with magic link email authentication. Most
 - `400 Bad Request` - Invalid club ID format
 - `401 Unauthorized` - Invalid or missing token
 - `404 Not Found` - Club not found
-- `409 Conflict` - User is already a member of this club
+- `409 Conflict` - User is already a member of this club, has a pending join request, or has a pending invitation
 - `500 Internal Server Error` - Database error
+
+**Conflict Error Messages:**
+- "User is already a member of this club" - User is already a member
+- "You already have a pending join request for this club" - User has already sent a join request
+- "You already have a pending invitation for this club. Please check your profile invitations page" - User has an existing invitation
 
 ---
 
@@ -1001,7 +1006,7 @@ The API uses JWT-based authentication with magic link email authentication. Most
 **Authentication:** Bearer token required  
 **Rate Limit:** API limiter (30/5s)
 
-**Description:** Get basic club information for invitation purposes. Returns minimal club details without requiring membership.
+**Description:** Get basic club information for invitation purposes. Returns minimal club details and user's relationship status with the club.
 
 **Path Parameters:**
 - `clubid` (UUID) - Club identifier
@@ -1011,9 +1016,17 @@ The API uses JWT-based authentication with magic link email authentication. Most
 {
   "id": "club-uuid",
   "name": "Club Name",
-  "description": "Club Description"
+  "description": "Club Description",
+  "isMember": false,
+  "hasPendingRequest": false,
+  "hasPendingInvite": true
 }
 ```
+
+**Response Fields:**
+- `isMember` (boolean) - Whether the user is already a member of the club
+- `hasPendingRequest` (boolean) - Whether the user has a pending join request for this club
+- `hasPendingInvite` (boolean) - Whether the user has a pending invitation for this club
 
 **Responses:**
 - `200 OK` - Club information retrieved successfully
