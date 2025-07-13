@@ -650,6 +650,14 @@ func registerMemberRoutesForTest(mux *http.ServeMux) {
 		}
 	}))
 
+	mux.Handle("/api/v1/clubs/{clubid}/ownerCount", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetOwnerCount(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
 	mux.Handle("/api/v1/clubs/{clubid}/members/{memberid}", withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodDelete:

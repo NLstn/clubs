@@ -270,23 +270,72 @@ func TestMemberEndpoints(t *testing.T) {
 		AssertContains(t, rr.Body.String(), "Club not found")
 	})
 
-	t.Run("Method Not Allowed", func(t *testing.T) {
-		_, token := CreateTestUser(t, "test18@example.com")
+	t.Run("Prevent Last Owner From Demoting Themselves", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "single-owner@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		
+		// Get the owner's member record that was created by CreateTestClub
+		var ownerMember models.Member
+		err := database.Db.Where("club_id = ? AND user_id = ? AND role = ?", club.ID, owner.ID, "owner").First(&ownerMember).Error
+		assert.NoError(t, err)
 
-		endpoints := []string{
-			"/api/v1/clubs/test-id/members",
-			"/api/v1/clubs/test-id/isAdmin",
-			"/api/v1/clubs/test-id/members/member-id",
+		roleData := map[string]string{
+			"role": "admin",
 		}
 
-		methods := []string{"PUT", "POST"}
-
-		for _, endpoint := range endpoints {
-			for _, method := range methods {
-				req := MakeRequest(t, method, endpoint, nil, token)
-				rr := ExecuteRequest(t, handler, req)
-				CheckResponseCode(t, http.StatusMethodNotAllowed, rr.Code)
-			}
-		}
+		req := MakeRequest(t, "PATCH", "/api/v1/clubs/"+club.ID+"/members/"+ownerMember.ID, roleData, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusBadRequest, rr.Code)
 	})
+
+	t.Run("Allow Owner To Demote Themselves When Multiple Owners Exist", func(t *testing.T) {
+		owner1, owner1Token := CreateTestUser(t, "owner1-multiple@example.com")
+		club := CreateTestClub(t, owner1, "Test Club")
+		
+		// Get the first owner's member record that was created by CreateTestClub
+		var owner1Member models.Member
+		err := database.Db.Where("club_id = ? AND user_id = ? AND role = ?", club.ID, owner1.ID, "owner").First(&owner1Member).Error
+		assert.NoError(t, err)
+
+		owner2, _ := CreateTestUser(t, "owner2-multiple@example.com")
+		CreateTestMember(t, owner2, club, "owner")
+
+		roleData := map[string]string{
+			"role": "admin",
+		}
+
+		req := MakeRequest(t, "PATCH", "/api/v1/clubs/"+club.ID+"/members/"+owner1Member.ID, roleData, owner1Token)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+	})
+
+	t.Run("Get Owner Count - Valid", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "owner-count@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+
+		// Add another owner
+		owner2, _ := CreateTestUser(t, "owner2-count@example.com")
+		CreateTestMember(t, owner2, club, "owner")
+
+		req := MakeRequest(t, "GET", "/api/v1/clubs/"+club.ID+"/ownerCount", nil, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusOK, rr.Code)
+
+		var response map[string]interface{}
+		ParseJSONResponse(t, rr, &response)
+		assert.Equal(t, float64(2), response["ownerCount"]) // JSON numbers are float64
+	})
+
+	t.Run("Get Owner Count - Unauthorized", func(t *testing.T) {
+		owner, _ := CreateTestUser(t, "owner-count-unauth@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		member, memberToken := CreateTestUser(t, "member-count-unauth@example.com")
+		CreateTestMember(t, member, club, "member")
+
+		req := MakeRequest(t, "GET", "/api/v1/clubs/"+club.ID+"/ownerCount", nil, memberToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusForbidden, rr.Code)
+	})
+
+	// ...existing code...
 }

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"log"
 	"time"
 
@@ -9,6 +10,8 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
+var ErrLastOwnerDemotion = errors.New("cannot demote the last owner of the club")
 
 type Member struct {
 	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
@@ -41,6 +44,13 @@ func (c *Club) IsAdmin(user User) bool {
 		return true
 	}
 	return false
+}
+
+// CountOwners returns the number of owners in the club
+func (c *Club) CountOwners() (int64, error) {
+	var count int64
+	err := database.Db.Model(&Member{}).Where("club_id = ? AND role = ?", c.ID, "owner").Count(&count).Error
+	return count, err
 }
 
 // IsMember reports whether the provided user belongs to the club. If the
@@ -119,7 +129,12 @@ func (c *Club) UpdateMemberRole(changingUser User, memberID, role string) error 
 		return gorm.ErrInvalidData
 	}
 
-	if canChange, err := c.canChangeRole(changingUser, member.Role, role); err != nil || !canChange {
+	if canChange, err := c.canChangeRole(changingUser, member, role); err != nil {
+		if err == ErrLastOwnerDemotion {
+			return err
+		}
+		return gorm.ErrInvalidData
+	} else if !canChange {
 		return gorm.ErrInvalidData
 	}
 
@@ -190,15 +205,27 @@ func (m *Member) notifyRoleChanged(oldRole, newRole, clubName, actorID string) {
 	}
 }
 
-func (c *Club) canChangeRole(changingUser User, oldRole, newRole string) (bool, error) {
+func (c *Club) canChangeRole(changingUser User, targetMember Member, newRole string) (bool, error) {
 	changingUserRole, err := c.GetMemberRole(changingUser)
 	if err != nil {
 		return false, err
 	}
+	
+	// Check if the changing user is trying to demote themselves as the last owner
+	if changingUser.ID == targetMember.UserID && targetMember.Role == "owner" && newRole != "owner" {
+		ownerCount, err := c.CountOwners()
+		if err != nil {
+			return false, err
+		}
+		if ownerCount <= 1 {
+			return false, ErrLastOwnerDemotion
+		}
+	}
+	
 	if changingUserRole == "owner" {
 		return true, nil
 	}
-	if changingUserRole == "admin" && (oldRole == "member" || newRole == "admin") {
+	if changingUserRole == "admin" && (targetMember.Role == "member" || newRole == "admin") {
 		return true, nil
 	}
 	return false, nil
