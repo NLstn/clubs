@@ -203,10 +203,12 @@ const AdminClubMemberList = () => {
                         <p>Share this link with people you want to invite to the club:</p>
                         <div className="invite-link-container" style={{ 
                             background: '#f5f5f5', 
+                            color: '#333',
                             padding: '10px', 
                             borderRadius: '5px', 
                             marginBottom: '15px',
-                            wordBreak: 'break-all'
+                            wordBreak: 'break-all',
+                            border: '1px solid #ddd'
                         }}>
                             {inviteLink}
                         </div>
