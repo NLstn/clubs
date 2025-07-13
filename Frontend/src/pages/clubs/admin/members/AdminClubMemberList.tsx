@@ -6,6 +6,7 @@ import api from "../../../../utils/api";
 import { useParams } from "react-router-dom";
 import { useT } from "../../../../hooks/useTranslation";
 import { useCurrentUser } from "../../../../hooks/useCurrentUser";
+import { useOwnerCount } from "../../../../hooks/useOwnerCount";
 
 interface Member {
     id: string;
@@ -19,6 +20,7 @@ const AdminClubMemberList = () => {
     const { t } = useT();
     const { id } = useParams();
     const { user: currentUser } = useCurrentUser();
+    const { ownerCount, refetch: refetchOwnerCount } = useOwnerCount(id || '');
 
     const [members, setMembers] = useState<Member[]>([]);
     const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
@@ -102,6 +104,8 @@ const AdminClubMemberList = () => {
             );
             const sortedMembers = sortMembersByRole(updatedMembers);
             setMembers(sortedMembers);
+            // Refetch owner count when roles change
+            refetchOwnerCount();
         } catch {
             setError('Failed to update member role');
         }
@@ -126,8 +130,14 @@ const AdminClubMemberList = () => {
     };
 
     // Permission logic based on backend rules (with desired admin permissions)
-    const canChangeRole = (currentUserRole: string | null, targetMemberRole: string, newRole: string): boolean => {
+    const canChangeRole = (currentUserRole: string | null, targetMemberRole: string, newRole: string, targetMember: Member): boolean => {
         if (!currentUserRole) return false;
+        
+        // Check if current user is trying to demote themselves as the last owner
+        if (currentUser && targetMember.userId === currentUser.ID && 
+            targetMemberRole === 'owner' && newRole !== 'owner' && ownerCount <= 1) {
+            return false; // Prevent last owner from demoting themselves
+        }
         
         // Owners can change any role to any role
         if (currentUserRole === 'owner') {
@@ -200,7 +210,7 @@ const AdminClubMemberList = () => {
                                             Remove
                                         </button>
                                     )}
-                                    {member.role === 'member' && canChangeRole(currentUserRole, member.role, 'admin') && (
+                                    {member.role === 'member' && canChangeRole(currentUserRole, member.role, 'admin', member) && (
                                         <button
                                             onClick={() => handleRoleChange(member.id, 'admin')}
                                             className="action-button promote"
@@ -210,7 +220,7 @@ const AdminClubMemberList = () => {
                                     )}
                                     {member.role === 'admin' && (
                                         <>
-                                            {canChangeRole(currentUserRole, member.role, 'member') && (
+                                            {canChangeRole(currentUserRole, member.role, 'member', member) && (
                                                 <button
                                                     onClick={() => handleRoleChange(member.id, 'member')}
                                                     className="action-button demote"
@@ -218,7 +228,7 @@ const AdminClubMemberList = () => {
                                                     Demote
                                                 </button>
                                             )}
-                                            {canChangeRole(currentUserRole, member.role, 'owner') && (
+                                            {canChangeRole(currentUserRole, member.role, 'owner', member) && (
                                                 <button
                                                     onClick={() => handleRoleChange(member.id, 'owner')}
                                                     className="action-button promote"
@@ -228,7 +238,7 @@ const AdminClubMemberList = () => {
                                             )}
                                         </>
                                     )}
-                                    {member.role === 'owner' && canChangeRole(currentUserRole, member.role, 'admin') && (
+                                    {member.role === 'owner' && canChangeRole(currentUserRole, member.role, 'admin', member) && (
                                         <button
                                             onClick={() => handleRoleChange(member.id, 'admin')}
                                             className="action-button demote"

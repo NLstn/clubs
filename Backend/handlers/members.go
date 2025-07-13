@@ -27,6 +27,14 @@ func registerMemberRoutes(mux *http.ServeMux) {
 		}
 	})))
 
+	mux.Handle("/api/v1/clubs/{clubid}/ownerCount", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetOwnerCount(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
 	mux.Handle("/api/v1/clubs/{clubid}/members/{memberid}", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodDelete:
@@ -192,6 +200,10 @@ func handleUpdateMemberRole(w http.ResponseWriter, r *http.Request) {
 
 	err = club.UpdateMemberRole(user, memberID, payload.Role)
 	if err != nil {
+		if err == models.ErrLastOwnerDemotion {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -223,5 +235,33 @@ func handleCheckAdminRights(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"isAdmin": isAdmin,
 		"isOwner": isOwner,
+	})
+}
+
+// endpoint: GET /api/v1/clubs/{clubid}/ownerCount
+func handleGetOwnerCount(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+	clubID := extractPathParam(r, "clubs")
+
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+
+	if !club.IsAdmin(user) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
+	ownerCount, err := club.CountOwners()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"ownerCount": int(ownerCount),
 	})
 }
