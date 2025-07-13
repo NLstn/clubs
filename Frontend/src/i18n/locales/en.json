@@ -59,6 +59,11 @@
     "latestNews": "Latest News",
     "overview": "Overview",
     "members": "Members",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member"
+    },
     "editClub": "Edit Club",
     "deleteClub": "Delete Club",
     "hardDeleteClub": "Hard Delete Club",

@@ -8,6 +8,20 @@ import api from '../../../utils/api';
 vi.mock('../../../utils/api');
 const mockedApi = vi.mocked(api);
 
+// Mock the translation hook
+vi.mock('../../../hooks/useTranslation', () => ({
+    useT: () => ({
+        t: (key: string) => {
+            const translations: { [key: string]: string } = {
+                'clubs.roles.owner': 'Owner',
+                'clubs.roles.admin': 'Admin',
+                'clubs.roles.member': 'Member',
+            };
+            return translations[key] || key;
+        }
+    })
+}));
+
 // Mock Layout component to avoid AuthProvider dependency
 vi.mock('../../../components/layout/Layout', () => ({
     default: ({ children, title }: { children: React.ReactNode; title: string }) => (
@@ -146,9 +160,9 @@ describe('ClubList', () => {
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {
-            expect(screen.getByText('admin')).toBeInTheDocument();
-            expect(screen.getAllByText('owner')).toHaveLength(2); // Two owner clubs
-            expect(screen.getByText('member')).toBeInTheDocument();
+            expect(screen.getByText('Admin')).toBeInTheDocument();
+            expect(screen.getAllByText('Owner')).toHaveLength(2); // Two owner clubs
+            expect(screen.getByText('Member')).toBeInTheDocument();
         });
     });
 

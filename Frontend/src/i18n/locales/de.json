@@ -58,6 +58,11 @@
     "latestNews": "Aktuelle Nachrichten",
     "overview": "Übersicht",
     "members": "Mitglieder",
+    "roles": {
+      "owner": "Besitzer",
+      "admin": "Administrator",
+      "member": "Mitglied"
+    },
     "editClub": "Verein bearbeiten",
     "deleteClub": "Verein löschen",
     "hardDeleteClub": "Verein endgültig löschen",
