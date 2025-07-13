@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import api from '../../utils/api';
 import { addRecentClub } from '../../utils/recentClubs';
+import { useT } from '../../hooks/useTranslation';
 import './ClubList.css';
 
 interface Club {
@@ -15,10 +16,15 @@ interface Club {
 }
 
 const ClubList = () => {
+    const { t } = useT();
     const [clubs, setClubs] = useState<Club[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
+
+    const translateRole = (role: string): string => {
+        return t(`clubs.roles.${role}`) || role;
+    };
 
     useEffect(() => {
         fetchClubs();
@@ -77,7 +83,7 @@ const ClubList = () => {
                                     <div className="club-header">
                                         <h3>{club.name}</h3>
                                         <span className={`role-badge ${club.user_role}`}>
-                                            {club.user_role}
+                                            {translateRole(club.user_role)}
                                         </span>
                                     </div>
                                     <p className="club-description">{club.description}</p>
@@ -105,7 +111,7 @@ const ClubList = () => {
                                     <div className="club-header">
                                         <h3>{club.name}</h3>
                                         <span className={`role-badge ${club.user_role}`}>
-                                            {club.user_role}
+                                            {translateRole(club.user_role)}
                                         </span>
                                     </div>
                                     <p className="club-description">{club.description}</p>

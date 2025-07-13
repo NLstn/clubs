@@ -1,13 +1,20 @@
 import { useNavigate } from 'react-router-dom';
 import { useDashboardData, ActivityItem } from '../hooks/useDashboardData';
 import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useT } from '../hooks/useTranslation';
 import Layout from '../components/layout/Layout';
 import { addRecentClub } from '../utils/recentClubs';
 
 const Dashboard = () => {
+    const { t } = useT();
     const navigate = useNavigate();
     const { activities, loading: dashboardLoading, error: dashboardError } = useDashboardData();
     const { user: currentUser } = useCurrentUser();
+
+    const translateRole = (role: string | undefined): string => {
+        if (!role) return 'Unknown Role';
+        return t(`clubs.roles.${role}`) || role;
+    };
 
     const handleClubClick = (clubId: string, clubName: string) => {
         addRecentClub(clubId, clubName);
@@ -45,11 +52,11 @@ const Dashboard = () => {
             
             if (isCurrentUser) {
                 if (activity.type === 'member_promoted') {
-                    return `You got promoted to ${new_role}!`;
+                    return `You got promoted to ${translateRole(new_role)}!`;
                 } else if (activity.type === 'member_demoted') {
-                    return `Your role changed to ${new_role}`;
+                    return `Your role changed to ${translateRole(new_role)}`;
                 } else {
-                    return `Your role changed to ${new_role}`;
+                    return `Your role changed to ${translateRole(new_role)}`;
                 }
             } else {
                 // For other users
@@ -69,7 +76,7 @@ const Dashboard = () => {
             if (!currentUser || !activity.metadata?.affected_user_id) {
                 // Fallback to generic content
                 const { old_role, new_role } = activity.metadata || {};
-                return `Role changed from ${old_role} to ${new_role}`;
+                return `Role changed from ${translateRole(old_role)} to ${translateRole(new_role)}`;
             }
 
             const isCurrentUser = activity.metadata.affected_user_id === currentUser.ID;
@@ -77,13 +84,13 @@ const Dashboard = () => {
             
             if (isCurrentUser) {
                 if (activity.actor_name) {
-                    return `${activity.actor_name} changed your role from ${old_role} to ${new_role}.`;
+                    return `${activity.actor_name} changed your role from ${translateRole(old_role)} to ${translateRole(new_role)}.`;
                 } else {
-                    return `Your role was changed from ${old_role} to ${new_role}.`;
+                    return `Your role was changed from ${translateRole(old_role)} to ${translateRole(new_role)}.`;
                 }
             } else {
                 // For other users
-                return `Role changed from ${old_role} to ${new_role}`;
+                return `Role changed from ${translateRole(old_role)} to ${translateRole(new_role)}`;
             }
         }
         

@@ -4,6 +4,7 @@ import AdminClubJoinRequestList from "./AdminClubJoinRequestList";
 import AdminClubPendingInviteList from "./AdminClubPendingInviteList";
 import api from "../../../../utils/api";
 import { useParams } from "react-router-dom";
+import { useT } from "../../../../hooks/useTranslation";
 
 interface Member {
     id: string;
@@ -13,6 +14,7 @@ interface Member {
 }
 
 const AdminClubMemberList = () => {
+    const { t } = useT();
     const { id } = useParams();
 
     const [members, setMembers] = useState<Member[]>([]);
@@ -23,18 +25,33 @@ const AdminClubMemberList = () => {
     const [inviteLink, setInviteLink] = useState('');
     const [error, setError] = useState<string | null>(null);
 
+    const translateRole = (role: string): string => {
+        return t(`clubs.roles.${role}`) || role;
+    };
+
+    const sortMembersByRole = useCallback((members: Member[]): Member[] => {
+        const roleOrder: { [key: string]: number } = { 
+            'owner': 0, 
+            'admin': 1, 
+            'member': 2 
+        };
+        
+        return [...members].sort((a, b) => {
+            const aOrder = roleOrder[a.role.toLowerCase()] ?? 999;
+            const bOrder = roleOrder[b.role.toLowerCase()] ?? 999;
+            return aOrder - bOrder;
+        });
+    }, []);
+
     const fetchMembers = useCallback(async () => {
         try {
             const response = await api.get(`/api/v1/clubs/${id}/members`);
-            const sortedMembers = response.data.sort((a: Member, b: Member) => {
-                const roleOrder = { owner: 0, admin: 1, member: 2 };
-                return (roleOrder[a.role as keyof typeof roleOrder] || 2) - (roleOrder[b.role as keyof typeof roleOrder] || 2);
-            });
+            const sortedMembers = sortMembersByRole(response.data);
             setMembers(sortedMembers);
         } catch {
             setError("Failed to fetch members");
         }
-    }, [id]);
+    }, [id, sortMembersByRole]);
 
     const handleShowPendingInvites = () => {
         setShowPendingInvites(true);
@@ -73,10 +90,7 @@ const AdminClubMemberList = () => {
             const updatedMembers = members.map(member => 
                 member.id === memberId ? { ...member, role: newRole } : member
             );
-            const sortedMembers = updatedMembers.sort((a: Member, b: Member) => {
-                const roleOrder = { owner: 0, admin: 1, member: 2 };
-                return (roleOrder[a.role as keyof typeof roleOrder] || 2) - (roleOrder[b.role as keyof typeof roleOrder] || 2);
-            });
+            const sortedMembers = sortMembersByRole(updatedMembers);
             setMembers(sortedMembers);
         } catch {
             setError('Failed to update member role');
@@ -119,7 +133,7 @@ const AdminClubMemberList = () => {
                     {members && members.map((member) => (
                         <tr key={member.id}>
                             <td>{member.name}</td>
-                            <td>{member.role}</td>
+                            <td>{translateRole(member.role)}</td>
                             <td>{member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'N/A'}</td>
                             <td>
                                 <div className="member-actions">
