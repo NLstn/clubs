@@ -13,6 +13,7 @@ func Handler_v1() http.Handler {
 	mux := http.NewServeMux()
 
 	registerAuthRoutes(mux)
+	registerKeycloakAuthRoutes(mux)
 	registerClubRoutes(mux)
 	registerClubSettingsRoutes(mux)
 	registerMemberRoutes(mux)

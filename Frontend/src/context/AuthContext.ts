@@ -6,7 +6,7 @@ export interface AuthContextType {
   accessToken: string | null;
   refreshToken: string | null;
   login: (accessToken: string, refreshToken: string) => void;
-  logout: () => void;
+  logout: (logoutFromKeycloak?: boolean) => void;
   api: typeof api;
 }
 

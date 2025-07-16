@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/azure"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
@@ -49,6 +50,14 @@ func main() {
 	err = azure.Init()
 	if err != nil {
 		log.Fatal("Could not initialize Azure SDK:", err)
+	}
+
+	err = auth.InitKeycloak()
+	if err != nil {
+		log.Printf("Warning: Could not initialize Keycloak: %v", err)
+		log.Println("Keycloak authentication will not be available")
+	} else {
+		log.Println("Keycloak authentication initialized successfully")
 	}
 
 	err = frontend.Init()

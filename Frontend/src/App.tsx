@@ -7,6 +7,7 @@ import CreateClub from './pages/clubs/CreateClub';
 import JoinClub from './pages/clubs/JoinClub';
 import Login from './pages/auth/Login';
 import MagicLinkHandler from './pages/auth/MagicLinkHandler';
+import KeycloakCallback from './pages/auth/KeycloakCallback';
 import Signup from './pages/auth/Signup';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthProvider';
@@ -89,6 +90,7 @@ function App() {
 
                     <Route path="/login" element={<Login />} />
                     <Route path="/auth/magic" element={<MagicLinkHandler />} />
+                    <Route path="/auth/callback" element={<KeycloakCallback />} />
                     <Route path="/signup" element={
                         <ProtectedRoute>
                             <Signup />

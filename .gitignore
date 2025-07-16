@@ -1,6 +1,25 @@
 node_modules/
 
+# Environment files
 .env
+.env.local
+.env.development
+.env.staging
+.env.production
+
+# Frontend environment files
+Frontend/.env
+Frontend/.env.local
+Frontend/.env.development
+Frontend/.env.staging
+Frontend/.env.production
+
+# Backend environment files
+Backend/.env
+Backend/.env.local
+Backend/.env.development
+Backend/.env.staging
+Backend/.env.production
 
 # Backend binary
 Backend/clubs

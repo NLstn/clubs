@@ -41,7 +41,14 @@
     "sending": "Sending...",
     "checkEmail": "Check your email for a login link!",
     "networkError": "Network error. Please try again.",
-    "redirectMessage": "Please log in to continue to your requested page."
+    "redirectMessage": "Please log in to continue to your requested page.",
+    "or": "or",
+    "loginWithKeycloak": "Login with Keycloak",
+    "keycloakError": "Failed to login with Keycloak. Please try again.",
+    "authenticationFailed": "Authentication Failed",
+    "redirectingToLogin": "Redirecting to login page...",
+    "signingIn": "Signing In",
+    "pleaseWait": "Please wait while we sign you in..."
   },
   "clubs": {
     "clubName": "Club Name",

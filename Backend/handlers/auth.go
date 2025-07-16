@@ -198,6 +198,14 @@ func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 
 // endpoint: POST /api/v1/auth/logout
 func handleLogout(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		LogoutKeycloak        bool   `json:"logout_keycloak,omitempty"`
+		PostLogoutRedirectURI string `json:"post_logout_redirect_uri,omitempty"`
+	}
+
+	// Try to decode request body, but don't fail if it's empty
+	json.NewDecoder(r.Body).Decode(&req)
+
 	refreshToken := r.Header.Get("Authorization")
 	if refreshToken == "" {
 		http.Error(w, "Refresh token required", http.StatusUnauthorized)
@@ -220,6 +228,20 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Failed to delete refresh tokens for user ID %s: %v", userID, err)
 		http.Error(w, "Failed to delete refresh tokens", http.StatusInternalServerError)
 		return
+	}
+
+	// If Keycloak logout is requested, return the logout URL
+	if req.LogoutKeycloak {
+		keycloakAuth := auth.GetKeycloakAuth()
+		if keycloakAuth != nil {
+			// For now, we'll generate logout URL without ID token hint
+			// Frontend should use the dedicated Keycloak logout endpoint with ID token
+			logoutURL := keycloakAuth.GetLogoutURL(req.PostLogoutRedirectURI, "")
+			json.NewEncoder(w).Encode(map[string]string{
+				"logoutURL": logoutURL,
+			})
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusNoContent)
