@@ -19,6 +19,29 @@ const Login: React.FC = () => {
     }
   }, [location, t]);
 
+  const handleKeycloakLogin = async () => {
+    try {
+      // Store redirect path for after login
+      const params = new URLSearchParams(location.search);
+      const redirectPath = params.get('redirect') || '/';
+      sessionStorage.setItem('auth_redirect_after_login', redirectPath);
+      
+      // Get the Keycloak auth URL from our backend
+      const response = await fetch(`${import.meta.env.VITE_API_HOST}/api/v1/auth/keycloak/login`);
+      if (!response.ok) {
+        throw new Error('Failed to get auth URL');
+      }
+      
+      const data = await response.json();
+      
+      // Redirect to Keycloak
+      window.location.href = data.authURL;
+    } catch (error) {
+      console.error('Keycloak login error:', error);
+      setMessage(t('auth.keycloakError'));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -75,6 +98,19 @@ const Login: React.FC = () => {
             {isSubmitting ? t('auth.sending') : t('auth.sendMagicLink')}
           </button>
         </form>
+
+        <div className="divider">
+          <span>{t('auth.or')}</span>
+        </div>
+
+        <button 
+          type="button" 
+          className="keycloak-login-btn"
+          onClick={handleKeycloakLogin}
+          disabled={isSubmitting}
+        >
+          {t('auth.loginWithKeycloak')}
+        </button>
       </div>
       <CookieConsent />
     </div>

@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Silent Callback</title>
+</head>
+<body>
+    <script>
+        // This page is used for silent token renewal
+        // It should be loaded in a hidden iframe
+        parent.postMessage(location.href, location.origin);
+    </script>
+</body>
+</html>

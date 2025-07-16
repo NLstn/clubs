@@ -10,12 +10,13 @@ import (
 )
 
 type User struct {
-	ID        string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	FirstName string
-	LastName  string
-	Email     string `gorm:"uniqueIndex;not null"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID         string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	FirstName  string
+	LastName   string
+	Email      string `gorm:"uniqueIndex;not null"`
+	KeycloakID string `gorm:"uniqueIndex"` // Store Keycloak subject ID
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 type RefreshToken struct {
@@ -43,6 +44,61 @@ func FindOrCreateUser(email string) (User, error) {
 		return User{}, err
 	}
 	return user, nil
+}
+
+func FindOrCreateUserWithKeycloakID(keycloakID, email, fullName string) (User, error) {
+	var user User
+
+	// First try to find user by Keycloak ID
+	err := database.Db.Where("keycloak_id = ?", keycloakID).First(&user).Error
+	if err == nil {
+		// User found, update email if different
+		if user.Email != email {
+			user.Email = email
+			database.Db.Save(&user)
+		}
+		return user, nil
+	}
+
+	// If not found by Keycloak ID, try to find by email
+	err = database.Db.Where("email = ?", email).First(&user).Error
+	if err == nil {
+		// User exists with this email, update with Keycloak ID
+		user.KeycloakID = keycloakID
+		database.Db.Save(&user)
+		return user, nil
+	}
+
+	// User doesn't exist, create new one
+	if err.Error() == "record not found" {
+		// Parse full name into first and last name
+		firstName, lastName := parseFullName(fullName)
+
+		user = User{
+			Email:      email,
+			KeycloakID: keycloakID,
+			FirstName:  firstName,
+			LastName:   lastName,
+		}
+		err = database.Db.Create(&user).Error
+		if err != nil {
+			return User{}, err
+		}
+		return user, nil
+	}
+
+	return User{}, err
+}
+
+func parseFullName(fullName string) (firstName, lastName string) {
+	parts := strings.Fields(strings.TrimSpace(fullName))
+	if len(parts) == 0 {
+		return "", ""
+	}
+	if len(parts) == 1 {
+		return parts[0], ""
+	}
+	return parts[0], strings.Join(parts[1:], " ")
 }
 
 func GetUserByID(userID string) (User, error) {

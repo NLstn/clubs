@@ -40,7 +40,14 @@
     "sending": "Wird gesendet...",
     "checkEmail": "Überprüfen Sie Ihre E-Mails für einen Login-Link!",
     "networkError": "Netzwerkfehler. Bitte versuchen Sie es erneut.",
-    "redirectMessage": "Bitte melden Sie sich an, um zu Ihrer angeforderten Seite zu gelangen."
+    "redirectMessage": "Bitte melden Sie sich an, um zu Ihrer angeforderten Seite zu gelangen.",
+    "or": "oder",
+    "loginWithKeycloak": "Mit Keycloak anmelden",
+    "keycloakError": "Anmeldung mit Keycloak fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "authenticationFailed": "Authentifizierung fehlgeschlagen",
+    "redirectingToLogin": "Weiterleitung zur Anmeldeseite...",
+    "signingIn": "Anmeldung läuft",
+    "pleaseWait": "Bitte warten Sie, während wir Sie anmelden..."
   },
   "clubs": {
     "clubName": "Vereinsname",

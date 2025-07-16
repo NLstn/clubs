@@ -1057,6 +1057,54 @@ input:disabled + .slider {
   width: 100%;
 }
 
+/* Divider styles */
+.divider {
+  position: relative;
+  text-align: center;
+  margin: var(--space-lg) 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-border);
+}
+
+.divider span {
+  background-color: transparent;
+  padding: 0 var(--space-md);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+/* Keycloak login button styles */
+.keycloak-login-btn {
+  width: 100%;
+  background-color: #326ce5;
+  color: white;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--border-radius-sm);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.keycloak-login-btn:hover:not(:disabled) {
+  background-color: #2757c4;
+}
+
+.keycloak-login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Magic link page styles */
 .magic-link-container {
   min-height: 100vh;
