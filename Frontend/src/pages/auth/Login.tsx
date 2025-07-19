@@ -36,8 +36,7 @@ const Login: React.FC = () => {
       
       // Redirect to Keycloak
       window.location.href = data.authURL;
-    } catch (error) {
-      console.error('Keycloak login error:', error);
+    } catch {
       setMessage(t('auth.keycloakError'));
     }
   };

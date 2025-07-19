@@ -14,7 +14,7 @@ type User struct {
 	FirstName  string
 	LastName   string
 	Email      string `gorm:"uniqueIndex;not null"`
-	KeycloakID string `gorm:"uniqueIndex"` // Store Keycloak subject ID
+	KeycloakID string `gorm:"uniqueIndex"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }

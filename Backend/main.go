@@ -55,9 +55,6 @@ func main() {
 	err = auth.InitKeycloak()
 	if err != nil {
 		log.Printf("Warning: Could not initialize Keycloak: %v", err)
-		log.Println("Keycloak authentication will not be available")
-	} else {
-		log.Println("Keycloak authentication initialized successfully")
 	}
 
 	err = frontend.Init()

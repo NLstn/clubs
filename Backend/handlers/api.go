@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -56,7 +55,6 @@ func extractUser(r *http.Request) models.User {
 	}
 	user, err := models.GetUserByID(userID)
 	if err != nil {
-		fmt.Println("Error getting user by ID:", err)
 		return models.User{}
 	}
 	return user

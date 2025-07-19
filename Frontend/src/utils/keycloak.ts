@@ -27,61 +27,37 @@ class KeycloakService {
       this.handleSignOut();
     });
 
-    this.userManager.events.addSilentRenewError((error) => {
-      console.error('Silent renew error:', error);
+    this.userManager.events.addSilentRenewError(() => {
+      // Silent renew failed - user will need to re-authenticate
     });
   }
 
   async signinRedirect(forceLogin: boolean = false): Promise<void> {
-    try {
-      console.log('Keycloak signinRedirect called with forceLogin:', forceLogin);
-      if (forceLogin) {
-        console.log('Using prompt=login to force fresh authentication');
-        await this.userManager.signinRedirect({ extraQueryParams: { prompt: 'login' } });
-      } else {
-        console.log('Using normal signin redirect (may use existing session)');
-        await this.userManager.signinRedirect();
-      }
-    } catch (error) {
-      console.error('Signin redirect error:', error);
-      throw error;
+    if (forceLogin) {
+      await this.userManager.signinRedirect({ extraQueryParams: { prompt: 'login' } });
+    } else {
+      await this.userManager.signinRedirect();
     }
   }
 
   async signinRedirectCallback(): Promise<User> {
-    try {
-      const user = await this.userManager.signinRedirectCallback();
-      return user;
-    } catch (error) {
-      console.error('Signin redirect callback error:', error);
-      throw error;
-    }
+    return await this.userManager.signinRedirectCallback();
   }
 
   async signoutRedirect(): Promise<void> {
-    try {
-      await this.userManager.signoutRedirect();
-    } catch (error) {
-      console.error('Signout redirect error:', error);
-      throw error;
-    }
+    await this.userManager.signoutRedirect();
   }
 
   async getUser(): Promise<User | null> {
     try {
       return await this.userManager.getUser();
-    } catch (error) {
-      console.error('Get user error:', error);
+    } catch {
       return null;
     }
   }
 
   async removeUser(): Promise<void> {
-    try {
-      await this.userManager.removeUser();
-    } catch (error) {
-      console.error('Remove user error:', error);
-    }
+    await this.userManager.removeUser();
   }
 
   private handleSignOut(): void {

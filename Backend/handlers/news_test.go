@@ -27,12 +27,12 @@ func TestNewsRoutes(t *testing.T) {
 			"title":   "Test News",
 			"content": "This is test news content",
 		}
-		
+
 		body, _ := json.Marshal(payload)
 		req := httptest.NewRequest("POST", "/api/v1/clubs/"+club.ID+"/news", bytes.NewBuffer(body))
 		req.Header.Set("Authorization", "Bearer "+accessToken)
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
-		
+
 		w := httptest.NewRecorder()
 		handler := Handler_v1()
 		handler.ServeHTTP(w, req)
@@ -51,7 +51,7 @@ func TestNewsRoutes(t *testing.T) {
 		req := httptest.NewRequest("GET", "/api/v1/clubs/"+club.ID+"/news", nil)
 		req.Header.Set("Authorization", "Bearer "+accessToken)
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
-		
+
 		w := httptest.NewRecorder()
 		handler := Handler_v1()
 		handler.ServeHTTP(w, req)
@@ -74,17 +74,16 @@ func TestNewsRoutes(t *testing.T) {
 			"title":   "Updated Title",
 			"content": "Updated Content",
 		}
-		
+
 		body, _ := json.Marshal(payload)
-		
-		// Debug: Print the URL being constructed
-		url := "/api/v1/clubs/"+club.ID+"/news/"+news.ID
+
+		url := "/api/v1/clubs/" + club.ID + "/news/" + news.ID
 		t.Logf("Update URL: %s", url)
-		
+
 		req := httptest.NewRequest("PUT", url, bytes.NewBuffer(body))
 		req.Header.Set("Authorization", "Bearer "+accessToken)
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
-		
+
 		w := httptest.NewRecorder()
 		handler := Handler_v1()
 		handler.ServeHTTP(w, req)
@@ -106,13 +105,13 @@ func TestNewsRoutes(t *testing.T) {
 		news, err := club.CreateNews("To Delete", "Content to delete", user.ID)
 		assert.NoError(t, err)
 
-		url := "/api/v1/clubs/"+club.ID+"/news/"+news.ID
+		url := "/api/v1/clubs/" + club.ID + "/news/" + news.ID
 		t.Logf("Delete URL: %s", url)
 
 		req := httptest.NewRequest("DELETE", url, nil)
 		req.Header.Set("Authorization", "Bearer "+accessToken)
 		req = req.WithContext(context.WithValue(req.Context(), auth.UserIDKey, user.ID))
-		
+
 		w := httptest.NewRecorder()
 		handler := Handler_v1()
 		handler.ServeHTTP(w, req)
