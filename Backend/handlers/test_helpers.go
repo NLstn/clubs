@@ -269,13 +269,15 @@ func TeardownTestDB(t *testing.T) {
 func CreateTestUser(t *testing.T, email string) (models.User, string) {
 	// Generate a UUID-like string for SQLite
 	userID := uuid.New().String()
+	keycloakID := uuid.New().String() // Generate unique KeycloakID for test users
 
 	// Create user directly in database
 	user := models.User{
-		ID:        userID,
-		Email:     email,
-		FirstName: "Test",
-		LastName:  "User",
+		ID:         userID,
+		Email:      email,
+		FirstName:  "Test",
+		LastName:   "User",
+		KeycloakID: keycloakID,
 	}
 
 	if err := testDB.Create(&user).Error; err != nil {

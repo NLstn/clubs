@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
+import '@testing-library/jest-dom'
 import { AuthProvider } from '../AuthProvider'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -10,7 +11,8 @@ vi.mock('../../utils/api', () => ({
 
 // Mock fetch for logout API call
 const mockFetch = vi.fn()
-global.fetch = mockFetch
+// Setup global fetch mock
+globalThis.fetch = mockFetch
 
 // Mock localStorage
 const localStorageMock = {
@@ -36,7 +38,7 @@ const TestComponent = () => {
       <button onClick={() => login('new-access-token', 'new-refresh-token')}>
         Login
       </button>
-      <button onClick={logout}>Logout</button>
+      <button onClick={() => logout()}>Logout</button>
     </div>
   )
 }
@@ -180,12 +182,17 @@ describe('AuthContext', () => {
 
     // Should call logout API
     expect(mockFetch).toHaveBeenCalledWith(
-      'http://localhost:3000/api/v1/auth/logout',
+      'http://localhost:3000/api/v1/auth/keycloak/logout',
       {
         method: 'POST',
         headers: {
-          'Authorization': 'existing-refresh-token'
-        }
+          'Authorization': 'existing-refresh-token',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          post_logout_redirect_uri: 'http://localhost:3000/login',
+          id_token: null
+        })
       }
     )
 
