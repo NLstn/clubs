@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import type { AxiosRequestConfig } from 'axios'
 
 vi.stubEnv('VITE_API_HOST', 'http://localhost:3000')
 
-let requestInterceptor: (config: any) => Promise<any>
+let requestInterceptor: (config: AxiosRequestConfig) => Promise<AxiosRequestConfig>
 const axiosPostMock = vi.fn()
 
 // Mock axios module
@@ -39,7 +40,7 @@ const localStorageMock = {
   removeItem: vi.fn(),
   clear: vi.fn()
 }
-const mockWindow = { location: { href: '' } } as any
+const mockWindow = { location: { href: '' } } as Window & typeof globalThis
 let locationHrefSpy = vi.fn()
 
 describe('API request interceptor', () => {
@@ -86,7 +87,7 @@ describe('API request interceptor', () => {
     )
     expect(localStorageMock.setItem).toHaveBeenCalledWith('auth_token', 'new-access')
     expect(localStorageMock.setItem).toHaveBeenCalledWith('refresh_token', 'new-refresh')
-    expect(result.headers.Authorization).toBe('Bearer new-access')
+    expect(result.headers?.Authorization).toBe('Bearer new-access')
   })
 
   it('clears storage and redirects to login when no refresh token', async () => {
