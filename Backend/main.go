@@ -52,6 +52,11 @@ func main() {
 		log.Fatal("Could not initialize Azure SDK:", err)
 	}
 
+	err = auth.Init()
+	if err != nil {
+		log.Fatal("Could not initialize auth:", err)
+	}
+
 	err = auth.InitKeycloak()
 	if err != nil {
 		log.Printf("Warning: Could not initialize Keycloak: %v", err)

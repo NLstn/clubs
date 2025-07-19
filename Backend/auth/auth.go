@@ -17,7 +17,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte("super-secret")
+var jwtSecret []byte
+
+// Init reads the JWT_SECRET environment variable and initializes the jwtSecret
+// used for signing tokens.
+func Init() error {
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return fmt.Errorf("JWT_SECRET environment variable is required")
+	}
+	jwtSecret = []byte(secret)
+	return nil
+}
 
 type contextKey string
 
