@@ -373,6 +373,12 @@ func MockEnvironmentVariables(t *testing.T) {
 	os.Setenv("AZURE_CLIENT_SECRET", "test-client-secret")
 	os.Setenv("AZURE_TENANT_ID", "test-tenant-id")
 	os.Setenv("ACS_CONNECTION_STRING", "test-connection-string")
+
+	// Set JWT secret for token generation
+	os.Setenv("JWT_SECRET", "test-secret")
+	if err := auth.Init(); err != nil {
+		t.Fatalf("Failed to initialize auth: %v", err)
+	}
 }
 
 // CreateTestFine creates a test fine for a user in a club
