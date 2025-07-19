@@ -3,7 +3,9 @@ package auth
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
@@ -154,8 +156,11 @@ func ValidateRefreshToken(tokenStr string) (string, error) {
 		return "", fmt.Errorf("invalid user ID")
 	}
 
+	sum := sha256.Sum256([]byte(token.Raw))
+	tokenHash := hex.EncodeToString(sum[:])
+
 	var expiresAt time.Time
-	err = database.Db.Raw(`SELECT expires_at FROM refresh_tokens WHERE user_id = ? AND token = ?`, userID, token.Raw).Scan(&expiresAt).Error
+	err = database.Db.Raw(`SELECT expires_at FROM refresh_tokens WHERE user_id = ? AND token = ?`, userID, tokenHash).Scan(&expiresAt).Error
 	if err != nil {
 		return "", err
 	}

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"strings"
@@ -27,6 +29,12 @@ type RefreshToken struct {
 	UserAgent string
 	IPAddress string
 	CreatedAt time.Time
+}
+
+// HashToken returns a sha256 hash of the provided token encoded as hex.
+func HashToken(token string) string {
+	sum := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(sum[:])
 }
 
 func FindOrCreateUser(email string) (User, error) {
@@ -139,7 +147,7 @@ func (u *User) IsProfileComplete() bool {
 func (u *User) StoreRefreshToken(token, userAgent, ipAddress string) error {
 	refreshToken := RefreshToken{
 		UserID:    u.ID,
-		Token:     token,
+		Token:     HashToken(token),
 		ExpiresAt: time.Now().Add(30 * 24 * time.Hour),
 		UserAgent: userAgent,
 		IPAddress: ipAddress,
@@ -181,7 +189,7 @@ func GetDeviceInfo(r *http.Request) (userAgent, ipAddress string) {
 
 func (u *User) ValidateRefreshToken(token string) error {
 	var refreshToken RefreshToken
-	err := database.Db.Raw(`SELECT * FROM refresh_tokens WHERE user_id = ? AND token = ?`, u.ID, token).Scan(&refreshToken).Error
+	err := database.Db.Raw(`SELECT * FROM refresh_tokens WHERE user_id = ? AND token = ?`, u.ID, HashToken(token)).Scan(&refreshToken).Error
 	if err != nil {
 		return err
 	}
@@ -196,7 +204,7 @@ func (u *User) ValidateRefreshToken(token string) error {
 }
 
 func (u *User) DeleteRefreshToken(token string) error {
-	return database.Db.Exec(`DELETE FROM refresh_tokens WHERE user_id = ? AND token = ?`, u.ID, token).Error
+	return database.Db.Exec(`DELETE FROM refresh_tokens WHERE user_id = ? AND token = ?`, u.ID, HashToken(token)).Error
 }
 
 func (u *User) DeleteAllRefreshTokens() error {

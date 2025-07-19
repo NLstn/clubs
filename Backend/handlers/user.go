@@ -230,7 +230,7 @@ func handleGetMySessions(w http.ResponseWriter, r *http.Request) {
 			UserAgent: session.UserAgent,
 			IPAddress: session.IPAddress,
 			CreatedAt: session.CreatedAt,
-			IsCurrent: session.Token == currentToken,
+			IsCurrent: session.Token == models.HashToken(currentToken),
 		})
 	}
 
