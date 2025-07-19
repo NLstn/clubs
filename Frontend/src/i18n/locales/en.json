@@ -7,6 +7,7 @@
     "edit": "Edit",
     "delete": "Delete",
     "add": "Add",
+    "remove": "Remove",
     "create": "Create",
     "update": "Update",
     "submit": "Submit",
@@ -20,6 +21,8 @@
     "search": "Search",
     "filter": "Filter",
     "sort": "Sort",
+    "name": "Name",
+    "role": "Role",
     "actions": "Actions",
     "goToDashboard": "Go to Dashboard"
   },
@@ -66,6 +69,7 @@
     "latestNews": "Latest News",
     "overview": "Overview",
     "members": "Members",
+    "teams": "Teams",
     "roles": {
       "owner": "Owner",
       "admin": "Admin",
@@ -97,6 +101,29 @@
       "failedToUpdateSettings": "Failed to update settings",
       "loadingNews": "Error loading news: {{error}}",
       "loadingClub": "Error loading club details"
+    }
+  },
+  "teams": {
+    "title": "Teams",
+    "createTeam": "Create Team",
+    "editTeam": "Edit Team",
+    "teamName": "Team Name",
+    "teamNamePlaceholder": "Enter team name",
+    "description": "Description",
+    "descriptionPlaceholder": "Enter team description",
+    "deleteConfirmation": "Are you sure you want to delete this team?",
+    "membersOf": "Members of {{teamName}}",
+    "addMember": "Add Member",
+    "removeMemberConfirmation": "Are you sure you want to remove this member from the team?",
+    "joinedAt": "Joined",
+    "noAvailableMembers": "All club members are already in this team",
+    "addAsMember": "Add as Member",
+    "addAsAdmin": "Add as Admin",
+    "promoteToAdmin": "Promote to Admin",
+    "demoteToMember": "Demote to Member",
+    "roles": {
+      "admin": "Admin",
+      "member": "Member"
     }
   },
   "fines": {

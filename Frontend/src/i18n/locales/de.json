@@ -7,6 +7,7 @@
     "edit": "Bearbeiten",
     "delete": "Löschen",
     "add": "Hinzufügen",
+    "remove": "Entfernen",
     "create": "Erstellen",
     "update": "Aktualisieren",
     "submit": "Senden",
@@ -20,6 +21,8 @@
     "search": "Suchen",
     "filter": "Filter",
     "sort": "Sortieren",
+    "name": "Name",
+    "role": "Rolle",
     "actions": "Aktionen"
   },
   "navigation": {
@@ -65,6 +68,7 @@
     "latestNews": "Aktuelle Nachrichten",
     "overview": "Übersicht",
     "members": "Mitglieder",
+    "teams": "Teams",
     "roles": {
       "owner": "Besitzer",
       "admin": "Administrator",
@@ -88,6 +92,29 @@
       "failedToLoadSettings": "Vereinseinstellungen konnten nicht geladen werden",
       "failedToUpdateSettings": "Einstellungen konnten nicht aktualisiert werden",
       "loadingNews": "Fehler beim Laden der Nachrichten: {{error}}"
+    }
+  },
+  "teams": {
+    "title": "Teams",
+    "createTeam": "Team erstellen",
+    "editTeam": "Team bearbeiten",
+    "teamName": "Team-Name",
+    "teamNamePlaceholder": "Team-Name eingeben",
+    "description": "Beschreibung",
+    "descriptionPlaceholder": "Team-Beschreibung eingeben",
+    "deleteConfirmation": "Sind Sie sicher, dass Sie dieses Team löschen möchten?",
+    "membersOf": "Mitglieder von {{teamName}}",
+    "addMember": "Mitglied hinzufügen",
+    "removeMemberConfirmation": "Sind Sie sicher, dass Sie dieses Mitglied aus dem Team entfernen möchten?",
+    "joinedAt": "Beigetreten",
+    "noAvailableMembers": "Alle Vereinsmitglieder sind bereits in diesem Team",
+    "addAsMember": "Als Mitglied hinzufügen",
+    "addAsAdmin": "Als Administrator hinzufügen",
+    "promoteToAdmin": "Zum Administrator befördern",
+    "demoteToMember": "Zum Mitglied degradieren",
+    "roles": {
+      "admin": "Administrator",
+      "member": "Mitglied"
     }
   },
   "fines": {

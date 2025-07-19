@@ -26,6 +26,8 @@ func main() {
 	//        in a circular dependency.
 	err = database.Db.AutoMigrate(&models.Club{},
 		&models.Member{},
+		&models.Team{},
+		&models.TeamMember{},
 		&models.MagicLink{},
 		&models.User{},
 		&models.JoinRequest{},
