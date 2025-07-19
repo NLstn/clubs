@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -75,7 +74,6 @@ func InitKeycloak() error {
 		oauth2:   oauth2Config,
 	}
 
-	log.Printf("Keycloak initialized with issuer: %s", issuerURL)
 	return nil
 }
 
@@ -163,7 +161,6 @@ func KeycloakMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			log.Default().Println("Missing or invalid Authorization header")
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -171,14 +168,12 @@ func KeycloakMiddleware(next http.Handler) http.Handler {
 		accessToken := strings.TrimPrefix(authHeader, "Bearer ")
 
 		if keycloakAuth == nil {
-			log.Default().Println("Keycloak not initialized")
 			http.Error(w, "Authentication service unavailable", http.StatusInternalServerError)
 			return
 		}
 
 		user, err := keycloakAuth.VerifyAccessToken(r.Context(), accessToken)
 		if err != nil {
-			log.Default().Printf("Token verification failed: %v", err)
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}

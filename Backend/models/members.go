@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"log"
 	"time"
 
 	"github.com/NLstn/clubs/database"
@@ -57,13 +56,11 @@ func (c *Club) CountOwners() (int64, error) {
 // user has an empty ID the function simply returns false.
 func (c *Club) IsMember(user User) bool {
 	if user.ID == "" {
-		log.Default().Println("IsMember called with empty user ID")
 		return false
 	}
 
 	result := database.Db.Where("club_id = ? AND user_id = ?", c.ID, user.ID).Limit(1).Find(&Member{})
 	if result.Error != nil {
-		log.Default().Println("Error checking membership:", result.Error)
 		return false
 	}
 	if result.RowsAffected == 0 {
@@ -210,7 +207,7 @@ func (c *Club) canChangeRole(changingUser User, targetMember Member, newRole str
 	if err != nil {
 		return false, err
 	}
-	
+
 	// Check if the changing user is trying to demote themselves as the last owner
 	if changingUser.ID == targetMember.UserID && targetMember.Role == "owner" && newRole != "owner" {
 		ownerCount, err := c.CountOwners()
@@ -221,7 +218,7 @@ func (c *Club) canChangeRole(changingUser User, targetMember Member, newRole str
 			return false, ErrLastOwnerDemotion
 		}
 	}
-	
+
 	if changingUserRole == "owner" {
 		return true, nil
 	}

@@ -21,18 +21,11 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   }, [accessToken, refreshToken]);
 
   const login = (newAccessToken: string, newRefreshToken: string) => {
-    console.log('AuthProvider login called with:', {
-      accessToken: newAccessToken ? 'Present' : 'Missing',
-      refreshToken: newRefreshToken ? 'Present' : 'Missing'
-    });
     setAccessToken(newAccessToken);
     setRefreshToken(newRefreshToken);
-    console.log('AuthProvider tokens set');
   };
 
   const logout = async (logoutFromKeycloak: boolean = true) => {
-    console.log('Logout called with logoutFromKeycloak:', logoutFromKeycloak);
-    
     if (refreshToken) {
       try {
         if (logoutFromKeycloak) {
@@ -52,7 +45,6 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
           if (response.ok) {
             const data = await response.json();
-            console.log('Keycloak logout response:', data);
             if (data.logoutURL) {
               // Clear local state first
               setAccessToken(null);
@@ -63,7 +55,6 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
               localStorage.removeItem('keycloak_id_token');
               // Set a flag to force fresh login next time
               localStorage.setItem('force_keycloak_login', 'true');
-              console.log('Redirecting to Keycloak logout:', data.logoutURL);
               // Then redirect to Keycloak logout
               window.location.href = data.logoutURL;
               return; // Don't clear state again below

@@ -49,6 +49,7 @@ func SetupTestDB(t *testing.T) {
 			first_name TEXT,
 			last_name TEXT,
 			email TEXT NOT NULL UNIQUE,
+			keycloak_id TEXT UNIQUE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)
