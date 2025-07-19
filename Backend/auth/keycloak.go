@@ -12,11 +12,10 @@ import (
 )
 
 type KeycloakConfig struct {
-	ServerURL    string
-	Realm        string
-	ClientID     string
-	ClientSecret string
-	RedirectURL  string
+	ServerURL   string
+	Realm       string
+	ClientID    string
+	RedirectURL string
 }
 
 type KeycloakAuth struct {
@@ -39,12 +38,14 @@ type KeycloakUser struct {
 var keycloakAuth *KeycloakAuth
 
 func InitKeycloak() error {
+	frontendURL := getEnvOrDefault("FRONTEND_URL", "http://localhost:5173")
+	redirectURL := frontendURL + "/auth/callback"
+
 	config := KeycloakConfig{
-		ServerURL:    getEnvOrDefault("KEYCLOAK_SERVER_URL", "https://auth.clubsstaging.dev"),
-		Realm:        getEnvOrDefault("KEYCLOAK_REALM", "clubs-dev"),
-		ClientID:     getEnvOrDefault("KEYCLOAK_CLIENT_ID", "clubs-frontend"),
-		ClientSecret: os.Getenv("KEYCLOAK_CLIENT_SECRET"), // Optional for public clients
-		RedirectURL:  getEnvOrDefault("KEYCLOAK_REDIRECT_URL", "http://localhost:5173/auth/callback"),
+		ServerURL:   getEnvOrDefault("KEYCLOAK_SERVER_URL", "https://auth.clubsstaging.dev"),
+		Realm:       getEnvOrDefault("KEYCLOAK_REALM", "clubs-dev"),
+		ClientID:    getEnvOrDefault("KEYCLOAK_CLIENT_ID", "clubs-frontend"),
+		RedirectURL: redirectURL,
 	}
 
 	issuerURL := fmt.Sprintf("%s/realms/%s", config.ServerURL, config.Realm)
@@ -60,11 +61,10 @@ func InitKeycloak() error {
 	verifier := provider.Verifier(oidcConfig)
 
 	oauth2Config := oauth2.Config{
-		ClientID:     config.ClientID,
-		ClientSecret: config.ClientSecret, // Use client secret if provided
-		RedirectURL:  config.RedirectURL,
-		Endpoint:     provider.Endpoint(),
-		Scopes:       []string{oidc.ScopeOpenID, "profile", "email"},
+		ClientID:    config.ClientID,
+		RedirectURL: config.RedirectURL,
+		Endpoint:    provider.Endpoint(),
+		Scopes:      []string{oidc.ScopeOpenID, "profile", "email"},
 	}
 
 	keycloakAuth = &KeycloakAuth{
