@@ -19,6 +19,42 @@
     gap: 1rem;
 }
 
+/* Mobile responsive clubs grid */
+@media (max-width: 768px) {
+    .clubs-container {
+        padding: var(--space-sm);
+    }
+    
+    .clubs-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--space-sm);
+    }
+    
+    .clubs-section h2 {
+        font-size: 1.3rem;
+        margin-bottom: var(--space-sm);
+    }
+}
+
+@media (max-width: 480px) {
+    .clubs-container {
+        padding: var(--space-xs);
+    }
+    
+    .clubs-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-sm);
+    }
+    
+    .clubs-section h2 {
+        font-size: 1.2rem;
+    }
+    
+    .clubs-section {
+        margin-bottom: var(--space-lg);
+    }
+}
+
 .club-card {
     background: var(--card-background);
     border: 1px solid var(--border-color);
@@ -38,6 +74,48 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.5rem;
+}
+
+/* Mobile responsive club cards */
+@media (max-width: 768px) {
+    .club-card {
+        padding: var(--space-md);
+    }
+    
+    .club-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-xs);
+    }
+    
+    .club-header h3 {
+        font-size: 1.1rem;
+        margin: 0;
+    }
+    
+    .role-badge {
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .club-card {
+        padding: var(--space-sm);
+    }
+    
+    .club-header h3 {
+        font-size: 1rem;
+    }
+    
+    .role-badge {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+    }
+    
+    .club-description {
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
 }
 
 .club-header h3 {

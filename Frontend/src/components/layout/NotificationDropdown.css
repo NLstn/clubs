@@ -219,18 +219,44 @@
 /* Mobile responsive */
 @media (max-width: 768px) {
   .notification-menu {
-    width: 280px;
-    right: -20px;
+    width: 300px;
+    right: -10px;
+    max-height: 350px;
   }
   
   .notification-dropdown {
-    margin-right: 10px;
+    margin-right: var(--space-xs);
+  }
+  
+  .notification-trigger {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .notification-icon {
+    font-size: 1.1rem;
   }
 }
 
 @media (max-width: 480px) {
   .notification-menu {
-    width: 260px;
-    right: -40px;
+    width: calc(100vw - 20px);
+    right: -160px;
+    max-height: 300px;
+  }
+  
+  .notification-trigger {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .notification-icon {
+    font-size: 1rem;
+  }
+  
+  .notification-badge {
+    min-width: 16px;
+    height: 16px;
+    font-size: 0.65rem;
   }
 }
