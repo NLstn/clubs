@@ -38,13 +38,33 @@ type KeycloakUser struct {
 var keycloakAuth *KeycloakAuth
 
 func InitKeycloak() error {
-	frontendURL := getEnvOrDefault("FRONTEND_URL", "http://localhost:5173")
+	// Get required environment variables - fail if any are missing
+	serverURL := os.Getenv("KEYCLOAK_SERVER_URL")
+	if serverURL == "" {
+		return fmt.Errorf("KEYCLOAK_SERVER_URL environment variable is required")
+	}
+
+	realm := os.Getenv("KEYCLOAK_REALM")
+	if realm == "" {
+		return fmt.Errorf("KEYCLOAK_REALM environment variable is required")
+	}
+
+	clientID := os.Getenv("KEYCLOAK_CLIENT_ID")
+	if clientID == "" {
+		return fmt.Errorf("KEYCLOAK_CLIENT_ID environment variable is required")
+	}
+
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if frontendURL == "" {
+		return fmt.Errorf("FRONTEND_URL environment variable is required")
+	}
+
 	redirectURL := frontendURL + "/auth/callback"
 
 	config := KeycloakConfig{
-		ServerURL:   getEnvOrDefault("KEYCLOAK_SERVER_URL", "https://auth.clubsstaging.dev"),
-		Realm:       getEnvOrDefault("KEYCLOAK_REALM", "clubs-dev"),
-		ClientID:    getEnvOrDefault("KEYCLOAK_CLIENT_ID", "clubs-frontend"),
+		ServerURL:   serverURL,
+		Realm:       realm,
+		ClientID:    clientID,
 		RedirectURL: redirectURL,
 	}
 
@@ -182,11 +202,4 @@ func KeycloakMiddleware(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), UserIDKey, user.Sub)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-}
-
-func getEnvOrDefault(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
 }
