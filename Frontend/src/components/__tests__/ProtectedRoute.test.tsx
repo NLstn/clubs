@@ -79,6 +79,6 @@ describe('ProtectedRoute', () => {
 
     expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument()
     expect(screen.getByTestId('navigate')).toBeInTheDocument()
-    expect(mockNavigate).toHaveBeenCalledWith('/login', true)
+    expect(mockNavigate).toHaveBeenCalledWith('/login?redirect=%2F', true)
   })
 })
