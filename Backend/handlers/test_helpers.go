@@ -253,6 +253,33 @@ func SetupTestDB(t *testing.T) {
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)
 	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS teams (
+			id TEXT PRIMARY KEY,
+			club_id TEXT NOT NULL,
+			name TEXT NOT NULL,
+			description TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT,
+			deleted BOOLEAN DEFAULT FALSE,
+			deleted_at DATETIME,
+			deleted_by TEXT
+		)
+	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS team_members (
+			id TEXT PRIMARY KEY,
+			team_id TEXT NOT NULL,
+			user_id TEXT NOT NULL,
+			role TEXT DEFAULT 'member',
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			created_by TEXT,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_by TEXT
+		)
+	`)
 }
 
 // TeardownTestDB cleans up the test database
@@ -464,6 +491,7 @@ func GetTestHandler() http.Handler {
 	registerClubSettingsRoutesForTest(mux)
 	registerUserRoutesForTest(mux)
 	registerMemberRoutesForTest(mux)
+	registerTeamRoutesForTest(mux)
 	registerShiftRoutesForTest(mux)
 	registerJoinRequestRoutesForTest(mux)
 	registerFineRoutesForTest(mux)
@@ -823,6 +851,63 @@ func registerInviteRoutesForTest(mux *http.ServeMux) {
 		if r.Method == http.MethodPost {
 			handleRejectInvite(w, r)
 		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+}
+
+// Test route registration for team endpoints
+func registerTeamRoutesForTest(mux *http.ServeMux) {
+	// Register specific team routes
+	mux.Handle("/api/v1/clubs/{clubid}/teams", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		// Check if this is a request for user teams via query param
+		if userID := r.URL.Query().Get("user"); userID != "" {
+			// Handle get user teams
+			handleGetUserTeams(w, r)
+			return
+		}
+
+		switch r.Method {
+		case http.MethodGet:
+			handleGetClubTeams(w, r)
+		case http.MethodPost:
+			handleCreateTeam(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/clubs/{clubid}/teams/{teamid}", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetTeam(w, r)
+		case http.MethodPut:
+			handleUpdateTeam(w, r)
+		case http.MethodDelete:
+			handleDeleteTeam(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/clubs/{clubid}/teams/{teamid}/members", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetTeamMembers(w, r)
+		case http.MethodPost:
+			handleAddTeamMember(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
+
+	mux.Handle("/api/v1/clubs/{clubid}/teams/{teamid}/members/{memberid}", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPatch:
+			handleUpdateTeamMemberRole(w, r)
+		case http.MethodDelete:
+			handleRemoveTeamMember(w, r)
+		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	}))

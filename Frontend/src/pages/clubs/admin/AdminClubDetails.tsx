@@ -4,6 +4,7 @@ import api, { hardDeleteClub } from '../../../utils/api';
 import Layout from '../../../components/layout/Layout';
 import ClubNotFound from '../ClubNotFound';
 import AdminClubMemberList from './members/AdminClubMemberList';
+import AdminClubTeamList from './teams/AdminClubTeamList';
 import AdminClubFineList from './fines/AdminClubFineList';
 import AdminClubEventList from './events/AdminClubEventList';
 import AdminClubNewsList from './news/AdminClubNewsList';
@@ -182,6 +183,12 @@ const AdminClubDetails = () => {
                         >
                             {t('clubs.members')}
                         </button>
+                        <button 
+                            className={`tab-button ${activeTab === 'teams' ? 'active' : ''}`}
+                            onClick={() => setActiveTab('teams')}
+                        >
+                            {t('clubs.teams')}
+                        </button>
                         {clubSettings?.finesEnabled && (
                             <button 
                                 className={`tab-button ${activeTab === 'fines' ? 'active' : ''}`}
@@ -289,6 +296,10 @@ const AdminClubDetails = () => {
 
                         <div className={`tab-panel ${activeTab === 'members' ? 'active' : ''}`}>
                             <AdminClubMemberList />
+                        </div>
+
+                        <div className={`tab-panel ${activeTab === 'teams' ? 'active' : ''}`}>
+                            <AdminClubTeamList />
                         </div>
 
                         {clubSettings?.finesEnabled && (
