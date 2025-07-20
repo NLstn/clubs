@@ -96,7 +96,7 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('refreshToken')).toHaveTextContent('existing-refresh-token')
   })
 
-  it('updates state and localStorage when login is called', () => {
+  it('updates state and localStorage when login is called', async () => {
     localStorageMock.getItem.mockReturnValue(null)
 
     render(
@@ -109,7 +109,7 @@ describe('AuthContext', () => {
     expect(screen.getByTestId('isAuthenticated')).toHaveTextContent('false')
 
     // Trigger login
-    act(() => {
+    await act(async () => {
       screen.getByText('Login').click()
     })
 

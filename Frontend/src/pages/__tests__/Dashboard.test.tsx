@@ -1,16 +1,31 @@
-import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import { vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import '@testing-library/jest-dom';
+import { renderWithProviders, screen, act } from '../../test/test-utils';
 import Dashboard from '../Dashboard';
 import { useAuth } from '../../hooks/useAuth';
 import { useDashboardData } from '../../hooks/useDashboardData';
+import type { AuthContextType } from '../../context/AuthContext';
 
 // Mock the hooks
 vi.mock('../../hooks/useAuth');
 vi.mock('../../hooks/useDashboardData');
+vi.mock('../../hooks/useCurrentUser', () => ({
+  useCurrentUser: () => ({
+    user: {
+      ID: 'user-123',
+      Username: 'testuser',
+      Email: 'test@example.com',
+      FirstName: 'Test',
+      LastName: 'User',
+    },
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+}));
 
-const mockUseAuth = useAuth as vi.MockedFunction<typeof useAuth>;
-const mockUseDashboardData = useDashboardData as vi.MockedFunction<typeof useDashboardData>;
+const mockUseAuth = vi.mocked(useAuth);
+const mockUseDashboardData = vi.mocked(useDashboardData);
 
 // Mock Layout component
 vi.mock('../../components/layout/Layout', () => ({
@@ -24,13 +39,16 @@ vi.mock('../../components/layout/Layout', () => ({
 describe('Dashboard', () => {
   beforeEach(() => {
     mockUseAuth.mockReturnValue({
-      api: {
-        get: vi.fn().mockResolvedValue({ data: [] }),
-      },
-    } as ReturnType<typeof useAuth>);
+      isAuthenticated: true,
+      accessToken: 'mock-token',
+      refreshToken: 'mock-refresh-token',
+      login: vi.fn(),
+      logout: vi.fn(),
+      api: {} as AuthContextType['api'],
+    });
   });
 
-  it('renders activity feed when activities are available', () => {
+  it('renders activity feed when activities are available', async () => {
     const mockActivities = [
       {
         id: '1',
@@ -71,11 +89,9 @@ describe('Dashboard', () => {
       refetch: vi.fn(),
     });
 
-    render(
-      <BrowserRouter>
-        <Dashboard />
-      </BrowserRouter>
-    );
+    await act(async () => {
+      renderWithProviders(<Dashboard />);
+    });
 
     // Check if activity feed is rendered
     expect(screen.getByText('Activity Feed')).toBeInTheDocument();
@@ -89,7 +105,7 @@ describe('Dashboard', () => {
     expect(screen.getByText(/Created by Jane Smith/)).toBeInTheDocument();
   });
 
-  it('renders empty state when no activities are available', () => {
+  it('renders empty state when no activities are available', async () => {
     mockUseDashboardData.mockReturnValue({
       news: [],
       events: [],
@@ -99,17 +115,15 @@ describe('Dashboard', () => {
       refetch: vi.fn(),
     });
 
-    render(
-      <BrowserRouter>
-        <Dashboard />
-      </BrowserRouter>
-    );
+    await act(async () => {
+      renderWithProviders(<Dashboard />);
+    });
 
     expect(screen.getByText('Activity Feed')).toBeInTheDocument();
     expect(screen.getByText('No recent activities from your clubs.')).toBeInTheDocument();
   });
 
-  it('renders loading state', () => {
+  it('renders loading state', async () => {
     mockUseDashboardData.mockReturnValue({
       news: [],
       events: [],
@@ -119,16 +133,14 @@ describe('Dashboard', () => {
       refetch: vi.fn(),
     });
 
-    render(
-      <BrowserRouter>
-        <Dashboard />
-      </BrowserRouter>
-    );
+    await act(async () => {
+      renderWithProviders(<Dashboard />);
+    });
 
     expect(screen.getByText('Loading dashboard...')).toBeInTheDocument();
   });
 
-  it('renders error state', () => {
+  it('renders error state', async () => {
     mockUseDashboardData.mockReturnValue({
       news: [],
       events: [],
@@ -138,11 +150,9 @@ describe('Dashboard', () => {
       refetch: vi.fn(),
     });
 
-    render(
-      <BrowserRouter>
-        <Dashboard />
-      </BrowserRouter>
-    );
+    await act(async () => {
+      renderWithProviders(<Dashboard />);
+    });
 
     expect(screen.getByText('Failed to load dashboard data')).toBeInTheDocument();
   });
