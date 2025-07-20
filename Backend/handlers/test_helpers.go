@@ -285,6 +285,19 @@ func SetupTestDB(t *testing.T) {
 // TeardownTestDB cleans up the test database
 func TeardownTestDB(t *testing.T) {
 	if testDB != nil {
+		// Clear all data from tables to ensure clean state
+		// Only clear tables that exist
+		testDB.Exec("DELETE FROM activities")
+		testDB.Exec("DELETE FROM refresh_tokens")
+		testDB.Exec("DELETE FROM magic_links")
+		testDB.Exec("DELETE FROM user_notification_preferences")
+		testDB.Exec("DELETE FROM notifications")
+		testDB.Exec("DELETE FROM fines")
+		testDB.Exec("DELETE FROM members")
+		testDB.Exec("DELETE FROM events")
+		testDB.Exec("DELETE FROM clubs")
+		testDB.Exec("DELETE FROM users")
+
 		sqlDB, err := testDB.DB()
 		if err == nil {
 			sqlDB.Close()
