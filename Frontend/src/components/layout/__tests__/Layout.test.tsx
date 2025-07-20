@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 import Layout from '../Layout';
 import { TestI18nProvider } from '../../../test/i18n-test-utils';
+import { defaultMockAuthValue, defaultMockNotificationValue } from '../../../test/mock-values';
 
 // Mock the useAuth hook
 const mockUseAuth = vi.fn();
@@ -11,6 +12,13 @@ const mockNavigate = vi.fn();
 
 vi.mock('../../../hooks/useAuth', () => ({
   useAuth: () => mockUseAuth()
+}));
+
+// Mock the useNotifications hook
+const mockUseNotifications = vi.fn();
+
+vi.mock('../../../hooks/useNotifications', () => ({
+  useNotifications: () => mockUseNotifications()
 }));
 
 vi.mock('react-router-dom', async () => {
@@ -31,12 +39,24 @@ vi.mock('../../CookieConsent', () => ({
   default: () => <div data-testid="cookie-consent-mock">Cookie Consent</div>
 }));
 
+// Mock the RecentClubsDropdown component
+vi.mock('../RecentClubsDropdown', () => ({
+  default: () => <div data-testid="recent-clubs-dropdown">Recent Clubs Dropdown</div>
+}));
+
+// Mock the NotificationDropdown component
+vi.mock('../NotificationDropdown', () => ({
+  default: () => <div data-testid="notification-dropdown">Notification Dropdown</div>
+}));
+
 describe('Layout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseAuth.mockReturnValue({
+      ...defaultMockAuthValue,
       logout: mockLogout
     });
+    mockUseNotifications.mockReturnValue(defaultMockNotificationValue);
   });
 
   it('renders Layout with CookieConsent component', () => {
