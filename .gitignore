@@ -40,3 +40,5 @@ dist-ssr
 *.local
 
 **/tmp
+
+coverage
