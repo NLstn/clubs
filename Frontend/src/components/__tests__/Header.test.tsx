@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import Header from '../layout/Header'
 import { TestI18nProvider } from '../../test/i18n-test-utils'
+import { defaultMockAuthValue, defaultMockNotificationValue } from '../../test/mock-values'
 
 // Mock the useAuth hook
 const mockUseAuth = vi.fn()
@@ -11,6 +12,13 @@ const mockNavigate = vi.fn()
 
 vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => mockUseAuth()
+}))
+
+// Mock the useNotifications hook
+const mockUseNotifications = vi.fn()
+
+vi.mock('../../hooks/useNotifications', () => ({
+  useNotifications: () => mockUseNotifications()
 }))
 
 vi.mock('react-router-dom', async () => {
@@ -31,6 +39,11 @@ vi.mock('../layout/RecentClubsDropdown', () => ({
   default: () => <div data-testid="recent-clubs-dropdown">Recent Clubs Dropdown</div>
 }))
 
+// Mock the NotificationDropdown component
+vi.mock('../layout/NotificationDropdown', () => ({
+  default: () => <div data-testid="notification-dropdown">Notification Dropdown</div>
+}))
+
 const renderWithRouter = (component: React.ReactElement) => {
   return render(
     <TestI18nProvider>
@@ -45,8 +58,10 @@ describe('Header', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockUseAuth.mockReturnValue({
+      ...defaultMockAuthValue,
       logout: mockLogout
     })
+    mockUseNotifications.mockReturnValue(defaultMockNotificationValue)
   })
 
   it('renders with default title', () => {
