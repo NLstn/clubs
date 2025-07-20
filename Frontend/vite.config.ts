@@ -21,5 +21,11 @@ export default defineConfig({
         'coverage/',
       ],
     },
+    // Silence act warnings in tests
+    silent: false,
+    // Configure test environment to suppress React warnings
+    env: {
+      NODE_ENV: 'test',
+    },
   },
 })

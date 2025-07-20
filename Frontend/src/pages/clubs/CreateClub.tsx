@@ -36,8 +36,9 @@ const CreateClub = () => {
 
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label>Club Name:</label>
+                        <label htmlFor="clubName">Club Name:</label>
                         <input
+                            id="clubName"
                             type="text"
                             value={clubName}
                             onChange={(e) => setClubName(e.target.value)}
@@ -46,8 +47,9 @@ const CreateClub = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Description:</label>
+                        <label htmlFor="description">Description:</label>
                         <textarea
+                            id="description"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             autoComplete="off"

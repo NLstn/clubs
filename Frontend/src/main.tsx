@@ -5,8 +5,5 @@ import './i18n/index.ts'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
-  // StrictMode temporarily disabled to fix Keycloak OAuth flow
-  // <StrictMode>
     <App />
-  // </StrictMode>,
 )
