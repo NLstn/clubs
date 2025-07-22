@@ -107,6 +107,17 @@ func (c *Club) DeleteMember(memberID string) (int64, error) {
 	return result.RowsAffected, result.Error
 }
 
+func (c *Club) DeleteMemberByUserID(userID string) error {
+	result := database.Db.Where("user_id = ? AND club_id = ?", userID, c.ID).Delete(&Member{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}
+
 func (c *Club) GetMemberRole(user User) (string, error) {
 	var member Member
 	result := database.Db.Where("club_id = ? AND user_id = ?", c.ID, user.ID).First(&member)
