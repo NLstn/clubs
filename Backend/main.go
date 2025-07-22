@@ -43,6 +43,7 @@ func main() {
 		&models.ClubSettings{},
 		&models.Notification{},
 		&models.UserNotificationPreferences{},
+		&models.UserPrivacySettings{},
 		&models.Activity{},
 	)
 	if err != nil {

@@ -28,6 +28,7 @@ func Handler_v1() http.Handler {
 	registerNotificationRoutes(mux)
 
 	registerUserRoutes(mux)
+	registerPrivacyRoutes(mux)
 
 	return LoggingMiddleware(CorsMiddleware(mux))
 }

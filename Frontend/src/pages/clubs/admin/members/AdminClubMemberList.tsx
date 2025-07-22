@@ -14,6 +14,7 @@ interface Member {
     role: string;
     joinedAt: string;
     userId?: string; // Add userId to identify the current user
+    birthDate?: string; // Add birth date field
 }
 
 const AdminClubMemberList = () => {
@@ -190,6 +191,7 @@ const AdminClubMemberList = () => {
                         <th>Name</th>
                         <th>Role</th>
                         <th>Joined</th>
+                        <th>Birth Date</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -199,6 +201,7 @@ const AdminClubMemberList = () => {
                             <td>{member.name}</td>
                             <td>{translateRole(member.role)}</td>
                             <td>{member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'N/A'}</td>
+                            <td>{member.birthDate ? new Date(member.birthDate).toLocaleDateString() : 'Not shared'}</td>
                             <td>
                                 <div className="member-actions">
                                     {canDeleteMember(currentUserRole, member.role) && (

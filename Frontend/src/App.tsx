@@ -15,6 +15,7 @@ import Profile from './pages/profile/Profile';
 import ProfileInvites from './pages/profile/ProfileInvites';
 import ProfileFines from './pages/profile/ProfileFines';
 import ProfileSessions from './pages/profile/ProfileSessions';
+import ProfilePrivacy from './pages/profile/ProfilePrivacy';
 import NotificationSettings from './pages/settings/NotificationSettings';
 
 function App() {
@@ -64,6 +65,12 @@ function App() {
                     <Route path="/profile"  element={
                         <ProtectedRoute>
                             <Profile />
+                        </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/profile/privacy"  element={
+                        <ProtectedRoute>
+                            <ProfilePrivacy />
                         </ProtectedRoute>
                     } />
                     

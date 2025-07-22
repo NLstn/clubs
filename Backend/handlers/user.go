@@ -60,8 +60,9 @@ func handleUpdateMe(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		FirstName string `json:"firstName"`
-		LastName  string `json:"lastName"`
+		FirstName string     `json:"firstName"`
+		LastName  string     `json:"lastName"`
+		BirthDate *time.Time `json:"birthDate"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -76,6 +77,14 @@ func handleUpdateMe(w http.ResponseWriter, r *http.Request) {
 	if err := user.UpdateUserName(req.FirstName, req.LastName); err != nil {
 		http.Error(w, "Failed to update user", http.StatusInternalServerError)
 		return
+	}
+
+	// Update birth date if provided
+	if req.BirthDate != nil {
+		if err := user.UpdateBirthDate(req.BirthDate); err != nil {
+			http.Error(w, "Failed to update birth date", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	w.WriteHeader(http.StatusNoContent)
