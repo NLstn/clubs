@@ -170,3 +170,26 @@ func (u *User) GetUserRSVP(eventID string) (*EventRSVP, error) {
 	}
 	return &rsvp, nil
 }
+
+// EventWithClub represents an event with its associated club name
+type EventWithClub struct {
+	Event
+	ClubName string `json:"club_name"`
+}
+
+// SearchEventsForUser searches for events in clubs where the user is a member
+func SearchEventsForUser(userID, query string) ([]EventWithClub, error) {
+	var events []EventWithClub
+
+	// Query events from clubs where user is a member and event name contains the query
+	err := database.Db.Table("events e").
+		Select("e.*, c.name as club_name").
+		Joins("JOIN clubs c ON e.club_id = c.id").
+		Joins("JOIN members m ON m.club_id = c.id").
+		Where("m.user_id = ? AND LOWER(e.name) LIKE LOWER(?)", userID, "%"+query+"%").
+		Where("c.deleted = false"). // Only from non-deleted clubs
+		Order("e.start_time DESC").
+		Scan(&events).Error
+
+	return events, err
+}

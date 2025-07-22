@@ -6,6 +6,7 @@ import { useNotifications } from '../../hooks/useNotifications';
 import logo from '../../assets/logo.png';
 import RecentClubsDropdown from './RecentClubsDropdown';
 import NotificationDropdown from './NotificationDropdown';
+import GlobalSearch from './GlobalSearch';
 import './Header.css';
 
 interface HeaderProps {
@@ -61,6 +62,7 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
       />
       <h1>{title || t('navigation.clubs')}</h1>
       <div className="header-actions">
+        <GlobalSearch />
         {showRecentClubs && <RecentClubsDropdown />}
         <NotificationDropdown
           notifications={notifications}
