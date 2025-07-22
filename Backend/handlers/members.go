@@ -45,6 +45,14 @@ func registerMemberRoutes(mux *http.ServeMux) {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})))
+
+	mux.Handle("/api/v1/clubs/{clubid}/leave", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			handleLeaveClub(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
 }
 
 // endpoint: GET /api/v1/clubs/{clubid}/members
@@ -274,4 +282,63 @@ func handleGetOwnerCount(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"ownerCount": int(ownerCount),
 	})
+}
+
+// endpoint: POST /api/v1/clubs/{clubid}/leave
+func handleLeaveClub(w http.ResponseWriter, r *http.Request) {
+	clubID := extractPathParam(r, "clubs")
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	club, err := models.GetClubByID(clubID)
+	if err == gorm.ErrRecordNotFound {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	} else if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	user := extractUser(r)
+	if user.ID == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Check if user is a member of the club
+	if !club.IsMember(user) {
+		http.Error(w, "You are not a member of this club", http.StatusBadRequest)
+		return
+	}
+
+	// Get the user's member record to check their role
+	userRole, err := club.GetMemberRole(user)
+	if err != nil {
+		http.Error(w, "Failed to get user role", http.StatusInternalServerError)
+		return
+	}
+
+	// Check if user is the last owner - prevent leaving if so
+	if userRole == "owner" {
+		ownerCount, err := club.CountOwners()
+		if err != nil {
+			http.Error(w, "Failed to check owner count", http.StatusInternalServerError)
+			return
+		}
+		if ownerCount <= 1 {
+			http.Error(w, "Cannot leave club: you are the last owner. Transfer ownership or delete the club first", http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Find the user's member record and delete it
+	err = club.DeleteMemberByUserID(user.ID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

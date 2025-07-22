@@ -330,6 +330,29 @@ The API uses JWT-based authentication with magic link email authentication. Most
 
 ---
 
+### Leave Club
+**Endpoint:** `POST /api/v1/clubs/{clubid}/leave`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Leave a club. Any member can leave the club they belong to, except for the last owner. If the user is the last owner, they must transfer ownership or delete the club first.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Responses:**
+- `204 No Content` - Successfully left the club
+- `400 Bad Request` - Invalid club ID format, user is not a member, or user is the last owner
+- `401 Unauthorized` - Invalid or missing token
+- `404 Not Found` - Club not found
+- `500 Internal Server Error` - Database error
+
+**Error Messages:**
+- "You are not a member of this club" - User is not currently a member of the specified club
+- "Cannot leave club: you are the last owner. Transfer ownership or delete the club first" - User is the only owner and cannot leave
+
+---
+
 ### Check Admin Rights
 **Endpoint:** `GET /api/v1/clubs/{clubid}/isAdmin`  
 **Authentication:** Bearer token required  

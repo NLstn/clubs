@@ -719,6 +719,14 @@ func registerMemberRoutesForTest(mux *http.ServeMux) {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	}))
+
+	mux.Handle("/api/v1/clubs/{clubid}/leave", withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			handleLeaveClub(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	}))
 }
 
 func registerShiftRoutesForTest(mux *http.ServeMux) {
