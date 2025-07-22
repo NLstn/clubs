@@ -113,12 +113,12 @@ func (c *Club) GetEventByID(eventID string) (*Event, error) {
 func (u *User) CreateOrUpdateRSVP(eventID string, response string) error {
 	var rsvp EventRSVP
 	err := database.Db.Where("event_id = ? AND user_id = ?", eventID, u.ID).First(&rsvp).Error
-	
+
 	if err != nil {
 		// Create new RSVP
 		rsvp = EventRSVP{
-			EventID: eventID,
-			UserID:  u.ID,
+			EventID:  eventID,
+			UserID:   u.ID,
 			Response: response,
 		}
 		return database.Db.Create(&rsvp).Error
@@ -142,22 +142,22 @@ func GetEventRSVPCounts(eventID string) (map[string]int, error) {
 		Response string
 		Count    int
 	}
-	
+
 	err := database.Db.Table("event_rsvps").
 		Select("response, COUNT(*) as count").
 		Where("event_id = ?", eventID).
 		Group("response").
 		Scan(&results).Error
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	counts := make(map[string]int)
 	for _, result := range results {
 		counts[result.Response] = result.Count
 	}
-	
+
 	return counts, nil
 }
 

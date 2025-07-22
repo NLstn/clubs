@@ -106,7 +106,7 @@ func handleUpdateFineTemplate(w http.ResponseWriter, r *http.Request) {
 
 	clubID := extractPathParam(r, "clubs")
 	templateID := extractPathParam(r, "fine-templates")
-	
+
 	club, err := models.GetClubByID(clubID)
 	if err != nil {
 		http.Error(w, "Club not found", http.StatusNotFound)
@@ -144,7 +144,7 @@ func handleUpdateFineTemplate(w http.ResponseWriter, r *http.Request) {
 func handleDeleteFineTemplate(w http.ResponseWriter, r *http.Request) {
 	clubID := extractPathParam(r, "clubs")
 	templateID := extractPathParam(r, "fine-templates")
-	
+
 	club, err := models.GetClubByID(clubID)
 	if err != nil {
 		http.Error(w, "Club not found", http.StatusNotFound)

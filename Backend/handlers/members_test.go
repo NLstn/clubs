@@ -273,7 +273,7 @@ func TestMemberEndpoints(t *testing.T) {
 	t.Run("Prevent Last Owner From Demoting Themselves", func(t *testing.T) {
 		owner, ownerToken := CreateTestUser(t, "single-owner@example.com")
 		club := CreateTestClub(t, owner, "Test Club")
-		
+
 		// Get the owner's member record that was created by CreateTestClub
 		var ownerMember models.Member
 		err := database.Db.Where("club_id = ? AND user_id = ? AND role = ?", club.ID, owner.ID, "owner").First(&ownerMember).Error
@@ -291,7 +291,7 @@ func TestMemberEndpoints(t *testing.T) {
 	t.Run("Allow Owner To Demote Themselves When Multiple Owners Exist", func(t *testing.T) {
 		owner1, owner1Token := CreateTestUser(t, "owner1-multiple@example.com")
 		club := CreateTestClub(t, owner1, "Test Club")
-		
+
 		// Get the first owner's member record that was created by CreateTestClub
 		var owner1Member models.Member
 		err := database.Db.Where("club_id = ? AND user_id = ? AND role = ?", club.ID, owner1.ID, "owner").First(&owner1Member).Error

@@ -9,14 +9,14 @@ import (
 )
 
 type ClubSettings struct {
-	ID           string    `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID       string    `json:"clubId" gorm:"type:uuid;not null;unique"`
-	FinesEnabled bool      `json:"finesEnabled" gorm:"default:true"`
-	ShiftsEnabled bool     `json:"shiftsEnabled" gorm:"default:true"`
-	CreatedAt    time.Time `json:"createdAt"`
-	CreatedBy    string    `json:"createdBy" gorm:"type:uuid"`
-	UpdatedAt    time.Time `json:"updatedAt"`
-	UpdatedBy    string    `json:"updatedBy" gorm:"type:uuid"`
+	ID            string    `json:"id" gorm:"type:uuid;primary_key"`
+	ClubID        string    `json:"clubId" gorm:"type:uuid;not null;unique"`
+	FinesEnabled  bool      `json:"finesEnabled" gorm:"default:true"`
+	ShiftsEnabled bool      `json:"shiftsEnabled" gorm:"default:true"`
+	CreatedAt     time.Time `json:"createdAt"`
+	CreatedBy     string    `json:"createdBy" gorm:"type:uuid"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+	UpdatedBy     string    `json:"updatedBy" gorm:"type:uuid"`
 }
 
 func GetClubSettings(clubID string) (ClubSettings, error) {
