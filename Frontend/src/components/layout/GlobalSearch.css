@@ -1,0 +1,225 @@
+.global-search {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin-right: var(--space-md);
+}
+
+.search-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 40px 10px 15px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  font-size: 0.9rem;
+  background-color: var(--color-background);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.search-icon {
+  position: absolute;
+  right: 12px;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.search-loading {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--color-background-light);
+  box-shadow: var(--shadow-md);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border);
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1001;
+  margin-top: 4px;
+}
+
+.search-no-results {
+  padding: var(--space-md);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.search-section {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.search-section:last-child {
+  border-bottom: none;
+}
+
+.search-section-header {
+  padding: 10px 15px;
+  background-color: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.search-section-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.search-result-item {
+  padding: 12px 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background-color: var(--color-background);
+}
+
+.search-result-type {
+  background-color: var(--color-primary);
+  color: white;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+  min-width: 45px;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.search-result-content {
+  flex: 1;
+}
+
+.search-result-title {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.search-result-description {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.search-result-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.search-result-club {
+  color: var(--color-primary);
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.search-result-date {
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .global-search {
+    max-width: 300px;
+    margin-right: var(--space-sm);
+  }
+
+  .search-input {
+    font-size: 0.85rem;
+    padding: 8px 35px 8px 12px;
+  }
+
+  .search-dropdown {
+    max-height: 300px;
+  }
+
+  .search-result-item {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .search-result-type {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    min-width: 40px;
+  }
+
+  .search-result-title {
+    font-size: 0.85rem;
+  }
+
+  .search-result-description {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .global-search {
+    max-width: 200px;
+    margin-right: var(--space-xs);
+  }
+
+  .search-input {
+    font-size: 0.8rem;
+    padding: 6px 30px 6px 10px;
+  }
+
+  .search-icon {
+    font-size: 0.9rem;
+    right: 10px;
+  }
+
+  .search-result-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .search-result-type {
+    align-self: flex-start;
+  }
+}
