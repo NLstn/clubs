@@ -6,6 +6,7 @@ export interface CurrentUser {
   Email: string;
   FirstName?: string;
   LastName?: string;
+  BirthDate?: string;
 }
 
 export const useCurrentUser = () => {

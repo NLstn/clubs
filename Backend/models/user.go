@@ -15,8 +15,9 @@ type User struct {
 	ID         string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	FirstName  string
 	LastName   string
-	Email      string `gorm:"uniqueIndex;not null"`
-	KeycloakID string `gorm:"uniqueIndex"`
+	Email      string     `gorm:"uniqueIndex;not null"`
+	KeycloakID string     `gorm:"uniqueIndex"`
+	BirthDate  *time.Time `gorm:"type:date"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
@@ -129,6 +130,10 @@ func GetUsersByIDs(userIDs []string) ([]User, error) {
 
 func (u *User) UpdateUserName(firstName, lastName string) error {
 	return database.Db.Exec(`UPDATE users SET first_name = ?, last_name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, firstName, lastName, u.ID).Error
+}
+
+func (u *User) UpdateBirthDate(birthDate *time.Time) error {
+	return database.Db.Exec(`UPDATE users SET birth_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, birthDate, u.ID).Error
 }
 
 // Helper method to get full name

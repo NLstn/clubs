@@ -51,11 +51,12 @@ func registerMemberRoutes(mux *http.ServeMux) {
 func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 
 	type APIMember struct {
-		ID       string `json:"id"`
-		UserId   string `json:"userId"`
-		Name     string `json:"name"`
-		Role     string `json:"role"`
-		JoinedAt string `json:"joinedAt"`
+		ID        string  `json:"id"`
+		UserId    string  `json:"userId"`
+		Name      string  `json:"name"`
+		Role      string  `json:"role"`
+		JoinedAt  string  `json:"joinedAt"`
+		BirthDate *string `json:"birthDate,omitempty"`
 	}
 
 	clubID := extractPathParam(r, "clubs")
@@ -88,12 +89,21 @@ func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		var apiMember APIMember
 		apiMember.ID = members[i].ID
 		apiMember.UserId = members[i].UserID
 		apiMember.Name = user.GetFullName()
 		apiMember.Role = members[i].Role
 		apiMember.JoinedAt = members[i].CreatedAt.Format("2006-01-02T15:04:05Z")
+
+		// Check privacy settings for birth date
+		privacySettings, err := models.GetUserPrivacySettings(user.ID, clubID)
+		if err == nil && privacySettings.ShareBirthDate && user.BirthDate != nil {
+			birthDateStr := user.BirthDate.Format("2006-01-02")
+			apiMember.BirthDate = &birthDateStr
+		}
+
 		apiMembers = append(apiMembers, apiMember)
 	}
 
