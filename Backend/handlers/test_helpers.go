@@ -50,6 +50,7 @@ func SetupTestDB(t *testing.T) {
 			last_name TEXT,
 			email TEXT NOT NULL UNIQUE,
 			keycloak_id TEXT UNIQUE,
+			birth_date DATE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)

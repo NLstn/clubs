@@ -76,6 +76,10 @@ vi.mock('../pages/profile/ProfileSessions', () => ({
   default: () => <div data-testid="profile-sessions">ProfileSessions</div>,
 }));
 
+vi.mock('../pages/profile/ProfilePrivacy', () => ({
+  default: () => <div data-testid="profile-privacy">ProfilePrivacy</div>,
+}));
+
 vi.mock('../pages/settings/NotificationSettings', () => ({
   default: () => <div data-testid="notification-settings">NotificationSettings</div>,
 }));
@@ -101,6 +105,7 @@ describe('App', () => {
     expect(screen.getByTestId('profile-invites')).toBeInTheDocument();
     expect(screen.getByTestId('profile-fines')).toBeInTheDocument();
     expect(screen.getByTestId('profile-sessions')).toBeInTheDocument();
+    expect(screen.getByTestId('profile-privacy')).toBeInTheDocument();
     expect(screen.getByTestId('notification-settings')).toBeInTheDocument();
     expect(screen.getByTestId('login')).toBeInTheDocument();
     expect(screen.getByTestId('magic-link-handler')).toBeInTheDocument();
