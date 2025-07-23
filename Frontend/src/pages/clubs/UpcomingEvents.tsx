@@ -5,6 +5,8 @@ import api from '../../utils/api';
 interface Event {
     id: string;
     name: string;
+    description: string;
+    location: string;
     start_time: string;
     end_time: string;
     user_rsvp?: {
@@ -81,6 +83,11 @@ const UpcomingEvents = () => {
                         <p>
                             <strong>End:</strong> {formatDateTime(event.end_time)}
                         </p>
+                        {event.location && (
+                            <p>
+                                <strong>Location:</strong> {event.location}
+                            </p>
+                        )}
                         
                         <div className="rsvp-section">
                             <p>

@@ -8,6 +8,12 @@ vi.mock('react-router-dom', () => ({
   BrowserRouter: ({ children }: { children: React.ReactNode }) => <div data-testid="browser-router">{children}</div>,
   Routes: ({ children }: { children: React.ReactNode }) => <div data-testid="routes">{children}</div>,
   Route: ({ element }: { element: React.ReactNode }) => <div data-testid="route">{element}</div>,
+  useNavigate: () => vi.fn(),
+  useParams: () => ({ clubId: '1', eventId: '1' }),
+  useLocation: () => ({ pathname: '/', search: '', hash: '', state: null }),
+  Navigate: ({ to }: { to: string }) => <div data-testid="navigate">Navigate to: {to}</div>,
+  Outlet: () => <div data-testid="outlet">Outlet</div>,
+  Link: ({ children, to }: { children: React.ReactNode; to: string }) => <a href={to}>{children}</a>,
 }));
 
 // Mock AuthProvider
