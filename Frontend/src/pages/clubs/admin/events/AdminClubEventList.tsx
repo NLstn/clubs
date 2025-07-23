@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import EditEvent from "./EditEvent";
 import AddEvent from "./AddEvent";
 import EventRSVPList from "./EventRSVPList";
@@ -197,6 +197,13 @@ const AdminClubEventList = () => {
                                                 </span>
                                             </td>
                                             <td>
+                                                <Link 
+                                                    to={`/clubs/${id}/admin/events/${event.id}`}
+                                                    className="button-info"
+                                                    style={{marginRight: '5px'}}
+                                                >
+                                                    View Details
+                                                </Link>
                                                 <button
                                                     onClick={() => handleEditEvent(event)}
                                                     className="button-accept"

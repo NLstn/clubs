@@ -17,6 +17,8 @@ import ProfileFines from './pages/profile/ProfileFines';
 import ProfileSessions from './pages/profile/ProfileSessions';
 import ProfilePrivacy from './pages/profile/ProfilePrivacy';
 import NotificationSettings from './pages/settings/NotificationSettings';
+import EventDetails from './pages/clubs/events/EventDetails';
+import AdminEventDetails from './pages/clubs/admin/events/AdminEventDetails';
 
 function App() {
     return (
@@ -49,6 +51,24 @@ function App() {
                         element={
                             <ProtectedRoute>
                                 <AdminClubDetails />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/clubs/:clubId/events/:eventId"
+                        element={
+                            <ProtectedRoute>
+                                <EventDetails />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/clubs/:clubId/admin/events/:eventId"
+                        element={
+                            <ProtectedRoute>
+                                <AdminEventDetails />
                             </ProtectedRoute>
                         }
                     />
@@ -104,6 +124,25 @@ function App() {
                         </ProtectedRoute>
                     } />
                     <Route path="/join/:clubId" element={<JoinClub />} />
+
+                    {/* Event Detail Routes */}
+                    <Route
+                        path="/clubs/:clubId/events/:eventId"
+                        element={
+                            <ProtectedRoute>
+                                <EventDetails />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/clubs/:clubId/admin/events/:eventId"
+                        element={
+                            <ProtectedRoute>
+                                <AdminEventDetails />
+                            </ProtectedRoute>
+                        }
+                    />
 
                 </Routes>
             </BrowserRouter>

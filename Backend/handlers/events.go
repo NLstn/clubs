@@ -24,6 +24,8 @@ func registerEventRoutes(mux *http.ServeMux) {
 
 	mux.Handle("/api/v1/clubs/{clubid}/events/{eventid}", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
+		case http.MethodGet:
+			handleGetEvent(w, r)
 		case http.MethodPut:
 			handleUpdateEvent(w, r)
 		case http.MethodDelete:
@@ -91,6 +93,62 @@ func handleGetEvents(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(events)
+}
+
+// GET /api/v1/clubs/{clubid}/events/{eventid}
+func handleGetEvent(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+	clubID := extractPathParam(r, "clubs")
+	eventID := extractPathParam(r, "events")
+
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	if _, err := uuid.Parse(eventID); err != nil {
+		http.Error(w, "Invalid event ID format", http.StatusBadRequest)
+		return
+	}
+
+	club, err := models.GetClubByID(clubID)
+	if err == gorm.ErrRecordNotFound {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Failed to get club information", http.StatusInternalServerError)
+		return
+	}
+
+	if !club.IsMember(user) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
+	event, err := club.GetEventByID(eventID)
+	if err == gorm.ErrRecordNotFound {
+		http.Error(w, "Event not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Failed to get event", http.StatusInternalServerError)
+		return
+	}
+
+	// Get user's RSVP if it exists
+	userRSVP, _ := user.GetUserRSVP(eventID)
+
+	response := struct {
+		*models.Event
+		UserRSVP *models.EventRSVP `json:"user_rsvp,omitempty"`
+	}{
+		Event:    event,
+		UserRSVP: userRSVP,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 // POST /api/v1/clubs/{clubid}/events
