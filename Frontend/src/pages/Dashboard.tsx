@@ -98,6 +98,53 @@ const Dashboard = () => {
         return activity.content;
     };
 
+    const handleEventClick = (activity: ActivityItem) => {
+        if (activity.type === 'event') {
+            addRecentClub(activity.club_id, activity.club_name);
+            navigate(`/clubs/${activity.club_id}/events/${activity.id}`);
+        }
+    };
+
+    const renderActivityContent = (activity: ActivityItem) => {
+        if (activity.type === 'event') {
+            return (
+                <div className="event-activity">
+                    {(() => {
+                        const personalizedContent = getPersonalizedContent(activity);
+                        return personalizedContent && (
+                            <p className="activity-content">{personalizedContent}</p>
+                        );
+                    })()}
+                    {activity.metadata?.user_rsvp && (
+                        <p className="user-rsvp">
+                            <strong>Your RSVP:</strong> 
+                            <span className={`rsvp-status ${(activity.metadata.user_rsvp as { response: string }).response}`}>
+                                {(activity.metadata.user_rsvp as { response: string }).response === 'yes' ? ' Yes' : ' No'}
+                            </span>
+                        </p>
+                    )}
+                </div>
+            );
+        } else if (activity.type === 'news') {
+            return (
+                <div className="news-activity">
+                    {(() => {
+                        const personalizedContent = getPersonalizedContent(activity);
+                        return personalizedContent && (
+                            <p className="activity-content">{personalizedContent}</p>
+                        );
+                    })()}
+                </div>
+            );
+        } else {
+            // Regular content for non-event, non-news activities
+            const personalizedContent = getPersonalizedContent(activity);
+            return personalizedContent && (
+                <p className="activity-content">{personalizedContent}</p>
+            );
+        }
+    };
+
     return (
         <Layout title="Dashboard" showRecentClubs={true}>
             <div>
@@ -115,7 +162,18 @@ const Dashboard = () => {
                                     {activities.map(activity => (
                                         <div key={`${activity.type}-${activity.id}`} className="activity-item">
                                             <div className="activity-header">
-                                                <div className="activity-type-badge">{activity.type.replace(/_/g, ' ')}</div>
+                                                {activity.type === 'event' ? (
+                                                    <button 
+                                                        className="activity-type-badge clickable-badge"
+                                                        onClick={() => handleEventClick(activity)}
+                                                    >
+                                                        {activity.type.replace(/_/g, ' ')}
+                                                    </button>
+                                                ) : (
+                                                    <div className="activity-type-badge">
+                                                        {activity.type.replace(/_/g, ' ')}
+                                                    </div>
+                                                )}
                                                 <span 
                                                     className="club-badge"
                                                     onClick={() => handleClubClick(activity.club_id, activity.club_name)}
@@ -124,19 +182,14 @@ const Dashboard = () => {
                                                 </span>
                                             </div>
                                             <h4 className="activity-title">{getPersonalizedTitle(activity)}</h4>
-                                            {(() => {
-                                                const personalizedContent = getPersonalizedContent(activity);
-                                                return personalizedContent && (
-                                                    <p className="activity-content">{personalizedContent}</p>
-                                                );
-                                            })()}
+                                            {renderActivityContent(activity)}
                                             <small className="activity-meta">
                                                 {(activity.type === 'member_promoted' || activity.type === 'member_demoted' || activity.type === 'role_changed') ? (
                                                     <>
                                                         {getRoleChangeMessage(activity) && `${getRoleChangeMessage(activity)} • `}
                                                     </>
                                                 ) : (
-                                                    activity.actor_name && (
+                                                    activity.actor_name && activity.type !== 'event' && (
                                                         <>
                                                             {`Created by ${activity.actor_name}`} • 
                                                         </>

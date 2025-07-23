@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import api from '../../utils/api';
 
 interface Event {
@@ -66,7 +66,15 @@ const UpcomingEvents = () => {
             <div className="events-list">
                 {events.map(event => (
                     <div key={event.id} className="event-card">
-                        <h4>{event.name}</h4>
+                        <div className="event-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                            <h4 style={{ margin: 0 }}>{event.name}</h4>
+                            <Link 
+                                to={`/clubs/${id}/events/${event.id}`} 
+                                className="button-info"
+                            >
+                                View Details
+                            </Link>
+                        </div>
                         <p>
                             <strong>Start:</strong> {formatDateTime(event.start_time)}
                         </p>
