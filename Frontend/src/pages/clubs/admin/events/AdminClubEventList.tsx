@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import EditEvent from "./EditEvent";
 import AddEvent from "./AddEvent";
+import EventRSVPList from "./EventRSVPList";
 import api from "../../../../utils/api";
 
 interface Event {
@@ -28,6 +29,8 @@ const AdminClubEventList = () => {
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isRSVPModalOpen, setIsRSVPModalOpen] = useState(false);
+    const [selectedEventForRSVP, setSelectedEventForRSVP] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [rsvpCounts, setRsvpCounts] = useState<Record<string, RSVPCounts>>({});
@@ -81,6 +84,16 @@ const AdminClubEventList = () => {
     const handleCloseEditModal = () => {
         setSelectedEvent(null);
         setIsEditModalOpen(false);
+    };
+
+    const handleViewRSVPs = (event: Event) => {
+        setSelectedEventForRSVP(event);
+        setIsRSVPModalOpen(true);
+    };
+
+    const handleCloseRSVPModal = () => {
+        setSelectedEventForRSVP(null);
+        setIsRSVPModalOpen(false);
     };
 
     const handleDeleteEvent = async (eventId: string) => {
@@ -153,8 +166,30 @@ const AdminClubEventList = () => {
                                             <td>{formatDateTime(event.start_time)}</td>
                                             <td>{formatDateTime(event.end_time)}</td>
                                             <td>
-                                                <span style={{color: 'green'}}>Yes: {yesCount}</span>{' '}
-                                                <span style={{color: 'red'}}>No: {noCount}</span>
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                                    <div>
+                                                        <span style={{color: 'green'}}>Yes: {yesCount}</span>{' '}
+                                                        <span style={{color: 'red'}}>No: {noCount}</span>
+                                                    </div>
+                                                    {(yesCount > 0 || noCount > 0) && (
+                                                        <button
+                                                            onClick={() => handleViewRSVPs(event)}
+                                                            className="button"
+                                                            style={{ 
+                                                                fontSize: '0.8em', 
+                                                                padding: '4px 10px',
+                                                                backgroundColor: '#007bff',
+                                                                color: 'white',
+                                                                border: '1px solid #007bff',
+                                                                borderRadius: '4px',
+                                                                cursor: 'pointer',
+                                                                fontWeight: '500'
+                                                            }}
+                                                        >
+                                                            View Details
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td>
                                                 <span style={{color: shifts.length > 0 ? 'blue' : 'gray'}}>
@@ -199,6 +234,13 @@ const AdminClubEventList = () => {
                 onClose={() => setIsAddModalOpen(false)}
                 clubId={id || ''}
                 onSuccess={fetchEvents}
+            />
+            <EventRSVPList
+                isOpen={isRSVPModalOpen}
+                onClose={handleCloseRSVPModal}
+                eventId={selectedEventForRSVP?.id || ''}
+                eventName={selectedEventForRSVP?.name || ''}
+                clubId={id || ''}
             />
         </div>
     );
