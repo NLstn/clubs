@@ -64,6 +64,7 @@
     "finesDescription": "Allow club admins to create and manage fines for members.",
     "shifts": "Shifts in Events",
     "shiftsDescription": "Enable shift scheduling and management for club events.",
+    "teamsDescription": "Allow club admins to create and manage teams with their members.",
     "events": "Events",
     "news": "News",
     "latestNews": "Latest News",

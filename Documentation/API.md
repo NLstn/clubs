@@ -1499,6 +1499,7 @@ The API uses JWT-based authentication with magic link email authentication. Most
   "clubId": "club-uuid",
   "finesEnabled": true,
   "shiftsEnabled": true,
+  "teamsEnabled": true,
   "createdAt": "2024-01-01T10:00:00Z",
   "createdBy": "user-uuid",
   "updatedAt": "2024-01-01T10:00:00Z",
@@ -1530,7 +1531,8 @@ The API uses JWT-based authentication with magic link email authentication. Most
 ```json
 {
   "finesEnabled": true,
-  "shiftsEnabled": false
+  "shiftsEnabled": false,
+  "teamsEnabled": true
 }
 ```
 

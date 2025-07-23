@@ -199,6 +199,7 @@ func SetupTestDB(t *testing.T) {
 			club_id TEXT NOT NULL UNIQUE,
 			fines_enabled BOOLEAN DEFAULT TRUE,
 			shifts_enabled BOOLEAN DEFAULT TRUE,
+			teams_enabled BOOLEAN DEFAULT TRUE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			created_by TEXT,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,

@@ -6,6 +6,7 @@ interface ClubSettings {
     clubId: string;
     finesEnabled: boolean;
     shiftsEnabled: boolean;
+    teamsEnabled: boolean;
     createdAt: string;
     createdBy: string;
     updatedAt: string;
@@ -40,15 +41,16 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
                 console.error('Error fetching club settings:', err);
                 // If settings don't exist, assume defaults (both features enabled)
                 setSettings({
-                    id: '',
-                    clubId: clubId,
-                    finesEnabled: true,
-                    shiftsEnabled: true,
-                    createdAt: '',
-                    createdBy: '',
-                    updatedAt: '',
-                    updatedBy: ''
-                });
+                id: '',
+                clubId: clubId,
+                finesEnabled: true,
+                shiftsEnabled: true,
+                teamsEnabled: true,
+                createdAt: '',
+                createdBy: '',
+                updatedAt: '',
+                updatedBy: ''
+            });
                 setError(null);
             } finally {
                 setLoading(false);
@@ -68,12 +70,13 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
             setError(null);
         } catch (err: unknown) {
             console.error('Error fetching club settings:', err);
-            // If settings don't exist, assume defaults (both features enabled)
+            // If settings don't exist, assume defaults (all features enabled)
             setSettings({
                 id: '',
                 clubId: clubId,
                 finesEnabled: true,
                 shiftsEnabled: true,
+                teamsEnabled: true,
                 createdAt: '',
                 createdBy: '',
                 updatedAt: '',
