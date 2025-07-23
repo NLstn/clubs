@@ -154,9 +154,11 @@ func handleGetEvent(w http.ResponseWriter, r *http.Request) {
 // POST /api/v1/clubs/{clubid}/events
 func handleCreateEvent(w http.ResponseWriter, r *http.Request) {
 	type CreateEventRequest struct {
-		Name      string `json:"name"`
-		StartTime string `json:"start_time"`
-		EndTime   string `json:"end_time"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Location    string `json:"location"`
+		StartTime   string `json:"start_time"`
+		EndTime     string `json:"end_time"`
 	}
 
 	user := extractUser(r)
@@ -206,7 +208,7 @@ func handleCreateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event, err := club.CreateEvent(req.Name, startTime, endTime, user.ID)
+	event, err := club.CreateEvent(req.Name, req.Description, req.Location, startTime, endTime, user.ID)
 	if err != nil {
 		http.Error(w, "Failed to create event", http.StatusInternalServerError)
 		return
@@ -220,9 +222,11 @@ func handleCreateEvent(w http.ResponseWriter, r *http.Request) {
 // PUT /api/v1/clubs/{clubid}/events/{eventid}
 func handleUpdateEvent(w http.ResponseWriter, r *http.Request) {
 	type UpdateEventRequest struct {
-		Name      string `json:"name"`
-		StartTime string `json:"start_time"`
-		EndTime   string `json:"end_time"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Location    string `json:"location"`
+		StartTime   string `json:"start_time"`
+		EndTime     string `json:"end_time"`
 	}
 
 	user := extractUser(r)
@@ -278,7 +282,7 @@ func handleUpdateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event, err := club.UpdateEvent(eventID, req.Name, startTime, endTime, user.ID)
+	event, err := club.UpdateEvent(eventID, req.Name, req.Description, req.Location, startTime, endTime, user.ID)
 	if err != nil {
 		http.Error(w, "Failed to update event", http.StatusInternalServerError)
 		return

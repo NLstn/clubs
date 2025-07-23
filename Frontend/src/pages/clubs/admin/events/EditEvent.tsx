@@ -5,6 +5,8 @@ import { useClubSettings } from "../../../../hooks/useClubSettings";
 interface Event {
     id: string;
     name: string;
+    description: string;
+    location: string;
     start_time: string;
     end_time: string;
 }
@@ -26,6 +28,8 @@ interface EditEventProps {
 
 const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSuccess }) => {
     const [name, setName] = useState<string>('');
+    const [description, setDescription] = useState<string>('');
+    const [location, setLocation] = useState<string>('');
     const [startTime, setStartTime] = useState<string>('');
     const [endTime, setEndTime] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
@@ -53,6 +57,8 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
     useEffect(() => {
         if (event) {
             setName(event.name || '');
+            setDescription(event.description || '');
+            setLocation(event.location || '');
             
             // Convert timestamps to datetime-local format (YYYY-MM-DDTHH:MM)
             try {
@@ -144,7 +150,7 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
 
     const handleSubmit = async () => {
         if (!name || !startTime || !endTime) {
-            setError("Please fill in all fields");
+            setError("Please fill in all required fields (name, start time, and end time)");
             return;
         }
 
@@ -162,6 +168,8 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
         try {
             await api.put(`/api/v1/clubs/${clubId}/events/${event.id}`, { 
                 name,
+                description,
+                location,
                 start_time: startDateTime.toISOString(),
                 end_time: endDateTime.toISOString()
             });
@@ -220,6 +228,30 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="Event Name"
+                                    disabled={isSubmitting}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="eventDescription">Description</label>
+                                <textarea
+                                    id="eventDescription"
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    placeholder="Event description (optional)"
+                                    disabled={isSubmitting}
+                                    rows={3}
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="eventLocation">Location</label>
+                                <input
+                                    id="eventLocation"
+                                    type="text"
+                                    value={location}
+                                    onChange={(e) => setLocation(e.target.value)}
+                                    placeholder="Event location (optional)"
                                     disabled={isSubmitting}
                                 />
                             </div>

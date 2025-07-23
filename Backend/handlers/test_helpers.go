@@ -163,6 +163,8 @@ func SetupTestDB(t *testing.T) {
 			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
 			name TEXT NOT NULL,
+			description TEXT,
+			location TEXT,
 			start_time DATETIME NOT NULL,
 			end_time DATETIME NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

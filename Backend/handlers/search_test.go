@@ -131,7 +131,7 @@ func TestSearchRoutes(t *testing.T) {
 			startTime := time.Now().Add(24 * time.Hour)
 			endTime := startTime.Add(2 * time.Hour)
 
-			event, err := club.CreateEvent("Test Event", startTime, endTime, user.ID)
+			event, err := club.CreateEvent("Test Event", "", "", startTime, endTime, user.ID)
 			assert.NoError(t, err)
 
 			req := httptest.NewRequest("GET", "/api/v1/search?q=event", nil)
@@ -248,7 +248,7 @@ func TestSearchEvents(t *testing.T) {
 	startTime := time.Now().Add(24 * time.Hour)
 	endTime := startTime.Add(2 * time.Hour)
 
-	event, err := club.CreateEvent("Search Test Event", startTime, endTime, user.ID)
+	event, err := club.CreateEvent("Search Test Event", "", "", startTime, endTime, user.ID)
 	assert.NoError(t, err)
 
 	t.Run("ValidSearch", func(t *testing.T) {

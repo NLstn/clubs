@@ -15,6 +15,8 @@ interface UserRSVP {
 interface EventDetailsData {
     id: string;
     name: string;
+    description: string;
+    location: string;
     start_time: string;
     end_time: string;
     created_at: string;
@@ -32,36 +34,49 @@ const EventDetails: FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [rsvpLoading, setRsvpLoading] = useState(false);
 
-    const fetchEventDetails = async () => {
+    const fetchEventDetails = async (abortSignal?: AbortSignal) => {
         if (!clubId || !eventId) return;
         
         setLoading(true);
         setError(null);
         
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/events/${eventId}`);
-            setEventData(response.data);
+            const response = await api.get(`/api/v1/clubs/${clubId}/events/${eventId}`, {
+                signal: abortSignal
+            });
+            if (!abortSignal?.aborted) {
+                setEventData(response.data);
+            }
         } catch (error: unknown) {
-            console.error("Error fetching event details:", error);
-            if (error && typeof error === 'object' && 'response' in error) {
-                const httpError = error as { response?: { status?: number } };
-                if (httpError.response?.status === 404) {
-                    setError("Event not found");
-                } else if (httpError.response?.status === 403) {
-                    setError("You don't have permission to view this event");
+            if (!abortSignal?.aborted) {
+                console.error("Error fetching event details:", error);
+                if (error && typeof error === 'object' && 'response' in error) {
+                    const httpError = error as { response?: { status?: number } };
+                    if (httpError.response?.status === 404) {
+                        setError("Event not found");
+                    } else if (httpError.response?.status === 403) {
+                        setError("You don't have permission to view this event");
+                    } else {
+                        setError("Failed to load event details");
+                    }
                 } else {
                     setError("Failed to load event details");
                 }
-            } else {
-                setError("Failed to load event details");
             }
         } finally {
-            setLoading(false);
+            if (!abortSignal?.aborted) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        fetchEventDetails();
+        const abortController = new AbortController();
+        fetchEventDetails(abortController.signal);
+        
+        return () => {
+            abortController.abort();
+        };
     }, [clubId, eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleRSVP = async (response: string) => {
@@ -160,6 +175,20 @@ const EventDetails: FC = () => {
 
             <div className="event-details-card">
                 <h1>{eventData.name}</h1>
+                
+                {eventData.description && (
+                    <div className="info-section">
+                        <h3>Description</h3>
+                        <p className="event-description">{eventData.description}</p>
+                    </div>
+                )}
+                
+                {eventData.location && (
+                    <div className="info-section">
+                        <h3>Location</h3>
+                        <p className="event-location">{eventData.location}</p>
+                    </div>
+                )}
                 
                 <div className="event-info">
                     <div className="info-section">

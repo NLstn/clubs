@@ -22,6 +22,8 @@ interface RSVPCounts {
 interface EventDetailsData {
     id: string;
     name: string;
+    description: string;
+    location: string;
     start_time: string;
     end_time: string;
     created_at: string;
@@ -49,7 +51,7 @@ const AdminEventDetails: FC = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
-    const fetchEventDetails = async () => {
+    const fetchEventDetails = async (abortSignal?: AbortSignal) => {
         if (!clubId || !eventId) return;
         
         setLoading(true);
@@ -57,47 +59,72 @@ const AdminEventDetails: FC = () => {
         
         try {
             // Fetch event details
-            const eventResponse = await api.get(`/api/v1/clubs/${clubId}/events/${eventId}`);
-            setEventData(eventResponse.data);
+            const eventResponse = await api.get(`/api/v1/clubs/${clubId}/events/${eventId}`, {
+                signal: abortSignal
+            });
+            if (!abortSignal?.aborted) {
+                setEventData(eventResponse.data);
+            }
 
             // Fetch RSVP counts
             try {
-                const rsvpResponse = await api.get(`/api/v1/clubs/${clubId}/events/${eventId}/rsvps`);
-                setRsvpCounts(rsvpResponse.data.counts || {});
+                const rsvpResponse = await api.get(`/api/v1/clubs/${clubId}/events/${eventId}/rsvps`, {
+                    signal: abortSignal
+                });
+                if (!abortSignal?.aborted) {
+                    setRsvpCounts(rsvpResponse.data.counts || {});
+                }
             } catch (rsvpError) {
-                console.error("Error fetching RSVP counts:", rsvpError);
-                setRsvpCounts({});
+                if (!abortSignal?.aborted) {
+                    console.error("Error fetching RSVP counts:", rsvpError);
+                    setRsvpCounts({});
+                }
             }
 
             // Fetch shifts if available
             try {
-                const shiftsResponse = await api.get(`/api/v1/clubs/${clubId}/events/${eventId}/shifts`);
-                setEventShifts(shiftsResponse.data || []);
+                const shiftsResponse = await api.get(`/api/v1/clubs/${clubId}/events/${eventId}/shifts`, {
+                    signal: abortSignal
+                });
+                if (!abortSignal?.aborted) {
+                    setEventShifts(shiftsResponse.data || []);
+                }
             } catch {
                 // Shifts endpoint might not exist, ignore error
-                setEventShifts([]);
+                if (!abortSignal?.aborted) {
+                    setEventShifts([]);
+                }
             }
         } catch (error: unknown) {
-            console.error("Error fetching event details:", error);
-            if (error && typeof error === 'object' && 'response' in error) {
-                const httpError = error as { response?: { status?: number } };
-                if (httpError.response?.status === 404) {
-                    setError("Event not found");
-                } else if (httpError.response?.status === 403) {
-                    setError("You don't have permission to view this event");
+            if (!abortSignal?.aborted) {
+                console.error("Error fetching event details:", error);
+                if (error && typeof error === 'object' && 'response' in error) {
+                    const httpError = error as { response?: { status?: number } };
+                    if (httpError.response?.status === 404) {
+                        setError("Event not found");
+                    } else if (httpError.response?.status === 403) {
+                        setError("You don't have permission to view this event");
+                    } else {
+                        setError("Failed to load event details");
+                    }
                 } else {
                     setError("Failed to load event details");
                 }
-            } else {
-                setError("Failed to load event details");
             }
         } finally {
-            setLoading(false);
+            if (!abortSignal?.aborted) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        fetchEventDetails();
+        const abortController = new AbortController();
+        fetchEventDetails(abortController.signal);
+        
+        return () => {
+            abortController.abort();
+        };
     }, [clubId, eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleDeleteEvent = async () => {
@@ -227,6 +254,20 @@ const AdminEventDetails: FC = () => {
                     </div>
                 </div>
                 
+                {eventData.description && (
+                    <div className="info-section">
+                        <h3>Description</h3>
+                        <p className="event-description">{eventData.description}</p>
+                    </div>
+                )}
+                
+                {eventData.location && (
+                    <div className="info-section">
+                        <h3>Location</h3>
+                        <p className="event-location">{eventData.location}</p>
+                    </div>
+                )}
+                
                 <div className="admin-event-info">
                     <div className="info-section">
                         <h3>Event Schedule</h3>
@@ -318,6 +359,8 @@ const AdminEventDetails: FC = () => {
                     event={{
                         id: eventData.id,
                         name: eventData.name,
+                        description: eventData.description,
+                        location: eventData.location,
                         start_time: eventData.start_time,
                         end_time: eventData.end_time
                     }}
