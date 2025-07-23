@@ -36,9 +36,10 @@ func TestClubSettingsEndpoints(t *testing.T) {
 		var settings models.ClubSettings
 		ParseJSONResponse(t, rr, &settings)
 
-		// Default settings should have both enabled
+		// Default settings should have all enabled
 		assert.True(t, settings.FinesEnabled)
 		assert.True(t, settings.ShiftsEnabled)
+		assert.True(t, settings.TeamsEnabled)
 		assert.Equal(t, club.ID, settings.ClubID)
 	})
 
@@ -46,6 +47,7 @@ func TestClubSettingsEndpoints(t *testing.T) {
 		body := map[string]bool{
 			"finesEnabled":  false,
 			"shiftsEnabled": true,
+			"teamsEnabled":  false,
 		}
 		req := MakeRequest(t, "POST", fmt.Sprintf("/api/v1/clubs/%s/settings", club.ID), body, "")
 		rr := ExecuteRequest(t, handler, req)
@@ -57,6 +59,7 @@ func TestClubSettingsEndpoints(t *testing.T) {
 		body := map[string]bool{
 			"finesEnabled":  false,
 			"shiftsEnabled": true,
+			"teamsEnabled":  false,
 		}
 		req := MakeRequest(t, "POST", fmt.Sprintf("/api/v1/clubs/%s/settings", club.ID), body, token)
 		rr := ExecuteRequest(t, handler, req)
@@ -68,6 +71,7 @@ func TestClubSettingsEndpoints(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, settings.FinesEnabled)
 		assert.True(t, settings.ShiftsEnabled)
+		assert.False(t, settings.TeamsEnabled)
 	})
 
 	t.Run("Update Club Settings - Invalid JSON", func(t *testing.T) {
@@ -88,6 +92,7 @@ func TestClubSettingsEndpoints(t *testing.T) {
 		body := map[string]bool{
 			"finesEnabled":  true,
 			"shiftsEnabled": false,
+			"teamsEnabled":  true,
 		}
 		req := MakeRequest(t, "POST", "/api/v1/clubs/invalid-id/settings", body, token)
 		rr := ExecuteRequest(t, handler, req)

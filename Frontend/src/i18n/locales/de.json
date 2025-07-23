@@ -63,6 +63,7 @@
     "finesDescription": "Erlauben Sie Vereinsadministratoren, Strafen für Mitglieder zu erstellen und zu verwalten.",
     "shifts": "Schichten in Events",
     "shiftsDescription": "Aktivieren Sie die Schichtplanung und -verwaltung für Vereinsveranstaltungen.",
+    "teamsDescription": "Erlauben Sie Vereinsadministratoren, Teams mit ihren Mitgliedern zu erstellen und zu verwalten.",
     "events": "Ereignisse",
     "news": "Nachrichten",
     "latestNews": "Aktuelle Nachrichten",

@@ -91,6 +91,9 @@ const AdminClubDetails = () => {
             if (activeTab === 'fines' && !clubSettings.finesEnabled) {
                 setActiveTab('overview');
             }
+            if (activeTab === 'teams' && !clubSettings.teamsEnabled) {
+                setActiveTab('overview');
+            }
         }
     }, [clubSettings, activeTab]);
 
@@ -183,12 +186,14 @@ const AdminClubDetails = () => {
                         >
                             {t('clubs.members')}
                         </button>
-                        <button 
-                            className={`tab-button ${activeTab === 'teams' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('teams')}
-                        >
-                            {t('clubs.teams')}
-                        </button>
+                        {clubSettings?.teamsEnabled && (
+                            <button 
+                                className={`tab-button ${activeTab === 'teams' ? 'active' : ''}`}
+                                onClick={() => setActiveTab('teams')}
+                            >
+                                {t('clubs.teams')}
+                            </button>
+                        )}
                         {clubSettings?.finesEnabled && (
                             <button 
                                 className={`tab-button ${activeTab === 'fines' ? 'active' : ''}`}
@@ -298,9 +303,11 @@ const AdminClubDetails = () => {
                             <AdminClubMemberList />
                         </div>
 
-                        <div className={`tab-panel ${activeTab === 'teams' ? 'active' : ''}`}>
-                            <AdminClubTeamList />
-                        </div>
+                        {clubSettings?.teamsEnabled && (
+                            <div className={`tab-panel ${activeTab === 'teams' ? 'active' : ''}`}>
+                                <AdminClubTeamList />
+                            </div>
+                        )}
 
                         {clubSettings?.finesEnabled && (
                             <div className={`tab-panel ${activeTab === 'fines' ? 'active' : ''}`}>

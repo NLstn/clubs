@@ -8,6 +8,7 @@ interface ClubSettings {
     clubId: string;
     finesEnabled: boolean;
     shiftsEnabled: boolean;
+    teamsEnabled: boolean;
     createdAt: string;
     createdBy: string;
     updatedAt: string;
@@ -44,7 +45,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
         fetchSettings();
     }, [id, t]);
 
-    const updateSettings = async (newSettings: Partial<Pick<ClubSettings, 'finesEnabled' | 'shiftsEnabled'>>) => {
+    const updateSettings = async (newSettings: Partial<Pick<ClubSettings, 'finesEnabled' | 'shiftsEnabled' | 'teamsEnabled'>>) => {
         if (!settings) return;
 
         try {
@@ -52,6 +53,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
             const completeSettings = {
                 finesEnabled: newSettings.finesEnabled ?? settings.finesEnabled,
                 shiftsEnabled: newSettings.shiftsEnabled ?? settings.shiftsEnabled,
+                teamsEnabled: newSettings.teamsEnabled ?? settings.teamsEnabled,
             };
             await api.post(`/api/v1/clubs/${id}/settings`, completeSettings);
             setSettings({ ...settings, ...completeSettings });
@@ -74,6 +76,11 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
     const handleShiftsToggle = async () => {
         if (!settings) return;
         await updateSettings({ shiftsEnabled: !settings.shiftsEnabled });
+    };
+
+    const handleTeamsToggle = async () => {
+        if (!settings) return;
+        await updateSettings({ teamsEnabled: !settings.teamsEnabled });
     };
 
     if (loading) return <div>{t('clubs.loading.settings')}</div>;
@@ -114,6 +121,22 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                             type="checkbox"
                             checked={settings.shiftsEnabled}
                             onChange={handleShiftsToggle}
+                            disabled={saving}
+                        />
+                        <span className="slider"></span>
+                    </label>
+                </div>
+
+                <div className="setting-item">
+                    <div className="setting-info">
+                        <h4>{t('clubs.teams')}</h4>
+                        <p>{t('clubs.teamsDescription')}</p>
+                    </div>
+                    <label className="toggle-switch">
+                        <input
+                            type="checkbox"
+                            checked={settings.teamsEnabled}
+                            onChange={handleTeamsToggle}
                             disabled={saving}
                         />
                         <span className="slider"></span>

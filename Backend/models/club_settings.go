@@ -13,6 +13,7 @@ type ClubSettings struct {
 	ClubID        string    `json:"clubId" gorm:"type:uuid;not null;unique"`
 	FinesEnabled  bool      `json:"finesEnabled" gorm:"default:true"`
 	ShiftsEnabled bool      `json:"shiftsEnabled" gorm:"default:true"`
+	TeamsEnabled  bool      `json:"teamsEnabled" gorm:"default:true"`
 	CreatedAt     time.Time `json:"createdAt"`
 	CreatedBy     string    `json:"createdBy" gorm:"type:uuid"`
 	UpdatedAt     time.Time `json:"updatedAt"`
@@ -35,6 +36,7 @@ func CreateDefaultClubSettings(clubID string) (ClubSettings, error) {
 		ClubID:        clubID,
 		FinesEnabled:  true,
 		ShiftsEnabled: true,
+		TeamsEnabled:  true,
 		CreatedBy:     clubID, // Using clubID as default since we don't have user context here
 		UpdatedBy:     clubID,
 	}
@@ -42,10 +44,11 @@ func CreateDefaultClubSettings(clubID string) (ClubSettings, error) {
 	return settings, err
 }
 
-func (s *ClubSettings) Update(finesEnabled, shiftsEnabled bool, updatedBy string) error {
+func (s *ClubSettings) Update(finesEnabled, shiftsEnabled, teamsEnabled bool, updatedBy string) error {
 	return database.Db.Model(s).Updates(map[string]interface{}{
 		"fines_enabled":  finesEnabled,
 		"shifts_enabled": shiftsEnabled,
+		"teams_enabled":  teamsEnabled,
 		"updated_by":     updatedBy,
 	}).Error
 }
