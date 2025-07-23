@@ -499,6 +499,15 @@ button:disabled {
   background-color: var(--color-cancel-hover);
 }
 
+.button-maybe {
+  background-color: orange;
+  color: white;
+}
+
+.button-maybe:hover:not(:disabled) {
+  background-color: #ff8c00;
+}
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;

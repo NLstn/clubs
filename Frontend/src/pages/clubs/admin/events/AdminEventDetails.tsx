@@ -17,6 +17,7 @@ interface UserRSVP {
 interface RSVPCounts {
     yes?: number;
     no?: number;
+    maybe?: number;
 }
 
 interface EventDetailsData {
@@ -214,7 +215,7 @@ const AdminEventDetails: FC = () => {
     }
 
     const { user_rsvp } = eventData;
-    const totalRSVPs = (rsvpCounts.yes || 0) + (rsvpCounts.no || 0);
+    const totalRSVPs = (rsvpCounts.yes || 0) + (rsvpCounts.no || 0) + (rsvpCounts.maybe || 0);
 
     return (
         <div className="admin-container">
@@ -296,6 +297,10 @@ const AdminEventDetails: FC = () => {
                                     <span className="stat-number">{rsvpCounts.no || 0}</span>
                                     <span className="stat-label">No</span>
                                 </div>
+                                <div className="stat-item maybe">
+                                    <span className="stat-number">{rsvpCounts.maybe || 0}</span>
+                                    <span className="stat-label">Maybe</span>
+                                </div>
                                 <div className="stat-item total">
                                     <span className="stat-number">{totalRSVPs}</span>
                                     <span className="stat-label">Total</span>
@@ -306,7 +311,7 @@ const AdminEventDetails: FC = () => {
                                     <p>
                                         Your response: 
                                         <span className={`rsvp-status ${user_rsvp.response}`}>
-                                            {user_rsvp.response === 'yes' ? ' Yes' : ' No'}
+                                            {user_rsvp.response === 'yes' ? ' Yes' : user_rsvp.response === 'no' ? ' No' : ' Maybe'}
                                         </span>
                                     </p>
                                 </div>

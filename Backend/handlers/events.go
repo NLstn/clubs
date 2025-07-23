@@ -433,8 +433,8 @@ func handleCreateOrUpdateRSVP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Response != "yes" && req.Response != "no" {
-		http.Error(w, "Response must be 'yes' or 'no'", http.StatusBadRequest)
+	if req.Response != "yes" && req.Response != "no" && req.Response != "maybe" {
+		http.Error(w, "Response must be 'yes', 'no', or 'maybe'", http.StatusBadRequest)
 		return
 	}
 

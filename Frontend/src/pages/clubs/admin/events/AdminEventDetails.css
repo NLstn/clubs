@@ -123,6 +123,10 @@
     border-color: var(--color-cancel);
 }
 
+.stat-item.maybe {
+    border-color: orange;
+}
+
 .stat-item.total {
     border-color: var(--color-text-secondary);
 }
@@ -140,6 +144,10 @@
 
 .stat-item.no .stat-number {
     color: var(--color-cancel);
+}
+
+.stat-item.maybe .stat-number {
+    color: orange;
 }
 
 .stat-item.total .stat-number {

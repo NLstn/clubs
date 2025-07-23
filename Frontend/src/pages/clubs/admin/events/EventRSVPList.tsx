@@ -19,6 +19,7 @@ interface EventRSVP {
 interface RSVPCounts {
     yes?: number;
     no?: number;
+    maybe?: number;
 }
 
 interface EventRSVPListProps {
@@ -83,8 +84,11 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
                         <span style={{ color: 'var(--color-cancel)', fontWeight: 'bold' }}>
                             No: {counts.no || 0}
                         </span>
+                        <span style={{ color: 'orange', fontWeight: 'bold' }}>
+                            Maybe: {counts.maybe || 0}
+                        </span>
                         <span style={{ color: 'var(--color-text-secondary)', fontWeight: 'bold' }}>
-                            Total: {(counts.yes || 0) + (counts.no || 0)}
+                            Total: {(counts.yes || 0) + (counts.no || 0) + (counts.maybe || 0)}
                         </span>
                     </div>
                 </div>
@@ -114,10 +118,11 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
                                                 <td>{rsvp.user ? `${rsvp.user.FirstName} ${rsvp.user.LastName}`.trim() || 'Unknown' : 'Unknown'}</td>
                                                 <td>
                                                     <span style={{ 
-                                                        color: rsvp.response === 'yes' ? 'var(--color-primary)' : 'var(--color-cancel)',
+                                                        color: rsvp.response === 'yes' ? 'var(--color-primary)' : 
+                                                               rsvp.response === 'no' ? 'var(--color-cancel)' : 'orange',
                                                         fontWeight: 'bold'
                                                     }}>
-                                                        {rsvp.response === 'yes' ? 'Yes' : 'No'}
+                                                        {rsvp.response === 'yes' ? 'Yes' : rsvp.response === 'no' ? 'No' : 'Maybe'}
                                                     </span>
                                                 </td>
                                                 <td>{formatDateTime(rsvp.updated_at)}</td>

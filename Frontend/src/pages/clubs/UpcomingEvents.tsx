@@ -94,7 +94,8 @@ const UpcomingEvents = () => {
                                 <strong>RSVP:</strong> 
                                 {event.user_rsvp ? (
                                     <span className={`rsvp-status ${event.user_rsvp.response}`}>
-                                        {event.user_rsvp.response === 'yes' ? 'Yes' : 'No'}
+                                        {event.user_rsvp.response === 'yes' ? 'Yes' : 
+                                         event.user_rsvp.response === 'no' ? 'No' : 'Maybe'}
                                     </span>
                                 ) : (
                                     <span className="rsvp-status none">No response</span>
@@ -106,6 +107,12 @@ const UpcomingEvents = () => {
                                     className={event.user_rsvp?.response === 'yes' ? 'button-accept' : 'button'}
                                 >
                                     Yes
+                                </button>
+                                <button
+                                    onClick={() => handleRSVP(event.id, 'maybe')}
+                                    className={event.user_rsvp?.response === 'maybe' ? 'button-maybe' : 'button'}
+                                >
+                                    Maybe
                                 </button>
                                 <button
                                     onClick={() => handleRSVP(event.id, 'no')}
