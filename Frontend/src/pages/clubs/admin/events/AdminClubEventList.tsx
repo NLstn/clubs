@@ -17,6 +17,7 @@ interface Event {
 interface RSVPCounts {
     yes?: number;
     no?: number;
+    maybe?: number;
 }
 
 interface Shift {
@@ -161,6 +162,7 @@ const AdminClubEventList = () => {
                                     const shifts = eventShifts[event.id] || [];
                                     const yesCount = counts.yes || 0;
                                     const noCount = counts.no || 0;
+                                    const maybeCount = counts.maybe || 0;
                                     
                                     return (
                                         <tr key={event.id}>
@@ -171,9 +173,10 @@ const AdminClubEventList = () => {
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                                                     <div>
                                                         <span style={{color: 'green'}}>Yes: {yesCount}</span>{' '}
-                                                        <span style={{color: 'red'}}>No: {noCount}</span>
+                                                        <span style={{color: 'red'}}>No: {noCount}</span>{' '}
+                                                        <span style={{color: 'orange'}}>Maybe: {maybeCount}</span>
                                                     </div>
-                                                    {(yesCount > 0 || noCount > 0) && (
+                                                    {(yesCount > 0 || noCount > 0 || maybeCount > 0) && (
                                                         <button
                                                             onClick={() => handleViewRSVPs(event)}
                                                             className="button"

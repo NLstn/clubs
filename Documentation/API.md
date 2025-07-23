@@ -1415,7 +1415,7 @@ The API uses JWT-based authentication with magic link email authentication. Most
 }
 ```
 
-**Valid responses:** `"yes"` or `"no"`
+**Valid responses:** `"yes"`, `"no"`, or `"maybe"`
 
 **Response:**
 ```json

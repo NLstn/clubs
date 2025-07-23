@@ -214,7 +214,8 @@ const EventDetails: FC = () => {
                                     <p>
                                         You have responded: 
                                         <span className={`rsvp-status ${user_rsvp.response}`}>
-                                            {user_rsvp.response === 'yes' ? ' Yes' : ' No'}
+                                            {user_rsvp.response === 'yes' ? ' Yes' : 
+                                             user_rsvp.response === 'no' ? ' No' : ' Maybe'}
                                         </span>
                                     </p>
                                     <p className="rsvp-date">
@@ -234,6 +235,13 @@ const EventDetails: FC = () => {
                                         className={`button-primary ${user_rsvp?.response === 'yes' ? 'active' : ''}`}
                                     >
                                         {rsvpLoading ? 'Updating...' : 'Yes, I\'ll attend'}
+                                    </button>
+                                    <button 
+                                        onClick={() => handleRSVP('maybe')}
+                                        disabled={rsvpLoading}
+                                        className={`button-maybe ${user_rsvp?.response === 'maybe' ? 'active' : ''}`}
+                                    >
+                                        {rsvpLoading ? 'Updating...' : 'Maybe, I\'m not sure'}
                                     </button>
                                     <button 
                                         onClick={() => handleRSVP('no')}

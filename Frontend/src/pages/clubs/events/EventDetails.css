@@ -95,6 +95,10 @@
     color: var(--color-primary);
 }
 
+.rsvp-status.maybe {
+    color: orange;
+}
+
 .rsvp-status.no {
     color: var(--color-cancel);
 }
