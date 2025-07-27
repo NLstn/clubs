@@ -1,150 +1,168 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import ClubDetails from './pages/clubs/ClubDetails';
-import ClubList from './pages/clubs/ClubList';
-import AdminClubDetails from './pages/clubs/admin/AdminClubDetails';
-import CreateClub from './pages/clubs/CreateClub';
-import JoinClub from './pages/clubs/JoinClub';
-import Login from './pages/auth/Login';
-import MagicLinkHandler from './pages/auth/MagicLinkHandler';
-import KeycloakCallback from './pages/auth/KeycloakCallback';
-import Signup from './pages/auth/Signup';
+import { lazy, Suspense } from 'react';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthProvider';
-import Profile from './pages/profile/Profile';
-import ProfileInvites from './pages/profile/ProfileInvites';
-import ProfileFines from './pages/profile/ProfileFines';
-import ProfileSessions from './pages/profile/ProfileSessions';
-import ProfilePrivacy from './pages/profile/ProfilePrivacy';
-import NotificationSettings from './pages/settings/NotificationSettings';
-import EventDetails from './pages/clubs/events/EventDetails';
-import AdminEventDetails from './pages/clubs/admin/events/AdminEventDetails';
+
+// Lazy load page components for code splitting
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const ClubDetails = lazy(() => import('./pages/clubs/ClubDetails'));
+const ClubList = lazy(() => import('./pages/clubs/ClubList'));
+const AdminClubDetails = lazy(() => import('./pages/clubs/admin/AdminClubDetails'));
+const CreateClub = lazy(() => import('./pages/clubs/CreateClub'));
+const JoinClub = lazy(() => import('./pages/clubs/JoinClub'));
+const Login = lazy(() => import('./pages/auth/Login'));
+const MagicLinkHandler = lazy(() => import('./pages/auth/MagicLinkHandler'));
+const KeycloakCallback = lazy(() => import('./pages/auth/KeycloakCallback'));
+const Signup = lazy(() => import('./pages/auth/Signup'));
+const Profile = lazy(() => import('./pages/profile/Profile'));
+const ProfileInvites = lazy(() => import('./pages/profile/ProfileInvites'));
+const ProfileFines = lazy(() => import('./pages/profile/ProfileFines'));
+const ProfileSessions = lazy(() => import('./pages/profile/ProfileSessions'));
+const ProfilePrivacy = lazy(() => import('./pages/profile/ProfilePrivacy'));
+const NotificationSettings = lazy(() => import('./pages/settings/NotificationSettings'));
+const EventDetails = lazy(() => import('./pages/clubs/events/EventDetails'));
+const AdminEventDetails = lazy(() => import('./pages/clubs/admin/events/AdminEventDetails'));
+
+// Loading component for suspense fallback
+const PageLoader = () => (
+    <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '200px',
+        color: 'var(--color-text-secondary)'
+    }}>
+        Loading...
+    </div>
+);
 
 function App() {
     return (
         <AuthProvider>
             <BrowserRouter>
-                <Routes>
-                    <Route path="/" element={
-                        <ProtectedRoute>
-                            <Dashboard />
-                        </ProtectedRoute>
-                    } />
-
-                    <Route path="/clubs" element={
-                        <ProtectedRoute>
-                            <ClubList />
-                        </ProtectedRoute>
-                    } />
-
-                    <Route
-                        path="/clubs/:id"
-                        element={
+                <Suspense fallback={<PageLoader />}>
+                    <Routes>
+                        <Route path="/" element={
                             <ProtectedRoute>
-                                <ClubDetails />
+                                <Dashboard />
                             </ProtectedRoute>
-                        }
-                    />
+                        } />
 
-                    <Route
-                        path="/clubs/:id/admin"
-                        element={
+                        <Route path="/clubs" element={
                             <ProtectedRoute>
-                                <AdminClubDetails />
+                                <ClubList />
                             </ProtectedRoute>
-                        }
-                    />
+                        } />
 
-                    <Route
-                        path="/clubs/:clubId/events/:eventId"
-                        element={
+                        <Route
+                            path="/clubs/:id"
+                            element={
+                                <ProtectedRoute>
+                                    <ClubDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:id/admin"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminClubDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:clubId/events/:eventId"
+                            element={
+                                <ProtectedRoute>
+                                    <EventDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:clubId/admin/events/:eventId"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminEventDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/createClub"
+                            element={
+                                <ProtectedRoute>
+                                    <CreateClub />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route path="/profile" element={
                             <ProtectedRoute>
-                                <EventDetails />
+                                <Profile />
                             </ProtectedRoute>
-                        }
-                    />
+                        } />
 
-                    <Route
-                        path="/clubs/:clubId/admin/events/:eventId"
-                        element={
+                        <Route path="/profile/privacy" element={
                             <ProtectedRoute>
-                                <AdminEventDetails />
+                                <ProfilePrivacy />
                             </ProtectedRoute>
-                        }
-                    />
+                        } />
 
-                    <Route
-                        path="/createClub"
-                        element={
+                        <Route path="/profile/invites" element={
                             <ProtectedRoute>
-                                <CreateClub />
+                                <ProfileInvites />
                             </ProtectedRoute>
-                        }
-                    />
-
-                    <Route path="/profile" element={
-                        <ProtectedRoute>
-                            <Profile />
-                        </ProtectedRoute>
-                    } />
-
-                    <Route path="/profile/privacy" element={
-                        <ProtectedRoute>
-                            <ProfilePrivacy />
-                        </ProtectedRoute>
-                    } />
-
-                    <Route path="/profile/invites" element={
-                        <ProtectedRoute>
-                            <ProfileInvites />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/profile/fines" element={
-                        <ProtectedRoute>
-                            <ProfileFines />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/profile/sessions" element={
-                        <ProtectedRoute>
-                            <ProfileSessions />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/profile/notifications" element={
-                        <ProtectedRoute>
-                            <NotificationSettings />
-                        </ProtectedRoute>
-                    } />
-
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/auth/magic" element={<MagicLinkHandler />} />
-                    <Route path="/auth/callback" element={<KeycloakCallback />} />
-                    <Route path="/signup" element={
-                        <ProtectedRoute>
-                            <Signup />
-                        </ProtectedRoute>
-                    } />
-                    <Route path="/join/:clubId" element={<JoinClub />} />
-
-                    {/* Event Detail Routes */}
-                    <Route
-                        path="/clubs/:clubId/events/:eventId"
-                        element={
+                        } />
+                        <Route path="/profile/fines" element={
                             <ProtectedRoute>
-                                <EventDetails />
+                                <ProfileFines />
                             </ProtectedRoute>
-                        }
-                    />
-
-                    <Route
-                        path="/clubs/:clubId/admin/events/:eventId"
-                        element={
+                        } />
+                        <Route path="/profile/sessions" element={
                             <ProtectedRoute>
-                                <AdminEventDetails />
+                                <ProfileSessions />
                             </ProtectedRoute>
-                        }
-                    />
+                        } />
+                        <Route path="/profile/notifications" element={
+                            <ProtectedRoute>
+                                <NotificationSettings />
+                            </ProtectedRoute>
+                        } />
 
-                </Routes>
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/auth/magic" element={<MagicLinkHandler />} />
+                        <Route path="/auth/callback" element={<KeycloakCallback />} />
+                        <Route path="/signup" element={
+                            <ProtectedRoute>
+                                <Signup />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/join/:clubId" element={<JoinClub />} />
+
+                        {/* Event Detail Routes */}
+                        <Route
+                            path="/clubs/:clubId/events/:eventId"
+                            element={
+                                <ProtectedRoute>
+                                    <EventDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:clubId/admin/events/:eventId"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminEventDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                    </Routes>
+                </Suspense>
             </BrowserRouter>
         </AuthProvider>
     );
