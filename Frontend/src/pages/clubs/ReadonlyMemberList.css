@@ -1,0 +1,108 @@
+/* Readonly Member List Styles */
+.members-table-container {
+    background: #1a1a1a;
+    border-radius: var(--border-radius-md);
+    border: 1px solid #444;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.readonly-members-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #1a1a1a;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.readonly-members-table th {
+    background: #333;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 600;
+    padding: var(--space-md);
+    text-align: left;
+    border-bottom: 2px solid #555;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.readonly-members-table td {
+    padding: var(--space-md);
+    border-bottom: 1px solid #333;
+    vertical-align: middle;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.readonly-members-table tbody tr:hover {
+    background: #2a2a2a;
+    transition: background-color 0.2s ease;
+}
+
+.readonly-members-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid transparent;
+}
+
+.role-badge.owner {
+    background-color: #2e7d32;
+    color: #ffffff;
+    border-color: #4caf50;
+}
+
+.role-badge.admin {
+    background-color: #ef6c00;
+    color: #ffffff;
+    border-color: #ff9800;
+}
+
+.role-badge.member {
+    background-color: #1976d2;
+    color: #ffffff;
+    border-color: #2196f3;
+}
+
+.member-count {
+    padding: var(--space-md);
+    background: #333;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    text-align: center;
+    border-top: 1px solid #555;
+    font-weight: 500;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .readonly-members-table {
+        font-size: 0.9rem;
+    }
+    
+    .readonly-members-table th,
+    .readonly-members-table td {
+        padding: var(--space-sm);
+    }
+    
+    .readonly-members-table th:nth-child(3),
+    .readonly-members-table td:nth-child(3),
+    .readonly-members-table th:nth-child(4),
+    .readonly-members-table td:nth-child(4) {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .readonly-members-table th:nth-child(2),
+    .readonly-members-table td:nth-child(2) {
+        display: none;
+    }
+}

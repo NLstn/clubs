@@ -54,9 +54,10 @@ func handleGetClubSettings(w http.ResponseWriter, r *http.Request) {
 // endpoint: POST /api/v1/clubs/{clubid}/settings
 func handleUpdateClubSettings(w http.ResponseWriter, r *http.Request) {
 	type Body struct {
-		FinesEnabled  bool `json:"finesEnabled"`
-		ShiftsEnabled bool `json:"shiftsEnabled"`
-		TeamsEnabled  bool `json:"teamsEnabled"`
+		FinesEnabled       bool `json:"finesEnabled"`
+		ShiftsEnabled      bool `json:"shiftsEnabled"`
+		TeamsEnabled       bool `json:"teamsEnabled"`
+		MembersListVisible bool `json:"membersListVisible"`
 	}
 
 	user := extractUser(r)
@@ -89,7 +90,7 @@ func handleUpdateClubSettings(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := settings.Update(payload.FinesEnabled, payload.ShiftsEnabled, payload.TeamsEnabled, user.ID); err != nil {
+	if err := settings.Update(payload.FinesEnabled, payload.ShiftsEnabled, payload.TeamsEnabled, payload.MembersListVisible, user.ID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

@@ -6,6 +6,7 @@ import MyOpenClubFines from './MyOpenClubFines';
 import UpcomingEvents from './UpcomingEvents';
 import ClubNews from './ClubNews';
 import MyTeams from './MyTeams';
+import ReadonlyMemberList from './ReadonlyMemberList';
 import ClubNotFound from './ClubNotFound';
 import { useClubSettings } from '../../hooks/useClubSettings';
 import { addRecentClub, removeRecentClub } from '../../utils/recentClubs';
@@ -190,6 +191,7 @@ const ClubDetails = () => {
                     <UpcomingEvents />
                     {clubSettings?.teamsEnabled && <MyTeams />}
                     {clubSettings?.finesEnabled && <MyOpenClubFines />}
+                    {clubSettings?.membersListVisible && <ReadonlyMemberList />}
                 </div>
             </div>
             
