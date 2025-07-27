@@ -1,7 +1,38 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import '@testing-library/jest-dom';
 import App from '../App';
+
+// Mock useAuth hook
+vi.mock('../hooks/useAuth', () => ({
+  useAuth: () => ({
+    isAuthenticated: true,
+    user: { id: '1', email: 'test@example.com' },
+    api: {},
+    logout: vi.fn(),
+    login: vi.fn(),
+    accessToken: 'mock-token',
+    refreshToken: 'mock-refresh-token'
+  })
+}));
+
+// Mock i18n
+vi.mock('../i18n/useT', () => ({
+  useT: () => ({
+    t: (key: string) => key
+  })
+}));
+
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: {
+      language: 'en',
+      changeLanguage: vi.fn()
+    }
+  })
+}));
 
 // Mock the entire router module
 vi.mock('react-router-dom', () => ({
@@ -66,6 +97,11 @@ vi.mock('../components/auth/ProtectedRoute', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="protected-route">{children}</div>,
 }));
 
+// Mock AuthProvider
+vi.mock('../context/AuthProvider', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div data-testid="auth-provider">{children}</div>,
+}));
+
 vi.mock('../pages/profile/Profile', () => ({
   default: () => <div data-testid="profile">Profile</div>,
 }));
@@ -86,23 +122,40 @@ vi.mock('../pages/profile/ProfilePrivacy', () => ({
   default: () => <div data-testid="profile-privacy">ProfilePrivacy</div>,
 }));
 
-vi.mock('../pages/settings/NotificationSettings', () => ({
-  default: () => <div data-testid="notification-settings">NotificationSettings</div>,
+vi.mock('../pages/profile/ProfileNotificationSettings', () => ({
+  default: () => <div data-testid="profile-notification-settings">ProfileNotificationSettings</div>,
+}));
+
+vi.mock('../pages/clubs/events/EventDetails', () => ({
+  default: () => <div data-testid="event-details">EventDetails</div>,
+}));
+
+vi.mock('../pages/clubs/admin/events/AdminEventDetails', () => ({
+  default: () => <div data-testid="admin-event-details">AdminEventDetails</div>,
 }));
 
 describe('App', () => {
-  it('renders without crashing', () => {
-    render(<App />);
+  it('renders without crashing', async () => {
+    await act(async () => {
+      render(<App />);
+    });
+    
     expect(screen.getByTestId('auth-provider')).toBeInTheDocument();
     expect(screen.getByTestId('browser-router')).toBeInTheDocument();
     expect(screen.getByTestId('routes')).toBeInTheDocument();
   });
 
-  it('renders all route components', () => {
-    render(<App />);
+  it('renders all route components', async () => {
+    await act(async () => {
+      render(<App />);
+    });
+    
+    // Wait for all components to load and render
+    await waitFor(() => {
+      expect(screen.getByTestId('dashboard')).toBeInTheDocument();
+    });
     
     // Check that all page components are rendered within their routes
-    expect(screen.getByTestId('dashboard')).toBeInTheDocument();
     expect(screen.getByTestId('club-list')).toBeInTheDocument();
     expect(screen.getByTestId('club-details')).toBeInTheDocument();
     expect(screen.getByTestId('admin-club-details')).toBeInTheDocument();
@@ -112,29 +165,42 @@ describe('App', () => {
     expect(screen.getByTestId('profile-fines')).toBeInTheDocument();
     expect(screen.getByTestId('profile-sessions')).toBeInTheDocument();
     expect(screen.getByTestId('profile-privacy')).toBeInTheDocument();
-    expect(screen.getByTestId('notification-settings')).toBeInTheDocument();
+    expect(screen.getByTestId('profile-notification-settings')).toBeInTheDocument();
     expect(screen.getByTestId('login')).toBeInTheDocument();
     expect(screen.getByTestId('magic-link-handler')).toBeInTheDocument();
     expect(screen.getByTestId('keycloak-callback')).toBeInTheDocument();
     expect(screen.getByTestId('signup')).toBeInTheDocument();
     expect(screen.getByTestId('join-club')).toBeInTheDocument();
+    expect(screen.getByTestId('event-details')).toBeInTheDocument();
+    expect(screen.getByTestId('admin-event-details')).toBeInTheDocument();
   });
 
-  it('wraps protected routes with ProtectedRoute component', () => {
-    render(<App />);
+  it('wraps protected routes with ProtectedRoute component', async () => {
+    await act(async () => {
+      render(<App />);
+    });
+    
+    // Wait for components to load
+    await waitFor(() => {
+      expect(screen.getByTestId('dashboard')).toBeInTheDocument();
+    });
     
     // Most routes should be protected
     const protectedRoutes = screen.getAllByTestId('protected-route');
     expect(protectedRoutes.length).toBeGreaterThan(0);
   });
 
-  it('wraps the app with AuthProvider', () => {
-    render(<App />);
+  it('wraps the app with AuthProvider', async () => {
+    await act(async () => {
+      render(<App />);
+    });
     expect(screen.getByTestId('auth-provider')).toBeInTheDocument();
   });
 
-  it('uses BrowserRouter for routing', () => {
-    render(<App />);
+  it('uses BrowserRouter for routing', async () => {
+    await act(async () => {
+      render(<App />);
+    });
     expect(screen.getByTestId('browser-router')).toBeInTheDocument();
   });
 });
