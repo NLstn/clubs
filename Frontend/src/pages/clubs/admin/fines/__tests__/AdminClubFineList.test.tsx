@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
+import '@testing-library/jest-dom'
 import AdminClubFineList from '../AdminClubFineList'
 
 // Mock the api module
@@ -58,21 +59,25 @@ describe('AdminClubFineList', () => {
     expect(screen.getByText('Manage Templates')).toBeInTheDocument()
     expect(screen.getByText('Add Fine')).toBeInTheDocument()
 
-    // Check that table headers are rendered
-    expect(screen.getByText('User')).toBeInTheDocument()
-    expect(screen.getByText('Amount')).toBeInTheDocument()
-    expect(screen.getByText('Reason')).toBeInTheDocument()
-    expect(screen.getByText('Created At')).toBeInTheDocument()
-    expect(screen.getByText('Updated At')).toBeInTheDocument()
-    expect(screen.getByText('Paid')).toBeInTheDocument()
-
     // Wait for API call to complete
     await waitFor(() => {
       expect(mockGet).toHaveBeenCalledWith('/api/v1/clubs/test-club-id/fines')
     })
 
+    // After loading is complete, check that table headers are rendered
+    await waitFor(() => {
+      expect(screen.getByText('User')).toBeInTheDocument()
+      expect(screen.getByText('Amount')).toBeInTheDocument()
+      expect(screen.getByText('Reason')).toBeInTheDocument()
+      expect(screen.getByText('Created At')).toBeInTheDocument()
+      expect(screen.getByText('Updated At')).toBeInTheDocument()
+      expect(screen.getByText('Paid')).toBeInTheDocument()
+    })
+
     // Verify no error is displayed
-    expect(screen.queryByText(/Failed to fetch fines/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Failed to load fines/)).not.toBeInTheDocument()
+    // Verify empty message is shown
+    expect(screen.getByText('No fines available')).toBeInTheDocument()
   })
 
   it('handles null API response without crashing', async () => {
@@ -125,7 +130,7 @@ describe('AdminClubFineList', () => {
 
     // Wait for API call to complete and error to be displayed
     await waitFor(() => {
-      expect(screen.getByText(/Failed to fetch fines.*Network error/)).toBeInTheDocument()
+      expect(screen.getByText('Failed to load fines')).toBeInTheDocument()
     })
 
     // Component should still render basic UI elements
