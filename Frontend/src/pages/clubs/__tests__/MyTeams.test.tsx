@@ -100,7 +100,7 @@ describe('MyTeams Component', () => {
     expect(screen.getByText('Marketing Team')).toBeInTheDocument();
     expect(screen.getByText('Team for marketing')).toBeInTheDocument();
 
-    expect(mockGet).toHaveBeenCalledWith('/api/v1/clubs/test-club-id/teams?user=test-user-id');
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/clubs/test-club-id/teams?user');
   });
 
   it('does not render anything when user has no teams', async () => {

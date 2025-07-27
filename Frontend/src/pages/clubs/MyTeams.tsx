@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../utils/api';
-import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useT } from '../../hooks/useTranslation';
 
 interface Team {
@@ -15,20 +14,19 @@ interface Team {
 const MyTeams = () => {
     const { t } = useT();
     const { id: clubId } = useParams();
-    const { user: currentUser } = useCurrentUser();
     const [teams, setTeams] = useState<Team[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchUserTeams = async () => {
-            if (!clubId || !currentUser?.ID) {
+            if (!clubId) {
                 setLoading(false);
                 return;
             }
 
             try {
-                const response = await api.get(`/api/v1/clubs/${clubId}/teams?user=${currentUser.ID}`);
+                const response = await api.get(`/api/v1/clubs/${clubId}/teams?user`);
                 setTeams(response.data || []);
                 setError(null);
             } catch (err) {
@@ -51,7 +49,7 @@ const MyTeams = () => {
         };
 
         fetchUserTeams();
-    }, [clubId, currentUser?.ID]);
+    }, [clubId]);
 
     if (loading) return <div className="loading-text">Loading teams...</div>;
     if (error) return <div className="error-text">{error}</div>;

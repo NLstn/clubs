@@ -13,7 +13,7 @@ func registerTeamRoutes(mux *http.ServeMux) {
 	// GET /api/v1/clubs/{clubid}/teams
 	mux.Handle("/api/v1/clubs/{clubid}/teams", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		// Check if this is a request for user teams via query param
-		if userID := r.URL.Query().Get("user"); userID != "" {
+		if r.URL.Query().Has("user") {
 			// Handle get user teams
 			handleGetUserTeams(w, r)
 			return
@@ -631,21 +631,11 @@ func handleRemoveTeamMember(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// endpoint: GET /api/v1/clubs/{clubid}/teams/user/{userid}
+// endpoint: GET /api/v1/clubs/{clubid}/teams
 func handleGetUserTeams(w http.ResponseWriter, r *http.Request) {
 	clubID := extractPathParam(r, "clubs")
 	if _, err := uuid.Parse(clubID); err != nil {
 		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
-		return
-	}
-
-	userIDParam := r.URL.Query().Get("user")
-	if userIDParam == "" {
-		http.Error(w, "User ID query parameter is required", http.StatusBadRequest)
-		return
-	}
-	if _, err := uuid.Parse(userIDParam); err != nil {
-		http.Error(w, "Invalid user ID format", http.StatusBadRequest)
 		return
 	}
 
@@ -670,7 +660,7 @@ func handleGetUserTeams(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teams, err := models.GetUserTeams(userIDParam, clubID)
+	teams, err := models.GetUserTeams(user.ID, clubID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
