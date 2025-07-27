@@ -97,6 +97,7 @@
   },
   "teams": {
     "title": "Teams",
+    "myTeams": "Meine Teams",
     "createTeam": "Team erstellen",
     "editTeam": "Team bearbeiten",
     "teamName": "Team-Name",
