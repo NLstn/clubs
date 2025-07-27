@@ -24,6 +24,7 @@
     "name": "Name",
     "role": "Role",
     "actions": "Actions",
+    "note": "Note",
     "goToDashboard": "Go to Dashboard"
   },
   "navigation": {
@@ -65,6 +66,8 @@
     "shifts": "Shifts in Events",
     "shiftsDescription": "Enable shift scheduling and management for club events.",
     "teamsDescription": "Allow club admins to create and manage teams with their members.",
+    "membersList": "Member List",
+    "membersListDescription": "Allow regular members to view the club member list",
     "events": "Events",
     "news": "News",
     "latestNews": "Latest News",
@@ -162,5 +165,39 @@
     "profile": "Profile",
     "language": "Language",
     "selectLanguage": "Select Language"
+  },
+  "notifications": {
+    "title": "Notification Settings",
+    "description": "Choose how you want to be notified about activities in your clubs.",
+    "inApp": "In-App",
+    "email": "Email",
+    "notificationType": "Notification Type",
+    "types": {
+      "memberAdded": {
+        "title": "Member Added",
+        "description": "When you are added to a club"
+      },
+      "eventCreated": {
+        "title": "Event Created",
+        "description": "When new events are created in your clubs"
+      },
+      "fineAssigned": {
+        "title": "Fine Assigned",
+        "description": "When you are assigned a fine"
+      },
+      "newsCreated": {
+        "title": "News Created",
+        "description": "When news is published in your clubs"
+      }
+    },
+    "messages": {
+      "saveSuccess": "Settings saved successfully!",
+      "saveError": "Failed to save settings. Please try again.",
+      "loading": "Loading notification settings...",
+      "error": "Error: {{error}}",
+      "failedToLoad": "Failed to load notification settings.",
+      "saving": "Saving..."
+    },
+    "note": "In-app notifications appear in the notification bell icon. Email notifications are sent to your registered email address."
   }
 }

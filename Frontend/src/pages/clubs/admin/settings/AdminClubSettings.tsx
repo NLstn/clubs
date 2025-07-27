@@ -152,8 +152,8 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
 
                 <div className="setting-item">
                     <div className="setting-info">
-                        <h4>{t('clubs.membersList') || 'Member List'}</h4>
-                        <p>{t('clubs.membersListDescription') || 'Allow regular members to view the club member list'}</p>
+                        <h4>{t('clubs.membersList')}</h4>
+                        <p>{t('clubs.membersListDescription')}</p>
                     </div>
                     <label className="toggle-switch">
                         <input
