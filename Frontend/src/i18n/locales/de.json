@@ -23,7 +23,8 @@
     "sort": "Sortieren",
     "name": "Name",
     "role": "Rolle",
-    "actions": "Aktionen"
+    "actions": "Aktionen",
+    "note": "Hinweis"
   },
   "navigation": {
     "home": "Startseite",
@@ -64,6 +65,8 @@
     "shifts": "Schichten in Events",
     "shiftsDescription": "Aktivieren Sie die Schichtplanung und -verwaltung für Vereinsveranstaltungen.",
     "teamsDescription": "Erlauben Sie Vereinsadministratoren, Teams mit ihren Mitgliedern zu erstellen und zu verwalten.",
+    "membersList": "Mitgliederliste",
+    "membersListDescription": "Erlauben Sie regulären Mitgliedern, die Vereinsmitgliederliste einzusehen",
     "events": "Ereignisse",
     "news": "Nachrichten",
     "latestNews": "Aktuelle Nachrichten",
@@ -150,5 +153,39 @@
     "profile": "Profil",
     "language": "Sprache",
     "selectLanguage": "Sprache auswählen"
+  },
+  "notifications": {
+    "title": "Benachrichtigungseinstellungen",
+    "description": "Wählen Sie, wie Sie über Aktivitäten in Ihren Vereinen benachrichtigt werden möchten.",
+    "inApp": "In-App",
+    "email": "E-Mail",
+    "notificationType": "Benachrichtigungstyp",
+    "types": {
+      "memberAdded": {
+        "title": "Mitglied hinzugefügt",
+        "description": "Wenn Sie zu einem Verein hinzugefügt werden"
+      },
+      "eventCreated": {
+        "title": "Event erstellt",
+        "description": "Wenn neue Events in Ihren Vereinen erstellt werden"
+      },
+      "fineAssigned": {
+        "title": "Strafe zugewiesen",
+        "description": "Wenn Ihnen eine Strafe zugewiesen wird"
+      },
+      "newsCreated": {
+        "title": "Nachrichten erstellt",
+        "description": "Wenn Nachrichten in Ihren Vereinen veröffentlicht werden"
+      }
+    },
+    "messages": {
+      "saveSuccess": "Einstellungen erfolgreich gespeichert!",
+      "saveError": "Fehler beim Speichern der Einstellungen. Bitte versuchen Sie es erneut.",
+      "loading": "Benachrichtigungseinstellungen werden geladen...",
+      "error": "Fehler: {{error}}",
+      "failedToLoad": "Benachrichtigungseinstellungen konnten nicht geladen werden.",
+      "saving": "Speichern..."
+    },
+    "note": "In-App-Benachrichtigungen erscheinen im Benachrichtigungsglocken-Symbol. E-Mail-Benachrichtigungen werden an Ihre registrierte E-Mail-Adresse gesendet."
   }
 }
