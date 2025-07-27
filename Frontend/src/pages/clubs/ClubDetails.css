@@ -1,0 +1,437 @@
+/* Club Details Page Styles */
+.club-details-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Club Header Section */
+.club-header-section {
+  background: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-lg);
+}
+
+.club-main-info {
+  flex: 1;
+}
+
+.club-title {
+  margin: 0 0 var(--space-md) 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.club-description {
+  margin: 0 0 var(--space-md) 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.user-role-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.role-label {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: var(--border-radius-sm);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border: 2px solid;
+}
+
+.role-text {
+  font-weight: 700;
+}
+
+.role-badge.role-owner {
+  background: #1a1a1a;
+  color: #d4af37;
+  border-color: #d4af37;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+}
+
+.role-badge.role-admin {
+  background: #1e3a8a;
+  color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.role-badge.role-member {
+  background: #374151;
+  color: #f9fafb;
+  border-color: #6b7280;
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.2);
+}
+
+/* Legacy styles for backward compatibility */
+.user-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.role-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--border-radius-sm);
+  text-transform: capitalize;
+}
+
+.role-value.role-owner {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #8b7355;
+}
+
+.role-value.role-admin {
+  background: var(--color-primary);
+  color: white;
+}
+
+.role-value.role-member {
+  background: var(--color-secondary);
+  color: white;
+}
+
+/* Action Buttons */
+.club-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  align-items: flex-end;
+}
+
+.club-actions .button {
+  min-width: 150px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.club-actions .button-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.club-actions .button-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+/* Notice Styles */
+.club-deleted-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.club-deleted-notice {
+  background: linear-gradient(135deg, #ffebee, #ffcdd2);
+  border: 1px solid #f8bbd9;
+  color: #c62828;
+}
+
+.notice-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notice-content h3 {
+  margin: 0 0 var(--space-xs) 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.notice-content p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Content Sections */
+.club-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.club-content > div {
+  background: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease;
+}
+
+.club-content > div:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.club-content > div h3 {
+  margin: 0 0 var(--space-md) 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-text);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+/* Legacy content-section class for backward compatibility */
+.content-section {
+  background: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease;
+}
+
+.content-section:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.content-section h3 {
+  margin: 0 0 var(--space-md) 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-text);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--color-primary);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .club-details-container {
+    padding: 0 var(--space-sm);
+  }
+
+  .club-header-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+  }
+
+  .club-title {
+    font-size: 2rem;
+  }
+
+  .club-actions {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .club-actions .button {
+    min-width: auto;
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .content-section {
+    padding: var(--space-md);
+  }
+
+  .user-role-container {
+    align-items: center;
+    flex-direction: row;
+    gap: var(--space-sm);
+    margin-top: var(--space-xs);
+  }
+
+  .role-label {
+    font-size: 0.75rem;
+  }
+
+  .role-badge {
+    font-size: 0.8rem;
+    padding: 5px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .club-header-section {
+    padding: var(--space-md);
+  }
+
+  .club-title {
+    font-size: 1.75rem;
+  }
+
+  .club-description {
+    font-size: 1rem;
+  }
+
+  .club-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .club-actions .button {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .content-section {
+    padding: var(--space-sm);
+  }
+
+  .content-section h3 {
+    font-size: 1.2rem;
+  }
+
+  .club-deleted-notice {
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+  }
+
+  .notice-icon {
+    align-self: center;
+  }
+
+  .notice-content {
+    text-align: center;
+  }
+
+  .user-role-container {
+    align-items: center;
+    flex-direction: row;
+    gap: var(--space-xs);
+    margin-top: 0;
+  }
+
+  .role-label {
+    font-size: 0.7rem;
+  }
+
+  .role-badge {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+  }
+}
+
+/* Animation for content sections */
+.club-content > div {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.club-content > div:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.club-content > div:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.club-content > div:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* Legacy animation for content-section */
+.content-section {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.content-section:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.content-section:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.content-section:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Improve table styling within content sections */
+.club-content table,
+.content-section table {
+  margin: var(--space-md) 0 0 0;
+  font-size: 0.95rem;
+}
+
+.club-content table th,
+.content-section table th {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.club-content table td,
+.content-section table td {
+  padding: var(--space-sm);
+}
+
+.club-content table tbody tr:hover,
+.content-section table tbody tr:hover {
+  background: var(--color-background);
+}
+
+/* Empty state improvements */
+.club-content .empty-state,
+.content-section .empty-state {
+  margin: var(--space-md) 0 0 0;
+  padding: var(--space-xl);
+  background: var(--color-background);
+  border: 2px dashed var(--color-border);
+  text-align: center;
+}
+
+.club-content .empty-state p,
+.content-section .empty-state p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}

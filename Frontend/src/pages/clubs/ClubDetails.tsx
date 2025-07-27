@@ -10,6 +10,7 @@ import { useClubSettings } from '../../hooks/useClubSettings';
 import { addRecentClub, removeRecentClub } from '../../utils/recentClubs';
 import { useT } from '../../hooks/useTranslation';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
+import './ClubDetails.css';
 
 interface Club {
     id: string;
@@ -132,54 +133,61 @@ const ClubDetails = () => {
 
     return (
         <Layout title={club.name}>
-            <div>
-                <h2>{club.name}</h2>
-                {club.deleted && (
-                    <div className="club-deleted-notice" style={{ 
-                        backgroundColor: '#f44336', 
-                        color: 'white', 
-                        padding: '15px', 
-                        marginBottom: '20px',
-                        borderRadius: '4px',
-                        fontWeight: 'bold'
-                    }}>
-                        {t('clubs.clubDeleted')}
+            <div className="club-details-container">
+                {/* Club Header */}
+                <div className="club-header-section">
+                    <div className="club-main-info">
+                        <h1 className="club-title">{club.name}</h1>
+                        {club.description && (
+                            <p className="club-description">{club.description}</p>
+                        )}
+                        {userRole && (
+                            <div className="user-role-container">
+                                <span className="role-label">Your role</span>
+                                <div className={`role-badge role-${userRole}`}>
+                                    <span className="role-text">{userRole}</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
-                <div className="club-info">
-                    <p>{club.description}</p>
-                    <ClubNews />
-                    <UpcomingEvents />
-                    {clubSettings?.finesEnabled && <MyOpenClubFines />}
-                    <div className="club-actions" style={{ marginTop: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                        {isAdmin && (
+                    
+                    {/* Action Buttons */}
+                    <div className="club-actions">
+                        {isAdmin && !club.deleted && (
                             <button 
-                                className="button"
+                                className="button button-primary"
                                 onClick={() => navigate(`/clubs/${id}/admin`)}
                             >
                                 Manage Club
                             </button>
                         )}
-                        {userRole && userRole !== 'owner' && !club.deleted && (
+                        {userRole && !club.deleted && (
                             <button 
-                                className="button-cancel"
+                                className="button button-cancel"
                                 onClick={handleLeaveClub}
-                                style={{ backgroundColor: '#d32f2f', borderColor: '#d32f2f' }}
                             >
                                 Leave Club
                             </button>
                         )}
-                        {userRole === 'owner' && !club.deleted && (
-                            <div style={{ 
-                                fontSize: '0.9em', 
-                                color: '#666', 
-                                marginTop: '10px',
-                                fontStyle: 'italic'
-                            }}>
-                                Note: As the club owner, you cannot leave the club. Transfer ownership or delete the club first.
-                            </div>
-                        )}
                     </div>
+                </div>
+
+                {/* Deleted Club Notice */}
+                {club.deleted && (
+                    <div className="club-deleted-notice">
+                        <div className="notice-icon">⚠️</div>
+                        <div className="notice-content">
+                            <h3>Club Deleted</h3>
+                            <p>{t('clubs.clubDeleted')}</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Content Sections */}
+                <div className="club-content">
+                    <ClubNews />
+                    <UpcomingEvents />
+                    {clubSettings?.finesEnabled && <MyOpenClubFines />}
                 </div>
             </div>
             
