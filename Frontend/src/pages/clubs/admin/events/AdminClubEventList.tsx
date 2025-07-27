@@ -229,9 +229,11 @@ const AdminClubEventList = () => {
                             )}
                         </tbody>
                     </table>
-                    <button onClick={() => setIsAddModalOpen(true)} className="button-accept">
-                        Add Event
-                    </button>
+                    <div style={{ marginTop: '20px' }}>
+                        <button onClick={() => setIsAddModalOpen(true)} className="button-accept">
+                            Add Event
+                        </button>
+                    </div>
                 </>
             )}
             <EditEvent
