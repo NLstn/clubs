@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from "../../hooks/useAuth";
+import Table, { TableColumn } from "../../components/ui/Table";
 
 interface Session {
   id: string;
@@ -61,6 +62,61 @@ const ProfileSessions = () => {
     return new Date(dateString).toLocaleString();
   };
 
+  const tableColumns: TableColumn<Session>[] = [
+    {
+      key: 'browser',
+      header: 'Browser',
+      render: (session) => formatUserAgent(session.userAgent)
+    },
+    {
+      key: 'ipAddress',
+      header: 'IP Address',
+      render: (session) => session.ipAddress
+    },
+    {
+      key: 'created',
+      header: 'Created',
+      render: (session) => formatDate(session.createdAt)
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (session) => (
+        session.isCurrent ? (
+          <span style={{ 
+            color: 'var(--color-success-text)',
+            fontWeight: 'bold'
+          }}>
+            Current Session
+          </span>
+        ) : (
+          <span style={{ color: 'var(--color-text-secondary)' }}>
+            Active
+          </span>
+        )
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (session) => (
+        session.isCurrent ? (
+          <span style={{ color: 'var(--color-text-secondary)' }}>
+            Cannot delete current session
+          </span>
+        ) : (
+          <button
+            className="button-cancel"
+            onClick={() => handleDeleteSession(session.id)}
+            style={{ fontSize: '12px', padding: '6px 12px' }}
+          >
+            Delete
+          </button>
+        )
+      )
+    }
+  ];
+
   return (
     <Layout title="Active Sessions">
       <div style={{
@@ -90,85 +146,14 @@ const ProfileSessions = () => {
             </div>
           )}
 
-          {isLoading ? (
-            <p>Loading sessions...</p>
-          ) : sessions.length === 0 ? (
-            <p>No active sessions found.</p>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ 
-                width: '100%', 
-                borderCollapse: 'collapse',
-                backgroundColor: 'var(--color-card-bg)',
-                borderRadius: '8px',
-                overflow: 'hidden'
-              }}>
-                <thead>
-                  <tr style={{ backgroundColor: 'var(--color-background-light)' }}>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>
-                      Browser
-                    </th>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>
-                      IP Address
-                    </th>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>
-                      Created
-                    </th>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>
-                      Status
-                    </th>
-                    <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid var(--color-border)' }}>
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sessions.map((session) => (
-                    <tr key={session.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                      <td style={{ padding: '12px' }}>
-                        {formatUserAgent(session.userAgent)}
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        {session.ipAddress}
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        {formatDate(session.createdAt)}
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        {session.isCurrent ? (
-                          <span style={{ 
-                            color: 'var(--color-success-text)',
-                            fontWeight: 'bold'
-                          }}>
-                            Current Session
-                          </span>
-                        ) : (
-                          <span style={{ color: 'var(--color-text-secondary)' }}>
-                            Active
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ padding: '12px' }}>
-                        {session.isCurrent ? (
-                          <span style={{ color: 'var(--color-text-secondary)' }}>
-                            Cannot delete current session
-                          </span>
-                        ) : (
-                          <button
-                            className="button-cancel"
-                            onClick={() => handleDeleteSession(session.id)}
-                            style={{ fontSize: '12px', padding: '6px 12px' }}
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <Table
+            columns={tableColumns}
+            data={sessions}
+            keyExtractor={(session) => session.id}
+            emptyMessage="No active sessions found."
+            loading={isLoading}
+            loadingMessage="Loading sessions..."
+          />
         </div>
       </div>
     </Layout>
