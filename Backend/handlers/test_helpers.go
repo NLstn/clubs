@@ -71,6 +71,7 @@ func SetupTestDB(t *testing.T) {
 			id TEXT PRIMARY KEY,
 			name TEXT,
 			description TEXT,
+			logo_url TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			created_by TEXT,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
