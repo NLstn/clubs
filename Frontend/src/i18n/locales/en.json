@@ -102,7 +102,10 @@
       "failedToUpdateSettings": "Failed to update settings",
       "loadingNews": "Error loading news: {{error}}",
       "loadingClub": "Error loading club details"
-    }
+    },
+    "joined": "Joined",
+    "birthDate": "Birth Date",
+    "totalMembers": "Total: {{count}} members"
   },
   "teams": {
     "title": "Teams",

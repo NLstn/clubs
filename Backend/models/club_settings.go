@@ -9,15 +9,16 @@ import (
 )
 
 type ClubSettings struct {
-	ID            string    `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID        string    `json:"clubId" gorm:"type:uuid;not null;unique"`
-	FinesEnabled  bool      `json:"finesEnabled" gorm:"default:true"`
-	ShiftsEnabled bool      `json:"shiftsEnabled" gorm:"default:true"`
-	TeamsEnabled  bool      `json:"teamsEnabled" gorm:"default:true"`
-	CreatedAt     time.Time `json:"createdAt"`
-	CreatedBy     string    `json:"createdBy" gorm:"type:uuid"`
-	UpdatedAt     time.Time `json:"updatedAt"`
-	UpdatedBy     string    `json:"updatedBy" gorm:"type:uuid"`
+	ID                 string    `json:"id" gorm:"type:uuid;primary_key"`
+	ClubID             string    `json:"clubId" gorm:"type:uuid;not null;unique"`
+	FinesEnabled       bool      `json:"finesEnabled" gorm:"default:true"`
+	ShiftsEnabled      bool      `json:"shiftsEnabled" gorm:"default:true"`
+	TeamsEnabled       bool      `json:"teamsEnabled" gorm:"default:true"`
+	MembersListVisible bool      `json:"membersListVisible" gorm:"default:true"`
+	CreatedAt          time.Time `json:"createdAt"`
+	CreatedBy          string    `json:"createdBy" gorm:"type:uuid"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+	UpdatedBy          string    `json:"updatedBy" gorm:"type:uuid"`
 }
 
 func GetClubSettings(clubID string) (ClubSettings, error) {
@@ -32,23 +33,25 @@ func GetClubSettings(clubID string) (ClubSettings, error) {
 
 func CreateDefaultClubSettings(clubID string) (ClubSettings, error) {
 	settings := ClubSettings{
-		ID:            uuid.New().String(),
-		ClubID:        clubID,
-		FinesEnabled:  true,
-		ShiftsEnabled: true,
-		TeamsEnabled:  true,
-		CreatedBy:     clubID, // Using clubID as default since we don't have user context here
-		UpdatedBy:     clubID,
+		ID:                 uuid.New().String(),
+		ClubID:             clubID,
+		FinesEnabled:       true,
+		ShiftsEnabled:      true,
+		TeamsEnabled:       true,
+		MembersListVisible: true,
+		CreatedBy:          clubID, // Using clubID as default since we don't have user context here
+		UpdatedBy:          clubID,
 	}
 	err := database.Db.Create(&settings).Error
 	return settings, err
 }
 
-func (s *ClubSettings) Update(finesEnabled, shiftsEnabled, teamsEnabled bool, updatedBy string) error {
+func (s *ClubSettings) Update(finesEnabled, shiftsEnabled, teamsEnabled, membersListVisible bool, updatedBy string) error {
 	return database.Db.Model(s).Updates(map[string]interface{}{
-		"fines_enabled":  finesEnabled,
-		"shifts_enabled": shiftsEnabled,
-		"teams_enabled":  teamsEnabled,
-		"updated_by":     updatedBy,
+		"fines_enabled":        finesEnabled,
+		"shifts_enabled":       shiftsEnabled,
+		"teams_enabled":        teamsEnabled,
+		"members_list_visible": membersListVisible,
+		"updated_by":           updatedBy,
 	}).Error
 }

@@ -67,6 +67,7 @@ func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 		BirthDate *string `json:"birthDate,omitempty"`
 	}
 
+	user := extractUser(r)
 	clubID := extractPathParam(r, "clubs")
 	if _, err := uuid.Parse(clubID); err != nil {
 		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
@@ -80,6 +81,25 @@ func handleGetClubMembers(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Check if user is a member of the club
+	if !club.IsMember(user) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
+	// Check if member list is visible to regular members or if user is admin
+	settings, err := models.GetClubSettings(clubID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Allow access if user is admin or if member list is visible to regular members
+	if !club.IsAdmin(user) && !settings.MembersListVisible {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
 		return
 	}
 
