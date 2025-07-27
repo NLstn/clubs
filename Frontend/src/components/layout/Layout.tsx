@@ -8,7 +8,7 @@ interface LayoutProps {
   showRecentClubs?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, title, showRecentClubs = false }) => {
+const Layout: React.FC<LayoutProps> = ({ children, title, showRecentClubs = true }) => {
   return (
     <div className="layout">
       <Header title={title} showRecentClubs={showRecentClubs} />
