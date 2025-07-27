@@ -43,11 +43,6 @@ function Table<T>({
         return <div className="table-error-text">{errorMessage}</div>;
     }
 
-    // Handle empty data
-    if (data.length === 0) {
-        return <div className="table-empty-text">{emptyMessage}</div>;
-    }
-
     return (
         <div className={`table-container ${className}`}>
             <table className="reusable-table">
@@ -61,15 +56,23 @@ function Table<T>({
                     </tr>
                 </thead>
                 <tbody>
-                    {data.map((item) => (
-                        <tr key={keyExtractor(item)}>
-                            {columns.map((column) => (
-                                <td key={column.key} className={column.className}>
-                                    {column.render(item)}
-                                </td>
-                            ))}
+                    {data.length === 0 ? (
+                        <tr>
+                            <td colSpan={columns.length} className="table-empty-text" style={{textAlign: 'center', fontStyle: 'italic'}}>
+                                {emptyMessage}
+                            </td>
                         </tr>
-                    ))}
+                    ) : (
+                        data.map((item) => (
+                            <tr key={keyExtractor(item)}>
+                                {columns.map((column) => (
+                                    <td key={column.key} className={column.className}>
+                                        {column.render(item)}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))
+                    )}
                 </tbody>
             </table>
             {footer && (
