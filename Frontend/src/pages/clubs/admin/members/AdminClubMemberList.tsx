@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import InviteMember from "./InviteMember";
 import AdminClubJoinRequestList from "./AdminClubJoinRequestList";
 import AdminClubPendingInviteList from "./AdminClubPendingInviteList";
+import Table, { TableColumn } from "../../../../components/ui/Table";
 import api from "../../../../utils/api";
 import { useParams } from "react-router-dom";
 import { useT } from "../../../../hooks/useTranslation";
@@ -31,6 +32,7 @@ const AdminClubMemberList = () => {
     const [showInviteLink, setShowInviteLink] = useState(false);
     const [inviteLink, setInviteLink] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
     const translateRole = (role: string): string => {
         return t(`clubs.roles.${role}`) || role;
@@ -52,6 +54,8 @@ const AdminClubMemberList = () => {
 
     const fetchMembers = useCallback(async () => {
         try {
+            setLoading(true);
+            setError(null);
             const response = await api.get(`/api/v1/clubs/${id}/members`);
             const sortedMembers = sortMembersByRole(response.data);
             setMembers(sortedMembers);
@@ -63,6 +67,8 @@ const AdminClubMemberList = () => {
             }
         } catch {
             setError("Failed to fetch members");
+        } finally {
+            setLoading(false);
         }
     }, [id, sortMembersByRole, currentUser]);
 
@@ -180,81 +186,105 @@ const AdminClubMemberList = () => {
         return false;
     };
 
+    // Define table columns
+    const columns: TableColumn<Member>[] = [
+        {
+            key: 'name',
+            header: 'Name',
+            render: (member) => member.name
+        },
+        {
+            key: 'role',
+            header: 'Role',
+            render: (member) => translateRole(member.role)
+        },
+        {
+            key: 'joined',
+            header: 'Joined',
+            render: (member) => member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'N/A'
+        },
+        {
+            key: 'birthDate',
+            header: 'Birth Date',
+            render: (member) => member.birthDate ? new Date(member.birthDate).toLocaleDateString() : 'Not shared'
+        },
+        {
+            key: 'actions',
+            header: 'Actions',
+            render: (member) => (
+                <div className="member-actions">
+                    {canDeleteMember(currentUserRole, member.role) && (
+                        <button
+                            onClick={() => deleteMember(member.id)}
+                            className="action-button remove"
+                            aria-label="Remove member"
+                        >
+                            Remove
+                        </button>
+                    )}
+                    {member.role === 'member' && canChangeRole(currentUserRole, member.role, 'admin', member) && (
+                        <button
+                            onClick={() => handleRoleChange(member.id, 'admin')}
+                            className="action-button promote"
+                        >
+                            Promote
+                        </button>
+                    )}
+                    {member.role === 'admin' && (
+                        <>
+                            {canChangeRole(currentUserRole, member.role, 'member', member) && (
+                                <button
+                                    onClick={() => handleRoleChange(member.id, 'member')}
+                                    className="action-button demote"
+                                >
+                                    Demote
+                                </button>
+                            )}
+                            {canChangeRole(currentUserRole, member.role, 'owner', member) && (
+                                <button
+                                    onClick={() => handleRoleChange(member.id, 'owner')}
+                                    className="action-button promote"
+                                >
+                                    Promote
+                                </button>
+                            )}
+                        </>
+                    )}
+                    {member.role === 'owner' && canChangeRole(currentUserRole, member.role, 'admin', member) && (
+                        <button
+                            onClick={() => handleRoleChange(member.id, 'admin')}
+                            className="action-button demote"
+                        >
+                            Demote
+                        </button>
+                    )}
+                </div>
+            )
+        }
+    ];
+
     if (error) return <div className="error">{error}</div>;
 
     return (
         <div>
             <h3>Members</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Role</th>
-                        <th>Joined</th>
-                        <th>Birth Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {members && members.map((member) => (
-                        <tr key={member.id}>
-                            <td>{member.name}</td>
-                            <td>{translateRole(member.role)}</td>
-                            <td>{member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'N/A'}</td>
-                            <td>{member.birthDate ? new Date(member.birthDate).toLocaleDateString() : 'Not shared'}</td>
-                            <td>
-                                <div className="member-actions">
-                                    {canDeleteMember(currentUserRole, member.role) && (
-                                        <button
-                                            onClick={() => deleteMember(member.id)}
-                                            className="action-button remove"
-                                            aria-label="Remove member"
-                                        >
-                                            Remove
-                                        </button>
-                                    )}
-                                    {member.role === 'member' && canChangeRole(currentUserRole, member.role, 'admin', member) && (
-                                        <button
-                                            onClick={() => handleRoleChange(member.id, 'admin')}
-                                            className="action-button promote"
-                                        >
-                                            Promote
-                                        </button>
-                                    )}
-                                    {member.role === 'admin' && (
-                                        <>
-                                            {canChangeRole(currentUserRole, member.role, 'member', member) && (
-                                                <button
-                                                    onClick={() => handleRoleChange(member.id, 'member')}
-                                                    className="action-button demote"
-                                                >
-                                                    Demote
-                                                </button>
-                                            )}
-                                            {canChangeRole(currentUserRole, member.role, 'owner', member) && (
-                                                <button
-                                                    onClick={() => handleRoleChange(member.id, 'owner')}
-                                                    className="action-button promote"
-                                                >
-                                                    Promote
-                                                </button>
-                                            )}
-                                        </>
-                                    )}
-                                    {member.role === 'owner' && canChangeRole(currentUserRole, member.role, 'admin', member) && (
-                                        <button
-                                            onClick={() => handleRoleChange(member.id, 'admin')}
-                                            className="action-button demote"
-                                        >
-                                            Demote
-                                        </button>
-                                    )}
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <Table
+                columns={columns}
+                data={members}
+                keyExtractor={(member) => member.id}
+                loading={loading}
+                error={error}
+                emptyMessage="No members found"
+                loadingMessage="Loading members..."
+                errorMessage="Failed to load members"
+                footer={
+                    members.length > 0 ? (
+                        <div>
+                            {t('clubs.totalMembers', { count: members.length }) || `Total: ${members.length} members`}
+                        </div>
+                    ) : null
+                }
+            />
             <div className="member-actions buttons" style={{ marginTop: 'var(--space-md)' }}>
                 <button onClick={() => setIsModalOpen(true)} className="button-accept">Invite Member</button>
                 <button onClick={handleShowInviteLink} className="button-accept">Generate Invite Link</button>
