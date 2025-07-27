@@ -12,11 +12,13 @@ import AdminClubSettings from './settings/AdminClubSettings';
 import { useClubSettings } from '../../../hooks/useClubSettings';
 import { useT } from '../../../hooks/useTranslation';
 import { removeRecentClub } from '../../../utils/recentClubs';
+import './AdminClubDetails.css';
 
 interface Club {
     id: string;
     name: string;
     description: string;
+    logo_url?: string;
     deleted?: boolean;
 }
 
@@ -37,6 +39,8 @@ const AdminClubDetails = () => {
     const [isOwner, setIsOwner] = useState(false);
     const [showDeletePopup, setShowDeletePopup] = useState(false);
     const [showHardDeletePopup, setShowHardDeletePopup] = useState(false);
+    const [logoUploading, setLogoUploading] = useState(false);
+    const [logoError, setLogoError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -164,6 +168,69 @@ const AdminClubDetails = () => {
         }
     };
 
+    const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        // Validate file type
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            setLogoError('Please select a PNG, JPEG, or WebP image file');
+            return;
+        }
+
+        // Validate file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            setLogoError('File size must be less than 5MB');
+            return;
+        }
+
+        setLogoUploading(true);
+        setLogoError(null);
+
+        try {
+            const formData = new FormData();
+            formData.append('logo', file);
+
+            const response = await api.post(`/api/v1/clubs/${id}/logo`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            // Update the club state with the new logo URL
+            if (club) {
+                setClub({ ...club, logo_url: response.data.logo_url });
+            }
+        } catch (err: unknown) {
+            console.error('Error uploading logo:', err);
+            setLogoError('Failed to upload logo');
+        } finally {
+            setLogoUploading(false);
+            // Reset the file input
+            event.target.value = '';
+        }
+    };
+
+    const handleLogoDelete = async () => {
+        if (!club?.logo_url) return;
+
+        setLogoUploading(true);
+        setLogoError(null);
+
+        try {
+            await api.delete(`/api/v1/clubs/${id}/logo`);
+            
+            // Update the club state to remove logo URL
+            setClub({ ...club, logo_url: undefined });
+        } catch (err: unknown) {
+            console.error('Error deleting logo:', err);
+            setLogoError('Failed to delete logo');
+        } finally {
+            setLogoUploading(false);
+        }
+    };
+
     if (loading) return <div>Loading...</div>;
     if (clubNotFound) return <ClubNotFound clubId={id} title="Club Administration Not Available" message="The club you are trying to manage does not exist or you do not have admin access to it." />;
     if (error) return <div className="error">{error}</div>;
@@ -254,7 +321,71 @@ const AdminClubDetails = () => {
                             ) : (
                                 <>
                                     <div className="club-header">
-                                        <h2>{club.name}</h2>
+                                        <div className="club-info">
+                                            <div className="club-logo-section">
+                                                {club.logo_url ? (
+                                                    <div className="club-logo-container">
+                                                        <img 
+                                                            src={club.logo_url} 
+                                                            alt={`${club.name} logo`}
+                                                            className="club-logo"
+                                                        />
+                                                        {!club.deleted && (
+                                                            <div className="logo-actions">
+                                                                <input
+                                                                    type="file"
+                                                                    id="logo-upload"
+                                                                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                                                                    onChange={handleLogoUpload}
+                                                                    style={{ display: 'none' }}
+                                                                />
+                                                                <button
+                                                                    onClick={() => document.getElementById('logo-upload')?.click()}
+                                                                    className="logo-change-btn"
+                                                                    disabled={logoUploading}
+                                                                >
+                                                                    {logoUploading ? 'Uploading...' : 'Change'}
+                                                                </button>
+                                                                <button
+                                                                    onClick={handleLogoDelete}
+                                                                    className="logo-delete-btn"
+                                                                    disabled={logoUploading}
+                                                                >
+                                                                    Delete
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className="club-logo-placeholder">
+                                                        <div 
+                                                            className="logo-placeholder"
+                                                            onClick={!club.deleted ? () => document.getElementById('logo-upload')?.click() : undefined}
+                                                        >
+                                                            {!club.deleted ? 'Click to upload logo' : 'No logo'}
+                                                        </div>
+                                                        {!club.deleted && (
+                                                            <input
+                                                                type="file"
+                                                                id="logo-upload"
+                                                                accept="image/png,image/jpeg,image/jpg,image/webp"
+                                                                onChange={handleLogoUpload}
+                                                                style={{ display: 'none' }}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="club-details">
+                                                <h2>{club.name}</h2>
+                                                <p>{club.description}</p>
+                                                {logoError && (
+                                                    <div className="logo-error">
+                                                        {logoError}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
                                         <div className="club-actions">
                                             {!club.deleted && (
                                                 <>
@@ -281,7 +412,6 @@ const AdminClubDetails = () => {
                                             )}
                                         </div>
                                     </div>
-                                    <p>{club.description}</p>
                                     {club.deleted && (
                                         <div className="club-deleted-notice" style={{ 
                                             backgroundColor: '#f44336', 

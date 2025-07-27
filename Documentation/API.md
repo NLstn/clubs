@@ -120,7 +120,9 @@ The API uses JWT-based authentication with magic link email authentication. Most
   {
     "id": "club-uuid",
     "name": "Club Name",
-    "description": "Club Description"
+    "description": "Club Description",
+    "logo_url": "https://your-cdn-endpoint.azureedge.net/club-logos/club-id-uuid.jpg",
+    "user_role": "owner"
   }
 ]
 ```
@@ -147,7 +149,8 @@ The API uses JWT-based authentication with magic link email authentication. Most
 {
   "id": "club-uuid",
   "name": "Club Name",
-  "description": "Club Description"
+  "description": "Club Description",
+  "logo_url": "https://your-cdn-endpoint.azureedge.net/club-logos/club-id-uuid.jpg"
 }
 ```
 
@@ -245,6 +248,60 @@ The API uses JWT-based authentication with magic link email authentication. Most
 - `403 Forbidden` - User is not the club owner
 - `404 Not Found` - Club not found
 - `500 Internal Server Error` - Database error
+
+---
+
+### Upload Club Logo
+**Endpoint:** `POST /api/v1/clubs/{clubid}/logo`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Upload a logo for a club. User must be a club admin or owner.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Request Body:** (multipart/form-data)
+- `logo` (file) - Image file (PNG, JPEG, or WebP, max 5MB)
+
+**Responses:**
+- `200 OK` - Logo uploaded successfully
+```json
+{
+  "logo_url": "https://your-cdn-endpoint.azureedge.net/club-logos/club-id-uuid.jpg",
+  "message": "Logo uploaded successfully"
+}
+```
+- `400 Bad Request` - Invalid file type/size or no file provided
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not a club admin or owner
+- `404 Not Found` - Club not found
+- `500 Internal Server Error` - Upload or database error
+
+---
+
+### Delete Club Logo
+**Endpoint:** `DELETE /api/v1/clubs/{clubid}/logo`  
+**Authentication:** Bearer token required  
+**Rate Limit:** API limiter (30/5s)
+
+**Description:** Delete the logo of a club. User must be a club admin or owner.
+
+**Path Parameters:**
+- `clubid` (UUID) - Club identifier
+
+**Responses:**
+- `200 OK` - Logo deleted successfully
+```json
+{
+  "message": "Logo deleted successfully"
+}
+```
+- `400 Bad Request` - Club has no logo to delete
+- `401 Unauthorized` - Invalid or missing token
+- `403 Forbidden` - User is not a club admin or owner
+- `404 Not Found` - Club not found
+- `500 Internal Server Error` - Delete or database error
 
 ---
 
