@@ -217,10 +217,11 @@ func handleGetMySessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get current session token from Authorization header
-	currentToken := r.Header.Get("Authorization")
-	if currentToken != "" && len(currentToken) > 7 && currentToken[:7] == "Bearer " {
-		currentToken = currentToken[7:]
+	// Get current refresh token from X-Refresh-Token header to identify current session
+	currentRefreshToken := r.Header.Get("X-Refresh-Token")
+	var hashedCurrentRefreshToken string
+	if currentRefreshToken != "" {
+		hashedCurrentRefreshToken = models.HashToken(currentRefreshToken)
 	}
 
 	// Transform sessions for response
@@ -239,7 +240,7 @@ func handleGetMySessions(w http.ResponseWriter, r *http.Request) {
 			UserAgent: session.UserAgent,
 			IPAddress: session.IPAddress,
 			CreatedAt: session.CreatedAt,
-			IsCurrent: session.Token == models.HashToken(currentToken),
+			IsCurrent: hashedCurrentRefreshToken != "" && session.Token == hashedCurrentRefreshToken,
 		})
 	}
 

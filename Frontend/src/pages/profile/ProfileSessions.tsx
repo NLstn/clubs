@@ -21,7 +21,12 @@ const ProfileSessions = () => {
   const fetchSessions = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await api.get('/api/v1/me/sessions');
+      const refreshToken = localStorage.getItem('refresh_token');
+      const headers: Record<string, string> = {};
+      if (refreshToken) {
+        headers['X-Refresh-Token'] = refreshToken;
+      }
+      const response = await api.get('/api/v1/me/sessions', { headers });
       if (response.status === 200) {
         setSessions(response.data || []);
       }
