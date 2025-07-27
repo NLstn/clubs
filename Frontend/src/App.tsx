@@ -19,6 +19,7 @@ import ProfilePrivacy from './pages/profile/ProfilePrivacy';
 import NotificationSettings from './pages/settings/NotificationSettings';
 import EventDetails from './pages/clubs/events/EventDetails';
 import AdminEventDetails from './pages/clubs/admin/events/AdminEventDetails';
+import TableTest from './pages/TableTest';
 
 function App() {
     return (
@@ -124,6 +125,13 @@ function App() {
                         </ProtectedRoute>
                     } />
                     <Route path="/join/:clubId" element={<JoinClub />} />
+
+                    {/* Table Test Route - for development */}
+                    <Route path="/table-test" element={
+                        <ProtectedRoute>
+                            <TableTest />
+                        </ProtectedRoute>
+                    } />
 
                     {/* Event Detail Routes */}
                     <Route
