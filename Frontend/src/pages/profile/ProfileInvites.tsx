@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
+import Table, { TableColumn } from "../../components/ui/Table";
 import api from '../../utils/api';
 
 interface Invitation {
@@ -11,16 +12,24 @@ interface Invitation {
 const ProfileInvites = () => {
   const [invites, setInvites] = useState<Invitation[]>([]);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchInvitations();
   }, []);
 
   const fetchInvitations = async () => {
-    const response = await api.get('/api/v1/invites');
-    if (response.status === 200) {
-      const data = response.data;
-      setInvites(data);
+    setLoading(true);
+    try {
+      const response = await api.get('/api/v1/invites');
+      if (response.status === 200) {
+        const data = response.data;
+        setInvites(data);
+      }
+    } catch (error) {
+      console.error('Error fetching invitations:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,6 +61,34 @@ const ProfileInvites = () => {
     }
   };
 
+  const columns: TableColumn<Invitation>[] = [
+    {
+      key: 'clubName',
+      header: 'Club',
+      render: (invite) => invite.clubName
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (invite) => (
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            className="button-accept"
+            onClick={() => handleAccept(invite.id, invite.clubName)}
+          >
+            Accept
+          </button>
+          <button
+            className="button-cancel"
+            onClick={() => handleDecline(invite.id)}
+          >
+            Decline
+          </button>
+        </div>
+      )
+    }
+  ];
+
   return (
     <Layout title="Club Invitations">
       <div style={{
@@ -81,41 +118,16 @@ const ProfileInvites = () => {
             </div>
           )}
 
-          {invites == null || invites.length === 0 ? (
-            <p>You have no pending invitations.</p>
-          ) : (
-            <div className="invitations-list" style={{ maxWidth: '800px' }}>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Club</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invites.map((invite) => (
-                    <tr key={invite.id}>
-                      <td>{invite.clubName}</td>
-                      <td style={{ display: 'flex', gap: '10px' }}>
-                        <button
-                          className="button-accept"
-                          onClick={() => handleAccept(invite.id, invite.clubName)}
-                        >
-                          Accept
-                        </button>
-                        <button
-                          className="button-cancel"
-                          onClick={() => handleDecline(invite.id)}
-                        >
-                          Decline
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <div className="invitations-list" style={{ maxWidth: '800px' }}>
+            <Table
+              columns={columns}
+              data={invites}
+              keyExtractor={(invite) => invite.id}
+              emptyMessage="You have no pending invitations."
+              loading={loading}
+              loadingMessage="Loading invitations..."
+            />
+          </div>
         </div>
       </div>
     </Layout>
