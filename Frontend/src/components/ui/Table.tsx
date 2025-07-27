@@ -58,7 +58,7 @@ function Table<T>({
                 <tbody>
                     {data.length === 0 ? (
                         <tr>
-                            <td colSpan={columns.length} className="table-empty-text" style={{textAlign: 'center', fontStyle: 'italic'}}>
+                            <td colSpan={columns.length} className="table-empty-text" style={{ textAlign: 'center', fontStyle: 'italic' }}>
                                 {emptyMessage}
                             </td>
                         </tr>
@@ -75,11 +75,9 @@ function Table<T>({
                     )}
                 </tbody>
             </table>
-            {footer && (
-                <div className="table-footer">
-                    {footer}
-                </div>
-            )}
+            <div className="table-footer">
+                {footer}
+            </div>
         </div>
     );
 }
