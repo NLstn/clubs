@@ -418,6 +418,49 @@ func TestStoreRefreshToken(t *testing.T) {
 		err := user.StoreRefreshToken("", "agent", "ip")
 		assert.NoError(t, err) // Empty token should still be stored (though not practical)
 	})
+
+	t.Run("replace sessions with same IP address", func(t *testing.T) {
+		user, _ := handlers.CreateTestUser(t, "sameipuser@example.com")
+		ipAddress := "192.168.1.100"
+
+		// Store first token with specific IP
+		token1 := "first-refresh-token"
+		err := user.StoreRefreshToken(token1, "Chrome/1.0", ipAddress)
+		assert.NoError(t, err)
+
+		// Store second token with different IP
+		token2 := "second-refresh-token"
+		err = user.StoreRefreshToken(token2, "Firefox/1.0", "192.168.1.200")
+		assert.NoError(t, err)
+
+		// Store third token with same IP as first - should replace first token
+		token3 := "third-refresh-token"
+		err = user.StoreRefreshToken(token3, "Safari/1.0", ipAddress)
+		assert.NoError(t, err)
+
+		// Verify we have exactly 2 sessions
+		sessions, err := user.GetActiveSessions()
+		assert.NoError(t, err)
+		assert.Len(t, sessions, 2)
+
+		// Verify first token was deleted
+		var deletedToken models.RefreshToken
+		err = database.Db.Where("user_id = ? AND token = ?", user.ID, models.HashToken(token1)).First(&deletedToken).Error
+		assert.Error(t, err) // Should not exist
+
+		// Verify second token still exists (different IP)
+		var existingToken models.RefreshToken
+		err = database.Db.Where("user_id = ? AND token = ?", user.ID, models.HashToken(token2)).First(&existingToken).Error
+		assert.NoError(t, err)
+		assert.Equal(t, "192.168.1.200", existingToken.IPAddress)
+
+		// Verify third token exists (replaced first)
+		var newToken models.RefreshToken
+		err = database.Db.Where("user_id = ? AND token = ?", user.ID, models.HashToken(token3)).First(&newToken).Error
+		assert.NoError(t, err)
+		assert.Equal(t, ipAddress, newToken.IPAddress)
+		assert.Equal(t, "Safari/1.0", newToken.UserAgent)
+	})
 }
 
 func TestValidateRefreshToken(t *testing.T) {
