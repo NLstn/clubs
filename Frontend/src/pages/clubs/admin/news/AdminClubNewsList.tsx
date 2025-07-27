@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import EditNews from "./EditNews";
 import AddNews from "./AddNews";
+import Table, { TableColumn } from "../../../../components/ui/Table";
 import api from "../../../../utils/api";
 
 interface News {
@@ -87,62 +88,70 @@ const AdminClubNewsList = () => {
         return content.substring(0, maxLength) + '...';
     };
 
+    const columns: TableColumn<News>[] = [
+        {
+            key: 'title',
+            header: 'Title',
+            render: (newsItem) => newsItem.title
+        },
+        {
+            key: 'content',
+            header: 'Content',
+            render: (newsItem) => truncateContent(newsItem.content)
+        },
+        {
+            key: 'created_at',
+            header: 'Created',
+            render: (newsItem) => formatDateTime(newsItem.created_at)
+        },
+        {
+            key: 'updated_at',
+            header: 'Updated',
+            render: (newsItem) => formatDateTime(newsItem.updated_at)
+        },
+        {
+            key: 'actions',
+            header: 'Actions',
+            render: (newsItem) => (
+                <div>
+                    <button
+                        onClick={() => handleEditNews(newsItem)}
+                        className="button-accept"
+                        style={{marginRight: '5px'}}
+                    >
+                        Edit
+                    </button>
+                    <button
+                        onClick={() => handleDeleteNews(newsItem.id)}
+                        className="button-cancel"
+                    >
+                        Delete
+                    </button>
+                </div>
+            )
+        }
+    ];
+
     return (
         <div>
             <h3>News</h3>
-            {loading && <p>Loading news...</p>}
-            {error && <p style={{color: 'red'}}>Error: {error}</p>}
-            {!loading && !error && (
-                <>
-                    <table className="basic-table">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Content</th>
-                                <th>Created</th>
-                                <th>Updated</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {news.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} style={{textAlign: 'center', fontStyle: 'italic'}}>
-                                        No news posts available
-                                    </td>
-                                </tr>
-                            ) : (
-                                news.map(newsItem => (
-                                    <tr key={newsItem.id}>
-                                        <td>{newsItem.title}</td>
-                                        <td>{truncateContent(newsItem.content)}</td>
-                                        <td>{formatDateTime(newsItem.created_at)}</td>
-                                        <td>{formatDateTime(newsItem.updated_at)}</td>
-                                        <td>
-                                            <button
-                                                onClick={() => handleEditNews(newsItem)}
-                                                className="button-accept"
-                                                style={{marginRight: '5px'}}
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteNews(newsItem.id)}
-                                                className="button-cancel"
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                    <button onClick={() => setIsAddModalOpen(true)} className="button-accept">
-                        Add News
-                    </button>
-                </>
-            )}
+            <Table
+                columns={columns}
+                data={news}
+                keyExtractor={(newsItem) => newsItem.id}
+                loading={loading}
+                error={error}
+                emptyMessage="No news posts available"
+                loadingMessage="Loading news..."
+                errorMessage={error || "Error loading news"}
+            />
+            <button 
+                onClick={() => setIsAddModalOpen(true)} 
+                className="button-accept"
+                style={{ marginTop: '16px' }}
+            >
+                Add News
+            </button>
             <EditNews
                 isOpen={isEditModalOpen}
                 onClose={handleCloseEditModal}
