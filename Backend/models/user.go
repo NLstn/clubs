@@ -150,6 +150,12 @@ func (u *User) IsProfileComplete() bool {
 }
 
 func (u *User) StoreRefreshToken(token, userAgent, ipAddress string) error {
+	// Delete any existing refresh tokens for the same user and IP address
+	err := database.Db.Exec(`DELETE FROM refresh_tokens WHERE user_id = ? AND ip_address = ?`, u.ID, ipAddress).Error
+	if err != nil {
+		return fmt.Errorf("failed to delete existing sessions for IP %s: %v", ipAddress, err)
+	}
+
 	refreshToken := RefreshToken{
 		UserID:    u.ID,
 		Token:     HashToken(token),
