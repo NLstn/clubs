@@ -82,34 +82,34 @@ function App() {
                         }
                     />
 
-                    <Route path="/profile"  element={
+                    <Route path="/profile" element={
                         <ProtectedRoute>
                             <Profile />
                         </ProtectedRoute>
                     } />
-                    
-                    <Route path="/profile/privacy"  element={
+
+                    <Route path="/profile/privacy" element={
                         <ProtectedRoute>
                             <ProfilePrivacy />
                         </ProtectedRoute>
                     } />
-                    
-                    <Route path="/profile/invites"  element={
+
+                    <Route path="/profile/invites" element={
                         <ProtectedRoute>
                             <ProfileInvites />
                         </ProtectedRoute>
                     } />
-                    <Route path="/profile/fines"  element={
+                    <Route path="/profile/fines" element={
                         <ProtectedRoute>
                             <ProfileFines />
                         </ProtectedRoute>
                     } />
-                    <Route path="/profile/sessions"  element={
+                    <Route path="/profile/sessions" element={
                         <ProtectedRoute>
                             <ProfileSessions />
                         </ProtectedRoute>
                     } />
-                    <Route path="/profile/notifications"  element={
+                    <Route path="/profile/notifications" element={
                         <ProtectedRoute>
                             <NotificationSettings />
                         </ProtectedRoute>
