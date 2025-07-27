@@ -19,7 +19,7 @@ const ProfileInvites = lazy(() => import('./pages/profile/ProfileInvites'));
 const ProfileFines = lazy(() => import('./pages/profile/ProfileFines'));
 const ProfileSessions = lazy(() => import('./pages/profile/ProfileSessions'));
 const ProfilePrivacy = lazy(() => import('./pages/profile/ProfilePrivacy'));
-const NotificationSettings = lazy(() => import('./pages/settings/NotificationSettings'));
+const ProfileNotificationSettings = lazy(() => import('./pages/profile/ProfileNotificationSettings'));
 const EventDetails = lazy(() => import('./pages/clubs/events/EventDetails'));
 const AdminEventDetails = lazy(() => import('./pages/clubs/admin/events/AdminEventDetails'));
 
@@ -128,7 +128,7 @@ function App() {
                         } />
                         <Route path="/profile/notifications" element={
                             <ProtectedRoute>
-                                <NotificationSettings />
+                                <ProfileNotificationSettings />
                             </ProtectedRoute>
                         } />
 
@@ -141,25 +141,6 @@ function App() {
                             </ProtectedRoute>
                         } />
                         <Route path="/join/:clubId" element={<JoinClub />} />
-
-                        {/* Event Detail Routes */}
-                        <Route
-                            path="/clubs/:clubId/events/:eventId"
-                            element={
-                                <ProtectedRoute>
-                                    <EventDetails />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path="/clubs/:clubId/admin/events/:eventId"
-                            element={
-                                <ProtectedRoute>
-                                    <AdminEventDetails />
-                                </ProtectedRoute>
-                            }
-                        />
 
                     </Routes>
                 </Suspense>

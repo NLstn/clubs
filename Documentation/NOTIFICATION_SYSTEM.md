@@ -58,7 +58,7 @@ Users can control their notification preferences through:
   - Automatically closes dropdown when navigating
   - Displays appropriate icons for each notification type
   - **Recent Clubs Integration** - Automatically adds visited clubs to recent clubs list
-- `pages/settings/NotificationSettings.tsx` - User preference management
+- `pages/profile/ProfileNotifications.tsx` - User preference management within profile layout
 - `hooks/useNotifications.ts` - React hook for notification state management
   - `deleteNotification()` - Function to delete individual notifications
 
