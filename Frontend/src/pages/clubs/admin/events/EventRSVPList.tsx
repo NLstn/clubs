@@ -1,4 +1,5 @@
 import { FC, useState, useEffect } from "react";
+import Table, { TableColumn } from "../../../../components/ui/Table";
 import api from "../../../../utils/api";
 
 interface EventRSVP {
@@ -67,6 +68,33 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
         }
     };
 
+    // Define table columns for RSVPs
+    const rsvpColumns: TableColumn<EventRSVP>[] = [
+        {
+            key: 'member',
+            header: 'Member',
+            render: (rsvp) => rsvp.user ? `${rsvp.user.FirstName} ${rsvp.user.LastName}`.trim() || 'Unknown' : 'Unknown'
+        },
+        {
+            key: 'response',
+            header: 'Response',
+            render: (rsvp) => (
+                <span style={{ 
+                    color: rsvp.response === 'yes' ? 'var(--color-primary)' : 
+                           rsvp.response === 'no' ? 'var(--color-cancel)' : 'orange',
+                    fontWeight: 'bold'
+                }}>
+                    {rsvp.response === 'yes' ? 'Yes' : rsvp.response === 'no' ? 'No' : 'Maybe'}
+                </span>
+            )
+        },
+        {
+            key: 'date_responded',
+            header: 'Date Responded',
+            render: (rsvp) => formatDateTime(rsvp.updated_at)
+        }
+    ];
+
     if (!isOpen) return null;
 
     return (
@@ -97,42 +125,14 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
                 {error && <p style={{ color: 'red' }}>Error: {error}</p>}
                 
                 {!loading && !error && (
-                    <>
-                        {rsvps.length === 0 ? (
-                            <p style={{ fontStyle: 'italic', color: '#666' }}>
-                                No RSVPs yet for this event.
-                            </p>
-                        ) : (
-                            <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                                <table className="basic-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Member</th>
-                                            <th>Response</th>
-                                            <th>Date Responded</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {rsvps.map((rsvp) => (
-                                            <tr key={rsvp.id}>
-                                                <td>{rsvp.user ? `${rsvp.user.FirstName} ${rsvp.user.LastName}`.trim() || 'Unknown' : 'Unknown'}</td>
-                                                <td>
-                                                    <span style={{ 
-                                                        color: rsvp.response === 'yes' ? 'var(--color-primary)' : 
-                                                               rsvp.response === 'no' ? 'var(--color-cancel)' : 'orange',
-                                                        fontWeight: 'bold'
-                                                    }}>
-                                                        {rsvp.response === 'yes' ? 'Yes' : rsvp.response === 'no' ? 'No' : 'Maybe'}
-                                                    </span>
-                                                </td>
-                                                <td>{formatDateTime(rsvp.updated_at)}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </>
+                    <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                        <Table
+                            columns={rsvpColumns}
+                            data={rsvps}
+                            keyExtractor={(rsvp) => rsvp.id}
+                            emptyMessage="No RSVPs yet for this event."
+                        />
+                    </div>
                 )}
 
                 <div className="modal-actions" style={{ marginTop: '20px' }}>
