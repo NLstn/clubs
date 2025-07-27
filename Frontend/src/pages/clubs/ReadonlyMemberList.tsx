@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../utils/api';
 import { useT } from '../../hooks/useTranslation';
+import Table, { TableColumn } from '../../components/ui/Table';
 import './ReadonlyMemberList.css';
 
 interface Member {
@@ -72,43 +73,63 @@ const ReadonlyMemberList = () => {
         fetchMembers();
     }, [clubId]);
 
-    // Don't render anything if loading, error, or no members due to permission restrictions
-    if (loading) return <div className="loading-text">Loading members...</div>;
-    if (error) return <div className="error-text">{error}</div>;
-    if (members.length === 0) return null;
+    // Define table columns
+    const columns: TableColumn<Member>[] = [
+        {
+            key: 'name',
+            header: t('common.name') || 'Name',
+            render: (member) => <span>{member.name}</span>
+        },
+        {
+            key: 'role',
+            header: t('common.role') || 'Role',
+            render: (member) => (
+                <span className={`role-badge ${member.role.toLowerCase()}`}>
+                    {translateRole(member.role)}
+                </span>
+            )
+        },
+        {
+            key: 'joinedAt',
+            header: t('clubs.joined') || 'Joined',
+            render: (member) => (
+                <span>{member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'N/A'}</span>
+            ),
+            className: 'hide-mobile'
+        },
+        {
+            key: 'birthDate',
+            header: t('clubs.birthDate') || 'Birth Date',
+            render: (member) => (
+                <span>{member.birthDate ? new Date(member.birthDate).toLocaleDateString() : 'Not shared'}</span>
+            ),
+            className: 'hide-small'
+        }
+    ];
+
+    // Don't render anything if no members due to permission restrictions and not loading/error
+    if (!loading && !error && members.length === 0) return null;
 
     return (
         <div className="content-section">
             <h3>{t('clubs.members') || 'Members'}</h3>
-            <div className="members-table-container">
-                <table className="readonly-members-table">
-                    <thead>
-                        <tr>
-                            <th>{t('common.name') || 'Name'}</th>
-                            <th>{t('common.role') || 'Role'}</th>
-                            <th>{t('clubs.joined') || 'Joined'}</th>
-                            <th>{t('clubs.birthDate') || 'Birth Date'}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {members.map((member) => (
-                            <tr key={member.id}>
-                                <td>{member.name}</td>
-                                <td>
-                                    <span className={`role-badge ${member.role.toLowerCase()}`}>
-                                        {translateRole(member.role)}
-                                    </span>
-                                </td>
-                                <td>{member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'N/A'}</td>
-                                <td>{member.birthDate ? new Date(member.birthDate).toLocaleDateString() : 'Not shared'}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                <div className="member-count">
-                    {t('clubs.totalMembers', { count: members.length }) || `Total: ${members.length} members`}
-                </div>
-            </div>
+            <Table
+                columns={columns}
+                data={members}
+                keyExtractor={(member) => member.id}
+                loading={loading}
+                error={error}
+                emptyMessage="No members available"
+                loadingMessage="Loading members..."
+                errorMessage="Failed to load members"
+                footer={
+                    members.length > 0 ? (
+                        <div>
+                            {t('clubs.totalMembers', { count: members.length }) || `Total: ${members.length} members`}
+                        </div>
+                    ) : null
+                }
+            />
         </div>
     );
 };
