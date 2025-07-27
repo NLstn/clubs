@@ -18,6 +18,7 @@ interface Club {
     id: string;
     name: string;
     description: string;
+    logo_url?: string;
     deleted?: boolean;
 }
 
@@ -138,19 +139,38 @@ const ClubDetails = () => {
             <div className="club-details-container">
                 {/* Club Header */}
                 <div className="club-header-section">
-                    <div className="club-main-info">
-                        <h1 className="club-title">{club.name}</h1>
-                        {club.description && (
-                            <p className="club-description">{club.description}</p>
-                        )}
-                        {userRole && (
-                            <div className="user-role-container">
-                                <span className="role-label">Your role</span>
-                                <div className={`role-badge role-${userRole}`}>
-                                    <span className="role-text">{userRole}</span>
+                    <div className="club-header-content">
+                        {/* Club Logo */}
+                        <div className="club-logo-section">
+                            {club.logo_url ? (
+                                <img
+                                    src={club.logo_url}
+                                    alt={`${club.name} logo`}
+                                    className="club-logo"
+                                />
+                            ) : (
+                                <div className="club-logo-placeholder">
+                                    <span className="logo-placeholder-text">
+                                        {club.name.charAt(0).toUpperCase()}
+                                    </span>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
+
+                        <div className="club-main-info">
+                            <h1 className="club-title">{club.name}</h1>
+                            {club.description && (
+                                <p className="club-description">{club.description}</p>
+                            )}
+                            {userRole && (
+                                <div className="user-role-container">
+                                    <span className="role-label">Your role</span>
+                                    <div className={`role-badge role-${userRole}`}>
+                                        <span className="role-text">{userRole}</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                     
                     {/* Action Buttons */}
