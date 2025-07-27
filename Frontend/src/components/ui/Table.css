@@ -1,0 +1,168 @@
+/* Reusable Table Component Styles */
+.table-container {
+    background: #1a1a1a;
+    border-radius: var(--border-radius-md);
+    border: 1px solid #444;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.reusable-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #1a1a1a;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.reusable-table th {
+    background: #333;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 600;
+    padding: var(--space-md);
+    text-align: left;
+    border-bottom: 2px solid #555;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.reusable-table td {
+    padding: var(--space-md);
+    border-bottom: 1px solid #333;
+    vertical-align: middle;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.reusable-table tbody tr:hover {
+    background: #2a2a2a;
+    transition: background-color 0.2s ease;
+}
+
+.reusable-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table-footer {
+    padding: var(--space-md);
+    background: #333;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    text-align: center;
+    border-top: 1px solid #555;
+    font-weight: 500;
+}
+
+/* State messages */
+.table-loading-text, 
+.table-error-text, 
+.table-empty-text {
+    padding: var(--space-lg);
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+.table-error-text {
+    color: #f44336;
+}
+
+
+
+/* Action buttons in tables */
+.table-actions {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.action-button {
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid transparent;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.action-button.edit {
+    background-color: #2196f3;
+    color: #ffffff;
+    border-color: #42a5f5;
+}
+
+.action-button.edit:hover {
+    background-color: #1976d2;
+    border-color: #2196f3;
+}
+
+.action-button.remove {
+    background-color: #f44336;
+    color: #ffffff;
+    border-color: #e57373;
+}
+
+.action-button.remove:hover {
+    background-color: #d32f2f;
+    border-color: #f44336;
+}
+
+.action-button.promote {
+    background-color: #4caf50;
+    color: #ffffff;
+    border-color: #66bb6a;
+}
+
+.action-button.promote:hover {
+    background-color: #388e3c;
+    border-color: #4caf50;
+}
+
+.action-button.demote {
+    background-color: #ff9800;
+    color: #ffffff;
+    border-color: #ffb74d;
+}
+
+.action-button.demote:hover {
+    background-color: #f57c00;
+    border-color: #ff9800;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .reusable-table {
+        font-size: 0.9rem;
+    }
+    
+    .reusable-table th,
+    .reusable-table td {
+        padding: var(--space-sm);
+    }
+    
+    /* Hide less important columns on smaller screens */
+    .reusable-table th.hide-mobile,
+    .reusable-table td.hide-mobile {
+        display: none;
+    }
+    
+    .table-actions {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .action-button {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Hide even more columns on very small screens */
+    .reusable-table th.hide-small,
+    .reusable-table td.hide-small {
+        display: none;
+    }
+}
