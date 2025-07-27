@@ -435,3 +435,64 @@
   color: var(--color-text-secondary);
   font-style: italic;
 }
+
+/* Teams Section Styles */
+.teams-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.team-item {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-md);
+  transition: all 0.2s ease;
+}
+
+.team-item:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.team-name {
+  margin: 0 0 var(--space-xs) 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.team-description {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+.loading-text,
+.error-text {
+  padding: var(--space-md);
+  text-align: center;
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+.error-text {
+  color: var(--color-error-text);
+}
+
+/* Mobile responsive teams */
+@media (max-width: 768px) {
+  .team-item {
+    padding: var(--space-sm);
+  }
+  
+  .team-name {
+    font-size: 1rem;
+  }
+  
+  .team-description {
+    font-size: 0.9rem;
+  }
+}

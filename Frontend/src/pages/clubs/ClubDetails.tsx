@@ -5,6 +5,7 @@ import Layout from '../../components/layout/Layout';
 import MyOpenClubFines from './MyOpenClubFines';
 import UpcomingEvents from './UpcomingEvents';
 import ClubNews from './ClubNews';
+import MyTeams from './MyTeams';
 import ClubNotFound from './ClubNotFound';
 import { useClubSettings } from '../../hooks/useClubSettings';
 import { addRecentClub, removeRecentClub } from '../../utils/recentClubs';
@@ -187,6 +188,7 @@ const ClubDetails = () => {
                 <div className="club-content">
                     <ClubNews />
                     <UpcomingEvents />
+                    {clubSettings?.teamsEnabled && <MyTeams />}
                     {clubSettings?.finesEnabled && <MyOpenClubFines />}
                 </div>
             </div>

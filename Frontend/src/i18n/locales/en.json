@@ -106,6 +106,7 @@
   },
   "teams": {
     "title": "Teams",
+    "myTeams": "My Teams",
     "createTeam": "Create Team",
     "editTeam": "Edit Team",
     "teamName": "Team Name",
