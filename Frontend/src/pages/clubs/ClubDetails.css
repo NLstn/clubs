@@ -19,6 +19,45 @@
   gap: var(--space-lg);
 }
 
+.club-header-content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-lg);
+  flex: 1;
+}
+
+.club-logo-section {
+  flex-shrink: 0;
+}
+
+.club-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--border-radius-md);
+  object-fit: cover;
+  border: 2px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.club-logo-placeholder {
+  width: 80px;
+  height: 80px;
+  background: var(--color-primary);
+  border-radius: var(--border-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.logo-placeholder-text {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+}
+
 .club-main-info {
   flex: 1;
 }
@@ -245,6 +284,27 @@
     align-items: stretch;
     gap: var(--space-md);
     padding: var(--space-lg);
+  }
+
+  .club-header-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-md);
+  }
+
+  .club-logo,
+  .club-logo-placeholder {
+    width: 60px;
+    height: 60px;
+  }
+
+  .logo-placeholder-text {
+    font-size: 1.5rem;
+  }
+
+  .club-main-info {
+    text-align: center;
   }
 
   .club-title {
