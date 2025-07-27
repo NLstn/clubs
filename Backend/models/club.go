@@ -12,6 +12,7 @@ type Club struct {
 	ID          string     `json:"id" gorm:"type:uuid;primary_key"`
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
+	LogoURL     *string    `json:"logo_url,omitempty"`
 	CreatedAt   time.Time  `json:"created_at"`
 	CreatedBy   string     `json:"created_by" gorm:"type:uuid"`
 	UpdatedAt   time.Time  `json:"updated_at"`
@@ -84,6 +85,13 @@ func (c *Club) Update(name, description, updatedBy string) error {
 		"name":        name,
 		"description": description,
 		"updated_by":  updatedBy,
+	}).Error
+}
+
+func (c *Club) UpdateLogo(logoURL *string, updatedBy string) error {
+	return database.Db.Model(c).Updates(map[string]interface{}{
+		"logo_url":   logoURL,
+		"updated_by": updatedBy,
 	}).Error
 }
 

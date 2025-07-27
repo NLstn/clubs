@@ -18,6 +18,7 @@ func Init() error {
 	tenantID = os.Getenv("AZURE_TENANT_ID")
 	clientID = os.Getenv("AZURE_CLIENT_ID")
 	clientSecret = os.Getenv("AZURE_CLIENT_SECRET")
+
 	if tenantID == "" || clientID == "" || clientSecret == "" {
 		return errors.New("AZURE_TENANT_ID, AZURE_CLIENT_ID, and AZURE_CLIENT_SECRET must be set")
 	}
@@ -26,6 +27,12 @@ func Init() error {
 	cred, err = azidentity.NewClientSecretCredential(tenantID, clientID, clientSecret, nil)
 	if err != nil {
 		return errors.New("Failed to create credential: " + err.Error())
+	}
+
+	// Initialize storage client
+	err = InitStorage()
+	if err != nil {
+		return errors.New("Failed to initialize storage: " + err.Error())
 	}
 
 	log.Default().Println("Azure SDK initialized")
