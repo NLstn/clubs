@@ -4,6 +4,18 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import MyTeams from '../MyTeams';
 
+// Mock API
+vi.mock('../../../utils/api', () => ({
+  default: {
+    get: vi.fn()
+  }
+}));
+
+// Import the mocked api to use in tests
+import api from '../../../utils/api';
+const mockGet = vi.fn();
+vi.mocked(api).get = mockGet;
+
 // Mock the hooks
 vi.mock('../../../hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
@@ -33,12 +45,10 @@ vi.mock('react-router-dom', async () => {
 });
 
 // Mock API
-const mockApi = {
-  get: vi.fn()
-};
-
 vi.mock('../../../utils/api', () => ({
-  default: mockApi
+  default: {
+    get: vi.fn()
+  }
 }));
 
 const renderWithRouter = (component: React.ReactElement) => {
@@ -76,7 +86,7 @@ describe('MyTeams Component', () => {
       }
     ];
 
-    mockApi.get.mockResolvedValueOnce({ data: mockTeams });
+    mockGet.mockResolvedValueOnce({ data: mockTeams });
 
     renderWithRouter(<MyTeams />);
 
@@ -90,16 +100,16 @@ describe('MyTeams Component', () => {
     expect(screen.getByText('Marketing Team')).toBeInTheDocument();
     expect(screen.getByText('Team for marketing')).toBeInTheDocument();
 
-    expect(mockApi.get).toHaveBeenCalledWith('/api/v1/clubs/test-club-id/teams?user=test-user-id');
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/clubs/test-club-id/teams?user=test-user-id');
   });
 
   it('does not render anything when user has no teams', async () => {
-    mockApi.get.mockResolvedValueOnce({ data: [] });
+    mockGet.mockResolvedValueOnce({ data: [] });
 
     const { container } = renderWithRouter(<MyTeams />);
 
     await waitFor(() => {
-      expect(mockApi.get).toHaveBeenCalled();
+      expect(mockGet).toHaveBeenCalled();
     });
 
     // Component should not render anything when no teams
@@ -107,7 +117,7 @@ describe('MyTeams Component', () => {
   });
 
   it('handles API errors gracefully', async () => {
-    mockApi.get.mockRejectedValueOnce(new Error('API Error'));
+    mockGet.mockRejectedValueOnce(new Error('API Error'));
 
     renderWithRouter(<MyTeams />);
 
@@ -120,12 +130,12 @@ describe('MyTeams Component', () => {
     const error = {
       response: { status: 403 }
     };
-    mockApi.get.mockRejectedValueOnce(error);
+    mockGet.mockRejectedValueOnce(error);
 
     const { container } = renderWithRouter(<MyTeams />);
 
     await waitFor(() => {
-      expect(mockApi.get).toHaveBeenCalled();
+      expect(mockGet).toHaveBeenCalled();
     });
 
     // Should not show error for 403, should just not render
@@ -134,7 +144,7 @@ describe('MyTeams Component', () => {
 
   it('shows loading state initially', () => {
     // Don't resolve the promise to keep it in loading state
-    mockApi.get.mockImplementation(() => new Promise(() => {}));
+    mockGet.mockImplementation(() => new Promise(() => {}));
 
     renderWithRouter(<MyTeams />);
 
