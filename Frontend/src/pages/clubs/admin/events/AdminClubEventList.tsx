@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import EditEvent from "./EditEvent";
 import AddEvent from "./AddEvent";
 import EventRSVPList from "./EventRSVPList";
+import Table, { TableColumn } from "../../../../components/ui/Table";
 import api from "../../../../utils/api";
 
 interface Event {
@@ -131,111 +132,119 @@ const AdminClubEventList = () => {
         }
     };
 
+    // Define table columns
+    const eventColumns: TableColumn<Event>[] = [
+        {
+            key: 'name',
+            header: 'Name',
+            render: (event) => event.name
+        },
+        {
+            key: 'start_time',
+            header: 'Start',
+            render: (event) => formatDateTime(event.start_time)
+        },
+        {
+            key: 'end_time',
+            header: 'End',
+            render: (event) => formatDateTime(event.end_time)
+        },
+        {
+            key: 'rsvps',
+            header: 'RSVPs',
+            render: (event) => {
+                const counts = rsvpCounts[event.id] || {};
+                const yesCount = counts.yes || 0;
+                const noCount = counts.no || 0;
+                const maybeCount = counts.maybe || 0;
+                
+                return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        <div>
+                            <span style={{color: 'green'}}>Yes: {yesCount}</span>{' '}
+                            <span style={{color: 'red'}}>No: {noCount}</span>{' '}
+                            <span style={{color: 'orange'}}>Maybe: {maybeCount}</span>
+                        </div>
+                        {(yesCount > 0 || noCount > 0 || maybeCount > 0) && (
+                            <button
+                                onClick={() => handleViewRSVPs(event)}
+                                className="button"
+                                style={{ 
+                                    fontSize: '0.8em', 
+                                    padding: '4px 10px',
+                                    backgroundColor: '#007bff',
+                                    color: 'white',
+                                    border: '1px solid #007bff',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontWeight: '500'
+                                }}
+                            >
+                                View Details
+                            </button>
+                        )}
+                    </div>
+                );
+            }
+        },
+        {
+            key: 'shifts',
+            header: 'Shifts',
+            render: (event) => {
+                const shifts = eventShifts[event.id] || [];
+                return (
+                    <span style={{color: shifts.length > 0 ? 'blue' : 'gray'}}>
+                        {shifts.length} shift{shifts.length !== 1 ? 's' : ''}
+                    </span>
+                );
+            }
+        },
+        {
+            key: 'actions',
+            header: 'Actions',
+            render: (event) => (
+                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                    <Link 
+                        to={`/clubs/${id}/admin/events/${event.id}`}
+                        className="button-info"
+                    >
+                        View Details
+                    </Link>
+                    <button
+                        onClick={() => handleEditEvent(event)}
+                        className="button-accept"
+                    >
+                        Edit
+                    </button>
+                    <button
+                        onClick={() => handleDeleteEvent(event.id)}
+                        className="button-cancel"
+                    >
+                        Delete
+                    </button>
+                </div>
+            )
+        }
+    ];
+
     return (
         <div>
             <h3>Events</h3>
-            {loading && <p>Loading events...</p>}
-            {error && <p style={{color: 'red'}}>Error: {error}</p>}
-            {!loading && !error && (
-                <>
-                    <table className="basic-table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Start</th>
-                                <th>End</th>
-                                <th>RSVPs</th>
-                                <th>Shifts</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {events.length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} style={{textAlign: 'center', fontStyle: 'italic'}}>
-                                        No events available
-                                    </td>
-                                </tr>
-                            ) : (
-                                events.map(event => {
-                                    const counts = rsvpCounts[event.id] || {};
-                                    const shifts = eventShifts[event.id] || [];
-                                    const yesCount = counts.yes || 0;
-                                    const noCount = counts.no || 0;
-                                    const maybeCount = counts.maybe || 0;
-                                    
-                                    return (
-                                        <tr key={event.id}>
-                                            <td>{event.name}</td>
-                                            <td>{formatDateTime(event.start_time)}</td>
-                                            <td>{formatDateTime(event.end_time)}</td>
-                                            <td>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                                    <div>
-                                                        <span style={{color: 'green'}}>Yes: {yesCount}</span>{' '}
-                                                        <span style={{color: 'red'}}>No: {noCount}</span>{' '}
-                                                        <span style={{color: 'orange'}}>Maybe: {maybeCount}</span>
-                                                    </div>
-                                                    {(yesCount > 0 || noCount > 0 || maybeCount > 0) && (
-                                                        <button
-                                                            onClick={() => handleViewRSVPs(event)}
-                                                            className="button"
-                                                            style={{ 
-                                                                fontSize: '0.8em', 
-                                                                padding: '4px 10px',
-                                                                backgroundColor: '#007bff',
-                                                                color: 'white',
-                                                                border: '1px solid #007bff',
-                                                                borderRadius: '4px',
-                                                                cursor: 'pointer',
-                                                                fontWeight: '500'
-                                                            }}
-                                                        >
-                                                            View Details
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span style={{color: shifts.length > 0 ? 'blue' : 'gray'}}>
-                                                    {shifts.length} shift{shifts.length !== 1 ? 's' : ''}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <Link 
-                                                    to={`/clubs/${id}/admin/events/${event.id}`}
-                                                    className="button-info"
-                                                    style={{marginRight: '5px'}}
-                                                >
-                                                    View Details
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleEditEvent(event)}
-                                                    className="button-accept"
-                                                    style={{marginRight: '5px'}}
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteEvent(event.id)}
-                                                    className="button-cancel"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                    <div style={{ marginTop: '20px' }}>
-                        <button onClick={() => setIsAddModalOpen(true)} className="button-accept">
-                            Add Event
-                        </button>
-                    </div>
-                </>
-            )}
+            <Table
+                columns={eventColumns}
+                data={events}
+                keyExtractor={(event) => event.id}
+                loading={loading}
+                error={error}
+                emptyMessage="No events available"
+                loadingMessage="Loading events..."
+                errorMessage={error || "Failed to fetch events"}
+            />
+            <div style={{ marginTop: '20px' }}>
+                <button onClick={() => setIsAddModalOpen(true)} className="button-accept">
+                    Add Event
+                </button>
+            </div>
             <EditEvent
                 isOpen={isEditModalOpen}
                 onClose={handleCloseEditModal}

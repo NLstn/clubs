@@ -1,4 +1,5 @@
 import { FC, useState, useEffect, useCallback } from "react";
+import Table, { TableColumn } from "../../../../components/ui/Table";
 import api from "../../../../utils/api";
 import { useClubSettings } from "../../../../hooks/useClubSettings";
 
@@ -42,6 +43,20 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
     const [shiftEndTime, setShiftEndTime] = useState<string>('');
     const [isAddingShift, setIsAddingShift] = useState(false);
     const [activeTab, setActiveTab] = useState<'event' | 'shifts'>('event');
+
+    // Define table columns for shifts
+    const shiftColumns: TableColumn<Shift>[] = [
+        {
+            key: 'startTime',
+            header: 'Start Time',
+            render: (shift) => new Date(shift.startTime).toLocaleString()
+        },
+        {
+            key: 'endTime',
+            header: 'End Time',
+            render: (shift) => new Date(shift.endTime).toLocaleString()
+        }
+    ];
 
     const fetchEventShifts = useCallback(async () => {
         if (!event || !clubId || !clubSettings?.shiftsEnabled) return;
@@ -319,26 +334,12 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                                 {/* Shifts List */}
                                 <div>
                                     <h4>Current Shifts</h4>
-                                    {shifts.length === 0 ? (
-                                        <p style={{fontStyle: 'italic', color: '#666'}}>No shifts scheduled for this event yet.</p>
-                                    ) : (
-                                        <table className="basic-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Start Time</th>
-                                                    <th>End Time</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {shifts.map(shift => (
-                                                    <tr key={shift.id}>
-                                                        <td>{new Date(shift.startTime).toLocaleString()}</td>
-                                                        <td>{new Date(shift.endTime).toLocaleString()}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    )}
+                                    <Table
+                                        columns={shiftColumns}
+                                        data={shifts}
+                                        keyExtractor={(shift) => shift.id}
+                                        emptyMessage="No shifts scheduled for this event yet."
+                                    />
                                 </div>
                             </div>
                         )}
