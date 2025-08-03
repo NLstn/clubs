@@ -32,6 +32,14 @@ Comprehensive component documentation featuring:
 - Responsive behavior patterns
 - Accessibility considerations
 
+### 4. [UI Components Library](./Frontend/UI_COMPONENTS.md) - **Reusable Components**
+Technical implementation guide for reusable UI components:
+- Available component catalog
+- TypeScript interfaces and props
+- Implementation examples and usage patterns
+- Individual component documentation
+- Development guidelines
+
 ## 🎨 Design System Highlights
 
 ### Color Palette

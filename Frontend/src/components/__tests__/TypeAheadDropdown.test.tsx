@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
-import TypeAheadDropdown from '../TypeAheadDropdown'
+import TypeAheadDropdown from '../ui/TypeAheadDropdown'
 
 interface TestOption {
   id: string
