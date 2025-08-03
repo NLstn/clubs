@@ -30,7 +30,7 @@ const ProfileFines = () => {
             const response = await api.get('/api/v1/me/fines');
             if (response.status === 200) {
                 const data = response.data;
-                setFines(data);
+                setFines(data || []);
             }
         } catch (error) {
             setError('Error fetching fines: ' + error);
@@ -71,6 +71,12 @@ const ProfileFines = () => {
         }
     ];
 
+    // Calculate total amount
+    const totalAmount = fines.reduce((sum, fine) => sum + fine.amount, 0);
+
+    // Create footer content
+    const footerContent = fines.length > 0 ? `Total: €${totalAmount.toFixed(2)}` : null;
+
     return (
         <Layout title="Fines">
             <div style={{
@@ -95,6 +101,7 @@ const ProfileFines = () => {
                         emptyMessage="No fines found"
                         loadingMessage="Loading fines..."
                         errorMessage="Failed to load fines"
+                        footer={footerContent}
                     />
                 </div>
             </div>
