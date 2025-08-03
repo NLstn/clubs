@@ -3,6 +3,11 @@
   width: 100%;
   max-width: 400px;
   margin-right: var(--space-md);
+  transition: max-width 0.3s ease;
+}
+
+.global-search.focused {
+  max-width: 500px;
 }
 
 .search-input-container {
@@ -168,6 +173,10 @@
     margin-right: var(--space-sm);
   }
 
+  .global-search.focused {
+    max-width: 350px;
+  }
+
   .search-input {
     font-size: 0.85rem;
     padding: 8px 35px 8px 12px;
@@ -201,6 +210,10 @@
   .global-search {
     max-width: 200px;
     margin-right: var(--space-xs);
+  }
+
+  .global-search.focused {
+    max-width: 250px;
   }
 
   .search-input {

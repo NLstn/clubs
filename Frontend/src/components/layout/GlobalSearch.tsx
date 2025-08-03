@@ -24,6 +24,7 @@ const GlobalSearch: React.FC = () => {
   const [results, setResults] = useState<SearchResponse>({ clubs: [], events: [] });
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const GlobalSearch: React.FC = () => {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setIsFocused(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -79,6 +81,7 @@ const GlobalSearch: React.FC = () => {
       navigate(`/clubs/${result.club_id}`); // Navigate to club page for events
     }
     setIsOpen(false);
+    setIsFocused(false);
     setQuery('');
   };
 
@@ -94,7 +97,7 @@ const GlobalSearch: React.FC = () => {
   const totalResults = (results?.clubs?.length || 0) + (results?.events?.length || 0);
 
   return (
-    <div className="global-search" ref={searchRef}>
+    <div className={`global-search ${isFocused ? 'focused' : ''}`} ref={searchRef}>
       <div className="search-input-container">
         <input
           ref={inputRef}
@@ -102,6 +105,15 @@ const GlobalSearch: React.FC = () => {
           placeholder="Search clubs and events..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => {
+            // Delay the blur to allow for dropdown interactions
+            setTimeout(() => {
+              if (!searchRef.current?.contains(document.activeElement)) {
+                setIsFocused(false);
+              }
+            }, 100);
+          }}
           className="search-input"
         />
         <div className="search-icon">

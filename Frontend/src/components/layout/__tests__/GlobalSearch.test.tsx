@@ -336,4 +336,39 @@ describe('GlobalSearch', () => {
       expect(truncatedText).toBeDefined();
     });
   });
+
+  it('adds focused class when search input is focused', async () => {
+    renderWithRouter(<GlobalSearch />);
+    
+    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
+    const searchContainer = searchInput.closest('.global-search');
+    
+    // Initially should not have focused class
+    expect(searchContainer?.classList.contains('focused')).toBe(false);
+    
+    // Focus the input
+    fireEvent.focus(searchInput);
+    
+    // Should have focused class
+    expect(searchContainer?.classList.contains('focused')).toBe(true);
+  });
+
+  it('removes focused class when clicking outside', async () => {
+    renderWithRouter(<GlobalSearch />);
+    
+    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
+    const searchContainer = searchInput.closest('.global-search');
+    
+    // Focus the input
+    fireEvent.focus(searchInput);
+    expect(searchContainer?.classList.contains('focused')).toBe(true);
+    
+    // Click outside
+    fireEvent.mouseDown(document.body);
+    
+    // Should remove focused class
+    await waitFor(() => {
+      expect(searchContainer?.classList.contains('focused')).toBe(false);
+    });
+  });
 });
