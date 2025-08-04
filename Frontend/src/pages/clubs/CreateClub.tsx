@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Layout from '../../components/layout/Layout';
+import { Input } from '@/components/ui';
 
 const CreateClub = () => {
     const navigate = useNavigate();
@@ -35,17 +36,15 @@ const CreateClub = () => {
                 </p>}
 
                 <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label htmlFor="clubName">Club Name:</label>
-                        <input
-                            id="clubName"
-                            type="text"
-                            value={clubName}
-                            onChange={(e) => setClubName(e.target.value)}
-                            autoComplete="off"
-                            required
-                        />
-                    </div>
+                    <Input
+                        label="Club Name:"
+                        id="clubName"
+                        type="text"
+                        value={clubName}
+                        onChange={(e) => setClubName(e.target.value)}
+                        autoComplete="off"
+                        required
+                    />
                     <div className="form-group">
                         <label htmlFor="description">Description:</label>
                         <textarea

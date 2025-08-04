@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
+import { Input } from '@/components/ui';
 
 interface Team {
     id: string;
@@ -317,24 +318,21 @@ const AdminClubTeamList = () => {
                 <div className="modal" onClick={() => setShowCreateModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <h2>{t('teams.createTeam')}</h2>
-                        <div className="form-group">
-                            <label>{t('teams.teamName')}</label>
-                            <input
-                                type="text"
-                                value={newTeamName}
-                                onChange={(e) => setNewTeamName(e.target.value)}
-                                placeholder={t('teams.teamNamePlaceholder')}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>{t('teams.description')}</label>
-                            <textarea
-                                value={newTeamDescription}
-                                onChange={(e) => setNewTeamDescription(e.target.value)}
-                                placeholder={t('teams.descriptionPlaceholder')}
-                                rows={3}
-                            />
-                        </div>
+                        <Input
+                            label={t('teams.teamName')}
+                            type="text"
+                            value={newTeamName}
+                            onChange={(e) => setNewTeamName(e.target.value)}
+                            placeholder={t('teams.teamNamePlaceholder')}
+                        />
+                        <Input
+                            label={t('teams.description')}
+                            value={newTeamDescription}
+                            onChange={(e) => setNewTeamDescription(e.target.value)}
+                            placeholder={t('teams.descriptionPlaceholder')}
+                            multiline
+                            rows={3}
+                        />
                         <div className="modal-actions">
                             <button onClick={handleCreateTeam} className="button-accept">
                                 {t('common.create')}
@@ -352,24 +350,21 @@ const AdminClubTeamList = () => {
                 <div className="modal" onClick={() => setShowEditModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <h2>{t('teams.editTeam')}</h2>
-                        <div className="form-group">
-                            <label>{t('teams.teamName')}</label>
-                            <input
-                                type="text"
-                                value={editTeamName}
-                                onChange={(e) => setEditTeamName(e.target.value)}
-                                placeholder={t('teams.teamNamePlaceholder')}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>{t('teams.description')}</label>
-                            <textarea
-                                value={editTeamDescription}
-                                onChange={(e) => setEditTeamDescription(e.target.value)}
-                                placeholder={t('teams.descriptionPlaceholder')}
-                                rows={3}
-                            />
-                        </div>
+                        <Input
+                            label={t('teams.teamName')}
+                            type="text"
+                            value={editTeamName}
+                            onChange={(e) => setEditTeamName(e.target.value)}
+                            placeholder={t('teams.teamNamePlaceholder')}
+                        />
+                        <Input
+                            label={t('teams.description')}
+                            value={editTeamDescription}
+                            onChange={(e) => setEditTeamDescription(e.target.value)}
+                            placeholder={t('teams.descriptionPlaceholder')}
+                            multiline
+                            rows={3}
+                        />
                         <div className="modal-actions">
                             <button onClick={handleUpdateTeam} className="button-accept">
                                 {t('common.save')}

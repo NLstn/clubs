@@ -3,6 +3,7 @@ import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from "../../hooks/useAuth";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
+import { Input } from '@/components/ui';
 
 interface UserProfile {
     firstName: string;
@@ -148,7 +149,7 @@ const Profile = () => {
                                 <div className="form-group">
                                     <label htmlFor="firstName">First Name</label>
                                     {isEditing ? (
-                                        <input
+                                        <Input
                                             id="firstName"
                                             type="text"
                                             value={editedFirstName}
@@ -165,7 +166,7 @@ const Profile = () => {
                                 <div className="form-group">
                                     <label htmlFor="lastName">Last Name</label>
                                     {isEditing ? (
-                                        <input
+                                        <Input
                                             id="lastName"
                                             type="text"
                                             value={editedLastName}
@@ -182,7 +183,7 @@ const Profile = () => {
                                 <div className="form-group">
                                     <label htmlFor="birthDate">Birth Date</label>
                                     {isEditing ? (
-                                        <input
+                                        <Input
                                             id="birthDate"
                                             type="date"
                                             value={editedBirthDate}

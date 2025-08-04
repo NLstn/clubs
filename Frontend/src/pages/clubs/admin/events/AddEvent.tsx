@@ -1,5 +1,6 @@
 import { FC, useState } from "react";
 import api from "../../../../utils/api";
+import { Input } from '@/components/ui';
 
 interface AddEventProps {
     isOpen: boolean;
@@ -78,63 +79,53 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                 <h2>Add Event</h2>
                 {error && <p style={{ color: 'red' }}>{error}</p>}
                 
-                <div className="form-group">
-                    <label htmlFor="eventName">Event Name</label>
-                    <input
-                        id="eventName"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Event Name"
-                        disabled={isSubmitting}
-                    />
-                </div>
+                <Input
+                    label="Event Name"
+                    id="eventName"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Event Name"
+                    disabled={isSubmitting}
+                />
 
-                <div className="form-group">
-                    <label htmlFor="eventDescription">Description</label>
-                    <textarea
-                        id="eventDescription"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Event description (optional)"
-                        disabled={isSubmitting}
-                        rows={3}
-                    />
-                </div>
+                <Input
+                    label="Description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Event description (optional)"
+                    disabled={isSubmitting}
+                    multiline
+                    rows={3}
+                />
 
-                <div className="form-group">
-                    <label htmlFor="eventLocation">Location</label>
-                    <input
-                        id="eventLocation"
-                        type="text"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        placeholder="Event location (optional)"
-                        disabled={isSubmitting}
-                    />
-                </div>
+                <Input
+                    label="Location"
+                    id="eventLocation"
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="Event location (optional)"
+                    disabled={isSubmitting}
+                />
 
-                <div className="form-group">
-                    <label htmlFor="startTime">Start Date & Time</label>
-                    <input
-                        id="startTime"
-                        type="datetime-local"
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        disabled={isSubmitting}
-                    />
-                </div>
+                <Input
+                    label="Start Date & Time"
+                    id="startTime"
+                    type="datetime-local"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    disabled={isSubmitting}
+                />
 
-                <div className="form-group">
-                    <label htmlFor="endTime">End Date & Time</label>
-                    <input
-                        id="endTime"
-                        type="datetime-local"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        disabled={isSubmitting}
-                    />
-                </div>
+                <Input
+                    label="End Date & Time"
+                    id="endTime"
+                    type="datetime-local"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    disabled={isSubmitting}
+                />
 
                 <div className="modal-actions">
                     <button 

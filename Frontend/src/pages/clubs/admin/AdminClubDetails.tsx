@@ -8,6 +8,7 @@ import AdminClubTeamList from './teams/AdminClubTeamList';
 import AdminClubFineList from './fines/AdminClubFineList';
 import AdminClubEventList from './events/AdminClubEventList';
 import AdminClubNewsList from './news/AdminClubNewsList';
+import { Input } from '@/components/ui';
 import AdminClubSettings from './settings/AdminClubSettings';
 import { useClubSettings } from '../../../hooks/useClubSettings';
 import { useT } from '../../../hooks/useTranslation';
@@ -294,25 +295,22 @@ const AdminClubDetails = () => {
                         <div className={`tab-panel ${activeTab === 'overview' ? 'active' : ''}`}>
                             {isEditing ? (
                                 <div className="edit-form">
-                                    <div className="form-group">
-                                        <label htmlFor="clubName">{t('clubs.clubName')}</label>
-                                        <input
-                                            id="clubName"
-                                            type="text"
-                                            value={editForm.name}
-                                            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                                            placeholder={t('clubs.clubName')}
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="clubDescription">{t('clubs.description')}</label>
-                                        <textarea
-                                            id="clubDescription"
-                                            value={editForm.description}
-                                            onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                                            placeholder={t('clubs.clubDescription')}
-                                        />
-                                    </div>
+                                    <Input
+                                        label={t('clubs.clubName')}
+                                        id="clubName"
+                                        type="text"
+                                        value={editForm.name}
+                                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                                        placeholder={t('clubs.clubName')}
+                                    />
+                                    <Input
+                                        label={t('clubs.description')}
+                                        value={editForm.description}
+                                        onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                        placeholder={t('clubs.clubDescription')}
+                                        multiline
+                                        rows={4}
+                                    />
                                     <div className="form-actions">
                                         <button onClick={updateClub} className="button-accept">{t('common.save')}</button>
                                         <button onClick={() => setIsEditing(false)} className="button-cancel">{t('common.cancel')}</button>

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
+import { Input } from '@/components/ui';
 
 interface FineTemplate {
     id: string;
@@ -110,30 +111,26 @@ const AdminClubFineTemplateList = () => {
             {isAdding && (
                 <form onSubmit={handleSubmit} style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '4px' }}>
                     <h4>{editingId ? t('fines.editTemplate') : t('fines.addNewTemplate')}</h4>
-                    <div className="form-group">
-                        <label htmlFor="description">{t('fines.description')}</label>
-                        <input
-                            id="description"
-                            type="text"
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            placeholder="Enter fine description"
-                            required
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="amount">{t('fines.amount')}</label>
-                        <input
-                            id="amount"
-                            type="number"
-                            step="0.01"
-                            min="0.01"
-                            value={formData.amount}
-                            onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
-                            placeholder="Enter amount"
-                            required
-                        />
-                    </div>
+                    <Input
+                        label={t('fines.description')}
+                        id="description"
+                        type="text"
+                        value={formData.description}
+                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="Enter fine description"
+                        required
+                    />
+                    <Input
+                        label={t('fines.amount')}
+                        id="amount"
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        value={formData.amount}
+                        onChange={(e) => setFormData({ ...formData, amount: Number(e.target.value) })}
+                        placeholder="Enter amount"
+                        required
+                    />
                     <div className="form-actions">
                         <button type="submit" className="button-accept">
                             {editingId ? t('fines.updateTemplate') : t('fines.addTemplate')}

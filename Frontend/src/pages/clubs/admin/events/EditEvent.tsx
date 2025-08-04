@@ -1,5 +1,5 @@
 import { FC, useState, useEffect, useCallback } from "react";
-import { Table, TableColumn } from '@/components/ui';
+import { Table, TableColumn, Input } from '@/components/ui';
 import api from "../../../../utils/api";
 import { useClubSettings } from "../../../../hooks/useClubSettings";
 
@@ -235,63 +235,53 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                     <div className="tab-content">
                         {/* Event Details Tab */}
                         <div className={`tab-panel ${activeTab === 'event' ? 'active' : ''}`}>
-                            <div className="form-group">
-                                <label htmlFor="eventName">Event Name</label>
-                                <input
-                                    id="eventName"
-                                    type="text"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    placeholder="Event Name"
-                                    disabled={isSubmitting}
-                                />
-                            </div>
+                            <Input
+                                label="Event Name"
+                                id="eventName"
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Event Name"
+                                disabled={isSubmitting}
+                            />
 
-                            <div className="form-group">
-                                <label htmlFor="eventDescription">Description</label>
-                                <textarea
-                                    id="eventDescription"
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="Event description (optional)"
-                                    disabled={isSubmitting}
-                                    rows={3}
-                                />
-                            </div>
+                            <Input
+                                label="Description"
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                placeholder="Event description (optional)"
+                                disabled={isSubmitting}
+                                multiline
+                                rows={3}
+                            />
 
-                            <div className="form-group">
-                                <label htmlFor="eventLocation">Location</label>
-                                <input
-                                    id="eventLocation"
-                                    type="text"
-                                    value={location}
-                                    onChange={(e) => setLocation(e.target.value)}
-                                    placeholder="Event location (optional)"
-                                    disabled={isSubmitting}
-                                />
-                            </div>
+                            <Input
+                                label="Location"
+                                id="eventLocation"
+                                type="text"
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                placeholder="Event location (optional)"
+                                disabled={isSubmitting}
+                            />
 
-                            <div className="form-group">
-                                <label htmlFor="startTime">Start Date & Time</label>
-                                <input
-                                    id="startTime"
-                                    type="datetime-local"
-                                    value={startTime}
-                                    onChange={(e) => setStartTime(e.target.value)}
-                                    disabled={isSubmitting}
-                                />
-                            </div>
+                            <Input
+                                label="Start Date & Time"
+                                id="startTime"
+                                type="datetime-local"
+                                value={startTime}
+                                onChange={(e) => setStartTime(e.target.value)}
+                                disabled={isSubmitting}
+                            />
 
-                            <div className="form-group">
-                                <label htmlFor="endTime">End Date & Time</label>
-                                <input
-                                    id="endTime"
-                                    type="datetime-local"
-                                    value={endTime}
-                                    onChange={(e) => setEndTime(e.target.value)}
-                                    disabled={isSubmitting}
-                                />
-                            </div>
+                            <Input
+                                label="End Date & Time"
+                                id="endTime"
+                                type="datetime-local"
+                                value={endTime}
+                                onChange={(e) => setEndTime(e.target.value)}
+                                disabled={isSubmitting}
+                            />
                         </div>
 
                         {/* Shifts Tab */}
@@ -302,26 +292,22 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                                 {/* Add Shift Form */}
                                 <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '5px' }}>
                                     <h4>Add New Shift</h4>
-                                    <div className="form-group">
-                                        <label htmlFor="shiftStartTime">Shift Start Time</label>
-                                        <input
-                                            id="shiftStartTime"
-                                            type="datetime-local"
-                                            value={shiftStartTime}
-                                            onChange={(e) => setShiftStartTime(e.target.value)}
-                                            disabled={isAddingShift}
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label htmlFor="shiftEndTime">Shift End Time</label>
-                                        <input
-                                            id="shiftEndTime"
-                                            type="datetime-local"
-                                            value={shiftEndTime}
-                                            onChange={(e) => setShiftEndTime(e.target.value)}
-                                            disabled={isAddingShift}
-                                        />
-                                    </div>
+                                    <Input
+                                        label="Shift Start Time"
+                                        id="shiftStartTime"
+                                        type="datetime-local"
+                                        value={shiftStartTime}
+                                        onChange={(e) => setShiftStartTime(e.target.value)}
+                                        disabled={isAddingShift}
+                                    />
+                                    <Input
+                                        label="Shift End Time"
+                                        id="shiftEndTime"
+                                        type="datetime-local"
+                                        value={shiftEndTime}
+                                        onChange={(e) => setShiftEndTime(e.target.value)}
+                                        disabled={isAddingShift}
+                                    />
                                     <button 
                                         onClick={handleAddShift}
                                         className="button-accept"

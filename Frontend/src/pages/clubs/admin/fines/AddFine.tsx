@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import api from "../../../../utils/api";
-import { TypeAheadDropdown } from '@/components/ui';
+import { TypeAheadDropdown, Input } from '@/components/ui';
 
 interface Member {
     id: string;
@@ -172,16 +172,16 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                         id="template"
                         label="Fine Template (Optional)"
                     />
-                    <label htmlFor="amount">Amount</label>
-                    <input
+                    <Input
+                        label="Amount"
                         id="amount"
                         type="number"
                         value={amount}
                         onChange={(e) => setAmount(Number(e.target.value))}
                         placeholder="Enter amount"
                     />
-                    <label htmlFor="reason">Reason</label>
-                    <input
+                    <Input
+                        label="Reason"
                         id="reason"
                         type="text"
                         value={reason}
