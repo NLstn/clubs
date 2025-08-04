@@ -1,5 +1,6 @@
 import { FC, useState } from "react";
 import api from "../../../../utils/api";
+import { Input } from '@/components/ui';
 
 interface AddNewsProps {
     isOpen: boolean;
@@ -58,30 +59,25 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                 <h2>Add News</h2>
                 {error && <p style={{ color: 'red' }}>{error}</p>}
                 
-                <div className="form-group">
-                    <label htmlFor="newsTitle">Title</label>
-                    <input
-                        id="newsTitle"
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="News Title"
-                        disabled={isSubmitting}
-                    />
-                </div>
+                <Input
+                    label="Title"
+                    id="newsTitle"
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="News Title"
+                    disabled={isSubmitting}
+                />
 
-                <div className="form-group">
-                    <label htmlFor="newsContent">Content</label>
-                    <textarea
-                        id="newsContent"
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        placeholder="News Content"
-                        disabled={isSubmitting}
-                        rows={6}
-                        style={{ resize: 'vertical' }}
-                    />
-                </div>
+                <Input
+                    label="Content"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    placeholder="News Content"
+                    disabled={isSubmitting}
+                    multiline
+                    rows={6}
+                />
 
                 <div className="modal-actions">
                     <button 

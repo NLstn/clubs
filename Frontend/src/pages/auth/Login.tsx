@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import CookieConsent from '../../components/CookieConsent';
 import { useT } from '../../hooks/useTranslation';
+import { Input } from '@/components/ui';
 
 const Login: React.FC = () => {
   const { t } = useT();
@@ -82,17 +83,15 @@ const Login: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="email">{t('auth.email')}</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
+          <Input
+            label={t('auth.email')}
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={isSubmitting}
+          />
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? t('auth.sending') : t('auth.sendMagicLink')}
           </button>

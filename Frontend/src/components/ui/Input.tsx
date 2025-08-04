@@ -1,7 +1,7 @@
-import { forwardRef, InputHTMLAttributes } from 'react';
+import { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes } from 'react';
 import './Input.css';
 
-interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
+interface BaseInputProps {
     label?: string;
     error?: string;
     helperText?: string;
@@ -9,7 +9,17 @@ interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size'>
     size?: 'sm' | 'md' | 'lg';
 }
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
+interface SingleLineInputProps extends BaseInputProps, Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
+    multiline?: false;
+}
+
+interface MultiLineInputProps extends BaseInputProps, Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'> {
+    multiline: true;
+}
+
+type InputProps = SingleLineInputProps | MultiLineInputProps;
+
+export const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputProps>(
     ({ 
         label, 
         error, 
@@ -18,6 +28,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         size = 'md', 
         className = '', 
         id,
+        multiline,
         ...props 
     }, ref) => {
         const baseClasses = 'input-base';
@@ -37,6 +48,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             variantClasses[variant],
             sizeClasses[size],
             error ? 'input-error' : '',
+            multiline ? 'input-textarea' : '',
             className
         ].filter(Boolean).join(' ');
 
@@ -49,12 +61,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                         {label}
                     </label>
                 )}
-                <input
-                    ref={ref}
-                    id={inputId}
-                    className={inputClasses}
-                    {...props}
-                />
+                {multiline ? (
+                    <textarea
+                        ref={ref as React.Ref<HTMLTextAreaElement>}
+                        id={inputId}
+                        className={inputClasses}
+                        {...(props as TextareaHTMLAttributes<HTMLTextAreaElement>)}
+                    />
+                ) : (
+                    <input
+                        ref={ref as React.Ref<HTMLInputElement>}
+                        id={inputId}
+                        className={inputClasses}
+                        {...(props as InputHTMLAttributes<HTMLInputElement>)}
+                    />
+                )}
                 {error && (
                     <span className="input-error-text">{error}</span>
                 )}

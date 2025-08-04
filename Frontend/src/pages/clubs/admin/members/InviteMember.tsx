@@ -1,4 +1,5 @@
 import { FC, useState } from 'react';
+import { Input } from '@/components/ui';
 
 interface InviteMemberProps {
   isOpen: boolean;
@@ -15,16 +16,14 @@ const InviteMember: FC<InviteMemberProps> = ({ isOpen, onClose, onSubmit }) => {
     <div className="modal">
       <div className="modal-content">
         <h2>Invite Member</h2>
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter email"
-          />
-        </div>
+        <Input
+          label="Email"
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter email"
+        />
         <div className="modal-actions">
           <button onClick={() => onSubmit(email)} disabled={!email} className="button-accept">
             Send Invite

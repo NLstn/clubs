@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import CookieConsent from '../../components/CookieConsent';
+import { Input } from '@/components/ui';
 
 const Signup: React.FC = () => {
   const { api } = useAuth();
@@ -51,31 +52,27 @@ const Signup: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="firstName">First Name *</label>
-            <input
-              type="text"
-              id="firstName"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              required
-              disabled={isSubmitting}
-              placeholder="Enter your first name"
-            />
-          </div>
+          <Input
+            label="First Name *"
+            type="text"
+            id="firstName"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+            disabled={isSubmitting}
+            placeholder="Enter your first name"
+          />
 
-          <div className="form-group">
-            <label htmlFor="lastName">Last Name *</label>
-            <input
-              type="text"
-              id="lastName"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              required
-              disabled={isSubmitting}
-              placeholder="Enter your last name"
-            />
-          </div>
+          <Input
+            label="Last Name *"
+            type="text"
+            id="lastName"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+            disabled={isSubmitting}
+            placeholder="Enter your last name"
+          />
 
           <button type="submit" disabled={isSubmitting || !firstName.trim() || !lastName.trim()}>
             {isSubmitting ? 'Saving...' : 'Complete Profile'}
