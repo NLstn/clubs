@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import EditEvent from "./EditEvent";
 import AddEvent from "./AddEvent";
 import EventRSVPList from "./EventRSVPList";
-import Table, { TableColumn } from "../../../../components/ui/Table";
+import { Table, TableColumn } from '@/components/ui';
 import api from "../../../../utils/api";
 
 interface Event {

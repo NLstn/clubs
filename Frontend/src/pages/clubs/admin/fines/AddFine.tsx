@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import api from "../../../../utils/api";
-import TypeAheadDropdown from "../../../../components/ui/TypeAheadDropdown";
+import { TypeAheadDropdown } from '@/components/ui';
 
 interface Member {
     id: string;

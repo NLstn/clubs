@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import api from "../../../../utils/api";
 import AddFine from "./AddFine";
 import AdminClubFineTemplateList from "./AdminClubFineTemplateList";
-import Table, { TableColumn } from "../../../../components/ui/Table";
+import { Table, TableColumn } from '@/components/ui';
 
 interface Fine {
     id: string;

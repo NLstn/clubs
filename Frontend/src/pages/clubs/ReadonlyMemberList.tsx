@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../utils/api';
 import { useT } from '../../hooks/useTranslation';
-import Table, { TableColumn } from '../../components/ui/Table';
+import { Table, TableColumn } from '@/components/ui';
 import './ReadonlyMemberList.css';
 
 interface Member {

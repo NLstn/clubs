@@ -1,5 +1,5 @@
 import { FC, useState, useEffect, useCallback } from "react";
-import Table, { TableColumn } from "../../../../components/ui/Table";
+import { Table, TableColumn } from '@/components/ui';
 import api from "../../../../utils/api";
 import { useClubSettings } from "../../../../hooks/useClubSettings";
 

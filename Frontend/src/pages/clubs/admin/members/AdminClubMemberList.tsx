@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import InviteMember from "./InviteMember";
 import AdminClubJoinRequestList from "./AdminClubJoinRequestList";
 import AdminClubPendingInviteList from "./AdminClubPendingInviteList";
-import Table, { TableColumn } from "../../../../components/ui/Table";
+import { Table, TableColumn } from '@/components/ui';
 import api from "../../../../utils/api";
 import { useParams } from "react-router-dom";
 import { useT } from "../../../../hooks/useTranslation";
