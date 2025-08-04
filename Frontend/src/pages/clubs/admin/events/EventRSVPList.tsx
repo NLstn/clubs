@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from "react";
-import Table, { TableColumn } from "../../../../components/ui/Table";
+import { Table, TableColumn } from '@/components/ui';
 import api from "../../../../utils/api";
 
 interface EventRSVP {

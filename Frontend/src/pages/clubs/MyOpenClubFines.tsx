@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../utils/api";
-import Table, { TableColumn } from "../../components/ui/Table";
+import { Table, TableColumn } from '@/components/ui';
 
 interface Fine {
     id: string;

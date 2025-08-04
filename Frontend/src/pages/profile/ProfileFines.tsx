@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../utils/api";
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
-import Table, { TableColumn } from "../../components/ui/Table";
+import { Table, TableColumn } from '@/components/ui';
 
 interface Fine {
     id: string;

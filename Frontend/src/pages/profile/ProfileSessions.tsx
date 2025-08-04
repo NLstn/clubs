@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
-import { useAuth } from "../../hooks/useAuth";
-import Table, { TableColumn } from "../../components/ui/Table";
+import { useAuth } from '../../hooks/useAuth';
+import { Table, TableColumn } from '@/components/ui';
 
 interface Session {
   id: string;
