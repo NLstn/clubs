@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Input } from './Input';
 
 interface Option {
     id: string;
@@ -48,11 +49,10 @@ export const TypeAheadDropdown = <T extends Option>({
 
     return (
         <div className="typeahead-container">
-            {label && <label htmlFor={id}>{label}</label>}
             <div className="ta-select">
-                <input
+                <Input
                     id={id}
-                    type="text"
+                    label={label}
                     value={searchQuery}
                     onChange={(e) => handleInputChange(e.target.value)}
                     placeholder={placeholder}

@@ -113,6 +113,7 @@ font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 ### Available Components
 
 #### Core UI Components
+- **[Input](./components/Input.md)** - Reusable input component with variants, sizes, error handling, and accessibility features
 - **[Table](./components/Table.md)** - Flexible, reusable table component with loading states and error handling
 - **[TypeAheadDropdown](./components/TypeAheadDropdown.md)** - Type-ahead dropdown with search functionality and autocomplete
 
@@ -167,6 +168,33 @@ font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 **Usage**: Dangerous or irreversible actions
 
 ### Form Components
+
+#### Input Component
+The reusable Input component provides consistent styling and behavior across the application:
+
+```tsx
+import { Input } from '@/components/ui';
+
+// Basic usage
+<Input label="Username" placeholder="Enter username" />
+
+// With error state
+<Input 
+  label="Email" 
+  error="Please enter a valid email" 
+  type="email" 
+/>
+
+// Different variants and sizes
+<Input variant="outline" size="lg" label="Large Outline Input" />
+```
+
+**Features:**
+- Three variants: `default`, `outline`, `filled`
+- Three sizes: `sm`, `md`, `lg`
+- Built-in error handling and helper text
+- Full accessibility support with proper labeling
+- TypeScript support with all HTML input attributes
 
 #### Input Fields
 ```css
@@ -253,24 +281,35 @@ font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 ### Component Usage
 ```tsx
 // Import components from UI folder
-import Table from '@/components/ui/Table';
-import TypeAheadDropdown from '@/components/ui/TypeAheadDropdown';
+import { Input, Table, TypeAheadDropdown } from '@/components/ui';
 
 // Use TypeScript interfaces for type safety
 interface MyComponentProps {
   data: TableData[];
   onSelect: (item: DropdownItem) => void;
 }
+
+// Example usage of Input component
+<Input
+  label="Search"
+  placeholder="Search for clubs..."
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value)}
+  helperText="Start typing to search"
+/>
 ```
 
 ### File Structure
 ```
 Frontend/src/components/
 ├── ui/                     # Reusable UI components
+│   ├── Input.tsx
+│   ├── Input.css
 │   ├── Table.tsx
 │   ├── Table.css
 │   ├── TypeAheadDropdown.tsx
-│   └── TypeAheadDropdown.css
+│   ├── TypeAheadDropdown.css
+│   └── index.ts           # Component exports
 ├── layout/                 # Layout components
 │   ├── Header.tsx
 │   ├── GlobalSearch.tsx
@@ -321,11 +360,12 @@ export default ComponentName;
 ### ✅ Completed Features
 - Comprehensive color system with accessibility compliance
 - Responsive typography and spacing systems
-- Core component library (Table, TypeAheadDropdown)
+- Core component library (Input, Table, TypeAheadDropdown)
 - Mobile-first responsive design
 - Dark theme implementation
 - Accessibility features (focus management, contrast, keyboard navigation)
 - Layout components (Header, Search, Notifications)
+- Reusable form components with consistent styling
 
 ### 🔄 Future Enhancements
 - Additional reusable UI components
