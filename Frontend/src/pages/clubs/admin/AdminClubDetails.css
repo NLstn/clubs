@@ -3,17 +3,19 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 20px;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
+    margin-bottom: var(--space-lg);
+    padding: var(--space-lg);
+    background: linear-gradient(135deg, var(--color-background-light) 0%, var(--color-background-medium) 100%);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s ease;
 }
 
 .club-info {
     display: flex;
     align-items: flex-start;
-    gap: 20px;
+    gap: var(--space-lg);
     flex: 1;
 }
 
@@ -30,36 +32,47 @@
 .club-logo {
     width: 80px;
     height: 80px;
-    border-radius: 8px;
+    border-radius: var(--border-radius-lg);
     object-fit: cover;
-    border: 2px solid #ddd;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 2px solid var(--color-border-light);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.club-logo:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 .logo-actions {
     display: flex;
-    gap: 4px;
-    margin-top: 8px;
+    gap: var(--space-xs);
+    margin-top: var(--space-sm);
 }
 
 .logo-change-btn,
 .logo-delete-btn {
-    font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 4px;
+    font-size: 0.8rem;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--border-radius-sm);
     border: 1px solid;
     cursor: pointer;
-    transition: background-color 0.2s;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .logo-change-btn {
-    background-color: #2196f3;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
     color: white;
-    border-color: #2196f3;
+    border-color: var(--color-primary);
 }
 
 .logo-change-btn:hover:not(:disabled) {
-    background-color: #1976d2;
+    background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-primary) 100%);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .logo-change-btn:disabled {
@@ -68,13 +81,15 @@
 }
 
 .logo-delete-btn {
-    background-color: #f44336;
+    background: linear-gradient(135deg, var(--color-cancel) 0%, var(--color-cancel-hover) 100%);
     color: white;
-    border-color: #f44336;
+    border-color: var(--color-cancel);
 }
 
 .logo-delete-btn:hover:not(:disabled) {
-    background-color: #d32f2f;
+    background: linear-gradient(135deg, var(--color-cancel-hover) 0%, var(--color-cancel) 100%);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .logo-delete-btn:disabled {
@@ -91,23 +106,27 @@
 .logo-placeholder {
     width: 80px;
     height: 80px;
-    background-color: #f5f5f5;
-    border: 2px dashed #ddd;
-    border-radius: 8px;
+    background: linear-gradient(135deg, var(--color-background) 0%, var(--color-background-light) 100%);
+    border: 2px dashed var(--color-border-light);
+    border-radius: var(--border-radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #999;
-    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
     text-align: center;
     cursor: pointer;
-    transition: border-color 0.2s, background-color 0.2s;
+    transition: all 0.3s ease;
     line-height: 1.2;
+    font-weight: 500;
 }
 
 .logo-placeholder:hover {
-    border-color: #2196f3;
-    background-color: #f0f8ff;
+    border-color: var(--color-primary);
+    background: linear-gradient(135deg, var(--color-background-light) 0%, var(--color-background-medium) 100%);
+    color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
 }
 
 .club-details {
@@ -116,52 +135,72 @@
 }
 
 .club-details h2 {
-    margin: 0 0 8px 0;
-    font-size: 1.5em;
-    color: #333;
+    margin: 0 0 var(--space-sm) 0;
+    font-size: 1.75rem;
+    color: var(--color-text);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
 }
 
 .club-details p {
-    margin: 8px 0;
-    color: #666;
-    line-height: 1.4;
+    margin: var(--space-sm) 0;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    font-size: 1rem;
 }
 
 .club-actions {
     flex-shrink: 0;
     display: flex;
-    gap: 10px;
+    gap: var(--space-sm);
     align-items: flex-start;
 }
 
 .logo-error {
-    color: #f44336;
-    font-size: 14px;
-    margin-top: 8px;
+    color: var(--color-error-text);
+    font-size: 0.875rem;
+    margin-top: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm);
+    background-color: var(--color-error-bg);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--color-cancel);
 }
 
 /* Responsive design */
 @media (max-width: 768px) {
     .club-header {
         flex-direction: column;
-        gap: 15px;
+        gap: var(--space-md);
+        padding: var(--space-md);
+        margin-bottom: var(--space-md);
     }
     
     .club-info {
         flex-direction: column;
         text-align: center;
-        gap: 15px;
+        gap: var(--space-md);
     }
     
     .club-actions {
         align-self: stretch;
         justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .club-details h2 {
+        font-size: 1.5rem;
     }
 }
 
 @media (max-width: 480px) {
+    .club-header {
+        padding: var(--space-sm);
+        margin-bottom: var(--space-sm);
+    }
+    
     .club-info {
-        gap: 10px;
+        gap: var(--space-sm);
     }
     
     .club-logo,
@@ -171,6 +210,21 @@
     }
     
     .club-details h2 {
-        font-size: 1.2em;
+        font-size: 1.25rem;
+    }
+    
+    .club-details p {
+        font-size: 0.9rem;
+    }
+    
+    .logo-actions {
+        gap: var(--space-xs);
+        margin-top: var(--space-xs);
+    }
+    
+    .logo-change-btn,
+    .logo-delete-btn {
+        font-size: 0.75rem;
+        padding: var(--space-xs);
     }
 }
