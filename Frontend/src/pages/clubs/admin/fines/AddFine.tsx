@@ -149,56 +149,102 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
     };
 
     return (
-        <div className="modal">
-            <div className="modal-content">
-                <h2>Add Fine</h2>
-                {error && <div className="error">{error}</div>}
-                <div className="form-group">
-                    <TypeAheadDropdown<MemberOption>
-                        options={memberOptions}
-                        value={selectedOption}
-                        onChange={setSelectedOption}
-                        onSearch={handleSearch}
-                        placeholder="Search member..."
-                        id="member"
-                        label="Member"
-                    />
-                    <TypeAheadDropdown<FineTemplateOption>
-                        options={templateOptions}
-                        value={selectedTemplate}
-                        onChange={handleTemplateSelection}
-                        onSearch={handleTemplateSearch}
-                        placeholder="Search fine template (optional)..."
-                        id="template"
-                        label="Fine Template (Optional)"
-                    />
-                    <Input
-                        label="Amount"
-                        id="amount"
-                        type="number"
-                        value={amount}
-                        onChange={(e) => setAmount(Number(e.target.value))}
-                        placeholder="Enter amount"
-                    />
-                    <Input
-                        label="Reason"
-                        id="reason"
-                        type="text"
-                        value={reason}
-                        onChange={(e) => setReason(e.target.value)}
-                        placeholder="Enter reason"
-                    />
-                </div>
-                <div>
+        <div className="modal" onClick={onClose}>
+            <div className="modal-content add-fine-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h2>Add Fine</h2>
                     <button 
-                        onClick={handleSubmit} 
-                        disabled={!selectedOption || !amount || !reason || isSubmitting} 
-                        className="button-accept"
+                        onClick={onClose} 
+                        className="modal-close-button"
+                        aria-label="Close modal"
                     >
-                        {isSubmitting ? "Adding..." : "Add Fine"}
+                        ✕
                     </button>
-                    <button onClick={onClose} className="button-cancel">Cancel</button>
                 </div>
+                
+                {error && (
+                    <div className="error-message">
+                        <span className="error-icon">⚠️</span>
+                        <span>{error}</span>
+                    </div>
+                )}
+                
+                <form className="add-fine-form" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+                    <div className="form-section">
+                        <div className="form-group">
+                            <TypeAheadDropdown<MemberOption>
+                                options={memberOptions}
+                                value={selectedOption}
+                                onChange={setSelectedOption}
+                                onSearch={handleSearch}
+                                placeholder="Search member..."
+                                id="member"
+                                label="Member"
+                            />
+                        </div>
+                        
+                        <div className="form-group">
+                            <TypeAheadDropdown<FineTemplateOption>
+                                options={templateOptions}
+                                value={selectedTemplate}
+                                onChange={handleTemplateSelection}
+                                onSearch={handleTemplateSearch}
+                                placeholder="Search fine template (optional)..."
+                                id="template"
+                                label="Fine Template (Optional)"
+                            />
+                        </div>
+                        
+                        <div className="form-row">
+                            <div className="form-group">
+                                <Input
+                                    label="Amount"
+                                    id="amount"
+                                    type="number"
+                                    value={amount}
+                                    onChange={(e) => setAmount(Number(e.target.value))}
+                                    placeholder="Enter amount"
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="form-group">
+                            <Input
+                                label="Reason"
+                                id="reason"
+                                type="text"
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                                placeholder="Enter reason for the fine"
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="modal-actions">
+                        <button 
+                            type="button"
+                            onClick={onClose} 
+                            className="button-cancel"
+                            disabled={isSubmitting}
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit"
+                            disabled={!selectedOption || !amount || !reason || isSubmitting} 
+                            className="button-accept"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <span className="loading-spinner"></span>
+                                    Adding...
+                                </>
+                            ) : (
+                                "Add Fine"
+                            )}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );
