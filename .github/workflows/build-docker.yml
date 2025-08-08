@@ -8,6 +8,10 @@ on:
       - 'Backend/Dockerfile'
   workflow_dispatch:
 
+concurrency:
+  group: backend-deployment
+  cancel-in-progress: false
+
 permissions:
   contents: read
   packages: write
