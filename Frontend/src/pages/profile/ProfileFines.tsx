@@ -3,6 +3,7 @@ import api from "../../utils/api";
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { Table, TableColumn } from '@/components/ui';
+import './Profile.css';
 
 interface Fine {
     id: string;

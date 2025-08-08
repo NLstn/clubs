@@ -3,6 +3,7 @@ import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from '../../hooks/useAuth';
 import { Table, TableColumn } from '@/components/ui';
+import './Profile.css';
 
 interface Session {
   id: string;

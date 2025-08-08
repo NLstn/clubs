@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from "../../hooks/useAuth";
+import './Profile.css';
 
 interface Club {
     id: string;
