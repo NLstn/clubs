@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
-import { Input } from '@/components/ui';
+import { Input, Table, TableColumn } from '@/components/ui';
 
 interface FineTemplate {
     id: string;
@@ -92,7 +92,38 @@ const AdminClubFineTemplateList = () => {
         setError(null);
     };
 
-    if (loading) return <div>{t('clubs.loading.fineTemplates')}</div>;
+    const columns: TableColumn<FineTemplate>[] = [
+        {
+            key: 'description',
+            header: t('fines.description'),
+            render: (template) => template.description
+        },
+        {
+            key: 'amount',
+            header: t('fines.amount'),
+            render: (template) => `$${template.amount.toFixed(2)}`
+        },
+        {
+            key: 'actions',
+            header: t('common.actions'),
+            render: (template) => (
+                <div className="table-actions">
+                    <button 
+                        onClick={() => handleEdit(template)}
+                        className="action-button edit"
+                    >
+                        {t('common.edit')}
+                    </button>
+                    <button 
+                        onClick={() => handleDelete(template.id)}
+                        className="action-button remove"
+                    >
+                        {t('common.delete')}
+                    </button>
+                </div>
+            )
+        }
+    ];
 
     return (
         <div style={{ marginBottom: '2rem' }}>
@@ -105,8 +136,6 @@ const AdminClubFineTemplateList = () => {
                     {t('fines.addTemplate')}
                 </button>
             </div>
-
-            {error && <div className="error">{error}</div>}
 
             {isAdding && (
                 <form onSubmit={handleSubmit} style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '4px' }}>
@@ -142,42 +171,16 @@ const AdminClubFineTemplateList = () => {
                 </form>
             )}
 
-            {templates.length === 0 ? (
-                <p>{t('fines.noTemplates')}</p>
-            ) : (
-                <table>
-                    <thead>
-                        <tr>
-                            <th>{t('fines.description')}</th>
-                            <th>{t('fines.amount')}</th>
-                            <th>{t('common.actions')}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {templates.map((template) => (
-                            <tr key={template.id}>
-                                <td>{template.description}</td>
-                                <td>${template.amount.toFixed(2)}</td>
-                                <td>
-                                    <button 
-                                        onClick={() => handleEdit(template)}
-                                        className="button-accept"
-                                        style={{ marginRight: '0.5rem' }}
-                                    >
-                                        {t('common.edit')}
-                                    </button>
-                                    <button 
-                                        onClick={() => handleDelete(template.id)}
-                                        className="button-cancel"
-                                    >
-                                        {t('common.delete')}
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            )}
+            <Table
+                columns={columns}
+                data={templates}
+                keyExtractor={(template) => template.id}
+                loading={loading}
+                error={error}
+                emptyMessage={t('fines.noTemplates')}
+                loadingMessage={t('clubs.loading.fineTemplates')}
+                errorMessage={error || undefined}
+            />
         </div>
     );
 };
