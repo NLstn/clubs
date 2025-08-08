@@ -3,6 +3,7 @@ import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { Table, TableColumn } from '@/components/ui';
 import api from '../../utils/api';
+import './Profile.css';
 
 interface Invitation {
   id: string;

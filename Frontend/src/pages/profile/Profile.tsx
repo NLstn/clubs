@@ -4,6 +4,7 @@ import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from "../../hooks/useAuth";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 import { Input } from '@/components/ui';
+import './Profile.css';
 
 interface UserProfile {
     firstName: string;
@@ -111,126 +112,126 @@ const Profile = () => {
             <div className="profile-layout">
                 <ProfileSidebar />
                 <div className="profile-content">
-                    <div className="profile-header">
-                        <h2>My Profile</h2>
-                    </div>
-                    
-                    {message && (
-                        <div className={message.includes('Failed') ? 'error-message' : 'success-message'}>
-                            {message}
-                        </div>
-                    )}
-                    
-                    {isLoading ? (
-                        <div style={{ 
-                            textAlign: 'center', 
-                            padding: 'var(--space-xl)',
-                            color: 'var(--color-text-secondary)'
-                        }}>
-                            <p>Loading profile...</p>
-                        </div>
-                    ) : (
-                        <div className="profile-container" style={{ maxWidth: '700px' }}>
-                            <div className="profile-section">
-                                <div style={{ 
-                                    display: 'flex', 
-                                    justifyContent: 'space-between', 
-                                    alignItems: 'center',
-                                    marginBottom: 'var(--space-md)'
-                                }}>
-                                    <h3 className="profile-section-title" style={{ margin: 0 }}>Personal Information</h3>
-                                    {!isEditing && (
-                                        <button onClick={handleEdit} className="edit-button">
-                                            Edit Profile
+                    {/* New unified header like ClubDetails */}
+                    <div className="profile-page-container">
+                        <div className="profile-header-section">
+                            <div className="profile-header-content">
+                                <div className="profile-avatar-section">
+                                    {/* No avatar yet, use initials */}
+                                    <div className="profile-avatar-placeholder">
+                                        <span className="avatar-placeholder-text">
+                                            {(profile.firstName?.[0] || 'U')}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="profile-main-info">
+                                    <h1 className="profile-title">{profile.firstName || 'User'} {profile.lastName}</h1>
+                                    <p className="profile-subtitle">{profile.email}</p>
+                                </div>
+                            </div>
+                            <div className="profile-actions">
+                                {!isEditing ? (
+                                    <button onClick={handleEdit} className="edit-button">Edit Profile</button>
+                                ) : (
+                                    <>
+                                        <button 
+                                            onClick={handleSave}
+                                            className="button-accept"
+                                            disabled={!editedFirstName.trim() || !editedLastName.trim()}
+                                        >
+                                            Save Changes
                                         </button>
-                                    )}
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="firstName">First Name</label>
-                                    {isEditing ? (
-                                        <Input
-                                            id="firstName"
-                                            type="text"
-                                            value={editedFirstName}
-                                            onChange={(e) => setEditedFirstName(e.target.value)}
-                                            placeholder="Enter your first name"
-                                        />
-                                    ) : (
-                                        <div className="form-field-display">
-                                            <span>{profile.firstName || 'Not set'}</span>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="lastName">Last Name</label>
-                                    {isEditing ? (
-                                        <Input
-                                            id="lastName"
-                                            type="text"
-                                            value={editedLastName}
-                                            onChange={(e) => setEditedLastName(e.target.value)}
-                                            placeholder="Enter your last name"
-                                        />
-                                    ) : (
-                                        <div className="form-field-display">
-                                            <span>{profile.lastName || 'Not set'}</span>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="birthDate">Birth Date</label>
-                                    {isEditing ? (
-                                        <Input
-                                            id="birthDate"
-                                            type="date"
-                                            value={editedBirthDate}
-                                            onChange={(e) => setEditedBirthDate(e.target.value)}
-                                        />
-                                    ) : (
-                                        <div className="form-field-display">
-                                            <span>{profile.birthDate ? new Date(profile.birthDate).toLocaleDateString() : 'Not set'}</span>
-                                        </div>
-                                    )}
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="email">Email Address</label>
-                                    <div className="form-field-display form-field-readonly">
-                                        <span>{profile.email}</span>
-                                        <span className="field-note">Cannot be changed</span>
-                                    </div>
-                                </div>
+                                        <button onClick={handleCancel} className="button-cancel">Cancel</button>
+                                    </>
+                                )}
                             </div>
-
-                            <div className="profile-section">
-                                <h3 className="profile-section-title">Preferences</h3>
-                                <div className="form-group">
-                                    <label>Language</label>
-                                    <div style={{ marginTop: 'var(--space-xs)' }}>
-                                        <LanguageSwitcher />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {isEditing && (
-                                <div className="form-actions">
-                                    <button 
-                                        onClick={handleSave} 
-                                        className="button-accept"
-                                        disabled={!editedFirstName.trim() || !editedLastName.trim()}
-                                    >
-                                        Save Changes
-                                    </button>
-                                    <button onClick={handleCancel} className="button-cancel">
-                                        Cancel
-                                    </button>
-                                </div>
-                            )}
                         </div>
-                    )}
+
+                        {message && (
+                            <div className={message.includes('Failed') ? 'error-message' : 'success-message'}>
+                                {message}
+                            </div>
+                        )}
+
+                        {isLoading ? (
+                            <div style={{ textAlign: 'center', padding: 'var(--space-xl)', color: 'var(--color-text-secondary)' }}>
+                                <p>Loading profile...</p>
+                            </div>
+                        ) : (
+                            <div className="profile-content-sections">
+                                <div className="content-section">
+                                    <h3>Personal Information</h3>
+                                    <div className="form-group">
+                                        <label htmlFor="firstName">First Name</label>
+                                        {isEditing ? (
+                                            <Input
+                                                id="firstName"
+                                                type="text"
+                                                value={editedFirstName}
+                                                onChange={(e) => setEditedFirstName(e.target.value)}
+                                                placeholder="Enter your first name"
+                                            />
+                                        ) : (
+                                            <div className="form-field-display">
+                                                <span>{profile.firstName || 'Not set'}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="lastName">Last Name</label>
+                                        {isEditing ? (
+                                            <Input
+                                                id="lastName"
+                                                type="text"
+                                                value={editedLastName}
+                                                onChange={(e) => setEditedLastName(e.target.value)}
+                                                placeholder="Enter your last name"
+                                            />
+                                        ) : (
+                                            <div className="form-field-display">
+                                                <span>{profile.lastName || 'Not set'}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="birthDate">Birth Date</label>
+                                        {isEditing ? (
+                                            <Input
+                                                id="birthDate"
+                                                type="date"
+                                                value={editedBirthDate}
+                                                onChange={(e) => setEditedBirthDate(e.target.value)}
+                                            />
+                                        ) : (
+                                            <div className="form-field-display">
+                                                <span>{profile.birthDate ? new Date(profile.birthDate).toLocaleDateString() : 'Not set'}</span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="email">Email Address</label>
+                                        <div className="form-field-display form-field-readonly">
+                                            <span>{profile.email}</span>
+                                            <span className="field-note">Cannot be changed</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="content-section">
+                                    <h3>Preferences</h3>
+                                    <div className="form-group">
+                                        <label>Language</label>
+                                        <div style={{ marginTop: 'var(--space-xs)' }}>
+                                            <LanguageSwitcher />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </Layout>

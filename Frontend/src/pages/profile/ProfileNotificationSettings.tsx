@@ -4,6 +4,7 @@ import ProfileSidebar from "./ProfileSidebar";
 import { useNotificationPreferences } from '../../hooks/useNotifications';
 import { useT } from '../../hooks/useTranslation';
 import './ProfileNotificationSettings.css';
+import './Profile.css';
 
 const ProfileNotificationSettings: React.FC = () => {
   const { t } = useT();
