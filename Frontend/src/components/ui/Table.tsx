@@ -43,6 +43,9 @@ function Table<T>({
         return <div className="table-error-text">{errorMessage}</div>;
     }
 
+    // Normalize data to avoid runtime crashes when null/undefined is passed
+    const safeData: T[] = Array.isArray(data) ? data : [];
+
     return (
         <div className={`table-container ${className}`}>
             <table className="reusable-table">
@@ -56,14 +59,14 @@ function Table<T>({
                     </tr>
                 </thead>
                 <tbody>
-                    {data.length === 0 ? (
+                    {safeData.length === 0 ? (
                         <tr>
                             <td colSpan={columns.length} className="table-empty-text" style={{ textAlign: 'center', fontStyle: 'italic' }}>
                                 {emptyMessage}
                             </td>
                         </tr>
                     ) : (
-                        data.map((item) => (
+                        safeData.map((item) => (
                             <tr key={keyExtractor(item)}>
                                 {columns.map((column) => (
                                     <td key={column.key} className={column.className}>

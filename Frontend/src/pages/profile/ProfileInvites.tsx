@@ -23,8 +23,9 @@ const ProfileInvites = () => {
     try {
       const response = await api.get('/api/v1/invites');
       if (response.status === 200) {
-        const data = response.data;
-        setInvites(data);
+  const data = response.data;
+  // Normalize to array if backend returns null/undefined
+  setInvites(Array.isArray(data) ? data : []);
       }
     } catch (error) {
       console.error('Error fetching invitations:', error);
@@ -36,7 +37,7 @@ const ProfileInvites = () => {
   const handleAccept = async (inviteId: string, clubName: string) => {
     try {
       await api.post(`/api/v1/invites/${inviteId}/accept`);
-      setInvites(invites.filter(invite => invite.id !== inviteId));
+      setInvites((prev) => (Array.isArray(prev) ? prev.filter(invite => invite.id !== inviteId) : []));
 
       // Show success message
       setMessage(`You've joined ${clubName}!`);
@@ -50,7 +51,7 @@ const ProfileInvites = () => {
   const handleDecline = async (inviteId: string) => {
     try {
       await api.post(`/api/v1/invites/${inviteId}/reject`);
-      setInvites(invites.filter(invite => invite.id !== inviteId));
+      setInvites((prev) => (Array.isArray(prev) ? prev.filter(invite => invite.id !== inviteId) : []));
 
       // Show success message
       setMessage('Invitation declined');
