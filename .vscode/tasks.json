@@ -40,28 +40,8 @@
             }
         },
         {
-            "label": "Open Website",
-            "type": "shell",
-            "command": "cmd.exe /C start http://localhost:5173 || explorer.exe http://localhost:5173 || wslview http://localhost:5173 || python3 -m webbrowser http://localhost:5173",
-            "isBackground": true,
-            "problemMatcher": {
-                "pattern": {
-                    "regexp": "^$"
-                },
-                "background": {
-                    "activeOnStart": true,
-                    "beginsPattern": "^$",
-                    "endsPattern": "^$"
-                }
-            },
-            "presentation": {
-                "reveal": "never",
-                "panel": "shared"
-            }
-        },
-        {
             "label": "Start Development Environment",
-            "dependsOn": ["Start Backend", "Start Frontend", "Open Website"],
+            "dependsOn": ["Start Backend", "Start Frontend"],
             "dependsOrder": "parallel",
             "group": {
                 "kind": "test",
