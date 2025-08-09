@@ -116,6 +116,7 @@ font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 - **[Input](./components/Input.md)** - Reusable input component with variants, sizes, error handling, and accessibility features
 - **[Table](./components/Table.md)** - Flexible, reusable table component with loading states and error handling
 - **[TypeAheadDropdown](./components/TypeAheadDropdown.md)** - Type-ahead dropdown with search functionality and autocomplete
+- **[Modal](./components/Modal.md)** - Enhanced modal component with compound pattern, error handling, and loading states
 
 #### Layout Components
 - **Header** - Main navigation header with user menu and notifications

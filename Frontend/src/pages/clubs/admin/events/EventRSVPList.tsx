@@ -1,5 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import { Table, TableColumn } from '@/components/ui';
+import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
 
 interface EventRSVP {
@@ -98,10 +99,13 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
     if (!isOpen) return null;
 
     return (
-        <div className="modal">
-            <div className="modal-content" style={{ maxWidth: '800px', width: '90%' }}>
-                <h2>RSVPs for {eventName}</h2>
-                
+        <Modal 
+            isOpen={isOpen} 
+            onClose={onClose}
+            title={`RSVPs for ${eventName}`}
+            maxWidth="800px"
+        >
+            <Modal.Body>
                 {/* Summary */}
                 <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: 'var(--color-background)', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)' }}>
                     <h3 style={{ margin: '0 0 10px 0', color: 'var(--color-text)' }}>Summary</h3>
@@ -134,14 +138,13 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
                         />
                     </div>
                 )}
-
-                <div className="modal-actions" style={{ marginTop: '20px' }}>
-                    <button onClick={onClose} className="button-cancel">
-                        Close
-                    </button>
-                </div>
-            </div>
-        </div>
+            </Modal.Body>
+            <Modal.Actions>
+                <button onClick={onClose} className="button-cancel">
+                    Close
+                </button>
+            </Modal.Actions>
+        </Modal>
     );
 };
 

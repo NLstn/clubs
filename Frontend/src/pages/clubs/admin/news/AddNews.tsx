@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import api from "../../../../utils/api";
-import { Input } from '@/components/ui';
+import { Input, Modal } from '@/components/ui';
 
 interface AddNewsProps {
     isOpen: boolean;
@@ -54,49 +54,57 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
     };
 
     return (
-        <div className="modal">
-            <div className="modal-content">
-                <h2>Add News</h2>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-                
-                <Input
-                    label="Title"
-                    id="newsTitle"
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="News Title"
-                    disabled={isSubmitting}
-                />
-
-                <Input
-                    label="Content"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="News Content"
-                    disabled={isSubmitting}
-                    multiline
-                    rows={6}
-                />
-
-                <div className="modal-actions">
-                    <button 
-                        onClick={handleSubmit} 
-                        className="button-accept"
+        <Modal isOpen={isOpen} onClose={handleClose} title="Add News">
+            <Modal.Error error={error} />
+            
+            <Modal.Body>
+                <div className="modal-form-section">
+                    <Input
+                        label="Title"
+                        id="newsTitle"
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="News Title"
                         disabled={isSubmitting}
-                    >
-                        {isSubmitting ? 'Adding...' : 'Add News'}
-                    </button>
-                    <button 
-                        onClick={handleClose} 
-                        className="button-cancel"
+                    />
+
+                    <Input
+                        label="Content"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        placeholder="News Content"
                         disabled={isSubmitting}
-                    >
-                        Cancel
-                    </button>
+                        multiline
+                        rows={6}
+                    />
                 </div>
-            </div>
-        </div>
+            </Modal.Body>
+
+            <Modal.Actions>
+                <button 
+                    onClick={handleSubmit} 
+                    className="button-accept"
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? (
+                        <>
+                            <Modal.LoadingSpinner />
+                            Adding...
+                        </>
+                    ) : (
+                        'Add News'
+                    )}
+                </button>
+                <button 
+                    onClick={handleClose} 
+                    className="button-cancel"
+                    disabled={isSubmitting}
+                >
+                    Cancel
+                </button>
+            </Modal.Actions>
+        </Modal>
     );
 };
 

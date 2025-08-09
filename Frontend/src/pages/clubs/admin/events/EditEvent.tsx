@@ -1,5 +1,6 @@
 import { FC, useState, useEffect, useCallback } from "react";
 import { Table, TableColumn, Input } from '@/components/ui';
+import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
 import { useClubSettings } from "../../../../hooks/useClubSettings";
 
@@ -208,9 +209,13 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
     };
 
     return (
-        <div className="modal">
-            <div className="modal-content" style={{ maxWidth: '800px', width: '90%' }}>
-                <h2>Edit Event</h2>
+        <Modal 
+            isOpen={isOpen} 
+            onClose={handleClose}
+            title="Edit Event"
+            maxWidth="800px"
+        >
+            <Modal.Body>
                 {error && <p style={{ color: 'red' }}>{error}</p>}
                 
                 {/* Tab Navigation */}
@@ -331,25 +336,24 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                         )}
                     </div>
                 </div>
-
-                <div className="modal-actions">
-                    <button 
-                        onClick={handleSubmit} 
-                        className="button-accept"
-                        disabled={isSubmitting}
-                    >
-                        {isSubmitting ? 'Updating...' : 'Update Event'}
-                    </button>
-                    <button 
-                        onClick={handleClose} 
-                        className="button-cancel"
-                        disabled={isSubmitting}
-                    >
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </div>
+            </Modal.Body>
+            <Modal.Actions>
+                <button 
+                    onClick={handleSubmit} 
+                    className="button-accept"
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? 'Updating...' : 'Update Event'}
+                </button>
+                <button 
+                    onClick={handleClose} 
+                    className="button-cancel"
+                    disabled={isSubmitting}
+                >
+                    Cancel
+                </button>
+            </Modal.Actions>
+        </Modal>
     );
 };
 

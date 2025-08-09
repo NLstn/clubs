@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import api from "../../../../utils/api";
-import { Input } from '@/components/ui';
+import { Input, Modal } from '@/components/ui';
 
 interface AddEventProps {
     isOpen: boolean;
@@ -74,77 +74,85 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
     };
 
     return (
-        <div className="modal">
-            <div className="modal-content">
-                <h2>Add Event</h2>
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-                
-                <Input
-                    label="Event Name"
-                    id="eventName"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Event Name"
-                    disabled={isSubmitting}
-                />
-
-                <Input
-                    label="Description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Event description (optional)"
-                    disabled={isSubmitting}
-                    multiline
-                    rows={3}
-                />
-
-                <Input
-                    label="Location"
-                    id="eventLocation"
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Event location (optional)"
-                    disabled={isSubmitting}
-                />
-
-                <Input
-                    label="Start Date & Time"
-                    id="startTime"
-                    type="datetime-local"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    disabled={isSubmitting}
-                />
-
-                <Input
-                    label="End Date & Time"
-                    id="endTime"
-                    type="datetime-local"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    disabled={isSubmitting}
-                />
-
-                <div className="modal-actions">
-                    <button 
-                        onClick={handleSubmit} 
-                        className="button-accept"
+        <Modal isOpen={isOpen} onClose={handleClose} title="Add Event">
+            <Modal.Error error={error} />
+            
+            <Modal.Body>
+                <div className="modal-form-section">
+                    <Input
+                        label="Event Name"
+                        id="eventName"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Event Name"
                         disabled={isSubmitting}
-                    >
-                        {isSubmitting ? 'Adding...' : 'Add Event'}
-                    </button>
-                    <button 
-                        onClick={handleClose} 
-                        className="button-cancel"
+                    />
+
+                    <Input
+                        label="Description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Event description (optional)"
                         disabled={isSubmitting}
-                    >
-                        Cancel
-                    </button>
+                        multiline
+                        rows={3}
+                    />
+
+                    <Input
+                        label="Location"
+                        id="eventLocation"
+                        type="text"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        placeholder="Event location (optional)"
+                        disabled={isSubmitting}
+                    />
+
+                    <Input
+                        label="Start Date & Time"
+                        id="startTime"
+                        type="datetime-local"
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        disabled={isSubmitting}
+                    />
+
+                    <Input
+                        label="End Date & Time"
+                        id="endTime"
+                        type="datetime-local"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        disabled={isSubmitting}
+                    />
                 </div>
-            </div>
-        </div>
+            </Modal.Body>
+
+            <Modal.Actions>
+                <button 
+                    onClick={handleSubmit} 
+                    className="button-accept"
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? (
+                        <>
+                            <Modal.LoadingSpinner />
+                            Adding...
+                        </>
+                    ) : (
+                        'Add Event'
+                    )}
+                </button>
+                <button 
+                    onClick={handleClose} 
+                    className="button-cancel"
+                    disabled={isSubmitting}
+                >
+                    Cancel
+                </button>
+            </Modal.Actions>
+        </Modal>
     );
 };
 
