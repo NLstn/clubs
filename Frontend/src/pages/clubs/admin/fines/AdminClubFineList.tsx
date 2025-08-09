@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import api from "../../../../utils/api";
 import AddFine from "./AddFine";
 import AdminClubFineTemplateList from "./AdminClubFineTemplateList";
-import { Table, TableColumn } from '@/components/ui';
+import { Table, TableColumn, Modal } from '@/components/ui';
 
 interface Fine {
     id: string;
@@ -155,17 +155,19 @@ const AdminClubFineList = () => {
                 onSuccess={fetchFines}
             />
             
-            {showFineTemplates && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <h2>Manage Fine Templates</h2>
-                        <AdminClubFineTemplateList />
-                        <div className="modal-actions">
-                            <button onClick={() => setShowFineTemplates(false)} className="button-cancel">Close</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Modal 
+                isOpen={showFineTemplates} 
+                onClose={() => setShowFineTemplates(false)} 
+                title="Manage Fine Templates"
+                maxWidth="800px"
+            >
+                <Modal.Body>
+                    <AdminClubFineTemplateList />
+                </Modal.Body>
+                <Modal.Actions>
+                    <button onClick={() => setShowFineTemplates(false)} className="button-cancel">Close</button>
+                </Modal.Actions>
+            </Modal>
         </div>
     );
 }

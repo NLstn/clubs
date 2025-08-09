@@ -3,6 +3,7 @@ import InviteMember from "./InviteMember";
 import AdminClubJoinRequestList from "./AdminClubJoinRequestList";
 import AdminClubPendingInviteList from "./AdminClubPendingInviteList";
 import { Table, TableColumn } from '@/components/ui';
+import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
 import { useParams } from "react-router-dom";
 import { useT } from "../../../../hooks/useTranslation";
@@ -298,9 +299,12 @@ const AdminClubMemberList = () => {
             />
 
             {showInviteLink && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <h2>Club Invitation Link</h2>
+                <Modal 
+                    isOpen={showInviteLink} 
+                    onClose={() => setShowInviteLink(false)}
+                    title="Club Invitation Link"
+                >
+                    <Modal.Body>
                         <p>Share this link with people you want to invite to the club:</p>
                         <div className="invite-link-container" style={{ 
                             background: '#f5f5f5', 
@@ -313,42 +317,50 @@ const AdminClubMemberList = () => {
                         }}>
                             {inviteLink}
                         </div>
-                        <div className="modal-actions">
-                            <button onClick={copyToClipboard} className="button-accept">
-                                Copy Link
-                            </button>
-                            <button onClick={() => setShowInviteLink(false)} className="button-cancel">
-                                Close
-                            </button>
-                        </div>
                         <div style={{ marginTop: '15px', fontSize: '0.9em', color: '#666' }}>
                             <p><strong>Note:</strong> Anyone with this link can request to join your club. 
                             Join requests still require admin approval.</p>
                         </div>
-                    </div>
-                </div>
+                    </Modal.Body>
+                    <Modal.Actions>
+                        <button onClick={copyToClipboard} className="button-accept">
+                            Copy Link
+                        </button>
+                        <button onClick={() => setShowInviteLink(false)} className="button-cancel">
+                            Close
+                        </button>
+                    </Modal.Actions>
+                </Modal>
             )}
             
             {showPendingInvites && (
-                <div className="modal">
-                    <div className="modal-content">
+                <Modal 
+                    isOpen={showPendingInvites} 
+                    onClose={() => setShowPendingInvites(false)}
+                    title="Pending Invites"
+                >
+                    <Modal.Body>
                         <AdminClubPendingInviteList />
-                        <div className="modal-actions">
-                            <button onClick={() => setShowPendingInvites(false)} className="button-cancel">Close</button>
-                        </div>
-                    </div>
-                </div>
+                    </Modal.Body>
+                    <Modal.Actions>
+                        <button onClick={() => setShowPendingInvites(false)} className="button-cancel">Close</button>
+                    </Modal.Actions>
+                </Modal>
             )}
 
             {showJoinRequests && (
-                <div className="modal">
-                    <div className="modal-content">
+                <Modal 
+                    isOpen={showJoinRequests} 
+                    onClose={() => setShowJoinRequests(false)}
+                    title="Join Requests"
+                >
+                    <Modal.Body>
                         <AdminClubJoinRequestList />
-                        <div className="modal-actions">
-                            <button onClick={() => setShowJoinRequests(false)} className="button-cancel">Close</button>
-                        </div>
-                    </div>
-                </div>
+                    </Modal.Body>
+                    <Modal.Actions>
+                        <button onClick={() => setShowJoinRequests(false)} className="button-cancel">Close</button>
+                    </Modal.Actions>
+                </Modal>
             )}
         </div>
     );

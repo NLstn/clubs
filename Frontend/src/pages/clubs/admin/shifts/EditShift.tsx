@@ -1,5 +1,6 @@
 import { FC, useState, useEffect, useCallback } from 'react';
 import api from '../../../../utils/api';
+import { Modal } from '@/components/ui';
 
 interface Shift {
     id: string;
@@ -106,86 +107,86 @@ const EditShift: FC<EditShiftProps> = ({ isOpen, onClose, shift, clubId }) => {
     if (!isOpen || !shift) return null;
 
     return (
-        <div className="modal">
-            <div className="modal-content">
-                <h2>Edit Shift</h2>
-                <div>
-                    <p><strong>Start Time:</strong> {new Date(shift.startTime).toLocaleString()}</p>
-                    <p><strong>End Time:</strong> {new Date(shift.endTime).toLocaleString()}</p>
-                </div>
-
-                {error && <div className="error">{error}</div>}
-
-                <div>
-                    <h3>Assigned Members</h3>
-                    {loading ? (
-                        <p>Loading...</p>
-                    ) : (
-                        <div>
-                            <table className="basic-table">
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {shiftMembers && shiftMembers.map(member => (
-                                        <tr key={member.id}>
-                                            <td>{member.name}</td>
-                                            <td>
-                                                <button
-                                                    onClick={() => removeMemberFromShift(member.id)}
-                                                    className="delete-button"
-                                                    aria-label="Remove member"
-                                                >
-                                                    ×
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-
-                        </div>
-                    )}
-                </div>
-
-                <div>
-                    <h3>Add Member to Shift</h3>
-                    <div className="form-group">
-                        <label htmlFor="member-select">Select Member</label>
-                        <select
-                            id="member-select"
-                            value={selectedMemberId}
-                            onChange={(e) => {
-                                setSelectedMemberId(e.target.value)
-                            }}
-                        >
-                            <option value="">Choose a member...</option>
-                            {getAvailableMembersForSelection().map(member => (
-                                <option key={member.userId} value={member.userId}>
-                                    {member.name}
-                                </option>
-                            ))}
-                        </select>
+        <Modal isOpen={isOpen && !!shift} onClose={onClose} title="Edit Shift" maxWidth="700px">
+            <Modal.Error error={error} />
+            
+            <Modal.Body>
+                <div className="modal-form-section">
+                    <div>
+                        <p><strong>Start Time:</strong> {new Date(shift.startTime).toLocaleString()}</p>
+                        <p><strong>End Time:</strong> {new Date(shift.endTime).toLocaleString()}</p>
                     </div>
-                    <button
-                        onClick={addMemberToShift}
-                        disabled={!selectedMemberId}
-                        className="button-accept"
-                    >
-                        Add Member
-                    </button>
-                </div>
 
-                <div style={{ marginTop: '20px' }}>
-                    <button onClick={onClose} className="button-cancel">
-                        Close
-                    </button>
+                    <div>
+                        <h3>Assigned Members</h3>
+                        {loading ? (
+                            <p>Loading...</p>
+                        ) : (
+                            <div>
+                                <table className="basic-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {shiftMembers && shiftMembers.map(member => (
+                                            <tr key={member.id}>
+                                                <td>{member.name}</td>
+                                                <td>
+                                                    <button
+                                                        onClick={() => removeMemberFromShift(member.id)}
+                                                        className="delete-button"
+                                                        aria-label="Remove member"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+
+                    <div>
+                        <h3>Add Member to Shift</h3>
+                        <div className="form-group">
+                            <label htmlFor="member-select">Select Member</label>
+                            <select
+                                id="member-select"
+                                value={selectedMemberId}
+                                onChange={(e) => {
+                                    setSelectedMemberId(e.target.value)
+                                }}
+                            >
+                                <option value="">Choose a member...</option>
+                                {getAvailableMembersForSelection().map(member => (
+                                    <option key={member.userId} value={member.userId}>
+                                        {member.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <button
+                            onClick={addMemberToShift}
+                            disabled={!selectedMemberId}
+                            className="button-accept"
+                        >
+                            Add Member
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </Modal.Body>
+
+            <Modal.Actions>
+                <button onClick={onClose} className="button-cancel">
+                    Close
+                </button>
+            </Modal.Actions>
+        </Modal>
     );
 };
 

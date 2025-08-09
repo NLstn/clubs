@@ -9,6 +9,7 @@ import MyTeams from './MyTeams';
 import ReadonlyMemberList from './ReadonlyMemberList';
 import ClubNotFound from './ClubNotFound';
 import { useClubSettings } from '../../hooks/useClubSettings';
+import { Modal } from '@/components/ui';
 import { addRecentClub, removeRecentClub } from '../../utils/recentClubs';
 import { useT } from '../../hooks/useTranslation';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
@@ -216,32 +217,41 @@ const ClubDetails = () => {
             </div>
             
             {/* Leave Club Confirmation Modal */}
-            {showLeaveConfirmation && (
-                <div className="modal" onClick={cancelLeaveClub}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h2>Leave Club</h2>
-                        <p>Are you sure you want to leave "{club.name}"?</p>
-                        <p>You will no longer have access to club content and will need to request to join again if you want to return.</p>
-                        <div className="modal-actions">
-                            <button 
-                                onClick={confirmLeaveClub} 
-                                disabled={isLeavingClub}
-                                className="button-cancel"
-                                style={{ backgroundColor: '#d32f2f', borderColor: '#d32f2f' }}
-                            >
-                                {isLeavingClub ? 'Leaving...' : 'Leave Club'}
-                            </button>
-                            <button 
-                                onClick={cancelLeaveClub} 
-                                disabled={isLeavingClub}
-                                className="button-accept"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Modal 
+                isOpen={showLeaveConfirmation} 
+                onClose={cancelLeaveClub} 
+                title="Leave Club"
+                maxWidth="450px"
+            >
+                <Modal.Body>
+                    <p>Are you sure you want to leave "{club.name}"?</p>
+                    <p>You will no longer have access to club content and will need to request to join again if you want to return.</p>
+                </Modal.Body>
+                <Modal.Actions>
+                    <button 
+                        onClick={confirmLeaveClub} 
+                        disabled={isLeavingClub}
+                        className="button-cancel"
+                        style={{ backgroundColor: '#d32f2f', borderColor: '#d32f2f' }}
+                    >
+                        {isLeavingClub ? (
+                            <>
+                                <Modal.LoadingSpinner />
+                                Leaving...
+                            </>
+                        ) : (
+                            'Leave Club'
+                        )}
+                    </button>
+                    <button 
+                        onClick={cancelLeaveClub} 
+                        disabled={isLeavingClub}
+                        className="button-accept"
+                    >
+                        Cancel
+                    </button>
+                </Modal.Actions>
+            </Modal>
         </Layout>
     );
 };

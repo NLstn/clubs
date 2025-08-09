@@ -8,7 +8,7 @@ import AdminClubTeamList from './teams/AdminClubTeamList';
 import AdminClubFineList from './fines/AdminClubFineList';
 import AdminClubEventList from './events/AdminClubEventList';
 import AdminClubNewsList from './news/AdminClubNewsList';
-import { Input } from '@/components/ui';
+import { Input, Modal } from '@/components/ui';
 import AdminClubSettings from './settings/AdminClubSettings';
 import { useClubSettings } from '../../../hooks/useClubSettings';
 import { useT } from '../../../hooks/useTranslation';
@@ -460,53 +460,57 @@ const AdminClubDetails = () => {
             </div>
 
             {/* Delete Confirmation Popup */}
-            {showDeletePopup && (
-                <div className="modal" onClick={() => setShowDeletePopup(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h2>{t('clubs.deleteClub')}</h2>
-                        <p>{t('clubs.deleteConfirmation', { clubName: club?.name })}</p>
-                        <div className="modal-actions">
-                            <button 
-                                onClick={confirmDeleteClub} 
-                                className="button-cancel"
-                            >
-                                {t('common.delete')}
-                            </button>
-                            <button 
-                                onClick={() => setShowDeletePopup(false)} 
-                                className="button-accept"
-                            >
-                                {t('common.cancel')}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Modal 
+                isOpen={showDeletePopup} 
+                onClose={() => setShowDeletePopup(false)} 
+                title={t('clubs.deleteClub')}
+                maxWidth="450px"
+            >
+                <Modal.Body>
+                    <p>{t('clubs.deleteConfirmation', { clubName: club?.name })}</p>
+                </Modal.Body>
+                <Modal.Actions>
+                    <button 
+                        onClick={confirmDeleteClub} 
+                        className="button-cancel"
+                    >
+                        {t('common.delete')}
+                    </button>
+                    <button 
+                        onClick={() => setShowDeletePopup(false)} 
+                        className="button-accept"
+                    >
+                        {t('common.cancel')}
+                    </button>
+                </Modal.Actions>
+            </Modal>
 
             {/* Hard Delete Confirmation Popup */}
-            {showHardDeletePopup && (
-                <div className="modal" onClick={() => setShowHardDeletePopup(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h2>{t('clubs.hardDeleteClub')}</h2>
-                        <p>{t('clubs.hardDeleteConfirmation', { clubName: club?.name })}</p>
-                        <div className="modal-actions">
-                            <button 
-                                onClick={confirmHardDeleteClub} 
-                                className="button-cancel"
-                                style={{ backgroundColor: '#d32f2f', borderColor: '#d32f2f' }}
-                            >
-                                {t('clubs.hardDeleteClub')}
-                            </button>
-                            <button 
-                                onClick={() => setShowHardDeletePopup(false)} 
-                                className="button-accept"
-                            >
-                                {t('common.cancel')}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Modal 
+                isOpen={showHardDeletePopup} 
+                onClose={() => setShowHardDeletePopup(false)} 
+                title={t('clubs.hardDeleteClub')}
+                maxWidth="450px"
+            >
+                <Modal.Body>
+                    <p>{t('clubs.hardDeleteConfirmation', { clubName: club?.name })}</p>
+                </Modal.Body>
+                <Modal.Actions>
+                    <button 
+                        onClick={confirmHardDeleteClub} 
+                        className="button-cancel"
+                        style={{ backgroundColor: '#d32f2f', borderColor: '#d32f2f' }}
+                    >
+                        {t('clubs.hardDeleteClub')}
+                    </button>
+                    <button 
+                        onClick={() => setShowHardDeletePopup(false)} 
+                        className="button-accept"
+                    >
+                        {t('common.cancel')}
+                    </button>
+                </Modal.Actions>
+            </Modal>
         </Layout>
     );
 };
