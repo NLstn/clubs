@@ -215,7 +215,6 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                 </button>
                 <button 
                     type="submit"
-                    onClick={handleSubmit}
                     disabled={!selectedOption || !amount || !reason || isSubmitting} 
                     className="button-accept"
                 >
