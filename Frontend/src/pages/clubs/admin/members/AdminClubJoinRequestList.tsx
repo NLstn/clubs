@@ -81,7 +81,6 @@ const AdminClubJoinRequestList = () => {
 
     return (
         <div>
-            <h3>Join Requests</h3>
             <p>People who want to join your club via invitation link:</p>
             <Table
                 columns={columns}
