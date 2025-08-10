@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Layout from '../../components/layout/Layout';
+import TeamNews from './TeamNews';
+import TeamUpcomingEvents from './TeamUpcomingEvents';
+import TeamFines from './TeamFines';
+import TeamMembers from './TeamMembers';
+import { useT } from '../../hooks/useTranslation';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import './TeamDetails.css';
 
 interface Team {
@@ -12,100 +18,98 @@ interface Team {
     clubId: string;
 }
 
-interface TeamStats {
-    member_count: number;
-    admin_count: number;
-    upcoming_events: number;
-    total_events: number;
-    unpaid_fines: number;
-    total_fines: number;
-}
-
-interface TeamOverview {
-    team: Team;
-    stats: TeamStats;
-    user_role: string;
-    is_admin: boolean;
-}
-
-interface Event {
-    id: string;
-    name: string;
-    description: string;
-    location: string;
-    start_time: string;
-    end_time: string;
-}
-
 const TeamDetails = () => {
+    const { t } = useT();
     const { clubId, teamId } = useParams();
     const navigate = useNavigate();
-    const [teamOverview, setTeamOverview] = useState<TeamOverview | null>(null);
-    const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+    const { user: currentUser } = useCurrentUser();
+    const [team, setTeam] = useState<Team | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState('');
+    const [teamNotFound, setTeamNotFound] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [userRole, setUserRole] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchTeamData = async () => {
-            if (!clubId || !teamId) {
-                setError('Missing club or team ID');
-                setLoading(false);
-                return;
-            }
-
+        const fetchData = async () => {
             try {
-                const [overviewResponse, eventsResponse] = await Promise.all([
-                    api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/overview`),
-                    api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/events/upcoming`)
+                const [teamResponse, adminResponse] = await Promise.all([
+                    api.get(`/api/v1/clubs/${clubId}/teams/${teamId}`),
+                    api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/isAdmin`)
                 ]);
+                const teamData = teamResponse.data;
+                setTeam(teamData);
+                setIsAdmin(adminResponse.data.isAdmin);
 
-                setTeamOverview(overviewResponse.data);
-                setUpcomingEvents(eventsResponse.data || []);
-                setError(null);
+                // Get user's role by fetching team members and finding current user
+                try {
+                    const membersResponse = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/members`);
+                    const currentUserMember = membersResponse.data.find((member: { userId: string; role: string }) => member.userId === currentUser?.ID);
+                    if (currentUserMember) {
+                        setUserRole(currentUserMember.role);
+                    }
+                } catch (memberErr) {
+                    // If we can't fetch members, we might not be a member or might not have access
+                    console.warn('Could not fetch team member information:', memberErr);
+                }
+                
+                setLoading(false);
             } catch (err: unknown) {
                 console.error('Error fetching team details:', err);
+                
+                // Check if it's a 404 or 403 error (team not found or unauthorized)
                 if (err && typeof err === 'object' && 'response' in err) {
                     const axiosError = err as { response?: { status?: number } };
-                    if (axiosError.response?.status === 404) {
-                        setError('Team not found');
-                    } else if (axiosError.response?.status === 403) {
-                        setError('You do not have access to this team');
+                    if (axiosError.response?.status === 404 || axiosError.response?.status === 403) {
+                        setTeamNotFound(true);
                     } else {
-                        setError('Failed to load team details');
+                        setError(t('teams.errors.loadingTeam') || 'Error fetching team details');
                     }
                 } else {
-                    setError('Failed to load team details');
+                    setError(t('teams.errors.loadingTeam') || 'Error fetching team details');
                 }
-            } finally {
                 setLoading(false);
             }
         };
 
-        fetchTeamData();
-    }, [clubId, teamId]);
+        if (clubId && teamId) {
+            fetchData();
+        } else {
+            setError('No club or team ID provided');
+            setLoading(false);
+        }
+    }, [clubId, teamId, t, currentUser?.ID]);
 
-    if (loading) return <div>Loading team details...</div>;
+    if (loading) return <div>Loading...</div>;
+    if (teamNotFound) return <div className="error">Team not found or you don't have access to this team</div>;
     if (error) return <div className="error">{error}</div>;
-    if (!teamOverview) return <div>Team not found</div>;
-
-    const { team, stats, user_role, is_admin } = teamOverview;
+    if (!team) return <div>Team not found</div>;
 
     return (
         <Layout title={team.name}>
-            <div className="team-details-container">
+            <div className="club-details-container">
                 {/* Team Header */}
-                <div className="team-header-section">
-                    <div className="team-header-content">
-                        <div className="team-main-info">
-                            <h1 className="team-title">{team.name}</h1>
+                <div className="club-header-section">
+                    <div className="club-header-content">
+                        {/* Team Logo Placeholder */}
+                        <div className="club-logo-section">
+                            <div className="club-logo-placeholder">
+                                <span className="logo-placeholder-text">
+                                    {team.name.charAt(0).toUpperCase()}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="club-main-info">
+                            <h1 className="club-title">{team.name}</h1>
                             {team.description && (
-                                <p className="team-description">{team.description}</p>
+                                <p className="club-description">{team.description}</p>
                             )}
-                            {user_role && (
+                            {userRole && (
                                 <div className="user-role-container">
                                     <span className="role-label">Your role</span>
-                                    <div className={`role-badge role-${user_role}`}>
-                                        <span className="role-text">{user_role}</span>
+                                    <div className={`role-badge role-${userRole}`}>
+                                        <span className="role-text">{userRole}</span>
                                     </div>
                                 </div>
                             )}
@@ -113,14 +117,8 @@ const TeamDetails = () => {
                     </div>
                     
                     {/* Action Buttons */}
-                    <div className="team-actions">
-                        <button 
-                            className="button button-secondary"
-                            onClick={() => navigate(`/clubs/${clubId}`)}
-                        >
-                            Back to Club
-                        </button>
-                        {is_admin && (
+                    <div className="club-actions">
+                        {isAdmin && (
                             <button 
                                 className="button button-primary"
                                 onClick={() => navigate(`/clubs/${clubId}/teams/${teamId}/admin`)}
@@ -128,97 +126,22 @@ const TeamDetails = () => {
                                 Manage Team
                             </button>
                         )}
+                        <button 
+                            className="button button-cancel"
+                            onClick={() => navigate(`/clubs/${clubId}`)}
+                        >
+                            Back to Club
+                        </button>
                     </div>
                 </div>
 
-                {/* Team Stats */}
-                <div className="team-stats-section">
-                    <h3>Team Overview</h3>
-                    <div className="stats-grid">
-                        <div className="stat-card">
-                            <div className="stat-number">{stats.member_count}</div>
-                            <div className="stat-label">Members</div>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-number">{stats.admin_count}</div>
-                            <div className="stat-label">Admins</div>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-number">{stats.upcoming_events}</div>
-                            <div className="stat-label">Upcoming Events</div>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-number">{stats.total_events}</div>
-                            <div className="stat-label">Total Events</div>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-number">{stats.unpaid_fines}</div>
-                            <div className="stat-label">Unpaid Fines</div>
-                        </div>
-                        <div className="stat-card">
-                            <div className="stat-number">{stats.total_fines}</div>
-                            <div className="stat-label">Total Fines</div>
-                        </div>
-                    </div>
+                {/* Content Sections */}
+                <div className="club-content">
+                    <TeamNews />
+                    <TeamUpcomingEvents />
+                    <TeamFines />
+                    <TeamMembers />
                 </div>
-
-                {/* Upcoming Events Section */}
-                {upcomingEvents.length > 0 && (
-                    <div className="team-content-section">
-                        <h3>Upcoming Events</h3>
-                        <div className="events-list">
-                            {upcomingEvents.map(event => (
-                                <div key={event.id} className="event-card">
-                                    <div className="event-header">
-                                        <h4 className="event-name">{event.name}</h4>
-                                        <div className="event-time">
-                                            {new Date(event.start_time).toLocaleDateString()} at{' '}
-                                            {new Date(event.start_time).toLocaleTimeString([], { 
-                                                hour: '2-digit', 
-                                                minute: '2-digit' 
-                                            })}
-                                        </div>
-                                    </div>
-                                    {event.description && (
-                                        <p className="event-description">{event.description}</p>
-                                    )}
-                                    {event.location && (
-                                        <p className="event-location">📍 {event.location}</p>
-                                    )}
-                                    {is_admin && (
-                                        <div className="event-actions">
-                                            <button 
-                                                className="button button-sm button-secondary"
-                                                onClick={() => navigate(`/clubs/${clubId}/teams/${teamId}/admin/events`)}
-                                            >
-                                                Manage Events
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* No Content Messages */}
-                {upcomingEvents.length === 0 && (
-                    <div className="team-content-section">
-                        <div className="no-content-message">
-                            <h3>No upcoming events</h3>
-                            {is_admin && (
-                                <p>
-                                    <button 
-                                        className="button button-primary"
-                                        onClick={() => navigate(`/clubs/${clubId}/teams/${teamId}/admin/events`)}
-                                    >
-                                        Create First Event
-                                    </button>
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                )}
             </div>
         </Layout>
     );
