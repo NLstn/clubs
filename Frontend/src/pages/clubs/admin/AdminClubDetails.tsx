@@ -13,7 +13,7 @@ import AdminClubSettings from './settings/AdminClubSettings';
 import { useClubSettings } from '../../../hooks/useClubSettings';
 import { useT } from '../../../hooks/useTranslation';
 import { removeRecentClub } from '../../../utils/recentClubs';
-import './AdminClubDetails.css';
+import AdminClubOverview from './AdminClubOverview';
 
 interface Club {
     id: string;
@@ -42,6 +42,12 @@ const AdminClubDetails = () => {
     const [showHardDeletePopup, setShowHardDeletePopup] = useState(false);
     const [logoUploading, setLogoUploading] = useState(false);
     const [logoError, setLogoError] = useState<string | null>(null);
+
+    const metrics = [
+        { label: t('clubs.members'), value: clubSettings?.membersListVisible ? 'Visible' : 'Hidden' },
+        { label: t('clubs.teams'), value: clubSettings?.teamsEnabled ? 'Enabled' : 'Disabled' },
+        { label: t('clubs.fines'), value: clubSettings?.finesEnabled ? 'Enabled' : 'Disabled' },
+    ];
 
     useEffect(() => {
         const fetchData = async () => {
@@ -317,113 +323,18 @@ const AdminClubDetails = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <>
-                                    <div className="club-header">
-                                        <div className="club-info">
-                                            <div className="club-logo-section">
-                                                {club.logo_url ? (
-                                                    <div className="club-logo-container">
-                                                        <img 
-                                                            src={club.logo_url} 
-                                                            alt={`${club.name} logo`}
-                                                            className="club-logo"
-                                                        />
-                                                        {!club.deleted && (
-                                                            <div className="logo-actions">
-                                                                <input
-                                                                    type="file"
-                                                                    id="logo-upload"
-                                                                    accept="image/png,image/jpeg,image/jpg,image/webp"
-                                                                    onChange={handleLogoUpload}
-                                                                    style={{ display: 'none' }}
-                                                                />
-                                                                <button
-                                                                    onClick={() => document.getElementById('logo-upload')?.click()}
-                                                                    className="logo-change-btn"
-                                                                    disabled={logoUploading}
-                                                                >
-                                                                    {logoUploading ? 'Uploading...' : 'Change'}
-                                                                </button>
-                                                                <button
-                                                                    onClick={handleLogoDelete}
-                                                                    className="logo-delete-btn"
-                                                                    disabled={logoUploading}
-                                                                >
-                                                                    Delete
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <div className="club-logo-placeholder">
-                                                        <div 
-                                                            className="logo-placeholder"
-                                                            onClick={!club.deleted ? () => document.getElementById('logo-upload')?.click() : undefined}
-                                                        >
-                                                            {!club.deleted ? 'Click to upload logo' : 'No logo'}
-                                                        </div>
-                                                        {!club.deleted && (
-                                                            <input
-                                                                type="file"
-                                                                id="logo-upload"
-                                                                accept="image/png,image/jpeg,image/jpg,image/webp"
-                                                                onChange={handleLogoUpload}
-                                                                style={{ display: 'none' }}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="club-details">
-                                                <h2>{club.name}</h2>
-                                                <p>{club.description}</p>
-                                                {logoError && (
-                                                    <div className="logo-error">
-                                                        {logoError}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div className="club-actions">
-                                            {!club.deleted && (
-                                                <>
-                                                    <button onClick={handleEdit} className="button-accept">{t('clubs.editClub')}</button>
-                                                    {isOwner && (
-                                                        <button 
-                                                            onClick={handleDeleteClub} 
-                                                            className="button-cancel"
-                                                            style={{ marginLeft: '10px' }}
-                                                        >
-                                                            {t('clubs.deleteClub')}
-                                                        </button>
-                                                    )}
-                                                </>
-                                            )}
-                                            {club.deleted && isOwner && (
-                                                <button 
-                                                    onClick={handleHardDeleteClub} 
-                                                    className="button-cancel"
-                                                    style={{ backgroundColor: '#d32f2f', borderColor: '#d32f2f' }}
-                                                >
-                                                    {t('clubs.hardDeleteClub')}
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                    {club.deleted && (
-                                        <div className="club-deleted-notice" style={{ 
-                                            backgroundColor: '#f44336', 
-                                            color: 'white', 
-                                            padding: '15px', 
-                                            marginTop: '15px',
-                                            borderRadius: '4px',
-                                            fontWeight: 'bold',
-                                            border: '1px solid #d32f2f'
-                                        }}>
-                                            <strong>{t('clubs.clubDeleted')}</strong>
-                                        </div>
-                                    )}
-                                </>
+                                <AdminClubOverview
+                                    club={club}
+                                    isOwner={isOwner}
+                                    logoUploading={logoUploading}
+                                    logoError={logoError}
+                                    onEdit={handleEdit}
+                                    onDelete={handleDeleteClub}
+                                    onHardDelete={handleHardDeleteClub}
+                                    onLogoUpload={handleLogoUpload}
+                                    onLogoDelete={handleLogoDelete}
+                                    metrics={metrics}
+                                />
                             )}
                         </div>
 
