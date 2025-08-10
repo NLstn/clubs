@@ -15,6 +15,10 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
     const [location, setLocation] = useState<string>('');
     const [startTime, setStartTime] = useState<string>('');
     const [endTime, setEndTime] = useState<string>('');
+    const [isRecurring, setIsRecurring] = useState<boolean>(false);
+    const [recurrencePattern, setRecurrencePattern] = useState<string>('weekly');
+    const [recurrenceInterval, setRecurrenceInterval] = useState<number>(1);
+    const [recurrenceEnd, setRecurrenceEnd] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -34,22 +38,53 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
             return;
         }
 
+        if (isRecurring && !recurrenceEnd) {
+            setError("Please specify when recurring events should end");
+            return;
+        }
+
+        if (isRecurring) {
+            const recurrenceEndDateTime = new Date(recurrenceEnd);
+            if (recurrenceEndDateTime <= startDateTime) {
+                setError("Recurrence end must be after start date/time");
+                return;
+            }
+        }
+
         setError(null);
         setIsSubmitting(true);
         
         try {
-            await api.post(`/api/v1/clubs/${clubId}/events`, { 
+            const endpoint = isRecurring 
+                ? `/api/v1/clubs/${clubId}/events/recurring`
+                : `/api/v1/clubs/${clubId}/events`;
+
+            const payload = {
                 name,
                 description,
                 location,
                 start_time: startDateTime.toISOString(),
-                end_time: endDateTime.toISOString()
-            });
+                end_time: endDateTime.toISOString(),
+                ...(isRecurring && {
+                    recurrence_pattern: recurrencePattern,
+                    recurrence_interval: recurrenceInterval,
+                    recurrence_end: new Date(recurrenceEnd).toISOString()
+                })
+            };
+
+            await api.post(endpoint, payload);
+            
+            // Reset form
             setName('');
             setDescription('');
             setLocation('');
             setStartTime('');
             setEndTime('');
+            setIsRecurring(false);
+            setRecurrencePattern('weekly');
+            setRecurrenceInterval(1);
+            setRecurrenceEnd('');
+            
             onSuccess();
             onClose();
         } catch (error: unknown) {
@@ -69,6 +104,10 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
         setLocation('');
         setStartTime('');
         setEndTime('');
+        setIsRecurring(false);
+        setRecurrencePattern('weekly');
+        setRecurrenceInterval(1);
+        setRecurrenceEnd('');
         setError(null);
         onClose();
     };
@@ -126,6 +165,57 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                         onChange={(e) => setEndTime(e.target.value)}
                         disabled={isSubmitting}
                     />
+
+                    <div className="modal-form-section">
+                        <label className="checkbox-label">
+                            <input
+                                type="checkbox"
+                                checked={isRecurring}
+                                onChange={(e) => setIsRecurring(e.target.checked)}
+                                disabled={isSubmitting}
+                            />
+                            Make this a recurring event
+                        </label>
+                    </div>
+
+                    {isRecurring && (
+                        <>
+                            <div className="modal-form-section">
+                                <label htmlFor="recurrencePattern">Recurrence Pattern</label>
+                                <select
+                                    id="recurrencePattern"
+                                    value={recurrencePattern}
+                                    onChange={(e) => setRecurrencePattern(e.target.value)}
+                                    disabled={isSubmitting}
+                                    className="form-select"
+                                >
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+
+                            <Input
+                                label={`Every ${recurrenceInterval} ${recurrencePattern === 'daily' ? 'day(s)' : recurrencePattern === 'weekly' ? 'week(s)' : 'month(s)'}`}
+                                id="recurrenceInterval"
+                                type="number"
+                                min="1"
+                                max="52"
+                                value={recurrenceInterval.toString()}
+                                onChange={(e) => setRecurrenceInterval(parseInt(e.target.value) || 1)}
+                                disabled={isSubmitting}
+                            />
+
+                            <Input
+                                label="Stop Recurring After"
+                                id="recurrenceEnd"
+                                type="date"
+                                value={recurrenceEnd}
+                                onChange={(e) => setRecurrenceEnd(e.target.value)}
+                                disabled={isSubmitting}
+                            />
+                        </>
+                    )}
                 </div>
             </Modal.Body>
 

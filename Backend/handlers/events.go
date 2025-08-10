@@ -22,6 +22,14 @@ func registerEventRoutes(mux *http.ServeMux) {
 		}
 	})))
 
+	mux.Handle("/api/v1/clubs/{clubid}/events/recurring", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			handleCreateRecurringEvent(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
 	mux.Handle("/api/v1/clubs/{clubid}/events/{eventid}", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
@@ -217,6 +225,104 @@ func handleCreateEvent(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(event)
+}
+
+// POST /api/v1/clubs/{clubid}/events/recurring
+func handleCreateRecurringEvent(w http.ResponseWriter, r *http.Request) {
+	type CreateRecurringEventRequest struct {
+		Name               string `json:"name"`
+		Description        string `json:"description"`
+		Location           string `json:"location"`
+		StartTime          string `json:"start_time"`
+		EndTime            string `json:"end_time"`
+		RecurrencePattern  string `json:"recurrence_pattern"`  // "daily", "weekly", "monthly"
+		RecurrenceInterval int    `json:"recurrence_interval"` // Every N intervals
+		RecurrenceEnd      string `json:"recurrence_end"`      // When to stop creating events
+	}
+
+	user := extractUser(r)
+	clubID := extractPathParam(r, "clubs")
+
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	club, err := models.GetClubByID(clubID)
+	if err == gorm.ErrRecordNotFound {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Failed to get club information", http.StatusInternalServerError)
+		return
+	}
+
+	if !club.IsOwner(user) && !club.IsAdmin(user) {
+		http.Error(w, "Unauthorized - admin access required", http.StatusForbidden)
+		return
+	}
+
+	var req CreateRecurringEventRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Validate recurrence pattern
+	if req.RecurrencePattern != "daily" && req.RecurrencePattern != "weekly" && req.RecurrencePattern != "monthly" {
+		http.Error(w, "Invalid recurrence pattern. Must be 'daily', 'weekly', or 'monthly'", http.StatusBadRequest)
+		return
+	}
+
+	if req.RecurrenceInterval < 1 {
+		http.Error(w, "Recurrence interval must be at least 1", http.StatusBadRequest)
+		return
+	}
+
+	// Parse timestamps
+	startTime, err := time.Parse(time.RFC3339, req.StartTime)
+	if err != nil {
+		http.Error(w, "Invalid start time format. Expected RFC3339 timestamp", http.StatusBadRequest)
+		return
+	}
+
+	endTime, err := time.Parse(time.RFC3339, req.EndTime)
+	if err != nil {
+		http.Error(w, "Invalid end time format. Expected RFC3339 timestamp", http.StatusBadRequest)
+		return
+	}
+
+	recurrenceEnd, err := time.Parse(time.RFC3339, req.RecurrenceEnd)
+	if err != nil {
+		http.Error(w, "Invalid recurrence end time format. Expected RFC3339 timestamp", http.StatusBadRequest)
+		return
+	}
+
+	if startTime.After(endTime) || startTime.Equal(endTime) {
+		http.Error(w, "Start time must be before end time", http.StatusBadRequest)
+		return
+	}
+
+	if recurrenceEnd.Before(startTime) {
+		http.Error(w, "Recurrence end time must be after start time", http.StatusBadRequest)
+		return
+	}
+
+	events, err := club.CreateRecurringEvent(req.Name, req.Description, req.Location, startTime, endTime,
+		req.RecurrencePattern, req.RecurrenceInterval, recurrenceEnd, user.ID)
+	if err != nil {
+		http.Error(w, "Failed to create recurring events: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"message":     "Recurring events created successfully",
+		"event_count": len(events),
+		"events":      events,
+	})
 }
 
 // PUT /api/v1/clubs/{clubid}/events/{eventid}
