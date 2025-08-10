@@ -255,6 +255,8 @@ func SetupTestDB(t *testing.T) {
 			news_created_email BOOLEAN DEFAULT FALSE,
 			role_changed_in_app BOOLEAN DEFAULT TRUE,
 			role_changed_email BOOLEAN DEFAULT TRUE,
+			join_request_in_app BOOLEAN DEFAULT TRUE,
+			join_request_email BOOLEAN DEFAULT TRUE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)

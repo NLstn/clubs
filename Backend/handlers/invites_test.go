@@ -211,11 +211,13 @@ func TestInviteEndpoints(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(notifications))
 
-		notification := notifications[0]
-		assert.Equal(t, "Invitation to Test Club", notification.Title)
-		assert.Contains(t, notification.Message, "You have been invited to join the club Test Club")
-		assert.Equal(t, club.ID, *notification.ClubID)
-		assert.False(t, notification.Read)
+		if len(notifications) > 0 {
+			notification := notifications[0]
+			assert.Equal(t, "Invitation to Test Club", notification.Title)
+			assert.Contains(t, notification.Message, "You have been invited to join the club Test Club")
+			assert.Equal(t, club.ID, *notification.ClubID)
+			assert.False(t, notification.Read)
+		}
 	})
 
 	t.Run("Accept Invite - Removes Notification and No Member Added Notification", func(t *testing.T) {
