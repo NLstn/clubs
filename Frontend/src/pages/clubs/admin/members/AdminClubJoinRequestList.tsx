@@ -8,7 +8,11 @@ interface JoinRequest {
     email: string;
 }
 
-const AdminClubJoinRequestList = () => {
+interface AdminClubJoinRequestListProps {
+    onRequestsChange?: () => void;
+}
+
+const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestListProps) => {
     const { id } = useParams();
     const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
     const [loading, setLoading] = useState(true);
@@ -65,6 +69,7 @@ const AdminClubJoinRequestList = () => {
         try {
             await api.post(`/api/v1/joinRequests/${requestId}/accept`);
             setJoinRequests(joinRequests.filter(request => request.id !== requestId));
+            onRequestsChange?.(); // Notify parent component about the change
         } catch (error) {
             console.error("Error approving join request:", error);
         }
@@ -74,6 +79,7 @@ const AdminClubJoinRequestList = () => {
         try {
             await api.post(`/api/v1/joinRequests/${requestId}/reject`);
             setJoinRequests(joinRequests.filter(request => request.id !== requestId));
+            onRequestsChange?.(); // Notify parent component about the change
         } catch (error) {
             console.error("Error rejecting join request:", error);
         }
