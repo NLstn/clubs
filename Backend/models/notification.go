@@ -27,22 +27,24 @@ type Notification struct {
 
 // UserNotificationPreferences represents user's notification settings
 type UserNotificationPreferences struct {
-	ID                  string    `json:"id" gorm:"type:uuid;primary_key"`
-	UserID              string    `json:"userId" gorm:"type:uuid;not null;unique"`
-	MemberAddedInApp    bool      `json:"memberAddedInApp" gorm:"default:true"`
-	MemberAddedEmail    bool      `json:"memberAddedEmail" gorm:"default:true"`
-	InviteReceivedInApp bool      `json:"inviteReceivedInApp" gorm:"default:true"`
-	InviteReceivedEmail bool      `json:"inviteReceivedEmail" gorm:"default:true"`
-	EventCreatedInApp   bool      `json:"eventCreatedInApp" gorm:"default:true"`
-	EventCreatedEmail   bool      `json:"eventCreatedEmail" gorm:"default:false"`
-	FineAssignedInApp   bool      `json:"fineAssignedInApp" gorm:"default:true"`
-	FineAssignedEmail   bool      `json:"fineAssignedEmail" gorm:"default:true"`
-	NewsCreatedInApp    bool      `json:"newsCreatedInApp" gorm:"default:true"`
-	NewsCreatedEmail    bool      `json:"newsCreatedEmail" gorm:"default:false"`
-	RoleChangedInApp    bool      `json:"roleChangedInApp" gorm:"default:true"`
-	RoleChangedEmail    bool      `json:"roleChangedEmail" gorm:"default:true"`
-	CreatedAt           time.Time `json:"createdAt"`
-	UpdatedAt           time.Time `json:"updatedAt"`
+	ID                     string    `json:"id" gorm:"type:uuid;primary_key"`
+	UserID                 string    `json:"userId" gorm:"type:uuid;not null;unique"`
+	MemberAddedInApp       bool      `json:"memberAddedInApp" gorm:"default:true"`
+	MemberAddedEmail       bool      `json:"memberAddedEmail" gorm:"default:true"`
+	InviteReceivedInApp    bool      `json:"inviteReceivedInApp" gorm:"default:true"`
+	InviteReceivedEmail    bool      `json:"inviteReceivedEmail" gorm:"default:true"`
+	EventCreatedInApp      bool      `json:"eventCreatedInApp" gorm:"default:true"`
+	EventCreatedEmail      bool      `json:"eventCreatedEmail" gorm:"default:false"`
+	FineAssignedInApp      bool      `json:"fineAssignedInApp" gorm:"default:true"`
+	FineAssignedEmail      bool      `json:"fineAssignedEmail" gorm:"default:true"`
+	NewsCreatedInApp       bool      `json:"newsCreatedInApp" gorm:"default:true"`
+	NewsCreatedEmail       bool      `json:"newsCreatedEmail" gorm:"default:false"`
+	RoleChangedInApp       bool      `json:"roleChangedInApp" gorm:"default:true"`
+	RoleChangedEmail       bool      `json:"roleChangedEmail" gorm:"default:true"`
+	JoinRequestInApp       bool      `json:"joinRequestInApp" gorm:"default:true"`
+	JoinRequestEmail       bool      `json:"joinRequestEmail" gorm:"default:true"`
+	CreatedAt              time.Time `json:"createdAt"`
+	UpdatedAt              time.Time `json:"updatedAt"`
 }
 
 // BeforeCreate sets the ID for new notifications
@@ -157,6 +159,8 @@ func CreateDefaultUserNotificationPreferences(userID string) (UserNotificationPr
 		NewsCreatedEmail:    false,
 		RoleChangedInApp:    true,
 		RoleChangedEmail:    true,
+		JoinRequestInApp:    true,
+		JoinRequestEmail:    true,
 	}
 	err := database.Db.Create(&preferences).Error
 	return preferences, err
