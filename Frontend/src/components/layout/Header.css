@@ -34,7 +34,8 @@
 .header-actions {
   display: flex;
   align-items: center;
-  margin-right: 50px;
+  margin-right: var(--space-md);
+  gap: var(--space-sm);
 }
 
 /* Mobile Responsive Header */
@@ -55,7 +56,7 @@
   }
 
   .header-actions {
-    margin-right: var(--space-sm);
+    margin-right: var(--space-xs);
     gap: var(--space-xs);
   }
 }
@@ -81,11 +82,12 @@
 
   .header-actions {
     margin-right: 0;
+    gap: var(--space-xs);
   }
 
   .userIcon {
-    width: 35px;
-    height: 35px;
+    width: 36px;
+    height: 36px;
     font-size: 0.9rem;
   }
 

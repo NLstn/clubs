@@ -164,8 +164,8 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .global-search {
-    max-width: 300px;
-    margin-right: var(--space-sm);
+    max-width: 250px;
+    margin-right: var(--space-xs);
   }
 
   .search-input {
@@ -199,7 +199,7 @@
 
 @media (max-width: 480px) {
   .global-search {
-    max-width: 200px;
+    max-width: 160px;
     margin-right: var(--space-xs);
   }
 
