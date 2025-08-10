@@ -1135,6 +1135,8 @@ select:focus {
   color: var(--color-text-secondary);
   border-bottom: 2px solid transparent;
   transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
 }
 
 /* Mobile responsive tabs */

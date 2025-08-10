@@ -91,8 +91,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       // Extract club name from notification title/message if available
       const clubName = notification.message.match(/join (.+)$/)?.[1] || 'Club';
       addRecentClub(notification.clubId, clubName);
-      // Navigate to admin page with members tab and join requests modal open
-      navigate(`/clubs/${notification.clubId}/admin?tab=members&openJoinRequests=true`);
+      // Navigate to admin members page with join requests modal open
+      navigate(`/clubs/${notification.clubId}/admin/members?openJoinRequests=true`);
     }
   };
 
