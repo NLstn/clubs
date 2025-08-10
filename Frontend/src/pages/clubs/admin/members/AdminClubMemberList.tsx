@@ -321,7 +321,7 @@ const AdminClubMemberList = () => {
                         {/* Pending Invites Section */}
                         <div>
                             <h4 style={{ marginBottom: '12px', fontSize: '1.1em', fontWeight: '600' }}>Pending Invites</h4>
-                            <AdminClubPendingInviteList key={Date.now()} />
+                            <AdminClubPendingInviteList />
                         </div>
                     </Modal.Body>
                     <Modal.Actions>
