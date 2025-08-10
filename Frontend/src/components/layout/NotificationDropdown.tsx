@@ -86,6 +86,13 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       // Extract club name from notification message if available
       addRecentClub(notification.clubId, notification.title.split(' - ')[0] || 'Club');
       navigate(`/clubs/${notification.clubId}`);
+    } else if (notification.type === 'join_request_received' && notification.clubId) {
+      setIsOpen(false); // Close the dropdown
+      // Extract club name from notification title/message if available
+      const clubName = notification.message.match(/join (.+)$/)?.[1] || 'Club';
+      addRecentClub(notification.clubId, clubName);
+      // Navigate to admin page with members tab and join requests modal open
+      navigate(`/clubs/${notification.clubId}/admin?tab=members&openJoinRequests=true`);
     }
   };
 
@@ -121,6 +128,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         return '💰';
       case 'news_created':
         return '📰';
+      case 'join_request_received':
+        return '🙋';
       default:
         return '📢';
     }
