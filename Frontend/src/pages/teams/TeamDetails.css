@@ -1,244 +1,372 @@
-.team-details-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: var(--space-lg);
+/* Use same styling as ClubDetails for consistency */
+.club-details-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0;
 }
 
-.team-header-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--space-xl);
-    padding: var(--space-lg);
-    background: var(--color-surface);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--color-border);
+/* Club Header Section */
+.club-header-section {
+  background: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-lg);
 }
 
-.team-header-content {
-    flex: 1;
+.club-header-content {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-lg);
+  flex: 1;
 }
 
-.team-main-info {
-    flex: 1;
+.club-logo-section {
+  flex-shrink: 0;
 }
 
-.team-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--color-text);
-    margin: 0 0 var(--space-sm) 0;
+.club-logo-placeholder {
+  width: 80px;
+  height: 80px;
+  background: var(--color-primary);
+  border-radius: var(--border-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
-.team-description {
-    font-size: 1.1rem;
-    color: var(--color-text-secondary);
-    margin: 0 0 var(--space-md) 0;
-    line-height: 1.6;
+.logo-placeholder-text {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+}
+
+.club-main-info {
+  flex: 1;
+}
+
+.club-title {
+  margin: 0 0 var(--space-md) 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.club-description {
+  margin: 0 0 var(--space-md) 0;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
 }
 
 .user-role-container {
-    margin-top: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
 }
 
 .role-label {
-    font-size: 0.875rem;
-    color: var(--color-text-secondary);
-    display: block;
-    margin-bottom: var(--space-xs);
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .role-badge {
-    display: inline-block;
-    padding: var(--space-xs) var(--space-sm);
-    border-radius: var(--border-radius);
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-transform: capitalize;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: var(--border-radius-sm);
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border: 2px solid;
+}
+
+.role-text {
+  font-weight: 700;
 }
 
 .role-badge.role-admin {
-    background-color: var(--color-primary-light);
-    color: var(--color-primary-dark);
-    border: 1px solid var(--color-primary);
+  background: #1e3a8a;
+  color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
 
 .role-badge.role-member {
-    background-color: var(--color-neutral-light);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
+  background: #374151;
+  color: #f9fafb;
+  border-color: #6b7280;
+  box-shadow: 0 2px 8px rgba(107, 114, 128, 0.2);
 }
 
-.team-actions {
-    display: flex;
-    gap: var(--space-sm);
-    margin-left: var(--space-lg);
+/* Action Buttons */
+.club-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  align-items: flex-end;
 }
 
-.team-stats-section {
-    margin-bottom: var(--space-xl);
+.club-actions .button {
+  min-width: 150px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.team-stats-section h3 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 0 0 var(--space-lg) 0;
-    color: var(--color-text);
+.club-actions .button-primary {
+  background-color: #007bff;
+  color: white;
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: var(--space-md);
+.club-actions .button-primary:hover:not(:disabled) {
+  background-color: #0056b3;
 }
 
-.stat-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
-    padding: var(--space-lg);
-    text-align: center;
-    transition: box-shadow 0.2s ease;
+/* Content Sections */
+.club-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
 }
 
-.stat-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.club-content > div {
+  background: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease;
 }
 
-.stat-number {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--color-primary);
-    margin-bottom: var(--space-xs);
+.club-content > div:hover {
+  box-shadow: var(--shadow-md);
 }
 
-.stat-label {
-    font-size: 0.875rem;
-    color: var(--color-text-secondary);
-    font-weight: 500;
+.club-content > div h3 {
+  margin: 0 0 var(--space-md) 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-text);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--color-primary);
 }
 
-.team-content-section {
-    margin-bottom: var(--space-xl);
+/* Legacy content-section class for backward compatibility */
+.content-section {
+  background: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease;
 }
 
-.team-content-section h3 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin: 0 0 var(--space-lg) 0;
-    color: var(--color-text);
+.content-section:hover {
+  box-shadow: var(--shadow-md);
 }
 
-.events-list {
-    display: grid;
-    gap: var(--space-md);
+.content-section h3 {
+  margin: 0 0 var(--space-md) 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-text);
+  padding-bottom: var(--space-sm);
+  border-bottom: 2px solid var(--color-primary);
 }
 
-.event-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
-    padding: var(--space-lg);
-    transition: box-shadow 0.2s ease;
-}
-
-.event-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.event-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--space-sm);
-}
-
-.event-name {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0;
-    color: var(--color-text);
-}
-
-.event-time {
-    font-size: 0.875rem;
-    color: var(--color-text-secondary);
-    white-space: nowrap;
-}
-
-.event-description {
-    color: var(--color-text-secondary);
-    margin: var(--space-sm) 0;
-    line-height: 1.5;
-}
-
-.event-location {
-    color: var(--color-text-secondary);
-    font-size: 0.875rem;
-    margin: var(--space-sm) 0;
-}
-
-.event-actions {
-    margin-top: var(--space-md);
-    padding-top: var(--space-sm);
-    border-top: 1px solid var(--color-border);
-}
-
-.no-content-message {
-    text-align: center;
-    padding: var(--space-xl);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
-}
-
-.no-content-message h3 {
-    color: var(--color-text-secondary);
-    margin: 0 0 var(--space-md) 0;
-}
-
-.no-content-message p {
-    margin: 0;
-}
-
-.error {
-    color: var(--color-danger);
-    background: var(--color-danger-light);
-    border: 1px solid var(--color-danger);
-    border-radius: var(--border-radius);
-    padding: var(--space-md);
-    margin: var(--space-md) 0;
-}
-
+/* Mobile Responsive */
 @media (max-width: 768px) {
-    .team-header-section {
-        flex-direction: column;
-        gap: var(--space-md);
-    }
-    
-    .team-actions {
-        margin-left: 0;
-        width: 100%;
-    }
-    
-    .team-actions .button {
-        flex: 1;
-        text-align: center;
-    }
-    
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .event-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--space-xs);
-    }
+  .club-details-container {
+    padding: 0 var(--space-sm);
+  }
+
+  .club-header-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+  }
+
+  .club-header-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-md);
+  }
+
+  .club-logo-placeholder {
+    width: 60px;
+    height: 60px;
+  }
+
+  .logo-placeholder-text {
+    font-size: 1.5rem;
+  }
+
+  .club-main-info {
+    text-align: center;
+  }
+
+  .club-title {
+    font-size: 2rem;
+  }
+
+  .club-actions {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .club-actions .button {
+    min-width: auto;
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .content-section {
+    padding: var(--space-md);
+  }
+
+  .user-role-container {
+    align-items: center;
+    flex-direction: row;
+    gap: var(--space-sm);
+    margin-top: var(--space-xs);
+  }
+
+  .role-label {
+    font-size: 0.75rem;
+  }
+
+  .role-badge {
+    font-size: 0.8rem;
+    padding: 5px 12px;
+  }
 }
 
 @media (max-width: 480px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
+  .club-header-section {
+    padding: var(--space-md);
+  }
+
+  .club-title {
+    font-size: 1.75rem;
+  }
+
+  .club-description {
+    font-size: 1rem;
+  }
+
+  .club-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .club-actions .button {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .content-section {
+    padding: var(--space-sm);
+  }
+
+  .content-section h3 {
+    font-size: 1.2rem;
+  }
+
+  .user-role-container {
+    align-items: center;
+    flex-direction: row;
+    gap: var(--space-xs);
+    margin-top: 0;
+  }
+
+  .role-label {
+    font-size: 0.7rem;
+  }
+
+  .role-badge {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+  }
+}
+
+/* Animation for content sections */
+.club-content > div {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.club-content > div:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.club-content > div:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.club-content > div:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.club-content > div:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+/* Legacy animation for content-section */
+.content-section {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.content-section:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.content-section:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.content-section:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.content-section:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Error styles */
+.error {
+  color: var(--color-danger);
+  background: var(--color-danger-light);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--border-radius);
+  padding: var(--space-md);
+  margin: var(--space-md) 0;
 }
