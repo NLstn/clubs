@@ -27,7 +27,11 @@ interface ClubMember {
     role: string;
 }
 
-const AdminClubTeamList = () => {
+interface AdminClubTeamListProps {
+    createTeamTrigger?: number;
+}
+
+const AdminClubTeamList = ({ createTeamTrigger = 0 }: AdminClubTeamListProps) => {
     const { t } = useT();
     const { id: clubId } = useParams();
     const [teams, setTeams] = useState<Team[]>([]);
@@ -81,6 +85,12 @@ const AdminClubTeamList = () => {
         };
         loadData();
     }, [fetchTeams, fetchClubMembers]);
+
+    useEffect(() => {
+        if (createTeamTrigger > 0) {
+            setShowCreateModal(true);
+        }
+    }, [createTeamTrigger]);
 
     useEffect(() => {
         if (selectedTeam) {

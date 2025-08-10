@@ -1,5 +1,4 @@
 import { useT } from '../../../hooks/useTranslation';
-import styles from './AdminClubOverview.module.css';
 
 interface Club {
     id: string;
@@ -7,11 +6,6 @@ interface Club {
     description: string;
     logo_url?: string;
     deleted?: boolean;
-}
-
-interface Metric {
-    label: string;
-    value: number | string;
 }
 
 interface AdminClubOverviewProps {
@@ -24,7 +18,10 @@ interface AdminClubOverviewProps {
     onHardDelete: () => void;
     onLogoUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onLogoDelete: () => void;
-    metrics?: Metric[];
+    openFinesCount: number;
+    onCreateEvent: () => void;
+    onCreateTeam?: () => void;
+    teamsEnabled?: boolean;
 }
 
 const AdminClubOverview = ({
@@ -37,41 +34,46 @@ const AdminClubOverview = ({
     onHardDelete,
     onLogoUpload,
     onLogoDelete,
-    metrics = []
+    openFinesCount,
+    onCreateEvent,
+    onCreateTeam,
+    teamsEnabled = false
 }: AdminClubOverviewProps) => {
     const { t } = useT();
 
     return (
         <>
-            <div className={styles.header}>
-                <div className={styles.info}>
-                    <div className={styles.logoSection}>
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                <div className="flex gap-4">
+                    <div>
                         {club.logo_url ? (
-                            <div className={styles.logoContainer}>
+                            <div className="flex flex-col items-center">
                                 <img
                                     src={club.logo_url}
                                     alt={`${club.name} logo`}
-                                    className={styles.logo}
+                                    className="h-24 w-24 rounded object-cover"
                                 />
                                 {!club.deleted && (
-                                    <div className={styles.logoActions}>
+                                    <div className="mt-2 flex gap-2">
                                         <input
                                             type="file"
                                             id="logo-upload"
                                             accept="image/png,image/jpeg,image/jpg,image/webp"
                                             onChange={onLogoUpload}
-                                            style={{ display: 'none' }}
+                                            className="hidden"
                                         />
                                         <button
                                             onClick={() => document.getElementById('logo-upload')?.click()}
-                                            className={`${styles.logoButton} ${styles.change}`}
+                                            className="button-accept"
                                             disabled={logoUploading}
                                         >
-                                            {logoUploading ? t('common.uploading') || 'Uploading...' : t('common.change') || 'Change'}
+                                            {logoUploading
+                                                ? t('common.uploading') || 'Uploading...'
+                                                : t('common.change') || 'Change'}
                                         </button>
                                         <button
                                             onClick={onLogoDelete}
-                                            className={`${styles.logoButton} ${styles.delete}`}
+                                            className="button-cancel"
                                             disabled={logoUploading}
                                         >
                                             {t('common.delete')}
@@ -80,12 +82,14 @@ const AdminClubOverview = ({
                                 )}
                             </div>
                         ) : (
-                            <div className={styles.placeholderContainer}>
+                            <div className="flex flex-col items-center">
                                 <div
-                                    className={styles.placeholder}
+                                    className={`flex h-24 w-24 items-center justify-center border text-center text-sm text-gray-500 ${!club.deleted ? 'cursor-pointer' : ''}`}
                                     onClick={!club.deleted ? () => document.getElementById('logo-upload')?.click() : undefined}
                                 >
-                                    {!club.deleted ? t('clubs.uploadLogoPrompt') || 'Click to upload logo' : t('clubs.noLogo') || 'No logo'}
+                                    {!club.deleted
+                                        ? t('clubs.uploadLogoPrompt') || 'Click to upload logo'
+                                        : t('clubs.noLogo') || 'No logo'}
                                 </div>
                                 {!club.deleted && (
                                     <input
@@ -93,28 +97,26 @@ const AdminClubOverview = ({
                                         id="logo-upload"
                                         accept="image/png,image/jpeg,image/jpg,image/webp"
                                         onChange={onLogoUpload}
-                                        style={{ display: 'none' }}
+                                        className="hidden"
                                     />
                                 )}
                             </div>
                         )}
                     </div>
-                    <div className={styles.details}>
-                        <h2>{club.name}</h2>
+                    <div>
+                        <h2 className="text-2xl font-bold">{club.name}</h2>
                         <p>{club.description}</p>
-                        {logoError && <div className={styles.logoError}>{logoError}</div>}
+                        {logoError && <div className="text-red-500">{logoError}</div>}
                     </div>
                 </div>
-                <div className={styles.actions}>
+                <div className="flex flex-wrap gap-2">
                     {!club.deleted && (
                         <>
-                            <button onClick={onEdit} className="button-accept">{t('clubs.editClub')}</button>
+                            <button onClick={onEdit} className="button-accept">
+                                {t('clubs.editClub')}
+                            </button>
                             {isOwner && (
-                                <button
-                                    onClick={onDelete}
-                                    className="button-cancel"
-                                    style={{ marginLeft: '10px' }}
-                                >
+                                <button onClick={onDelete} className="button-cancel">
                                     {t('clubs.deleteClub')}
                                 </button>
                             )}
@@ -132,19 +134,28 @@ const AdminClubOverview = ({
                 </div>
             </div>
 
-            {metrics.length > 0 && (
-                <div className={styles.metrics}>
-                    {metrics.map((metric) => (
-                        <div key={metric.label} className={styles.metricCard}>
-                            <div className={styles.metricValue}>{metric.value}</div>
-                            <div className={styles.metricLabel}>{metric.label}</div>
-                        </div>
-                    ))}
+            <div className="mt-4 flex flex-wrap gap-2">
+                <button onClick={onCreateEvent} className="button-accept">
+                    {t('events.addEvent') || 'Add Event'}
+                </button>
+                {teamsEnabled && onCreateTeam && (
+                    <button onClick={onCreateTeam} className="button-accept">
+                        {t('teams.createTeam')}
+                    </button>
+                )}
+            </div>
+
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+                <div className="rounded border p-4 text-center">
+                    <div className="text-2xl font-bold">{openFinesCount}</div>
+                    <div className="text-sm text-gray-600">
+                        {t('clubs.openFines') || 'Open fines'}
+                    </div>
                 </div>
-            )}
+            </div>
 
             {club.deleted && (
-                <div className={styles.deletedNotice}>
+                <div className="mt-4 text-red-600">
                     <strong>{t('clubs.clubDeleted')}</strong>
                 </div>
             )}
@@ -153,3 +164,4 @@ const AdminClubOverview = ({
 };
 
 export default AdminClubOverview;
+

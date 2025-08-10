@@ -27,7 +27,11 @@ interface Shift {
     endTime: string;
 }
 
-const AdminClubEventList = () => {
+interface AdminClubEventListProps {
+    addEventTrigger?: number;
+}
+
+const AdminClubEventList = ({ addEventTrigger = 0 }: AdminClubEventListProps) => {
     const { id } = useParams();
     const [events, setEvents] = useState<Event[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -79,6 +83,12 @@ const AdminClubEventList = () => {
     useEffect(() => {
         fetchEvents();
     }, [fetchEvents]);
+
+    useEffect(() => {
+        if (addEventTrigger > 0) {
+            setIsAddModalOpen(true);
+        }
+    }, [addEventTrigger]);
 
     const handleEditEvent = (event: Event) => {
         setSelectedEvent(event);

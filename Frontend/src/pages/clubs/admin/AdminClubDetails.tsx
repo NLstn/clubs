@@ -42,12 +42,9 @@ const AdminClubDetails = () => {
     const [showHardDeletePopup, setShowHardDeletePopup] = useState(false);
     const [logoUploading, setLogoUploading] = useState(false);
     const [logoError, setLogoError] = useState<string | null>(null);
-
-    const metrics = [
-        { label: t('clubs.members'), value: clubSettings?.membersListVisible ? 'Visible' : 'Hidden' },
-        { label: t('clubs.teams'), value: clubSettings?.teamsEnabled ? 'Enabled' : 'Disabled' },
-        { label: t('clubs.fines'), value: clubSettings?.finesEnabled ? 'Enabled' : 'Disabled' },
-    ];
+    const [openFinesCount, setOpenFinesCount] = useState(0);
+    const [addEventTrigger, setAddEventTrigger] = useState(0);
+    const [createTeamTrigger, setCreateTeamTrigger] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -107,6 +104,23 @@ const AdminClubDetails = () => {
             }
         }
     }, [clubSettings, activeTab]);
+
+    useEffect(() => {
+        const fetchOpenFines = async () => {
+            if (!id || !clubSettings?.finesEnabled) {
+                setOpenFinesCount(0);
+                return;
+            }
+            try {
+                const response = await api.get(`/api/v1/clubs/${id}/fines`);
+                const fines = Array.isArray(response.data) ? response.data : [];
+                setOpenFinesCount(fines.filter((f: { paid: boolean }) => !f.paid).length);
+            } catch (err) {
+                console.error('Error fetching open fines:', err);
+            }
+        };
+        fetchOpenFines();
+    }, [id, clubSettings?.finesEnabled]);
 
     const updateClub = async () => {
         try {
@@ -173,6 +187,16 @@ const AdminClubDetails = () => {
         } finally {
             setShowHardDeletePopup(false);
         }
+    };
+
+    const handleQuickAddEvent = () => {
+        setActiveTab('events');
+        setAddEventTrigger((n) => n + 1);
+    };
+
+    const handleQuickCreateTeam = () => {
+        setActiveTab('teams');
+        setCreateTeamTrigger((n) => n + 1);
     };
 
     const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -333,7 +357,10 @@ const AdminClubDetails = () => {
                                     onHardDelete={handleHardDeleteClub}
                                     onLogoUpload={handleLogoUpload}
                                     onLogoDelete={handleLogoDelete}
-                                    metrics={metrics}
+                                    openFinesCount={openFinesCount}
+                                    onCreateEvent={handleQuickAddEvent}
+                                    onCreateTeam={clubSettings?.teamsEnabled ? handleQuickCreateTeam : undefined}
+                                    teamsEnabled={clubSettings?.teamsEnabled}
                                 />
                             )}
                         </div>
@@ -344,7 +371,7 @@ const AdminClubDetails = () => {
 
                         {clubSettings?.teamsEnabled && (
                             <div className={`tab-panel ${activeTab === 'teams' ? 'active' : ''}`}>
-                                <AdminClubTeamList />
+                                <AdminClubTeamList createTeamTrigger={createTeamTrigger} />
                             </div>
                         )}
 
@@ -356,7 +383,7 @@ const AdminClubDetails = () => {
 
 
                         <div className={`tab-panel ${activeTab === 'events' ? 'active' : ''}`}>
-                            <AdminClubEventList />
+                            <AdminClubEventList addEventTrigger={addEventTrigger} />
                         </div>
 
                         <div className={`tab-panel ${activeTab === 'news' ? 'active' : ''}`}>
