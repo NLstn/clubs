@@ -355,3 +355,59 @@ func (t *Team) CanUserDeleteTeam(user User) bool {
 	// Only club owners/admins can delete teams
 	return club.IsAdmin(user)
 }
+
+// GetTeamStats returns statistics for the team
+func (t *Team) GetTeamStats() (map[string]interface{}, error) {
+	stats := make(map[string]interface{})
+	
+	// Get member count
+	var memberCount int64
+	err := database.Db.Model(&TeamMember{}).Where("team_id = ?", t.ID).Count(&memberCount).Error
+	if err != nil {
+		return nil, err
+	}
+	stats["member_count"] = memberCount
+	
+	// Get admin count
+	var adminCount int64
+	err = database.Db.Model(&TeamMember{}).Where("team_id = ? AND role = ?", t.ID, "admin").Count(&adminCount).Error
+	if err != nil {
+		return nil, err
+	}
+	stats["admin_count"] = adminCount
+	
+	// Get upcoming events count
+	var upcomingEventCount int64
+	now := time.Now()
+	err = database.Db.Model(&Event{}).Where("team_id = ? AND start_time >= ?", t.ID, now).Count(&upcomingEventCount).Error
+	if err != nil {
+		return nil, err
+	}
+	stats["upcoming_events"] = upcomingEventCount
+	
+	// Get total events count
+	var totalEventCount int64
+	err = database.Db.Model(&Event{}).Where("team_id = ?", t.ID).Count(&totalEventCount).Error
+	if err != nil {
+		return nil, err
+	}
+	stats["total_events"] = totalEventCount
+	
+	// Get unpaid fines count
+	var unpaidFineCount int64
+	err = database.Db.Model(&Fine{}).Where("team_id = ? AND paid = false", t.ID).Count(&unpaidFineCount).Error
+	if err != nil {
+		return nil, err
+	}
+	stats["unpaid_fines"] = unpaidFineCount
+	
+	// Get total fines count
+	var totalFineCount int64
+	err = database.Db.Model(&Fine{}).Where("team_id = ?", t.ID).Count(&totalFineCount).Error
+	if err != nil {
+		return nil, err
+	}
+	stats["total_fines"] = totalFineCount
+	
+	return stats, nil
+}

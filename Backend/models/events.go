@@ -9,6 +9,7 @@ import (
 type Event struct {
 	ID          string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
 	ClubID      string    `gorm:"type:uuid;not null" json:"club_id"`
+	TeamID      *string   `gorm:"type:uuid" json:"team_id,omitempty"` // Optional team association
 	Name        string    `gorm:"not null" json:"name"`
 	Description string    `gorm:"type:text" json:"description"`
 	Location    string    `gorm:"type:varchar(255)" json:"location"`
@@ -198,4 +199,87 @@ func SearchEventsForUser(userID, query string) ([]EventWithClub, error) {
 		Scan(&events).Error
 
 	return events, err
+}
+
+// CreateEvent creates a new event for the team
+func (t *Team) CreateEvent(name string, description string, location string, startTime, endTime time.Time, createdBy string) (*Event, error) {
+	event := Event{
+		ClubID:      t.ClubID,
+		TeamID:      &t.ID,
+		Name:        name,
+		Description: description,
+		Location:    location,
+		StartTime:   startTime,
+		EndTime:     endTime,
+		CreatedBy:   createdBy,
+		UpdatedBy:   createdBy,
+	}
+
+	tx := database.Db.Create(&event)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	return &event, nil
+}
+
+// GetEvents returns all events for the team
+func (t *Team) GetEvents() ([]Event, error) {
+	var events []Event
+	err := database.Db.Where("team_id = ?", t.ID).Order("start_time ASC").Find(&events).Error
+	return events, err
+}
+
+// GetUpcomingEvents returns upcoming events for the team
+func (t *Team) GetUpcomingEvents() ([]Event, error) {
+	var events []Event
+	now := time.Now()
+	err := database.Db.Where("team_id = ? AND start_time >= ?", t.ID, now).
+		Order("start_time ASC").Find(&events).Error
+	return events, err
+}
+
+// UpdateEvent updates an existing team event
+func (t *Team) UpdateEvent(eventID string, name string, description string, location string, startTime, endTime time.Time, updatedBy string) (*Event, error) {
+	var event Event
+	err := database.Db.Where("id = ? AND team_id = ?", eventID, t.ID).First(&event).Error
+	if err != nil {
+		return nil, err
+	}
+
+	event.Name = name
+	event.Description = description
+	event.Location = location
+	event.StartTime = startTime
+	event.EndTime = endTime
+	event.UpdatedBy = updatedBy
+
+	err = database.Db.Save(&event).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &event, nil
+}
+
+// DeleteEvent deletes a team event
+func (t *Team) DeleteEvent(eventID string) error {
+	// First delete all RSVPs for this event
+	err := database.Db.Where("event_id = ?", eventID).Delete(&EventRSVP{}).Error
+	if err != nil {
+		return err
+	}
+
+	// Then delete the event
+	return database.Db.Where("id = ? AND team_id = ?", eventID, t.ID).Delete(&Event{}).Error
+}
+
+// GetEventByID returns a team event by ID
+func (t *Team) GetEventByID(eventID string) (*Event, error) {
+	var event Event
+	err := database.Db.Where("id = ? AND team_id = ?", eventID, t.ID).First(&event).Error
+	if err != nil {
+		return nil, err
+	}
+	return &event, nil
 }
