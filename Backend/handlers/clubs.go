@@ -59,7 +59,8 @@ func registerClubRoutes(mux *http.ServeMux) {
 // ClubWithRole represents a club with the user's role in that club
 type ClubWithRole struct {
 	models.Club
-	UserRole string `json:"user_role"`
+	UserRole  string        `json:"user_role"`
+	UserTeams []models.Team `json:"user_teams,omitempty"`
 }
 
 // endpoint: GET /api/v1/clubs
@@ -89,9 +90,17 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 				role = "member"
 			}
 
+			// Get user's teams in this club
+			userTeams, err := models.GetUserTeams(user.ID, club.ID)
+			if err != nil {
+				// If we can't get the teams, default to empty slice
+				userTeams = []models.Team{}
+			}
+
 			clubWithRole := ClubWithRole{
-				Club:     club,
-				UserRole: role,
+				Club:      club,
+				UserRole:  role,
+				UserTeams: userTeams,
 			}
 			authorizedClubs = append(authorizedClubs, clubWithRole)
 		}

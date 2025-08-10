@@ -1,6 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams } from "react-router-dom";
-import api from "../../utils/api";
 import { useT } from "../../hooks/useTranslation";
 
 interface News {
@@ -13,7 +11,6 @@ interface News {
 
 const TeamNews = () => {
     const { t } = useT();
-    const { clubId, teamId } = useParams();
     const [news, setNews] = useState<News[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -22,8 +19,8 @@ const TeamNews = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/news`);
-            setNews(response.data || []);
+            // Team news endpoint doesn't exist yet, so return empty array
+            setNews([]);
         } catch (error) {
             console.error("Error fetching team news:", error);
             setError(error instanceof Error ? error.message : "Failed to fetch team news");
@@ -31,7 +28,7 @@ const TeamNews = () => {
         } finally {
             setLoading(false);
         }
-    }, [clubId, teamId]);
+    }, []);
 
     useEffect(() => {
         fetchNews();
@@ -53,20 +50,20 @@ const TeamNews = () => {
         }
     };
 
-    if (loading) return <div>{t('teams.loading.news') || 'Loading team news...'}</div>;
-    if (error) return <div className="error">{t('teams.errors.loadingNews', { error }) || `Error loading team news: ${error}`}</div>;
+    if (loading) return <div>{t('teams.loading.news')}</div>;
+    if (error) return <div className="error">{t('teams.errors.loadingNews', { error })}</div>;
     if (!news || news.length === 0) return null; // Don't show the section if there's no news
 
     return (
         <div className="news-section">
-            <h3>{t('teams.latestNews') || 'Latest Team News'}</h3>
+            <h3>{t('teams.latestNews')}</h3>
             <div>
                 {news.map(newsItem => (
                     <div key={newsItem.id} className="news-card">
                         <h4 className="news-title">{newsItem.title}</h4>
                         <p className="news-content">{newsItem.content}</p>
                         <small className="news-meta">
-                            {t('news.postedOn') || 'Posted on'} {formatDateTime(newsItem.created_at)}
+                            {t('news.postedOn')} {formatDateTime(newsItem.created_at)}
                         </small>
                     </div>
                 ))}

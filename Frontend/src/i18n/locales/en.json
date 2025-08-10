@@ -129,9 +129,17 @@
     "addAsAdmin": "Add as Admin",
     "promoteToAdmin": "Promote to Admin",
     "demoteToMember": "Demote to Member",
+    "latestNews": "Latest Team News",
     "roles": {
       "admin": "Admin",
       "member": "Member"
+    },
+    "loading": {
+      "news": "Loading team news..."
+    },
+    "errors": {
+      "loadingTeam": "Error loading team details",
+      "loadingNews": "Error loading team news: {{error}}"
     }
   },
   "fines": {

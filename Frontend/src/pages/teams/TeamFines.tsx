@@ -23,7 +23,7 @@ const TeamFines = () => {
     const fetchFines = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/fines/user`);
+            const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/fines`);
             setFines(response.data || []);
             setError(null);
         } catch (err) {
