@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import api, { hardDeleteClub } from '../../../utils/api';
 import Layout from '../../../components/layout/Layout';
 import ClubNotFound from '../ClubNotFound';
@@ -27,6 +27,7 @@ const AdminClubDetails = () => {
     const { t } = useT();
     const { id } = useParams();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [club, setClub] = useState<Club | null>(null);
     const { settings: clubSettings, refetch: refetchSettings } = useClubSettings(id);
     
@@ -59,6 +60,13 @@ const AdminClubDetails = () => {
 
                 setClub(clubResponse.data);
                 setIsOwner(adminResponse.data.isOwner || false);
+                
+                // Check for URL parameters to set initial tab
+                const tabParam = searchParams.get('tab');
+                if (tabParam) {
+                    setActiveTab(tabParam);
+                }
+                
                 setLoading(false);
             } catch (err: unknown) {
                 console.error('Error fetching club details:', err);
@@ -88,7 +96,7 @@ const AdminClubDetails = () => {
             setError('No club ID provided');
             setLoading(false);
         }
-    }, [id, navigate, t]);
+    }, [id, navigate, t, searchParams]);
 
     // Reset to valid tab if current tab becomes unavailable
     useEffect(() => {
@@ -428,7 +436,7 @@ const AdminClubDetails = () => {
                         </div>
 
                         <div className={`tab-panel ${activeTab === 'members' ? 'active' : ''}`}>
-                            <AdminClubMemberList />
+                            <AdminClubMemberList openJoinRequests={searchParams.get('openJoinRequests') === 'true'} />
                         </div>
 
                         {clubSettings?.teamsEnabled && (

@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import AdminClubJoinRequestList from "./AdminClubJoinRequestList";
 import AdminClubPendingInviteList from "./AdminClubPendingInviteList";
-import { Table, TableColumn, Input } from '@/components/ui';
+import { Table, TableColumn, Input, Button } from '@/components/ui';
 import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useT } from "../../../../hooks/useTranslation";
 import { useCurrentUser } from "../../../../hooks/useCurrentUser";
 import { useOwnerCount } from "../../../../hooks/useOwnerCount";
@@ -18,9 +18,14 @@ interface Member {
     birthDate?: string; // Add birth date field
 }
 
-const AdminClubMemberList = () => {
+interface AdminClubMemberListProps {
+    openJoinRequests?: boolean;
+}
+
+const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListProps) => {
     const { t } = useT();
     const { id } = useParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { user: currentUser } = useCurrentUser();
     const { ownerCount, refetch: refetchOwnerCount } = useOwnerCount(id || '');
 
@@ -110,6 +115,24 @@ const AdminClubMemberList = () => {
         fetchMembers();
         fetchJoinRequestCount();
     }, [fetchMembers, fetchJoinRequestCount]);
+
+    // Automatically open join requests modal if specified via URL parameter
+    useEffect(() => {
+        if (openJoinRequests && !loading) {
+            setShowJoinRequests(true);
+        }
+    }, [openJoinRequests, loading]);
+
+    const handleCloseJoinRequests = () => {
+        setShowJoinRequests(false);
+        
+        // Clear URL parameters when closing the modal
+        if (searchParams.get('openJoinRequests') === 'true') {
+            const newSearchParams = new URLSearchParams(searchParams);
+            newSearchParams.delete('openJoinRequests');
+            setSearchParams(newSearchParams);
+        }
+    };
 
     const handleRoleChange = async (memberId: string, newRole: string) => {
         try {
@@ -296,11 +319,15 @@ const AdminClubMemberList = () => {
                 }
             />
             <div className="member-actions buttons" style={{ marginTop: 'var(--space-md)' }}>
-                <button onClick={() => setShowManageInvites(true)} className="button-accept">Manage Invites</button>
-                <button onClick={handleShowInviteLink} className="button-accept">Generate Invite Link</button>
-                <button onClick={() => setShowJoinRequests(true)}>
-                    View Join Requests{joinRequestCount > 0 && ` (${joinRequestCount})`}
-                </button>
+                <Button onClick={() => setShowManageInvites(true)} variant="accept">Manage Invites</Button>
+                <Button onClick={handleShowInviteLink} variant="accept">Generate Invite Link</Button>
+                <Button 
+                    onClick={() => setShowJoinRequests(true)}
+                    variant="primary"
+                    counter={joinRequestCount}
+                >
+                    View Join Requests
+                </Button>
             </div>
             {showManageInvites && (
                 <Modal 
@@ -382,14 +409,14 @@ const AdminClubMemberList = () => {
             {showJoinRequests && (
                 <Modal 
                     isOpen={showJoinRequests} 
-                    onClose={() => setShowJoinRequests(false)}
+                    onClose={handleCloseJoinRequests}
                     title="Join Requests"
                 >
                     <Modal.Body>
                         <AdminClubJoinRequestList onRequestsChange={fetchJoinRequestCount} />
                     </Modal.Body>
                     <Modal.Actions>
-                        <button onClick={() => setShowJoinRequests(false)} className="button-cancel">Close</button>
+                        <button onClick={handleCloseJoinRequests} className="button-cancel">Close</button>
                     </Modal.Actions>
                 </Modal>
             )}

@@ -1,0 +1,188 @@
+.ui-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--border-radius-sm);
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.ui-button:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.ui-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ui-button:focus,
+.ui-button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+/* Button variants */
+.ui-button--primary {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.ui-button--primary:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.ui-button--secondary {
+  background-color: var(--color-secondary);
+  color: white;
+}
+
+.ui-button--secondary:hover:not(:disabled) {
+  background-color: var(--color-secondary-hover);
+}
+
+.ui-button--accept {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.ui-button--accept:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.ui-button--cancel {
+  background-color: var(--color-cancel);
+  color: white;
+}
+
+.ui-button--cancel:hover:not(:disabled) {
+  background-color: var(--color-cancel-hover);
+}
+
+.ui-button--maybe {
+  background-color: orange;
+  color: white;
+}
+
+.ui-button--maybe:hover:not(:disabled) {
+  background-color: #ff8c00;
+}
+
+/* Button sizes */
+.ui-button--sm {
+  padding: calc(var(--space-sm) * 0.75) var(--space-sm);
+  font-size: 0.875rem;
+  min-height: 36px;
+}
+
+.ui-button--md {
+  padding: var(--space-sm) var(--space-md);
+  font-size: 1rem;
+  min-height: 44px;
+}
+
+.ui-button--lg {
+  padding: calc(var(--space-sm) * 1.25) calc(var(--space-md) * 1.25);
+  font-size: 1.125rem;
+  min-height: 52px;
+}
+
+/* Full width variant */
+.ui-button--full-width {
+  width: 100%;
+}
+
+/* Counter styles */
+.ui-button--with-counter {
+  padding-right: calc(var(--space-md) + var(--space-xs));
+}
+
+.ui-button__content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-button__counter {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background-color: var(--color-cancel);
+  color: white;
+  border-radius: 50%;
+  min-width: 20px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 2px solid var(--color-background);
+  /* Ensure perfect circle */
+  flex-shrink: 0;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Larger counter for two-digit numbers */
+.ui-button__counter[data-large] {
+  min-width: 22px;
+  width: 22px;
+  height: 22px;
+  font-size: 0.6rem;
+  top: -7px;
+  right: -7px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .ui-button {
+    min-height: 44px;
+    padding: var(--space-sm) var(--space-md);
+    font-size: 1rem;
+  }
+
+  .ui-button--sm {
+    min-height: 40px;
+    padding: calc(var(--space-sm) * 0.75) var(--space-sm);
+    font-size: 0.875rem;
+  }
+
+  .ui-button--lg {
+    min-height: 48px;
+    padding: calc(var(--space-sm) * 1.25) calc(var(--space-md) * 1.25);
+    font-size: 1.125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ui-button {
+    min-height: 48px;
+    padding: var(--space-sm) var(--space-sm);
+    font-size: 0.95rem;
+  }
+
+  .ui-button--sm {
+    min-height: 44px;
+    padding: calc(var(--space-sm) * 0.75) calc(var(--space-sm) * 0.75);
+    font-size: 0.875rem;
+  }
+
+  .ui-button--lg {
+    min-height: 52px;
+    padding: calc(var(--space-sm) * 1.25) var(--space-md);
+    font-size: 1.05rem;
+  }
+}
