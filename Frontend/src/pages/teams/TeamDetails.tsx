@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Layout from '../../components/layout/Layout';
-import { useT } from '../../hooks/useTranslation';
 import './TeamDetails.css';
 
 interface Team {
@@ -39,7 +38,6 @@ interface Event {
 }
 
 const TeamDetails = () => {
-    const { t } = useT();
     const { clubId, teamId } = useParams();
     const navigate = useNavigate();
     const [teamOverview, setTeamOverview] = useState<TeamOverview | null>(null);

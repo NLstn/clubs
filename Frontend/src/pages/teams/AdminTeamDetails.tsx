@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Layout from '../../components/layout/Layout';
 import { Input, Modal } from '@/components/ui';
-import { useT } from '../../hooks/useTranslation';
 import './AdminTeamDetails.css';
 
 interface Team {
@@ -50,7 +49,6 @@ interface Fine {
 }
 
 const AdminTeamDetails = () => {
-    const { t } = useT();
     const { clubId, teamId } = useParams();
     const navigate = useNavigate();
     const [teamOverview, setTeamOverview] = useState<TeamOverview | null>(null);
