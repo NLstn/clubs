@@ -33,6 +33,7 @@ const AdminClubMemberList = () => {
     const [inviteLink, setInviteLink] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [joinRequestCount, setJoinRequestCount] = useState<number>(0);
 
     const translateRole = (role: string): string => {
         return t(`clubs.roles.${role}`) || role;
@@ -72,6 +73,16 @@ const AdminClubMemberList = () => {
         }
     }, [id, sortMembersByRole, currentUser]);
 
+    const fetchJoinRequestCount = useCallback(async () => {
+        try {
+            const response = await api.get(`/api/v1/clubs/${id}/joinRequests/count`);
+            setJoinRequestCount(response.data.count || 0);
+        } catch (error) {
+            console.error("Error fetching join request count:", error);
+            setJoinRequestCount(0);
+        }
+    }, [id]);
+
     const handleShowInviteLink = async () => {
         try {
             const response = await api.get(`/api/v1/clubs/${id}/inviteLink`);
@@ -97,7 +108,8 @@ const AdminClubMemberList = () => {
 
     useEffect(() => {
         fetchMembers();
-    }, [fetchMembers]);
+        fetchJoinRequestCount();
+    }, [fetchMembers, fetchJoinRequestCount]);
 
     const handleRoleChange = async (memberId: string, newRole: string) => {
         try {
@@ -286,7 +298,9 @@ const AdminClubMemberList = () => {
             <div className="member-actions buttons" style={{ marginTop: 'var(--space-md)' }}>
                 <button onClick={() => setShowManageInvites(true)} className="button-accept">Manage Invites</button>
                 <button onClick={handleShowInviteLink} className="button-accept">Generate Invite Link</button>
-                <button onClick={() => setShowJoinRequests(true)}>View Join Requests</button>
+                <button onClick={() => setShowJoinRequests(true)}>
+                    View Join Requests{joinRequestCount > 0 && ` (${joinRequestCount})`}
+                </button>
             </div>
             {showManageInvites && (
                 <Modal 
@@ -372,7 +386,7 @@ const AdminClubMemberList = () => {
                     title="Join Requests"
                 >
                     <Modal.Body>
-                        <AdminClubJoinRequestList />
+                        <AdminClubJoinRequestList onRequestsChange={fetchJoinRequestCount} />
                     </Modal.Body>
                     <Modal.Actions>
                         <button onClick={() => setShowJoinRequests(false)} className="button-cancel">Close</button>
