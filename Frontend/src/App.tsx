@@ -22,6 +22,8 @@ const ProfilePrivacy = lazy(() => import('./pages/profile/ProfilePrivacy'));
 const ProfileNotificationSettings = lazy(() => import('./pages/profile/ProfileNotificationSettings'));
 const EventDetails = lazy(() => import('./pages/clubs/events/EventDetails'));
 const AdminEventDetails = lazy(() => import('./pages/clubs/admin/events/AdminEventDetails'));
+const TeamDetails = lazy(() => import('./pages/teams/TeamDetails'));
+const AdminTeamDetails = lazy(() => import('./pages/teams/AdminTeamDetails'));
 
 // Loading component for suspense fallback
 const PageLoader = () => (
@@ -41,7 +43,7 @@ function App() {
         <AuthProvider>
             <BrowserRouter>
                 <Suspense fallback={<PageLoader />}>
-                    <Routes>
+                    <Routes data-testid="routes">
                         <Route path="/" element={
                             <ProtectedRoute>
                                 <Dashboard />
@@ -86,6 +88,24 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <AdminEventDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:clubId/teams/:teamId"
+                            element={
+                                <ProtectedRoute>
+                                    <TeamDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:clubId/teams/:teamId/admin"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminTeamDetails />
                                 </ProtectedRoute>
                             }
                         />
