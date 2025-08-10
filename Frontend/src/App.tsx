@@ -75,6 +75,60 @@ function App() {
                         />
 
                         <Route
+                            path="/clubs/:id/admin/members"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminClubDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:id/admin/teams"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminClubDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:id/admin/fines"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminClubDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:id/admin/events"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminClubDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:id/admin/news"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminClubDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:id/admin/settings"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminClubDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
                             path="/clubs/:clubId/events/:eventId"
                             element={
                                 <ProtectedRoute>

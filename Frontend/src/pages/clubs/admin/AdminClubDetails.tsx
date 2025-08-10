@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import api, { hardDeleteClub } from '../../../utils/api';
 import Layout from '../../../components/layout/Layout';
 import ClubNotFound from '../ClubNotFound';
@@ -27,9 +27,24 @@ const AdminClubDetails = () => {
     const { t } = useT();
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [searchParams] = useSearchParams();
     const [club, setClub] = useState<Club | null>(null);
     const { settings: clubSettings, refetch: refetchSettings } = useClubSettings(id);
+    
+    // Determine current tab from route
+    const getCurrentTab = () => {
+        const path = location.pathname;
+        if (path.includes('/admin/members')) return 'members';
+        if (path.includes('/admin/teams')) return 'teams';
+        if (path.includes('/admin/fines')) return 'fines';
+        if (path.includes('/admin/events')) return 'events';
+        if (path.includes('/admin/news')) return 'news';
+        if (path.includes('/admin/settings')) return 'settings';
+        return 'overview';
+    };
+    
+    const activeTab = getCurrentTab();
     
     
     const [loading, setLoading] = useState(true);
@@ -37,7 +52,6 @@ const AdminClubDetails = () => {
     const [clubNotFound, setClubNotFound] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({ name: '', description: '' });
-    const [activeTab, setActiveTab] = useState('overview');
     const [isOwner, setIsOwner] = useState(false);
     const [showDeletePopup, setShowDeletePopup] = useState(false);
     const [showHardDeletePopup, setShowHardDeletePopup] = useState(false);
@@ -60,12 +74,6 @@ const AdminClubDetails = () => {
 
                 setClub(clubResponse.data);
                 setIsOwner(adminResponse.data.isOwner || false);
-                
-                // Check for URL parameters to set initial tab
-                const tabParam = searchParams.get('tab');
-                if (tabParam) {
-                    setActiveTab(tabParam);
-                }
                 
                 setLoading(false);
             } catch (err: unknown) {
@@ -96,19 +104,19 @@ const AdminClubDetails = () => {
             setError('No club ID provided');
             setLoading(false);
         }
-    }, [id, navigate, t, searchParams]);
+    }, [id, navigate, t]);
 
-    // Reset to valid tab if current tab becomes unavailable
+    // Redirect to valid tab if current tab becomes unavailable
     useEffect(() => {
-        if (clubSettings) {
+        if (clubSettings && id) {
             if (activeTab === 'fines' && !clubSettings.finesEnabled) {
-                setActiveTab('overview');
+                navigate(`/clubs/${id}/admin`);
             }
             if (activeTab === 'teams' && !clubSettings.teamsEnabled) {
-                setActiveTab('overview');
+                navigate(`/clubs/${id}/admin`);
             }
         }
-    }, [clubSettings, activeTab]);
+    }, [clubSettings, activeTab, navigate, id]);
 
     const updateClub = async () => {
         try {
@@ -250,53 +258,53 @@ const AdminClubDetails = () => {
             <div>
                 <div className="tabs-container">
                     <nav className="tabs-nav">
-                        <button 
+                        <Link 
+                            to={`/clubs/${id}/admin`}
                             className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('overview')}
                         >
                             {t('clubs.overview')}
-                        </button>
-                        <button 
+                        </Link>
+                        <Link 
+                            to={`/clubs/${id}/admin/members`}
                             className={`tab-button ${activeTab === 'members' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('members')}
                         >
                             {t('clubs.members')}
-                        </button>
+                        </Link>
                         {clubSettings?.teamsEnabled && (
-                            <button 
+                            <Link 
+                                to={`/clubs/${id}/admin/teams`}
                                 className={`tab-button ${activeTab === 'teams' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('teams')}
                             >
                                 {t('clubs.teams')}
-                            </button>
+                            </Link>
                         )}
                         {clubSettings?.finesEnabled && (
-                            <button 
+                            <Link 
+                                to={`/clubs/${id}/admin/fines`}
                                 className={`tab-button ${activeTab === 'fines' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('fines')}
                             >
                                 {t('clubs.fines')}
-                            </button>
+                            </Link>
                         )}
 
-                        <button 
+                        <Link 
+                            to={`/clubs/${id}/admin/events`}
                             className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('events')}
                         >
                             {t('clubs.events')}
-                        </button>
-                        <button 
+                        </Link>
+                        <Link 
+                            to={`/clubs/${id}/admin/news`}
                             className={`tab-button ${activeTab === 'news' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('news')}
                         >
                             {t('clubs.news')}
-                        </button>
-                        <button 
+                        </Link>
+                        <Link 
+                            to={`/clubs/${id}/admin/settings`}
                             className={`tab-button ${activeTab === 'settings' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('settings')}
                         >
                             {t('clubs.settings')}
-                        </button>
+                        </Link>
                     </nav>
 
                     <div className="tab-content">

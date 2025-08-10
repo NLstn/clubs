@@ -166,7 +166,7 @@ describe('App', () => {
     // Check that all page components are rendered within their routes
     expect(screen.getByTestId('club-list')).toBeInTheDocument();
     expect(screen.getByTestId('club-details')).toBeInTheDocument();
-    expect(screen.getByTestId('admin-club-details')).toBeInTheDocument();
+    expect(screen.getAllByTestId('admin-club-details')).toHaveLength(7); // Now we have 7 admin routes
     expect(screen.getByTestId('create-club')).toBeInTheDocument();
     expect(screen.getByTestId('profile')).toBeInTheDocument();
     expect(screen.getByTestId('profile-invites')).toBeInTheDocument();
