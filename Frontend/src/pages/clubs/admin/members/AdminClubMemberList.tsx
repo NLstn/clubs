@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
-import InviteMember from "./InviteMember";
 import AdminClubJoinRequestList from "./AdminClubJoinRequestList";
 import AdminClubPendingInviteList from "./AdminClubPendingInviteList";
-import { Table, TableColumn } from '@/components/ui';
+import { Table, TableColumn, Input } from '@/components/ui';
 import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
 import { useParams } from "react-router-dom";
@@ -27,8 +26,8 @@ const AdminClubMemberList = () => {
 
     const [members, setMembers] = useState<Member[]>([]);
     const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [showPendingInvites, setShowPendingInvites] = useState(false);
+    const [showManageInvites, setShowManageInvites] = useState(false);
+    const [inviteEmail, setInviteEmail] = useState('');
     const [showJoinRequests, setShowJoinRequests] = useState(false);
     const [showInviteLink, setShowInviteLink] = useState(false);
     const [inviteLink, setInviteLink] = useState('');
@@ -72,10 +71,6 @@ const AdminClubMemberList = () => {
             setLoading(false);
         }
     }, [id, sortMembersByRole, currentUser]);
-
-    const handleShowPendingInvites = () => {
-        setShowPendingInvites(true);
-    };
 
     const handleShowInviteLink = async () => {
         try {
@@ -131,7 +126,9 @@ const AdminClubMemberList = () => {
     const sendInvite = async (email: string) => {
         try {
             await api.post(`/api/v1/clubs/${id}/invites`, { email });
-            setIsModalOpen(false);
+            setInviteEmail(''); // Clear the email input after successful invite
+            // Keep the modal open but refresh the pending invites list
+            // The pending invites list will automatically refresh due to useEffect
         } catch {
             setError('Failed to send invite');
         }
@@ -287,16 +284,51 @@ const AdminClubMemberList = () => {
                 }
             />
             <div className="member-actions buttons" style={{ marginTop: 'var(--space-md)' }}>
-                <button onClick={() => setIsModalOpen(true)} className="button-accept">Invite Member</button>
+                <button onClick={() => setShowManageInvites(true)} className="button-accept">Manage Invites</button>
                 <button onClick={handleShowInviteLink} className="button-accept">Generate Invite Link</button>
-                <button onClick={handleShowPendingInvites}>View Pending Invites</button>
                 <button onClick={() => setShowJoinRequests(true)}>View Join Requests</button>
             </div>
-            <InviteMember
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSubmit={sendInvite}
-            />
+            {showManageInvites && (
+                <Modal 
+                    isOpen={showManageInvites} 
+                    onClose={() => setShowManageInvites(false)}
+                    title="Manage Invites"
+                >
+                    <Modal.Body>
+                        {/* Invite Member Section */}
+                        <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #e0e0e0' }}>
+                            <h4 style={{ marginBottom: '12px', fontSize: '1.1em', fontWeight: '600' }}>Invite New Member</h4>
+                            <div className="modal-form-section">
+                                <Input
+                                    label="Email"
+                                    id="inviteEmail"
+                                    type="email"
+                                    value={inviteEmail}
+                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                    placeholder="Enter email"
+                                />
+                                <button 
+                                    onClick={() => inviteEmail && sendInvite(inviteEmail)} 
+                                    disabled={!inviteEmail} 
+                                    className="button-accept"
+                                    style={{ marginTop: '12px' }}
+                                >
+                                    Send Invite
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {/* Pending Invites Section */}
+                        <div>
+                            <h4 style={{ marginBottom: '12px', fontSize: '1.1em', fontWeight: '600' }}>Pending Invites</h4>
+                            <AdminClubPendingInviteList key={Date.now()} />
+                        </div>
+                    </Modal.Body>
+                    <Modal.Actions>
+                        <button onClick={() => setShowManageInvites(false)} className="button-cancel">Close</button>
+                    </Modal.Actions>
+                </Modal>
+            )}
 
             {showInviteLink && (
                 <Modal 
@@ -333,21 +365,6 @@ const AdminClubMemberList = () => {
                 </Modal>
             )}
             
-            {showPendingInvites && (
-                <Modal 
-                    isOpen={showPendingInvites} 
-                    onClose={() => setShowPendingInvites(false)}
-                    title="Pending Invites"
-                >
-                    <Modal.Body>
-                        <AdminClubPendingInviteList />
-                    </Modal.Body>
-                    <Modal.Actions>
-                        <button onClick={() => setShowPendingInvites(false)} className="button-cancel">Close</button>
-                    </Modal.Actions>
-                </Modal>
-            )}
-
             {showJoinRequests && (
                 <Modal 
                     isOpen={showJoinRequests} 
