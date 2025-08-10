@@ -118,6 +118,7 @@ func SetupTestDB(t *testing.T) {
 			id TEXT PRIMARY KEY,
 			user_id TEXT NOT NULL,
 			club_id TEXT NOT NULL,
+			team_id TEXT,
 			reason TEXT,
 			amount REAL,
 			paid BOOLEAN DEFAULT FALSE,
@@ -163,6 +164,7 @@ func SetupTestDB(t *testing.T) {
 		CREATE TABLE IF NOT EXISTS events (
 			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
+			team_id TEXT,
 			name TEXT NOT NULL,
 			description TEXT,
 			location TEXT,
@@ -262,6 +264,16 @@ func SetupTestDB(t *testing.T) {
 		)
 	`)
 	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS user_privacy_settings (
+			id TEXT PRIMARY KEY,
+			user_id TEXT NOT NULL,
+			club_id TEXT,
+			share_birth_date BOOLEAN DEFAULT FALSE,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS teams (
 			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
@@ -299,6 +311,7 @@ func TeardownTestDB(t *testing.T) {
 		testDB.Exec("DELETE FROM refresh_tokens")
 		testDB.Exec("DELETE FROM magic_links")
 		testDB.Exec("DELETE FROM user_notification_preferences")
+		testDB.Exec("DELETE FROM user_privacy_settings")
 		testDB.Exec("DELETE FROM notifications")
 		testDB.Exec("DELETE FROM fines")
 		testDB.Exec("DELETE FROM members")
