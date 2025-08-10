@@ -134,6 +134,14 @@ vi.mock('../pages/clubs/admin/events/AdminEventDetails', () => ({
   default: () => <div data-testid="admin-event-details">AdminEventDetails</div>,
 }));
 
+vi.mock('../pages/teams/TeamDetails', () => ({
+  default: () => <div data-testid="team-details">TeamDetails</div>,
+}));
+
+vi.mock('../pages/teams/AdminTeamDetails', () => ({
+  default: () => <div data-testid="admin-team-details">AdminTeamDetails</div>,
+}));
+
 describe('App', () => {
   it('renders without crashing', async () => {
     await act(async () => {
