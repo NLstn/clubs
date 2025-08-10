@@ -18,6 +18,15 @@ func registerJoinRequestRoutes(mux *http.ServeMux) {
 		}
 	})))
 
+	// Admin gets join request count
+	mux.Handle("/api/v1/clubs/{clubid}/joinRequests/count", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet {
+			handleGetJoinRequestCount(w, r)
+		} else {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
 	// Invite link generation
 	mux.Handle("/api/v1/clubs/{clubid}/inviteLink", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet {
@@ -91,6 +100,37 @@ func handleGetJoinRequests(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(requests)
+}
+
+// endpoint: GET /api/v1/clubs/{clubid}/joinRequests/count
+func handleGetJoinRequestCount(w http.ResponseWriter, r *http.Request) {
+	clubID := extractPathParam(r, "clubs")
+	if _, err := uuid.Parse(clubID); err != nil {
+		http.Error(w, "Invalid club ID format", http.StatusBadRequest)
+		return
+	}
+
+	club, err := models.GetClubByID(clubID)
+	if err != nil {
+		http.Error(w, "Club not found", http.StatusNotFound)
+		return
+	}
+
+	user := extractUser(r)
+	if !club.IsOwner(user) && !club.IsAdmin(user) {
+		http.Error(w, "Unauthorized", http.StatusForbidden)
+		return
+	}
+
+	count, err := club.GetJoinRequestCount()
+	if err != nil {
+		http.Error(w, "Failed to get join request count", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]int64{"count": count}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 // endpoint: POST /api/v1/joinRequests/{requestid}/accept

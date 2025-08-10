@@ -109,3 +109,13 @@ func DeleteClubPermanently(clubID string) error {
 	// Note: This should cascade delete related records if foreign keys are set up properly
 	return database.Db.Unscoped().Delete(&Club{}, "id = ?", clubID).Error
 }
+
+// GetAdminsAndOwners returns all users who are admins or owners of the club
+func (c *Club) GetAdminsAndOwners() ([]User, error) {
+	var users []User
+	err := database.Db.Table("users").
+		Joins("JOIN members ON users.id = members.user_id").
+		Where("members.club_id = ? AND (members.role = ? OR members.role = ?)", c.ID, "admin", "owner").
+		Find(&users).Error
+	return users, err
+}
