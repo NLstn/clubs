@@ -13,6 +13,15 @@ interface Club {
     user_role: string;
     created_at: string;
     deleted?: boolean;
+    user_teams?: Team[];
+}
+
+interface Team {
+    id: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    clubId: string;
 }
 
 const ClubList = () => {
@@ -46,6 +55,11 @@ const ClubList = () => {
         // Add to recent clubs when clicking
         addRecentClub(clubId, clubName);
         navigate(`/clubs/${clubId}`);
+    };
+
+    const handleTeamClick = (e: React.MouseEvent, clubId: string, teamId: string) => {
+        e.stopPropagation(); // Prevent club card click
+        navigate(`/clubs/${clubId}/teams/${teamId}`);
     };
 
     const adminClubs = clubs.filter(club => club.user_role === 'owner' || club.user_role === 'admin');
@@ -92,6 +106,23 @@ const ClubList = () => {
                                             Deleted
                                         </div>
                                     )}
+                                    {club.user_teams && club.user_teams.length > 0 && (
+                                        <div className="club-teams-section">
+                                            <h4 className="teams-title">My Teams</h4>
+                                            <div className="teams-list">
+                                                {club.user_teams.map(team => (
+                                                    <div 
+                                                        key={team.id}
+                                                        className="team-badge"
+                                                        onClick={(e) => handleTeamClick(e, club.id, team.id)}
+                                                        title={team.description}
+                                                    >
+                                                        {team.name}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -115,6 +146,23 @@ const ClubList = () => {
                                         </span>
                                     </div>
                                     <p className="club-description">{club.description}</p>
+                                    {club.user_teams && club.user_teams.length > 0 && (
+                                        <div className="club-teams-section">
+                                            <h4 className="teams-title">My Teams</h4>
+                                            <div className="teams-list">
+                                                {club.user_teams.map(team => (
+                                                    <div 
+                                                        key={team.id}
+                                                        className="team-badge"
+                                                        onClick={(e) => handleTeamClick(e, club.id, team.id)}
+                                                        title={team.description}
+                                                    >
+                                                        {team.name}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

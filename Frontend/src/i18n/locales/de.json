@@ -117,9 +117,17 @@
     "addAsAdmin": "Als Administrator hinzufügen",
     "promoteToAdmin": "Zum Administrator befördern",
     "demoteToMember": "Zum Mitglied degradieren",
+    "latestNews": "Neueste Team-Nachrichten",
     "roles": {
       "admin": "Administrator",
       "member": "Mitglied"
+    },
+    "loading": {
+      "news": "Team-Nachrichten werden geladen..."
+    },
+    "errors": {
+      "loadingTeam": "Fehler beim Laden der Team-Details",
+      "loadingNews": "Fehler beim Laden der Team-Nachrichten: {{error}}"
     }
   },
   "fines": {

@@ -33,25 +33,12 @@ const TeamDetails = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [teamResponse, adminResponse] = await Promise.all([
-                    api.get(`/api/v1/clubs/${clubId}/teams/${teamId}`),
-                    api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/isAdmin`)
-                ]);
-                const teamData = teamResponse.data;
+                const overviewResponse = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/overview`);
+                const { team: teamData, is_admin, user_role } = overviewResponse.data;
+                
                 setTeam(teamData);
-                setIsAdmin(adminResponse.data.isAdmin);
-
-                // Get user's role by fetching team members and finding current user
-                try {
-                    const membersResponse = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/members`);
-                    const currentUserMember = membersResponse.data.find((member: { userId: string; role: string }) => member.userId === currentUser?.ID);
-                    if (currentUserMember) {
-                        setUserRole(currentUserMember.role);
-                    }
-                } catch (memberErr) {
-                    // If we can't fetch members, we might not be a member or might not have access
-                    console.warn('Could not fetch team member information:', memberErr);
-                }
+                setIsAdmin(is_admin);
+                setUserRole(user_role || null);
                 
                 setLoading(false);
             } catch (err: unknown) {
@@ -63,10 +50,10 @@ const TeamDetails = () => {
                     if (axiosError.response?.status === 404 || axiosError.response?.status === 403) {
                         setTeamNotFound(true);
                     } else {
-                        setError(t('teams.errors.loadingTeam') || 'Error fetching team details');
+                        setError(t('teams.errors.loadingTeam'));
                     }
                 } else {
-                    setError(t('teams.errors.loadingTeam') || 'Error fetching team details');
+                    setError(t('teams.errors.loadingTeam'));
                 }
                 setLoading(false);
             }

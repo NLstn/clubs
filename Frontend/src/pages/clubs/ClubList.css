@@ -163,6 +163,63 @@
     display: inline-block;
 }
 
+.club-teams-section {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.teams-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 0.5rem 0;
+}
+
+.teams-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.team-badge {
+    background-color: var(--accent-color-light, #e3f2fd);
+    color: var(--accent-color-dark, #1976d2);
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.team-badge:hover {
+    background-color: var(--accent-color, #007bff);
+    color: white;
+}
+
+/* Mobile responsive teams section */
+@media (max-width: 768px) {
+    .club-teams-section {
+        margin-top: var(--space-sm);
+        padding-top: var(--space-sm);
+    }
+    
+    .teams-title {
+        font-size: 0.85rem;
+        margin-bottom: var(--space-xs);
+    }
+    
+    .teams-list {
+        gap: var(--space-xs);
+    }
+    
+    .team-badge {
+        padding: 0.15rem 0.4rem;
+        font-size: 0.7rem;
+    }
+}
+
 .empty-state {
     text-align: center;
     padding: 3rem 1rem;
@@ -225,4 +282,21 @@
 
 .button-primary:hover {
     background-color: #0056b3;
+}
+
+.club-teams-section {
+    border-top: 1px solid #e0e0e0;
+}
+
+.teams-title {
+    color: #333;
+}
+
+.team-badge {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.team-badge:hover {
+    background-color: #007bff;
 }
