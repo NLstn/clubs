@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recurring Events Feature Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .modal {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid #e1e5e9;
+        }
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .modal-form-section {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #374151;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin: 16px 0;
+        }
+        .checkbox-label input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        .recurring-options {
+            background-color: #f8f9fa;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            margin-top: 12px;
+        }
+        .button-accept {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .button-cancel {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        .info-text {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+        .badge {
+            background-color: #e7f3ff;
+            color: #0066cc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-top: 8px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="modal">
+        <div class="modal-header">Add Event</div>
+        
+        <div class="modal-form-section">
+            <label for="eventName">Event Name</label>
+            <input type="text" id="eventName" value="Weekly Team Meeting" placeholder="Event Name">
+        </div>
+
+        <div class="modal-form-section">
+            <label for="description">Description</label>
+            <textarea id="description" rows="3" placeholder="Event description (optional)">Every Monday team meeting to discuss weekly goals and progress</textarea>
+        </div>
+
+        <div class="modal-form-section">
+            <label for="location">Location</label>
+            <input type="text" id="location" value="Conference Room A" placeholder="Event location (optional)">
+        </div>
+
+        <div class="modal-form-section">
+            <label for="startTime">Start Date & Time</label>
+            <input type="datetime-local" id="startTime" value="2025-01-06T10:00">
+        </div>
+
+        <div class="modal-form-section">
+            <label for="endTime">End Date & Time</label>
+            <input type="datetime-local" id="endTime" value="2025-01-06T11:00">
+        </div>
+
+        <div class="modal-form-section">
+            <label class="checkbox-label">
+                <input type="checkbox" id="isRecurring" checked>
+                Make this a recurring event
+            </label>
+        </div>
+
+        <div class="recurring-options" id="recurringOptions">
+            <div class="modal-form-section">
+                <label for="recurrencePattern">Recurrence Pattern</label>
+                <select id="recurrencePattern">
+                    <option value="daily">Daily</option>
+                    <option value="weekly" selected>Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+            </div>
+
+            <div class="modal-form-section">
+                <label for="recurrenceInterval">Every 1 week(s)</label>
+                <input type="number" id="recurrenceInterval" min="1" max="52" value="1">
+                <div class="info-text">How often to repeat the event (1-52)</div>
+            </div>
+
+            <div class="modal-form-section">
+                <label for="recurrenceEnd">Stop Recurring After</label>
+                <input type="date" id="recurrenceEnd" value="2025-03-31">
+                <div class="info-text">When to stop creating recurring events</div>
+            </div>
+
+            <div class="badge">
+                ✨ This will create individual events every Monday until March 31, 2025
+            </div>
+        </div>
+
+        <div style="margin-top: 24px;">
+            <button class="button-accept">Add Recurring Event</button>
+            <button class="button-cancel">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // Demo functionality
+        const checkbox = document.getElementById('isRecurring');
+        const recurringOptions = document.getElementById('recurringOptions');
+        const pattern = document.getElementById('recurrencePattern');
+        const interval = document.getElementById('recurrenceInterval');
+        const intervalLabel = document.querySelector('label[for="recurrenceInterval"]');
+        const badge = document.querySelector('.badge');
+
+        function updateUI() {
+            if (!checkbox.checked) {
+                recurringOptions.style.display = 'none';
+                return;
+            }
+            
+            recurringOptions.style.display = 'block';
+            
+            const patternValue = pattern.value;
+            const intervalValue = interval.value;
+            
+            let unit = patternValue === 'daily' ? 'day(s)' : 
+                      patternValue === 'weekly' ? 'week(s)' : 'month(s)';
+            
+            intervalLabel.textContent = `Every ${intervalValue} ${unit}`;
+            
+            let frequency = patternValue === 'daily' ? 'daily' : 
+                           patternValue === 'weekly' ? 'every Monday' : 'monthly';
+            
+            badge.textContent = `✨ This will create individual events ${frequency} until March 31, 2025`;
+        }
+
+        checkbox.addEventListener('change', updateUI);
+        pattern.addEventListener('change', updateUI);
+        interval.addEventListener('input', updateUI);
+
+        updateUI();
+    </script>
+</body>
+</html>
