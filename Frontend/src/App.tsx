@@ -22,6 +22,8 @@ const ProfilePrivacy = lazy(() => import('./pages/profile/ProfilePrivacy'));
 const ProfileNotificationSettings = lazy(() => import('./pages/profile/ProfileNotificationSettings'));
 const EventDetails = lazy(() => import('./pages/clubs/events/EventDetails'));
 const AdminEventDetails = lazy(() => import('./pages/clubs/admin/events/AdminEventDetails'));
+const TeamEventDetails = lazy(() => import('./pages/teams/events/EventDetails'));
+const AdminTeamEventList = lazy(() => import('./pages/teams/admin/events/AdminTeamEventList'));
 
 // Loading component for suspense fallback
 const PageLoader = () => (
@@ -86,6 +88,24 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <AdminEventDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:clubId/teams/:teamId/events/:eventId"
+                            element={
+                                <ProtectedRoute>
+                                    <TeamEventDetails />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/clubs/:clubId/teams/:teamId/admin/events"
+                            element={
+                                <ProtectedRoute>
+                                    <AdminTeamEventList />
                                 </ProtectedRoute>
                             }
                         />

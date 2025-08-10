@@ -39,6 +39,8 @@ func main() {
 		&models.ShiftMember{},
 		&models.Event{},
 		&models.EventRSVP{},
+		&models.TeamEvent{},
+		&models.TeamEventRSVP{},
 		&models.News{},
 		&models.ClubSettings{},
 		&models.Notification{},
