@@ -187,7 +187,6 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                                     value={recurrencePattern}
                                     onChange={(e) => setRecurrencePattern(e.target.value)}
                                     disabled={isSubmitting}
-                                    className="form-select"
                                 >
                                     <option value="daily">Daily</option>
                                     <option value="weekly">Weekly</option>
