@@ -17,7 +17,7 @@ jobs:
     # Define steps to prepare the environment for this Go backend + React frontend monorepo
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Set up Go environment for the backend
       - name: Set up Go
