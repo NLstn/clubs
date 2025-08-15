@@ -1,24 +1,31 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/NLstn/clubs/database"
 )
 
 type Event struct {
-	ID          string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	ClubID      string    `gorm:"type:uuid;not null" json:"club_id"`
-	TeamID      *string   `gorm:"type:uuid" json:"team_id,omitempty"` // Optional team association
-	Name        string    `gorm:"not null" json:"name"`
-	Description string    `gorm:"type:text" json:"description"`
-	Location    string    `gorm:"type:varchar(255)" json:"location"`
-	StartTime   time.Time `gorm:"not null" json:"start_time"`
-	EndTime     time.Time `gorm:"not null" json:"end_time"`
-	CreatedAt   time.Time `json:"created_at"`
-	CreatedBy   string    `json:"created_by" gorm:"type:uuid"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	UpdatedBy   string    `json:"updated_by" gorm:"type:uuid"`
+	ID                string     `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	ClubID            string     `gorm:"type:uuid;not null" json:"club_id"`
+	TeamID            *string    `gorm:"type:uuid" json:"team_id,omitempty"` // Optional team association
+	Name              string     `gorm:"not null" json:"name"`
+	Description       string     `gorm:"type:text" json:"description"`
+	Location          string     `gorm:"type:varchar(255)" json:"location"`
+	StartTime         time.Time  `gorm:"not null" json:"start_time"`
+	EndTime           time.Time  `gorm:"not null" json:"end_time"`
+	CreatedAt         time.Time  `json:"created_at"`
+	CreatedBy         string     `json:"created_by" gorm:"type:uuid"`
+	UpdatedAt         time.Time  `json:"updated_at"`
+	UpdatedBy         string     `json:"updated_by" gorm:"type:uuid"`
+	// Recurring event fields
+	IsRecurring       bool       `gorm:"default:false" json:"is_recurring"`
+	RecurrencePattern string     `gorm:"type:varchar(50)" json:"recurrence_pattern,omitempty"` // "weekly", "daily", "monthly"
+	RecurrenceInterval int       `gorm:"default:1" json:"recurrence_interval,omitempty"`        // Every N weeks/days/months
+	RecurrenceEnd     *time.Time `json:"recurrence_end,omitempty"`                             // When recurrence stops
+	ParentEventID     *string    `gorm:"type:uuid" json:"parent_event_id,omitempty"`           // Links recurring event instances
 }
 
 type EventRSVP struct {
@@ -53,6 +60,88 @@ func (c *Club) CreateEvent(name string, description string, location string, sta
 	}
 
 	return &event, nil
+}
+
+// CreateRecurringEvent creates recurring events based on the recurrence pattern
+func (c *Club) CreateRecurringEvent(name string, description string, location string, startTime, endTime time.Time, 
+	recurrencePattern string, recurrenceInterval int, recurrenceEnd time.Time, createdBy string) ([]*Event, error) {
+	
+	if recurrencePattern == "" || recurrenceInterval < 1 {
+		return nil, fmt.Errorf("invalid recurrence parameters")
+	}
+
+	var events []*Event
+	currentStart := startTime
+	currentEnd := endTime
+	duration := endTime.Sub(startTime)
+
+	// Create parent event (first occurrence)
+	parentEvent := Event{
+		ClubID:            c.ID,
+		Name:              name,
+		Description:       description,
+		Location:          location,
+		StartTime:         currentStart,
+		EndTime:           currentEnd,
+		CreatedBy:         createdBy,
+		UpdatedBy:         createdBy,
+		IsRecurring:       true,
+		RecurrencePattern: recurrencePattern,
+		RecurrenceInterval: recurrenceInterval,
+		RecurrenceEnd:     &recurrenceEnd,
+	}
+
+	tx := database.Db.Create(&parentEvent)
+	if tx.Error != nil {
+		return nil, tx.Error
+	}
+
+	events = append(events, &parentEvent)
+
+	// Generate recurring instances
+	for {
+		// Calculate next occurrence
+		switch recurrencePattern {
+		case "daily":
+			currentStart = currentStart.AddDate(0, 0, recurrenceInterval)
+		case "weekly":
+			currentStart = currentStart.AddDate(0, 0, 7*recurrenceInterval)
+		case "monthly":
+			currentStart = currentStart.AddDate(0, recurrenceInterval, 0)
+		default:
+			return events, fmt.Errorf("unsupported recurrence pattern: %s", recurrencePattern)
+		}
+
+		currentEnd = currentStart.Add(duration)
+
+		// Stop if we've passed the end date
+		if currentStart.After(recurrenceEnd) {
+			break
+		}
+
+		// Create recurring instance
+		recurringEvent := Event{
+			ClubID:        c.ID,
+			Name:          name,
+			Description:   description,
+			Location:      location,
+			StartTime:     currentStart,
+			EndTime:       currentEnd,
+			CreatedBy:     createdBy,
+			UpdatedBy:     createdBy,
+			IsRecurring:   false, // Individual instances are not marked as recurring
+			ParentEventID: &parentEvent.ID,
+		}
+
+		tx := database.Db.Create(&recurringEvent)
+		if tx.Error != nil {
+			return events, tx.Error
+		}
+
+		events = append(events, &recurringEvent)
+	}
+
+	return events, nil
 }
 
 // GetEvents returns all events for the club

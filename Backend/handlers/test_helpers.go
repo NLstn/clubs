@@ -173,7 +173,12 @@ func SetupTestDB(t *testing.T) {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			created_by TEXT,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
+			updated_by TEXT,
+			is_recurring BOOLEAN DEFAULT FALSE,
+			recurrence_pattern TEXT,
+			recurrence_interval INTEGER DEFAULT 1,
+			recurrence_end DATETIME,
+			parent_event_id TEXT
 		)
 	`)
 	testDB.Exec(`
