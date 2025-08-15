@@ -23,7 +23,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.0'  # Match the version specified in go.mod
+          go-version: '1.25'  # Match the version specified in go.mod
           cache-dependency-path: Backend/go.sum
 
       # Set up Node.js environment for the frontend
