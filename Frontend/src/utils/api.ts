@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import storage from './isomorphicStorage';
 
 const API_BASE_URL = import.meta.env.VITE_API_HOST || '';
 
@@ -36,12 +37,14 @@ const isTokenExpired = (token: string): boolean => {
 };
 
 const refreshAuthToken = async () => {
-  const refreshToken = localStorage.getItem('refresh_token');
+  const refreshToken = storage.getItem('refresh_token');
   if (!refreshToken) {
     // No refresh token available - logout and redirect to login
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
-    window.location.href = '/login';
+    storage.removeItem('auth_token');
+    storage.removeItem('refresh_token');
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
     throw new Error('No refresh token available');
   }
 
@@ -53,13 +56,15 @@ const refreshAuthToken = async () => {
     });
 
     const { access: newAccessToken, refresh: newRefreshToken } = response.data;
-    localStorage.setItem('auth_token', newAccessToken);
-    localStorage.setItem('refresh_token', newRefreshToken);
+    storage.setItem('auth_token', newAccessToken);
+    storage.setItem('refresh_token', newRefreshToken);
     return newAccessToken;
   } catch (error) {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
-    window.location.href = '/login';
+    storage.removeItem('auth_token');
+    storage.removeItem('refresh_token');
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
     throw error;
   }
 };
@@ -67,7 +72,7 @@ const refreshAuthToken = async () => {
 // Request interceptor to add auth token and handle token refresh
 api.interceptors.request.use(
   async (config) => {
-    let token = localStorage.getItem('auth_token');
+    let token = storage.getItem('auth_token');
     
     if (token && isTokenExpired(token)) {
       if (isRefreshing) {

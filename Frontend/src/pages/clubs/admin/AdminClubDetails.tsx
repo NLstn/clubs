@@ -354,7 +354,11 @@ const AdminClubDetails = () => {
                                                                     style={{ display: 'none' }}
                                                                 />
                                                                 <button
-                                                                    onClick={() => document.getElementById('logo-upload')?.click()}
+                                                                    onClick={() => {
+                                                                        if (typeof document !== 'undefined') {
+                                                                            document.getElementById('logo-upload')?.click();
+                                                                        }
+                                                                    }}
                                                                     className="logo-change-btn"
                                                                     disabled={logoUploading}
                                                                 >
@@ -374,7 +378,11 @@ const AdminClubDetails = () => {
                                                     <div className="club-logo-placeholder">
                                                         <div 
                                                             className="logo-placeholder"
-                                                            onClick={!club.deleted ? () => document.getElementById('logo-upload')?.click() : undefined}
+                                                            onClick={!club.deleted ? () => {
+                                                                if (typeof document !== 'undefined') {
+                                                                    document.getElementById('logo-upload')?.click();
+                                                                }
+                                                            } : undefined}
                                                         >
                                                             {!club.deleted ? 'Click to upload logo' : 'No logo'}
                                                         </div>

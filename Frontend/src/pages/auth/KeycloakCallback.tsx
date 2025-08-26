@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useT } from '../../hooks/useTranslation';
+import storage from '../../utils/isomorphicStorage';
 
 const KeycloakCallback: React.FC = () => {
   const { t } = useT();
@@ -15,22 +16,26 @@ const KeycloakCallback: React.FC = () => {
     const handleCallback = async () => {
       try {
         // Clear any existing OIDC client state that might interfere
-        localStorage.removeItem('oidc.user:https://auth.clubsstaging.dev/realms/clubs-dev:clubs-frontend');
-        Object.keys(localStorage).forEach(key => {
-          if (key.startsWith('oidc.')) {
-            localStorage.removeItem(key);
-          }
-        });
+        storage.removeItem('oidc.user:https://auth.clubsstaging.dev/realms/clubs-dev:clubs-frontend');
+        if (typeof window !== 'undefined') {
+          Object.keys(window.localStorage).forEach(key => {
+            if (key.startsWith('oidc.')) {
+              window.localStorage.removeItem(key);
+            }
+          });
+        }
 
         // Clean up old callback processing flags
-        Object.keys(sessionStorage).forEach(key => {
-          if (key.startsWith('keycloak_callback_')) {
-            sessionStorage.removeItem(key);
-          }
-        });
+        if (typeof window !== 'undefined') {
+          Object.keys(window.sessionStorage).forEach(key => {
+            if (key.startsWith('keycloak_callback_')) {
+              window.sessionStorage.removeItem(key);
+            }
+          });
+        }
 
         // Check if we've already handled this callback to prevent double processing
-        const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
         const code = urlParams.get('code');
         const state = urlParams.get('state');
         
@@ -79,12 +84,14 @@ const KeycloakCallback: React.FC = () => {
 
         // Store Keycloak tokens if available
         if (data.keycloakTokens && data.keycloakTokens.idToken) {
-          localStorage.setItem('keycloak_id_token', data.keycloakTokens.idToken);
+          storage.setItem('keycloak_id_token', data.keycloakTokens.idToken);
         }
 
         // Clear the processing flag and redirect
-        const redirectPath = sessionStorage.getItem('auth_redirect_after_login') || '/';
-        sessionStorage.removeItem('auth_redirect_after_login');
+        const redirectPath = typeof window !== 'undefined' ? window.sessionStorage.getItem('auth_redirect_after_login') || '/' : '/';
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.removeItem('auth_redirect_after_login');
+        }
         
         if (isMounted) {
           navigate(redirectPath, { replace: true });

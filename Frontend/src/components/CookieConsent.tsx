@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './CookieConsent.css';
+import storage from '../utils/isomorphicStorage';
 
 const COOKIE_CONSENT_KEY = 'cookie-consent';
 
@@ -8,14 +9,14 @@ const CookieConsent: React.FC = () => {
 
   useEffect(() => {
     // Check if user has already given consent
-    const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
+    const consent = storage.getItem(COOKIE_CONSENT_KEY);
     if (!consent) {
       setIsVisible(true);
     }
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+    storage.setItem(COOKIE_CONSENT_KEY, 'accepted');
     setIsVisible(false);
   };
 

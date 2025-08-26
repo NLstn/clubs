@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import api from '../../utils/api';
 import ClubNotFound from './ClubNotFound';
 import { removeRecentClub } from '../../utils/recentClubs';
+import storage from '../../utils/isomorphicStorage';
 
 interface Club {
   id: string;
@@ -49,10 +50,14 @@ const JoinClub: React.FC = () => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      // Store current URL for redirect after login
-      localStorage.setItem('loginRedirect', window.location.pathname);
-      // Redirect to login with return URL
-      navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      if (typeof window !== 'undefined') {
+        // Store current URL for redirect after login
+        storage.setItem('loginRedirect', window.location.pathname);
+        // Redirect to login with return URL
+        navigate(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      } else {
+        navigate('/login');
+      }
       return;
     }
 

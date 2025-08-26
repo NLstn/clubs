@@ -31,6 +31,7 @@ const GlobalSearch: React.FC = () => {
 
   // Close dropdown when clicking outside
   useEffect(() => {
+    if (typeof document === 'undefined') return;
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsOpen(false);

@@ -40,6 +40,7 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
 
   // Close dropdown when clicking outside
   useEffect(() => {
+    if (typeof document === 'undefined') return;
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);

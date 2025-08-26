@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import CookieConsent from '../../components/CookieConsent';
+import storage from '../../utils/isomorphicStorage';
 
 const MagicLinkHandler: React.FC = () => {
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
@@ -41,9 +42,9 @@ const MagicLinkHandler: React.FC = () => {
             if (!data.profileComplete) {
               navigate('/signup');
             } else {
-              const redirectPath = localStorage.getItem('loginRedirect');
+              const redirectPath = storage.getItem('loginRedirect');
               if (redirectPath) {
-                localStorage.removeItem('loginRedirect');
+                storage.removeItem('loginRedirect');
                 navigate(redirectPath);
               } else {
                 navigate('/');
