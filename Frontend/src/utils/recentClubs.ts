@@ -2,6 +2,8 @@
  * Utility functions for tracking and managing recently visited clubs
  */
 
+import storage from './isomorphicStorage';
+
 export interface RecentClub {
   id: string;
   name: string;
@@ -16,7 +18,7 @@ const MAX_RECENT_CLUBS = 5;
  */
 export const getRecentClubs = (): RecentClub[] => {
   try {
-    const stored = localStorage.getItem(RECENT_CLUBS_KEY);
+    const stored = storage.getItem(RECENT_CLUBS_KEY);
     if (!stored) return [];
     
     const clubs = JSON.parse(stored) as RecentClub[];
@@ -42,7 +44,7 @@ export const addRecentClub = (clubId: string, clubName: string): void => {
       ...filtered
     ].slice(0, MAX_RECENT_CLUBS);
     
-    localStorage.setItem(RECENT_CLUBS_KEY, JSON.stringify(updated));
+    storage.setItem(RECENT_CLUBS_KEY, JSON.stringify(updated));
   } catch (error) {
     console.error('Error saving recent club:', error);
   }
@@ -52,7 +54,7 @@ export const removeRecentClub = (clubId: string): void => {
   try {
     const existing = getRecentClubs();
     const filtered = existing.filter(club => club.id !== clubId);
-    localStorage.setItem(RECENT_CLUBS_KEY, JSON.stringify(filtered));
+    storage.setItem(RECENT_CLUBS_KEY, JSON.stringify(filtered));
   } catch (error) {
     console.error('Error removing recent club:', error);
   }
@@ -60,7 +62,7 @@ export const removeRecentClub = (clubId: string): void => {
 
 export const clearRecentClubs = (): void => {
   try {
-    localStorage.removeItem(RECENT_CLUBS_KEY);
+    storage.removeItem(RECENT_CLUBS_KEY);
   } catch (error) {
     console.error('Error clearing recent clubs:', error);
   }

@@ -131,9 +131,9 @@ const AdminEventDetails: FC = () => {
     const handleDeleteEvent = async () => {
         if (!clubId || !eventId) return;
         
-        const confirmDelete = window.confirm(
-            "Are you sure you want to delete this event? This action cannot be undone."
-        );
+        const confirmDelete = typeof window !== 'undefined'
+            ? window.confirm("Are you sure you want to delete this event? This action cannot be undone.")
+            : false;
         
         if (!confirmDelete) return;
         

@@ -4,6 +4,7 @@ import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from '../../hooks/useAuth';
 import { Table, TableColumn } from '@/components/ui';
 import './Profile.css';
+import storage from '../../utils/isomorphicStorage';
 
 interface Session {
   id: string;
@@ -22,7 +23,7 @@ const ProfileSessions = () => {
   const fetchSessions = useCallback(async () => {
     try {
       setIsLoading(true);
-      const refreshToken = localStorage.getItem('refresh_token');
+      const refreshToken = storage.getItem('refresh_token');
       const headers: Record<string, string> = {};
       if (refreshToken) {
         headers['X-Refresh-Token'] = refreshToken;

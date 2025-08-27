@@ -91,7 +91,8 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
     const handleShowInviteLink = async () => {
         try {
             const response = await api.get(`/api/v1/clubs/${id}/inviteLink`);
-            const fullLink = `${window.location.origin}${response.data.inviteLink}`;
+            const origin = typeof window !== 'undefined' ? window.location.origin : '';
+            const fullLink = `${origin}${response.data.inviteLink}`;
             setInviteLink(fullLink);
             setShowInviteLink(true);
         } catch (error) {

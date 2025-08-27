@@ -25,7 +25,9 @@ const Login: React.FC = () => {
       // Store redirect path for after login
       const params = new URLSearchParams(location.search);
       const redirectPath = params.get('redirect') || '/';
-      sessionStorage.setItem('auth_redirect_after_login', redirectPath);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('auth_redirect_after_login', redirectPath);
+      }
       
       // Get the Keycloak auth URL from our backend
       const response = await fetch(`${import.meta.env.VITE_API_HOST}/api/v1/auth/keycloak/login`);
@@ -36,7 +38,9 @@ const Login: React.FC = () => {
       const data = await response.json();
       
       // Redirect to Keycloak
-      window.location.href = data.authURL;
+      if (typeof window !== 'undefined') {
+        window.location.href = data.authURL;
+      }
     } catch {
       setMessage(t('auth.keycloakError'));
     }

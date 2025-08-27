@@ -1,20 +1,25 @@
 import { UserManager, User, UserManagerSettings, WebStorageStateStore } from 'oidc-client-ts';
+import storage from './isomorphicStorage';
 
 const keycloakConfig: UserManagerSettings = {
   authority: import.meta.env.VITE_KEYCLOAK_URL || 'https://auth.clubsstaging.dev/realms/clubs-dev',
   client_id: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'clubs-frontend',
-  redirect_uri: `${window.location.origin}/auth/callback`,
-  post_logout_redirect_uri: `${window.location.origin}/login`,
   response_type: 'code',
   scope: 'openid profile email',
   automaticSilentRenew: false,
-  silent_redirect_uri: `${window.location.origin}/auth/silent-callback`,
   filterProtocolClaims: true,
   loadUserInfo: false,
   monitorSession: false,
-  // Add state validation
-  stateStore: new WebStorageStateStore({ store: window.localStorage }),
 };
+
+if (typeof window !== 'undefined') {
+  Object.assign(keycloakConfig, {
+    redirect_uri: `${window.location.origin}/auth/callback`,
+    post_logout_redirect_uri: `${window.location.origin}/login`,
+    silent_redirect_uri: `${window.location.origin}/auth/silent-callback`,
+    stateStore: new WebStorageStateStore({ store: window.localStorage }),
+  });
+}
 
 class KeycloakService {
   private userManager: UserManager;
@@ -62,11 +67,13 @@ class KeycloakService {
 
   private handleSignOut(): void {
     // Clear local storage and redirect to login
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('keycloak_id_token');
+    storage.removeItem('auth_token');
+    storage.removeItem('refresh_token');
+    storage.removeItem('keycloak_id_token');
     this.clearCallbackState();
-    window.location.href = '/login';
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   }
 
   async getAccessToken(): Promise<string | null> {
@@ -81,23 +88,26 @@ class KeycloakService {
 
   // Clear callback processing state
   clearCallbackState(): void {
-    sessionStorage.removeItem('keycloak_callback_processed');
-    localStorage.removeItem('oidc.user');
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem('keycloak_callback_processed');
+    }
+    storage.removeItem('oidc.user');
   }
 
   // Clear all Keycloak-related data (for complete logout)
   clearAllKeycloakData(): void {
     this.clearCallbackState();
     // Clear any other OIDC client storage
-    localStorage.removeItem('oidc.user:' + keycloakConfig.authority + ':' + keycloakConfig.client_id);
+    storage.removeItem('oidc.user:' + keycloakConfig.authority + ':' + keycloakConfig.client_id);
     // Clear the stored ID token
-    localStorage.removeItem('keycloak_id_token');
-    // Clear any state store data
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('oidc.') || key.startsWith('keycloak')) {
-        localStorage.removeItem(key);
-      }
-    });
+    storage.removeItem('keycloak_id_token');
+    if (typeof window !== 'undefined') {
+      Object.keys(window.localStorage).forEach(key => {
+        if (key.startsWith('oidc.') || key.startsWith('keycloak')) {
+          window.localStorage.removeItem(key);
+        }
+      });
+    }
   }
 }
 
