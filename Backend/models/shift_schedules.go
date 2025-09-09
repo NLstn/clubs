@@ -90,3 +90,57 @@ func RemoveMemberFromShift(shiftID, userID string) error {
 	tx := database.Db.Where("shift_id = ? AND user_id = ?", shiftID, userID).Delete(&ShiftMember{})
 	return tx.Error
 }
+
+type UserShiftDetails struct {
+	ID         string    `json:"id"`
+	StartTime  time.Time `json:"startTime"`
+	EndTime    time.Time `json:"endTime"`
+	EventID    string    `json:"eventId"`
+	EventName  string    `json:"eventName"`
+	Location   string    `json:"location"`
+	ClubID     string    `json:"clubId"`
+	ClubName   string    `json:"clubName"`
+	Members    []string  `json:"members"` // Array of member names
+}
+
+func GetUserFutureShifts(userID string) ([]UserShiftDetails, error) {
+	var shifts []UserShiftDetails
+	
+	query := `
+		SELECT DISTINCT 
+			s.id, s.start_time, s.end_time, s.event_id,
+			e.name as event_name, e.location, e.club_id,
+			c.name as club_name
+		FROM shifts s
+		INNER JOIN shift_members sm ON s.id = sm.shift_id  
+		INNER JOIN events e ON s.event_id = e.id
+		INNER JOIN clubs c ON e.club_id = c.id
+		WHERE sm.user_id = ? AND s.start_time > NOW()
+		ORDER BY s.start_time ASC
+	`
+	
+	err := database.Db.Raw(query, userID).Scan(&shifts).Error
+	if err != nil {
+		return nil, err
+	}
+	
+	// For each shift, get all the members assigned to it
+	for i := range shifts {
+		shiftMembers, err := GetShiftMembers(shifts[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		
+		var memberNames []string
+		for _, shiftMember := range shiftMembers {
+			user, err := GetUserByID(shiftMember.UserID)
+			if err != nil {
+				return nil, err
+			}
+			memberNames = append(memberNames, user.GetFullName())
+		}
+		shifts[i].Members = memberNames
+	}
+	
+	return shifts, nil
+}

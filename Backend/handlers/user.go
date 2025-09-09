@@ -37,6 +37,15 @@ func registerUserRoutes(mux *http.ServeMux) {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
 	})))
+
+	mux.Handle("/api/v1/me/shifts", RateLimitMiddleware(apiLimiter)(withAuth(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			handleGetMyShifts(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
 }
 
 // endpoint: GET /api/v1/me
@@ -274,4 +283,22 @@ func handleDeleteMySession(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// endpoint: GET /api/v1/me/shifts
+func handleGetMyShifts(w http.ResponseWriter, r *http.Request) {
+	user := extractUser(r)
+	if user.ID == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	shifts, err := models.GetUserFutureShifts(user.ID)
+	if err != nil {
+		http.Error(w, "Failed to get shifts", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(shifts)
 }

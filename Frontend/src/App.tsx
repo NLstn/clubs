@@ -17,6 +17,7 @@ const Signup = lazy(() => import('./pages/auth/Signup'));
 const Profile = lazy(() => import('./pages/profile/Profile'));
 const ProfileInvites = lazy(() => import('./pages/profile/ProfileInvites'));
 const ProfileFines = lazy(() => import('./pages/profile/ProfileFines'));
+const ProfileShifts = lazy(() => import('./pages/profile/ProfileShifts'));
 const ProfileSessions = lazy(() => import('./pages/profile/ProfileSessions'));
 const ProfilePrivacy = lazy(() => import('./pages/profile/ProfilePrivacy'));
 const ProfileNotificationSettings = lazy(() => import('./pages/profile/ProfileNotificationSettings'));
@@ -193,6 +194,11 @@ function App() {
                         <Route path="/profile/fines" element={
                             <ProtectedRoute>
                                 <ProfileFines />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/profile/shifts" element={
+                            <ProtectedRoute>
+                                <ProfileShifts />
                             </ProtectedRoute>
                         } />
                         <Route path="/profile/sessions" element={
