@@ -126,6 +126,10 @@ vi.mock('../pages/profile/ProfileNotificationSettings', () => ({
   default: () => <div data-testid="profile-notification-settings">ProfileNotificationSettings</div>,
 }));
 
+vi.mock('../pages/profile/ProfileShifts', () => ({
+  default: () => <div data-testid="profile-shifts">ProfileShifts</div>,
+}));
+
 vi.mock('../pages/clubs/events/EventDetails', () => ({
   default: () => <div data-testid="event-details">EventDetails</div>,
 }));
@@ -174,6 +178,7 @@ describe('App', () => {
     expect(screen.getByTestId('profile-sessions')).toBeInTheDocument();
     expect(screen.getByTestId('profile-privacy')).toBeInTheDocument();
     expect(screen.getByTestId('profile-notification-settings')).toBeInTheDocument();
+    expect(screen.getByTestId('profile-shifts')).toBeInTheDocument();
     expect(screen.getByTestId('login')).toBeInTheDocument();
     expect(screen.getByTestId('magic-link-handler')).toBeInTheDocument();
     expect(screen.getByTestId('keycloak-callback')).toBeInTheDocument();
