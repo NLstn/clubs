@@ -1,4 +1,6 @@
 name: Frontend Tests and Linting
+permissions:
+  contents: read
 
 on:
   push:
