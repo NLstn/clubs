@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Layout from '../../components/layout/Layout';
@@ -118,6 +118,24 @@ const AdminTeamDetails = () => {
         fetchTeamData();
     }, [clubId, teamId, navigate]);
 
+    const fetchEvents = useCallback(async () => {
+        try {
+            const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/events`);
+            setEvents(response.data || []);
+        } catch (err) {
+            console.error('Error fetching events:', err);
+        }
+    }, [clubId, teamId]);
+
+    const fetchFines = useCallback(async () => {
+        try {
+            const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/fines`);
+            setFines(response.data || []);
+        } catch (err) {
+            console.error('Error fetching fines:', err);
+        }
+    }, [clubId, teamId]);
+
     useEffect(() => {
         if (activeTab === 'events' && teamOverview) {
             fetchEvents();
@@ -125,25 +143,7 @@ const AdminTeamDetails = () => {
         if (activeTab === 'fines' && teamOverview) {
             fetchFines();
         }
-    }, [activeTab, teamOverview]);
-
-    const fetchEvents = async () => {
-        try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/events`);
-            setEvents(response.data || []);
-        } catch (err) {
-            console.error('Error fetching events:', err);
-        }
-    };
-
-    const fetchFines = async () => {
-        try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/fines`);
-            setFines(response.data || []);
-        } catch (err) {
-            console.error('Error fetching fines:', err);
-        }
-    };
+    }, [activeTab, teamOverview, fetchEvents, fetchFines]);
 
     const handleEdit = () => {
         if (teamOverview?.team) {

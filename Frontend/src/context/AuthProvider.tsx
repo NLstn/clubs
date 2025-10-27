@@ -6,17 +6,17 @@ import keycloakService from '../utils/keycloak';
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem('auth_token'));
   const [refreshToken, setRefreshToken] = useState<string | null>(localStorage.getItem('refresh_token'));
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!accessToken);
+  // Derive isAuthenticated from accessToken
+  const isAuthenticated = !!accessToken;
 
+  // Sync localStorage when tokens change
   useEffect(() => {
     if (accessToken) {
       localStorage.setItem('auth_token', accessToken);
       localStorage.setItem('refresh_token', refreshToken || '');
-      setIsAuthenticated(true);
     } else {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('refresh_token');
-      setIsAuthenticated(false);
     }
   }, [accessToken, refreshToken]);
 

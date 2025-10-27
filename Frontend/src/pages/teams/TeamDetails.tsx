@@ -30,7 +30,18 @@ const TeamDetails = () => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null);
 
+    // Check for missing required params
+    const hasMissingParams = !clubId || !teamId;
+
     useEffect(() => {
+        // Skip effect if params are missing
+        if (hasMissingParams) {
+            // Setting loading to false here is intentional for early exit
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setLoading(false);
+            return;
+        }
+
         const fetchData = async () => {
             try {
                 const overviewResponse = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/overview`);
@@ -59,15 +70,11 @@ const TeamDetails = () => {
             }
         };
 
-        if (clubId && teamId) {
-            fetchData();
-        } else {
-            setError('No club or team ID provided');
-            setLoading(false);
-        }
-    }, [clubId, teamId, t, currentUser?.ID]);
+        fetchData();
+    }, [clubId, teamId, t, currentUser?.ID, hasMissingParams]);
 
     if (loading) return <div>Loading...</div>;
+    if (hasMissingParams) return <div className="error">No club or team ID provided</div>;
     if (teamNotFound) return <div className="error">Team not found or you don't have access to this team</div>;
     if (error) return <div className="error">{error}</div>;
     if (!team) return <div>Team not found</div>;

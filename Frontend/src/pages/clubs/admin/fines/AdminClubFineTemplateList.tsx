@@ -38,6 +38,8 @@ const AdminClubFineTemplateList = () => {
     }, [clubId, t]);
 
     useEffect(() => {
+        // Calling fetchTemplates here is the correct pattern for data fetching
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchTemplates();
     }, [fetchTemplates]);
 

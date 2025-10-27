@@ -84,6 +84,8 @@ const AdminClubTeamList = () => {
 
     useEffect(() => {
         if (selectedTeam) {
+            // Calling fetchTeamMembers here is the correct pattern for data fetching
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             fetchTeamMembers(selectedTeam.id);
         }
     }, [selectedTeam, fetchTeamMembers]);
