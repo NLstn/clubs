@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Input } from './Input';
 
 interface Option {
@@ -27,10 +27,21 @@ export const TypeAheadDropdown = <T extends Option>({
 }: TypeAheadDropdownProps<T>) => {
     const [searchQuery, setSearchQuery] = useState<string>(value?.label || '');
     const [isOpen, setIsOpen] = useState(false);
+    const prevValueRef = useRef(value);
 
+    // Sync search query with value changes
     useEffect(() => {
-        setSearchQuery(value?.label || '');
-    }, [value]);
+        // Only update if value actually changed (not just re-render)
+        if (prevValueRef.current !== value) {
+            prevValueRef.current = value;
+            const newQuery = value?.label || '';
+            if (searchQuery !== newQuery) {
+                // Synchronizing with external prop value is a valid use case
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setSearchQuery(newQuery);
+            }
+        }
+    }, [value, searchQuery]);
 
     const handleInputChange = (query: string) => {
         setSearchQuery(query);

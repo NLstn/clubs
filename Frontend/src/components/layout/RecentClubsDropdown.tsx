@@ -6,14 +6,10 @@ import './RecentClubsDropdown.css';
 
 const RecentClubsDropdown: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [recentClubs, setRecentClubs] = useState<RecentClub[]>([]);
+  // Initialize state directly from getRecentClubs()
+  const [recentClubs, setRecentClubs] = useState<RecentClub[]>(() => getRecentClubs());
   const navigate = useNavigate();
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Load recent clubs on component mount
-  useEffect(() => {
-    setRecentClubs(getRecentClubs());
-  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {

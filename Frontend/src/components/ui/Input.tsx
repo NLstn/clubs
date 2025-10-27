@@ -1,4 +1,4 @@
-import { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes } from 'react';
+import { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes, useId } from 'react';
 import './Input.css';
 
 interface BaseInputProps {
@@ -31,6 +31,7 @@ export const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputPro
         multiline,
         ...props 
     }, ref) => {
+        const generatedId = useId();
         const baseClasses = 'input-base';
         const variantClasses = {
             default: 'input-default',
@@ -52,7 +53,7 @@ export const Input = forwardRef<HTMLInputElement | HTMLTextAreaElement, InputPro
             className
         ].filter(Boolean).join(' ');
 
-        const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+        const inputId = id || generatedId;
 
         return (
             <div className="input-container">
