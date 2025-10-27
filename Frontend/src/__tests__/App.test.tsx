@@ -154,7 +154,11 @@ describe('App', () => {
     
     expect(screen.getByTestId('auth-provider')).toBeInTheDocument();
     expect(screen.getByTestId('browser-router')).toBeInTheDocument();
-    expect(screen.getByTestId('routes')).toBeInTheDocument();
+    
+    // Wait for Suspense to resolve and Routes to render
+    await waitFor(() => {
+      expect(screen.getByTestId('routes')).toBeInTheDocument();
+    });
   });
 
   it('renders all route components', async () => {
