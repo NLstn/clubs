@@ -9,7 +9,7 @@
       "version": "1.25"
     },
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "20"
+      "version": "22"
     }
   },
 
@@ -18,9 +18,7 @@
       "extensions": [
         "golang.go",
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "ms-azuretools.vscode-docker",
-        "cweijan.vscode-postgresql-client2"
+        "esbenp.prettier-vscode"
       ],
       "settings": {
         "go.toolsManagement.checkForUpdates": "local",
@@ -30,7 +28,7 @@
     }
   },
 
-  "forwardPorts": [8080, 5173, 5432],
+  "forwardPorts": [8080, 5173],
   
   "postCreateCommand": "cd Backend && go mod download",
 
