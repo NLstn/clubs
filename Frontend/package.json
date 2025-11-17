@@ -29,7 +29,7 @@
     "@types/react-dom": "^19.2.2",
     "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^5.1.0",
-    "@vitest/coverage-v8": "^4.0.6",
+    "@vitest/coverage-v8": "^4.0.10",
     "@vitest/ui": "^4.0.6",
     "axios-mock-adapter": "^2.1.0",
     "eslint": "^9.39.1",
