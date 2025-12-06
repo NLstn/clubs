@@ -3,7 +3,6 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
-  
   "features": {
     "ghcr.io/devcontainers/features/go:1": {
       "version": "1.25"
@@ -15,7 +14,6 @@
       "version": "latest"
     }
   },
-
   "customizations": {
     "vscode": {
       "extensions": [
@@ -30,10 +28,11 @@
       }
     }
   },
-
   "forwardPorts": [8080, 5173],
-  
+  "portsAttributes": {
+    "8080": { "onAutoForward": "silent" },
+    "5173": { "onAutoForward": "silent" }
+  },
   "postCreateCommand": "cd Backend && go mod download && go install github.com/air-verse/air@latest",
-
   "remoteUser": "vscode"
 }
