@@ -4,13 +4,25 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: npm
     directory: "/Frontend"
     schedule:
       interval: weekly
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: gomod
     directory: "/Backend"
     schedule:
       interval: weekly
+    groups:
+      go-dependencies:
+        patterns:
+          - "*"
