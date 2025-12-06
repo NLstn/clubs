@@ -4,19 +4,21 @@
         {
             "label": "Start Backend",
             "type": "shell",
-            "command": "cd Backend && ~/go/bin/air",
+            "command": "cd Backend && air",
             "isBackground": true,
             "problemMatcher": {
                 "pattern": {
-                    "regexp": "^.*$",
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
                     "file": 1,
-                    "location": 2,
-                    "message": 3
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
                 },
                 "background": {
                     "activeOnStart": true,
-                    "beginsPattern": ".",
-                    "endsPattern": "^Watching.*"
+                    "beginsPattern": "^building\\.\\.\\.",
+                    "endsPattern": "^.*Starting server on.*"
                 }
             }
         },
@@ -27,15 +29,17 @@
             "isBackground": true,
             "problemMatcher": {
                 "pattern": {
-                    "regexp": "^.*$",
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
                     "file": 1,
-                    "location": 2,
-                    "message": 3
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
                 },
                 "background": {
                     "activeOnStart": true,
-                    "beginsPattern": ".",
-                    "endsPattern": "^.*Local:.*"
+                    "beginsPattern": "VITE.*",
+                    "endsPattern": "Local:.*|ready in.*"
                 }
             }
         },
