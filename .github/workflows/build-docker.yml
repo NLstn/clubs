@@ -2,7 +2,7 @@ name: Build Docker Image and Deploy to Azure
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ main ]
     paths:
       - 'Backend/**'
       - 'Backend/Dockerfile'
@@ -42,7 +42,7 @@ jobs:
         tags: |
           type=ref,event=branch
           type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
+          type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v6
