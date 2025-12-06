@@ -10,6 +10,9 @@
     },
     "ghcr.io/devcontainers/features/node:1": {
       "version": "22"
+    },
+    "ghcr.io/devcontainers/features/azure-cli:1": {
+      "version": "latest"
     }
   },
 
@@ -30,7 +33,7 @@
 
   "forwardPorts": [8080, 5173],
   
-  "postCreateCommand": "cd Backend && go mod download",
+  "postCreateCommand": "cd Backend && go mod download && go install github.com/air-verse/air@latest",
 
   "remoteUser": "vscode"
 }
