@@ -76,14 +76,18 @@ func (c *Club) GetClubMembers() ([]Member, error) {
 }
 
 func (c *Club) AddMember(userId, role string) error {
-	return c.addMember(userId, role, true)
+	return c.addMemberWithActor(userId, role, true, nil)
+}
+
+func (c *Club) AddMemberWithActor(userId, role, actorID string) error {
+	return c.addMemberWithActor(userId, role, true, &actorID)
 }
 
 func (c *Club) AddMemberViaInvite(userId, role string) error {
-	return c.addMember(userId, role, false)
+	return c.addMemberWithActor(userId, role, false, nil)
 }
 
-func (c *Club) addMember(userId, role string, sendNotification bool) error {
+func (c *Club) addMemberWithActor(userId, role string, sendNotification bool, actorID *string) error {
 	var member Member
 	member.ID = uuid.New().String()
 	member.ClubID = c.ID
@@ -97,7 +101,7 @@ func (c *Club) addMember(userId, role string, sendNotification bool) error {
 		return err
 	}
 	if sendNotification {
-		member.notifyAdded()
+		member.notifyAdded(actorID)
 	}
 	return nil
 }
@@ -164,7 +168,7 @@ func (c *Club) UpdateMemberRole(changingUser User, memberID, role string) error 
 	return nil
 }
 
-func (m *Member) notifyAdded() {
+func (m *Member) notifyAdded(actorID *string) {
 	var club Club
 	if err := database.Db.Where("id = ?", m.ClubID).First(&club).Error; err != nil {
 		return
@@ -176,7 +180,7 @@ func (m *Member) notifyAdded() {
 	}
 
 	// Create activity entry for timeline so admins can see new member joins
-	err := CreateMemberJoinedActivity(club.ID, user.ID, club.Name)
+	err := CreateMemberJoinedActivity(club.ID, user.ID, club.Name, actorID)
 	if err != nil {
 		// Log error but don't fail the operation
 		// TODO: Add proper logging
