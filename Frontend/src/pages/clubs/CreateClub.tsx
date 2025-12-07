@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Layout from '../../components/layout/Layout';
-import { Input } from '@/components/ui';
+import { Input, Button } from '@/components/ui';
 
 const CreateClub = () => {
     const navigate = useNavigate();
@@ -55,8 +55,8 @@ const CreateClub = () => {
                         />
                     </div>
                     <div className="form-actions">
-                        <button type="submit" className="button-accept">Create Club</button>
-                        <button type="button" onClick={() => navigate('/')} className="button-cancel">Cancel</button>
+                        <Button type="submit" variant="accept">Create Club</Button>
+                        <Button type="button" variant="cancel" onClick={() => navigate('/')}>Cancel</Button>
                     </div>
                 </form>
             </div>

@@ -3,6 +3,7 @@ import { useDashboardData, ActivityItem } from '../hooks/useDashboardData';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useT } from '../hooks/useTranslation';
 import Layout from '../components/layout/Layout';
+import { Button } from '../components/ui';
 import { addRecentClub } from '../utils/recentClubs';
 
 const Dashboard = () => {
@@ -163,12 +164,14 @@ const Dashboard = () => {
                                         <div key={`${activity.type}-${activity.id}`} className="activity-item">
                                             <div className="activity-header">
                                                 {activity.type === 'event' ? (
-                                                    <button 
+                                                    <Button 
+                                                        size="sm"
+                                                        variant="secondary"
                                                         className="activity-type-badge clickable-badge"
                                                         onClick={() => handleEventClick(activity)}
                                                     >
                                                         {activity.type.replace(/_/g, ' ')}
-                                                    </button>
+                                                    </Button>
                                                 ) : (
                                                     <div className="activity-type-badge">
                                                         {activity.type.replace(/_/g, ' ')}

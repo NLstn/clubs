@@ -9,7 +9,7 @@ import MyTeams from './MyTeams';
 import ReadonlyMemberList from './ReadonlyMemberList';
 import ClubNotFound from './ClubNotFound';
 import { useClubSettings } from '../../hooks/useClubSettings';
-import { Modal } from '@/components/ui';
+import { Modal, Button } from '@/components/ui';
 import { addRecentClub, removeRecentClub } from '../../utils/recentClubs';
 import { useT } from '../../hooks/useTranslation';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
@@ -177,20 +177,20 @@ const ClubDetails = () => {
                     {/* Action Buttons */}
                     <div className="club-actions">
                         {isAdmin && !club.deleted && (
-                            <button 
-                                className="button button-primary"
+                            <Button 
+                                variant="primary"
                                 onClick={() => navigate(`/clubs/${id}/admin`)}
                             >
                                 Manage Club
-                            </button>
+                            </Button>
                         )}
                         {userRole && !club.deleted && (
-                            <button 
-                                className="button button-cancel"
+                            <Button 
+                                variant="cancel"
                                 onClick={handleLeaveClub}
                             >
                                 Leave Club
-                            </button>
+                            </Button>
                         )}
                     </div>
                 </div>
@@ -228,10 +228,10 @@ const ClubDetails = () => {
                     <p>You will no longer have access to club content and will need to request to join again if you want to return.</p>
                 </Modal.Body>
                 <Modal.Actions>
-                    <button 
-                        onClick={confirmLeaveClub} 
+                    <Button 
+                        variant="cancel"
+                        onClick={confirmLeaveClub}
                         disabled={isLeavingClub}
-                        className="button-cancel"
                         style={{ backgroundColor: '#d32f2f', borderColor: '#d32f2f' }}
                     >
                         {isLeavingClub ? (
@@ -242,14 +242,14 @@ const ClubDetails = () => {
                         ) : (
                             'Leave Club'
                         )}
-                    </button>
-                    <button 
-                        onClick={cancelLeaveClub} 
+                    </Button>
+                    <Button 
+                        variant="accept"
+                        onClick={cancelLeaveClub}
                         disabled={isLeavingClub}
-                        className="button-accept"
                     >
                         Cancel
-                    </button>
+                    </Button>
                 </Modal.Actions>
             </Modal>
         </Layout>

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from '../../hooks/useAuth';
-import { Table, TableColumn } from '@/components/ui';
+import { Table, TableColumn, Button } from '@/components/ui';
 import './Profile.css';
 
 interface Session {
@@ -111,13 +111,13 @@ const ProfileSessions = () => {
             Cannot delete current session
           </span>
         ) : (
-          <button
-            className="button-cancel"
+          <Button
+            variant="cancel"
+            size="sm"
             onClick={() => handleDeleteSession(session.id)}
-            style={{ fontSize: '12px', padding: '6px 12px' }}
           >
             Delete
-          </button>
+          </Button>
         )
       )
     }

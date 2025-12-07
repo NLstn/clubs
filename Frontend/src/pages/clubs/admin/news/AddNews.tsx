@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import api from "../../../../utils/api";
-import { Input, Modal } from '@/components/ui';
+import { Input, Modal, Button } from '@/components/ui';
 
 interface AddNewsProps {
     isOpen: boolean;
@@ -82,9 +82,9 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
             </Modal.Body>
 
             <Modal.Actions>
-                <button 
-                    onClick={handleSubmit} 
-                    className="button-accept"
+                <Button 
+                    variant="accept"
+                    onClick={handleSubmit}
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? (
@@ -95,14 +95,14 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                     ) : (
                         'Add News'
                     )}
-                </button>
-                <button 
-                    onClick={handleClose} 
-                    className="button-cancel"
+                </Button>
+                <Button 
+                    variant="cancel"
+                    onClick={handleClose}
                     disabled={isSubmitting}
                 >
                     Cancel
-                </button>
+                </Button>
             </Modal.Actions>
         </Modal>
     );

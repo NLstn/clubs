@@ -1,5 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { Button } from "../../../../components/ui";
 import api from "../../../../utils/api";
 import EventRSVPList from "./EventRSVPList";
 import EditEvent from "./EditEvent";
@@ -194,11 +195,13 @@ const AdminEventDetails: FC = () => {
                     <h2>Error</h2>
                     <p>{error}</p>
                     <div className="button-group">
-                        <button onClick={() => navigate(-1)} className="button-secondary">
+                        <Button onClick={() => navigate(-1)} variant="secondary">
                             Go Back
-                        </button>
-                        <Link to={`/clubs/${clubId}/admin`} className="button-primary">
-                            Back to Admin
+                        </Button>
+                        <Link to={`/clubs/${clubId}/admin`} style={{ textDecoration: 'none' }}>
+                            <Button variant="primary">
+                                Back to Admin
+                            </Button>
                         </Link>
                     </div>
                 </div>
@@ -226,12 +229,12 @@ const AdminEventDetails: FC = () => {
                     <span>Event Details</span>
                 </div>
                 <div className="header-actions">
-                    <button onClick={() => setIsEditModalOpen(true)} className="button-primary">
+                    <Button onClick={() => setIsEditModalOpen(true)} variant="primary">
                         Edit Event
-                    </button>
-                    <button onClick={() => navigate(-1)} className="button-secondary">
+                    </Button>
+                    <Button onClick={() => navigate(-1)} variant="secondary">
                         Go Back
-                    </button>
+                    </Button>
                 </div>
             </div>
 
@@ -239,19 +242,21 @@ const AdminEventDetails: FC = () => {
                 <div className="event-header">
                     <h1>{eventData.name}</h1>
                     <div className="event-actions">
-                        <button 
+                        <Button 
                             onClick={() => setIsRSVPModalOpen(true)} 
-                            className="button-info"
+                            variant="secondary"
+                            size="sm"
                         >
                             View RSVPs ({totalRSVPs})
-                        </button>
-                        <button 
+                        </Button>
+                        <Button 
                             onClick={handleDeleteEvent}
                             disabled={deleteLoading}
-                            className="button-cancel"
+                            variant="cancel"
+                            size="sm"
                         >
                             {deleteLoading ? 'Deleting...' : 'Delete Event'}
-                        </button>
+                        </Button>
                     </div>
                 </div>
                 

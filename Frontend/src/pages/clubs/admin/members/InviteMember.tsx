@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Input, Modal } from '@/components/ui';
+import { Input, Modal, Button } from '@/components/ui';
 
 interface InviteMemberProps {
   isOpen: boolean;
@@ -25,10 +25,10 @@ const InviteMember: FC<InviteMemberProps> = ({ isOpen, onClose, onSubmit }) => {
         </div>
       </Modal.Body>
       <Modal.Actions>
-        <button onClick={() => onSubmit(email)} disabled={!email} className="button-accept">
+        <Button variant="accept" onClick={() => onSubmit(email)} disabled={!email}>
           Send Invite
-        </button>
-        <button onClick={onClose} className="button-cancel">Cancel</button>
+        </Button>
+        <Button variant="cancel" onClick={onClose}>Cancel</Button>
       </Modal.Actions>
     </Modal>
   );

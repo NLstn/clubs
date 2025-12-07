@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
+import { Button } from '../../components/ui';
 import api from '../../utils/api';
 import { addRecentClub } from '../../utils/recentClubs';
 import { useT } from '../../hooks/useTranslation';
@@ -173,12 +174,12 @@ const ClubList = () => {
                     <div className="empty-state">
                         <h2>No Clubs Yet</h2>
                         <p>You're not a member of any clubs yet.</p>
-                        <button 
+                        <Button 
                             onClick={() => navigate('/createClub')}
-                            className="button-primary"
+                            variant="primary"
                         >
                             Create Your First Club
-                        </button>
+                        </Button>
                     </div>
                 )}
             </div>

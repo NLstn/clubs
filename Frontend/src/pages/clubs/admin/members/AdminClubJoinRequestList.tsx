@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Table, TableColumn } from '@/components/ui';
+import { Table, TableColumn, Button } from '@/components/ui';
 import api from "../../../../utils/api";
 
 interface JoinRequest {
@@ -47,19 +47,21 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
             header: 'Actions',
             render: (request) => (
                 <div className="table-actions">
-                    <button 
+                    <Button
+                        size="sm"
+                        variant="accept"
                         onClick={() => handleApprove(request.id)}
-                        className="action-button edit"
                         style={{marginRight: '8px'}}
                     >
                         Approve
-                    </button>
-                    <button 
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="cancel"
                         onClick={() => handleReject(request.id)}
-                        className="action-button remove"
                     >
                         Reject
-                    </button>
+                    </Button>
                 </div>
             )
         }

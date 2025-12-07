@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from "react";
-import { Table, TableColumn } from '@/components/ui';
+import { Table, TableColumn, Button } from '@/components/ui';
 import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
 
@@ -140,9 +140,9 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
                 )}
             </Modal.Body>
             <Modal.Actions>
-                <button onClick={onClose} className="button-cancel">
+                <Button onClick={onClose} variant="cancel">
                     Close
-                </button>
+                </Button>
             </Modal.Actions>
         </Modal>
     );

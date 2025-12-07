@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import { useT } from '../../hooks/useTranslation';
+import { Button } from '../../components/ui';
 import './ClubNotFound.css';
 
 interface ClubNotFoundProps {
@@ -40,26 +41,26 @@ const ClubNotFound: React.FC<ClubNotFoundProps> = ({
           )}
           
           <div className="club-not-found-actions">
-            <button 
+            <Button 
+              variant="primary"
               onClick={() => navigate('/clubs')}
-              className="button-primary"
             >
               {t('clubs.viewAllClubs')}
-            </button>
+            </Button>
             
-            <button 
+            <Button 
+              variant="secondary"
               onClick={() => navigate('/')}
-              className="button-secondary"
             >
               {t('common.goToDashboard')}
-            </button>
+            </Button>
             
-            <button 
+            <Button 
+              variant="secondary"
               onClick={() => navigate('/createClub')}
-              className="button-accent"
             >
               {t('clubs.createClub')}
-            </button>
+            </Button>
           </div>
           
           <div className="club-not-found-help">

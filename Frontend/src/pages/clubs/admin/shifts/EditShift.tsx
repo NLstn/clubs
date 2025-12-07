@@ -1,6 +1,6 @@
 import { FC, useState, useEffect, useCallback } from 'react';
 import api from '../../../../utils/api';
-import { Modal } from '@/components/ui';
+import { Modal, Button } from '@/components/ui';
 
 interface Shift {
     id: string;
@@ -135,13 +135,14 @@ const EditShift: FC<EditShiftProps> = ({ isOpen, onClose, shift, clubId }) => {
                                             <tr key={member.id}>
                                                 <td>{member.name}</td>
                                                 <td>
-                                                    <button
+                                                    <Button
+                                                        size="sm"
+                                                        variant="cancel"
                                                         onClick={() => removeMemberFromShift(member.id)}
-                                                        className="delete-button"
                                                         aria-label="Remove member"
                                                     >
                                                         ×
-                                                    </button>
+                                                    </Button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -170,21 +171,22 @@ const EditShift: FC<EditShiftProps> = ({ isOpen, onClose, shift, clubId }) => {
                                 ))}
                             </select>
                         </div>
-                        <button
+                        <Button
                             onClick={addMemberToShift}
                             disabled={!selectedMemberId}
-                            className="button-accept"
+                            variant="accept"
+                            size="sm"
                         >
                             Add Member
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </Modal.Body>
 
             <Modal.Actions>
-                <button onClick={onClose} className="button-cancel">
+                <Button onClick={onClose} variant="cancel">
                     Close
-                </button>
+                </Button>
             </Modal.Actions>
         </Modal>
     );

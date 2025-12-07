@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import EditNews from "./EditNews";
 import AddNews from "./AddNews";
-import { Table, TableColumn } from '@/components/ui';
+import { Table, TableColumn, Button } from '@/components/ui';
 import api from "../../../../utils/api";
 
 interface News {
@@ -114,19 +114,21 @@ const AdminClubNewsList = () => {
             header: 'Actions',
             render: (newsItem) => (
                 <div>
-                    <button
+                    <Button
+                        variant="accept"
+                        size="sm"
                         onClick={() => handleEditNews(newsItem)}
-                        className="button-accept"
                         style={{marginRight: '5px'}}
                     >
                         Edit
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                        variant="cancel"
+                        size="sm"
                         onClick={() => handleDeleteNews(newsItem.id)}
-                        className="button-cancel"
                     >
                         Delete
-                    </button>
+                    </Button>
                 </div>
             )
         }
@@ -145,13 +147,13 @@ const AdminClubNewsList = () => {
                 loadingMessage="Loading news..."
                 errorMessage={error || "Error loading news"}
             />
-            <button 
-                onClick={() => setIsAddModalOpen(true)} 
-                className="button-accept"
+            <Button 
+                variant="accept"
+                onClick={() => setIsAddModalOpen(true)}
                 style={{ marginTop: '16px' }}
             >
                 Add News
-            </button>
+            </Button>
             <EditNews
                 isOpen={isEditModalOpen}
                 onClose={handleCloseEditModal}

@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import EditEvent from "./EditEvent";
 import AddEvent from "./AddEvent";
 import EventRSVPList from "./EventRSVPList";
-import { Table, TableColumn } from '@/components/ui';
+import { Table, TableColumn, Button } from '@/components/ui';
 import api from "../../../../utils/api";
 
 interface Event {
@@ -166,22 +166,13 @@ const AdminClubEventList = () => {
                             <span style={{color: 'orange'}}>Maybe: {maybeCount}</span>
                         </div>
                         {(yesCount > 0 || noCount > 0 || maybeCount > 0) && (
-                            <button
+                            <Button
                                 onClick={() => handleViewRSVPs(event)}
-                                className="button"
-                                style={{ 
-                                    fontSize: '0.8em', 
-                                    padding: '4px 10px',
-                                    backgroundColor: '#007bff',
-                                    color: 'white',
-                                    border: '1px solid #007bff',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontWeight: '500'
-                                }}
+                                variant="secondary"
+                                size="sm"
                             >
                                 View Details
-                            </button>
+                            </Button>
                         )}
                     </div>
                 );
@@ -206,22 +197,26 @@ const AdminClubEventList = () => {
                 <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                     <Link 
                         to={`/clubs/${id}/admin/events/${event.id}`}
-                        className="button-info"
+                        style={{ textDecoration: 'none' }}
                     >
-                        View Details
+                        <Button variant="secondary" size="sm">
+                            View Details
+                        </Button>
                     </Link>
-                    <button
+                    <Button
                         onClick={() => handleEditEvent(event)}
-                        className="button-accept"
+                        variant="accept"
+                        size="sm"
                     >
                         Edit
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         onClick={() => handleDeleteEvent(event.id)}
-                        className="button-cancel"
+                        variant="cancel"
+                        size="sm"
                     >
                         Delete
-                    </button>
+                    </Button>
                 </div>
             )
         }
@@ -240,10 +235,10 @@ const AdminClubEventList = () => {
                 loadingMessage="Loading events..."
                 errorMessage={error || "Failed to fetch events"}
             />
-            <div style={{ marginTop: '20px' }}>
-                <button onClick={() => setIsAddModalOpen(true)} className="button-accept">
+            <div style={{ marginBottom: '20px' }}>
+                <Button onClick={() => setIsAddModalOpen(true)} variant="accept">
                     Add Event
-                </button>
+                </Button>
             </div>
             <EditEvent
                 isOpen={isEditModalOpen}

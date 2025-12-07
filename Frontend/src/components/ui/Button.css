@@ -69,12 +69,12 @@
 }
 
 .ui-button--maybe {
-  background-color: orange;
+  background-color: var(--color-maybe);
   color: white;
 }
 
 .ui-button--maybe:hover:not(:disabled) {
-  background-color: #ff8c00;
+  background-color: var(--color-maybe-hover);
 }
 
 /* Button sizes */

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
-import { Input, Table, TableColumn } from '@/components/ui';
+import { Input, Table, TableColumn, Button } from '@/components/ui';
 
 interface FineTemplate {
     id: string;
@@ -110,18 +110,20 @@ const AdminClubFineTemplateList = () => {
             header: t('common.actions'),
             render: (template) => (
                 <div className="table-actions">
-                    <button 
+                    <Button
+                        size="sm"
+                        variant="secondary"
                         onClick={() => handleEdit(template)}
-                        className="action-button edit"
                     >
                         {t('common.edit')}
-                    </button>
-                    <button 
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="cancel"
                         onClick={() => handleDelete(template.id)}
-                        className="action-button remove"
                     >
                         {t('common.delete')}
-                    </button>
+                    </Button>
                 </div>
             )
         }
@@ -131,12 +133,14 @@ const AdminClubFineTemplateList = () => {
         <div style={{ marginBottom: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h3>{t('fines.fineTemplates')}</h3>
-                <button 
+                <Button
+                    size="sm"
+                    variant="accept"
                     onClick={() => setIsAdding(true)}
                     disabled={isAdding}
                 >
                     {t('fines.addTemplate')}
-                </button>
+                </Button>
             </div>
 
             {isAdding && (
@@ -163,12 +167,12 @@ const AdminClubFineTemplateList = () => {
                         required
                     />
                     <div className="form-actions">
-                        <button type="submit" className="button-accept">
+                        <Button type="submit" variant="accept">
                             {editingId ? t('fines.updateTemplate') : t('fines.addTemplate')}
-                        </button>
-                        <button type="button" onClick={handleCancel} className="button-cancel">
+                        </Button>
+                        <Button type="button" variant="cancel" onClick={handleCancel}>
                             {t('common.cancel')}
-                        </button>
+                        </Button>
                     </div>
                 </form>
             )}
