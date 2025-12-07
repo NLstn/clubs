@@ -129,22 +129,21 @@ func TestAddMemberCreatesActivity(t *testing.T) {
 	}
 
 	if len(activities) == 0 {
-		t.Errorf("expected activity to be created, but none found")
+		t.Fatalf("expected activity to be created, but none found")
 	}
 
-	if len(activities) > 0 {
-		activity := activities[0]
-		if activity.Type != "member_joined" {
-			t.Errorf("expected type 'member_joined', got %s", activity.Type)
-		}
+	// Verify activity details
+	activity := activities[0]
+	if activity.Type != "member_joined" {
+		t.Errorf("expected type 'member_joined', got %s", activity.Type)
+	}
 
-		var meta map[string]interface{}
-		if err := json.Unmarshal([]byte(activity.Metadata), &meta); err != nil {
-			t.Fatalf("failed to unmarshal metadata: %v", err)
-		}
+	var meta map[string]interface{}
+	if err := json.Unmarshal([]byte(activity.Metadata), &meta); err != nil {
+		t.Fatalf("failed to unmarshal metadata: %v", err)
+	}
 
-		if meta["club_name"] != club.Name {
-			t.Errorf("metadata club_name expected %s, got %v", club.Name, meta["club_name"])
-		}
+	if meta["club_name"] != club.Name {
+		t.Errorf("metadata club_name expected %s, got %v", club.Name, meta["club_name"])
 	}
 }
