@@ -33,7 +33,7 @@ func (c *Club) CreateJoinRequest(userID, email string) error {
 	}
 
 	// Notify all admins and owners about the join request
-	err = c.notifyAdminsAboutJoinRequest(userID, email)
+	err = c.notifyAdminsAboutJoinRequest(userID, email, request.ID)
 	if err != nil {
 		// Log error but don't fail the operation
 		// TODO: Add proper logging
@@ -84,7 +84,7 @@ func AcceptJoinRequest(requestId, adminUserId string) error {
 	}
 
 	// Remove notifications for this join request
-	err = RemoveJoinRequestNotifications(joinRequest.ClubID)
+	err = RemoveJoinRequestNotifications(joinRequest.ID)
 	if err != nil {
 		// Log error but don't fail the operation
 		// TODO: Add proper logging
@@ -120,7 +120,7 @@ func RejectJoinRequest(requestId, adminUserId string) error {
 	}
 
 	// Remove notifications for this join request
-	err = RemoveJoinRequestNotifications(joinRequest.ClubID)
+	err = RemoveJoinRequestNotifications(joinRequest.ID)
 	if err != nil {
 		// Log error but don't fail the operation
 		// TODO: Add proper logging
@@ -150,7 +150,7 @@ func (c *Club) HasPendingInvite(email string) (bool, error) {
 }
 
 // notifyAdminsAboutJoinRequest sends notifications to all admins and owners about a new join request
-func (c *Club) notifyAdminsAboutJoinRequest(userID, email string) error {
+func (c *Club) notifyAdminsAboutJoinRequest(userID, email, joinRequestID string) error {
 	// Get all admins and owners
 	admins, err := c.GetAdminsAndOwners()
 	if err != nil {
@@ -184,7 +184,7 @@ func (c *Club) notifyAdminsAboutJoinRequest(userID, email string) error {
 				userName = "A user"
 			}
 			message := fmt.Sprintf("%s (%s) has requested to join %s", userName, email, c.Name)
-			err := CreateNotification(admin.ID, "join_request_received", title, message, &c.ID, nil, nil)
+			err := CreateNotificationWithJoinRequest(admin.ID, "join_request_received", title, message, &c.ID, nil, nil, &joinRequestID)
 			if err != nil {
 				// Log error but continue with other notifications
 				// TODO: Add proper logging

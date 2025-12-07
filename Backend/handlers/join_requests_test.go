@@ -287,4 +287,96 @@ func TestJoinRequestEndpoints(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(notificationsAdmin), "Admin's notifications should be deleted after rejection")
 	})
+
+	t.Run("Accept Join Request - Other Pending Requests Retain Notifications", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "owner_multi_accept@example.com")
+		admin, _ := CreateTestUser(t, "admin_multi_accept@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		user1, _ := CreateTestUser(t, "user1_multi_accept@example.com")
+		user2, _ := CreateTestUser(t, "user2_multi_accept@example.com")
+
+		// Add admin to club
+		err := club.AddMember(admin.ID, "admin")
+		assert.NoError(t, err)
+
+		// Create two join requests
+		err = club.CreateJoinRequest(user1.ID, user1.Email)
+		assert.NoError(t, err)
+		err = club.CreateJoinRequest(user2.ID, user2.Email)
+		assert.NoError(t, err)
+
+		// Verify notifications were created for both requests
+		var notificationsOwner []models.Notification
+		err = database.Db.Where("user_id = ? AND type = ? AND club_id = ?", owner.ID, "join_request_received", club.ID).Find(&notificationsOwner).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(notificationsOwner), "Owner should have two notifications")
+
+		// Get both request IDs
+		var requests []models.JoinRequest
+		err = database.Db.Where("club_id = ?", club.ID).Order("created_at ASC").Find(&requests).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(requests))
+		request1ID := requests[0].ID
+		request2ID := requests[1].ID
+
+		// Owner accepts the first request
+		req := MakeRequest(t, "POST", "/api/v1/joinRequests/"+request1ID+"/accept", nil, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+		// Verify that only the first request's notification was deleted
+		err = database.Db.Where("user_id = ? AND type = ? AND club_id = ?", owner.ID, "join_request_received", club.ID).Find(&notificationsOwner).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(notificationsOwner), "Owner should have one notification remaining")
+
+		// Verify the remaining notification is for the second request
+		assert.NotNil(t, notificationsOwner[0].JoinRequestID, "Notification should have join_request_id")
+		assert.Equal(t, request2ID, *notificationsOwner[0].JoinRequestID, "Remaining notification should be for the second request")
+	})
+
+	t.Run("Reject Join Request - Other Pending Requests Retain Notifications", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "owner_multi_reject@example.com")
+		admin, _ := CreateTestUser(t, "admin_multi_reject@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		user1, _ := CreateTestUser(t, "user1_multi_reject@example.com")
+		user2, _ := CreateTestUser(t, "user2_multi_reject@example.com")
+
+		// Add admin to club
+		err := club.AddMember(admin.ID, "admin")
+		assert.NoError(t, err)
+
+		// Create two join requests
+		err = club.CreateJoinRequest(user1.ID, user1.Email)
+		assert.NoError(t, err)
+		err = club.CreateJoinRequest(user2.ID, user2.Email)
+		assert.NoError(t, err)
+
+		// Verify notifications were created for both requests
+		var notificationsOwner []models.Notification
+		err = database.Db.Where("user_id = ? AND type = ? AND club_id = ?", owner.ID, "join_request_received", club.ID).Find(&notificationsOwner).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(notificationsOwner), "Owner should have two notifications")
+
+		// Get both request IDs
+		var requests []models.JoinRequest
+		err = database.Db.Where("club_id = ?", club.ID).Order("created_at ASC").Find(&requests).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 2, len(requests))
+		request1ID := requests[0].ID
+		request2ID := requests[1].ID
+
+		// Owner rejects the first request
+		req := MakeRequest(t, "POST", "/api/v1/joinRequests/"+request1ID+"/reject", nil, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+		// Verify that only the first request's notification was deleted
+		err = database.Db.Where("user_id = ? AND type = ? AND club_id = ?", owner.ID, "join_request_received", club.ID).Find(&notificationsOwner).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(notificationsOwner), "Owner should have one notification remaining")
+
+		// Verify the remaining notification is for the second request
+		assert.NotNil(t, notificationsOwner[0].JoinRequestID, "Notification should have join_request_id")
+		assert.Equal(t, request2ID, *notificationsOwner[0].JoinRequestID, "Remaining notification should be for the second request")
+	})
 }
