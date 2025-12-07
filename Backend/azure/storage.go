@@ -49,7 +49,7 @@ func UploadClubLogo(clubID string, file multipart.File, header *multipart.FileHe
 	// Validate file type
 	contentType := header.Header.Get("Content-Type")
 	if !isValidImageType(contentType) {
-		return "", fmt.Errorf("invalid file type: only PNG, JPEG, and WebP images are allowed")
+		return "", fmt.Errorf("invalid file type: only PNG, JPEG, WebP, and SVG images are allowed")
 	}
 
 	// Validate file size (max 5MB)
@@ -118,6 +118,7 @@ func isValidImageType(contentType string) bool {
 		"image/jpg",
 		"image/png",
 		"image/webp",
+		"image/svg+xml",
 	}
 
 	for _, validType := range validTypes {
@@ -136,6 +137,8 @@ func getExtensionFromContentType(contentType string) string {
 		return ".png"
 	case "image/webp":
 		return ".webp"
+	case "image/svg+xml":
+		return ".svg"
 	default:
 		return ".jpg"
 	}

@@ -190,9 +190,9 @@ const AdminClubDetails = () => {
         if (!file) return;
 
         // Validate file type
-        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'];
         if (!allowedTypes.includes(file.type)) {
-            setLogoError('Please select a PNG, JPEG, or WebP image file');
+            setLogoError('Please select a PNG, JPEG, WebP, or SVG image file');
             return;
         }
 
@@ -349,7 +349,7 @@ const AdminClubDetails = () => {
                                                                 <input
                                                                     type="file"
                                                                     id="logo-upload"
-                                                                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                                                                    accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
                                                                     onChange={handleLogoUpload}
                                                                     style={{ display: 'none' }}
                                                                 />
@@ -384,7 +384,7 @@ const AdminClubDetails = () => {
                                                             <input
                                                                 type="file"
                                                                 id="logo-upload"
-                                                                accept="image/png,image/jpeg,image/jpg,image/webp"
+                                                                accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
                                                                 onChange={handleLogoUpload}
                                                                 style={{ display: 'none' }}
                                                             />
