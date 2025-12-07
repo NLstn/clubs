@@ -40,7 +40,7 @@ export const Button: React.FC<ButtonProps> = ({
       <span className="ui-button__content">
         {children}
       </span>
-      {counter && counter > 0 && (
+      {counter != null && counter > 0 && (
         <span 
           className="ui-button__counter" 
           style={{ backgroundColor: counterColor }}
