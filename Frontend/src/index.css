@@ -508,10 +508,8 @@ button:focus-visible {
 
 .rsvp-buttons {
   margin-top: var(--space-xs);
-}
-
-.rsvp-buttons button {
-  margin-right: var(--space-xs);
+  display: flex;
+  gap: var(--space-xs);
 }
 
 .news-meta {
@@ -999,29 +997,6 @@ button:focus-visible {
   gap: var(--space-sm);
   justify-content: flex-end;
   margin-top: var(--space-lg);
-}
-
-.form-actions button {
-  padding: 10px 20px;
-  border-radius: var(--border-radius-sm);
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.form-actions button[type="submit"] {
-  background-color: var(--color-primary);
-  color: white;
-}
-
-.form-actions button[type="button"] {
-  background-color: var(--color-background-light);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
-}
-
-.form-actions button:hover {
-  opacity: 0.9;
 }
 
 /* Modal styles have been moved to Modal.css component */
@@ -1677,10 +1652,6 @@ input:disabled + .slider {
   display: flex;
   gap: var(--space-sm);
   margin-bottom: var(--space-lg);
-}
-
-.join-actions button {
-  flex: 1;
 }
 
 .join-info {
