@@ -175,6 +175,13 @@ func (m *Member) notifyAdded() {
 		return
 	}
 
+	// Create activity entry for timeline so admins can see new member joins
+	err := CreateMemberJoinedActivity(club.ID, user.ID, club.Name)
+	if err != nil {
+		// Log error but don't fail the operation
+		// TODO: Add proper logging
+	}
+
 	// Send in-app notification based on preferences
 	SendMemberAddedNotifications(user.ID, user.Email, club.ID, club.Name)
 
