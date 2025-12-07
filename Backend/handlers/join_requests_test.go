@@ -193,4 +193,98 @@ func TestJoinRequestEndpoints(t *testing.T) {
 		ParseJSONResponse(t, rr, &clubInfo)
 		assert.Equal(t, true, clubInfo["hasPendingRequest"])
 	})
+
+	t.Run("Accept Join Request - Notifications Are Deleted", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "owner_notif_accept@example.com")
+		admin, _ := CreateTestUser(t, "admin_notif_accept@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		user, _ := CreateTestUser(t, "user_notif_accept@example.com")
+
+		// Add admin to club
+		err := club.AddMember(admin.ID, "admin")
+		assert.NoError(t, err)
+
+		// Create a join request (this will create notifications for owner and admin)
+		err = club.CreateJoinRequest(user.ID, user.Email)
+		assert.NoError(t, err)
+
+		// Verify notifications were created
+		var notificationsOwner []models.Notification
+		err = database.Db.Where("user_id = ? AND type = ? AND club_id = ?", owner.ID, "join_request_received", club.ID).Find(&notificationsOwner).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(notificationsOwner), "Owner should have one notification")
+
+		var notificationsAdmin []models.Notification
+		err = database.Db.Where("user_id = ? AND type = ? AND club_id = ?", admin.ID, "join_request_received", club.ID).Find(&notificationsAdmin).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(notificationsAdmin), "Admin should have one notification")
+
+		// Get the request ID
+		var requests []models.JoinRequest
+		err = database.Db.Where("club_id = ? AND email = ?", club.ID, user.Email).Find(&requests).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(requests))
+		requestID := requests[0].ID
+
+		// Owner accepts the request
+		req := MakeRequest(t, "POST", "/api/v1/joinRequests/"+requestID+"/accept", nil, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+		// Verify notifications were deleted for both owner and admin
+		err = database.Db.Where("user_id = ? AND type = ? AND club_id = ?", owner.ID, "join_request_received", club.ID).Find(&notificationsOwner).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(notificationsOwner), "Owner's notifications should be deleted after acceptance")
+
+		err = database.Db.Where("user_id = ? AND type = ? AND club_id = ?", admin.ID, "join_request_received", club.ID).Find(&notificationsAdmin).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(notificationsAdmin), "Admin's notifications should be deleted after acceptance")
+	})
+
+	t.Run("Reject Join Request - Notifications Are Deleted", func(t *testing.T) {
+		owner, ownerToken := CreateTestUser(t, "owner_notif_reject@example.com")
+		admin, _ := CreateTestUser(t, "admin_notif_reject@example.com")
+		club := CreateTestClub(t, owner, "Test Club")
+		user, _ := CreateTestUser(t, "user_notif_reject@example.com")
+
+		// Add admin to club
+		err := club.AddMember(admin.ID, "admin")
+		assert.NoError(t, err)
+
+		// Create a join request (this will create notifications for owner and admin)
+		err = club.CreateJoinRequest(user.ID, user.Email)
+		assert.NoError(t, err)
+
+		// Verify notifications were created
+		var notificationsOwner []models.Notification
+		err = database.Db.Where("user_id = ? AND type = ? AND club_id = ?", owner.ID, "join_request_received", club.ID).Find(&notificationsOwner).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(notificationsOwner), "Owner should have one notification")
+
+		var notificationsAdmin []models.Notification
+		err = database.Db.Where("user_id = ? AND type = ? AND club_id = ?", admin.ID, "join_request_received", club.ID).Find(&notificationsAdmin).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(notificationsAdmin), "Admin should have one notification")
+
+		// Get the request ID
+		var requests []models.JoinRequest
+		err = database.Db.Where("club_id = ? AND email = ?", club.ID, user.Email).Find(&requests).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(requests))
+		requestID := requests[0].ID
+
+		// Owner rejects the request
+		req := MakeRequest(t, "POST", "/api/v1/joinRequests/"+requestID+"/reject", nil, ownerToken)
+		rr := ExecuteRequest(t, handler, req)
+		CheckResponseCode(t, http.StatusNoContent, rr.Code)
+
+		// Verify notifications were deleted for both owner and admin
+		err = database.Db.Where("user_id = ? AND type = ? AND club_id = ?", owner.ID, "join_request_received", club.ID).Find(&notificationsOwner).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(notificationsOwner), "Owner's notifications should be deleted after rejection")
+
+		err = database.Db.Where("user_id = ? AND type = ? AND club_id = ?", admin.ID, "join_request_received", club.ID).Find(&notificationsAdmin).Error
+		assert.NoError(t, err)
+		assert.Equal(t, 0, len(notificationsAdmin), "Admin's notifications should be deleted after rejection")
+	})
 }

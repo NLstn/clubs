@@ -241,6 +241,11 @@ func RemoveInviteNotifications(inviteID string) error {
 	return database.Db.Where("invite_id = ? AND type = ?", inviteID, "invite_received").Delete(&Notification{}).Error
 }
 
+// RemoveJoinRequestNotifications removes join request notifications when a join request is accepted or rejected
+func RemoveJoinRequestNotifications(clubID string) error {
+	return database.Db.Where("club_id = ? AND type = ?", clubID, "join_request_received").Delete(&Notification{}).Error
+}
+
 // SendRoleChangedNotifications handles both in-app and email notifications for role changes
 func SendRoleChangedNotifications(userID, clubID, clubName, oldRole, newRole string) error {
 	// Get user notification preferences

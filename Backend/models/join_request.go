@@ -83,6 +83,13 @@ func AcceptJoinRequest(requestId, adminUserId string) error {
 		return err
 	}
 
+	// Remove notifications for this join request
+	err = RemoveJoinRequestNotifications(joinRequest.ClubID)
+	if err != nil {
+		// Log error but don't fail the operation
+		// TODO: Add proper logging
+	}
+
 	// Delete the join request since it's now complete
 	return database.Db.Delete(&JoinRequest{}, "id = ?", requestId).Error
 }
@@ -110,6 +117,13 @@ func RejectJoinRequest(requestId, adminUserId string) error {
 
 	if !club.IsOwner(admin) && !club.IsAdmin(admin) {
 		return fmt.Errorf("user not authorized to reject this request")
+	}
+
+	// Remove notifications for this join request
+	err = RemoveJoinRequestNotifications(joinRequest.ClubID)
+	if err != nil {
+		// Log error but don't fail the operation
+		// TODO: Add proper logging
 	}
 
 	return database.Db.Delete(&JoinRequest{}, "id = ?", requestId).Error
