@@ -1483,10 +1483,6 @@ input:disabled + .slider {
   margin-bottom: var(--space-lg);
 }
 
-.login-box button {
-  width: 100%;
-}
-
 /* Divider styles */
 .divider {
   position: relative;
@@ -1511,28 +1507,6 @@ input:disabled + .slider {
   color: var(--color-text-secondary);
   font-size: 0.875rem;
   white-space: nowrap;
-}
-
-/* Keycloak login button styles */
-.keycloak-login-btn {
-  width: 100%;
-  background-color: #326ce5;
-  color: white;
-  border: none;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--border-radius-sm);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.keycloak-login-btn:hover:not(:disabled) {
-  background-color: #2757c4;
-}
-
-.keycloak-login-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 /* Magic link page styles */
