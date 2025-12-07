@@ -182,8 +182,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                       {!notification.read && <div className="unread-dot"></div>}
                     </div>
                     <div className="notification-text">
-                      <div className="notification-title">{notification.title}</div>
-                      <div className="notification-message">{notification.message}</div>
+                      <div className="notification-title" title={notification.title}>{notification.title}</div>
+                      <div className="notification-message" title={notification.message}>{notification.message}</div>
                       <div className="notification-time">{formatDate(notification.createdAt)}</div>
                     </div>
                     <button
