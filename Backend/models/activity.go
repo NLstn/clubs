@@ -115,9 +115,12 @@ func CreateRoleChangeActivity(clubID, userID, actorID, clubName, oldRole, newRol
 
 // CreateMemberJoinedActivity creates an activity when a new member joins the club
 func CreateMemberJoinedActivity(clubID, userID, clubName string) error {
+	title := "New member joined"
+	content := "A new member has joined the club"
+	
 	metadata := map[string]interface{}{
 		"club_name": clubName,
 	}
 
-	return CreateActivity(clubID, userID, nil, "member_joined", "", "", metadata)
+	return CreateActivity(clubID, userID, nil, "member_joined", title, content, metadata)
 }
