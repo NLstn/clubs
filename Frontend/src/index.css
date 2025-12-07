@@ -402,58 +402,7 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-/* Fallback button variants */
-.button-accept {
-  background-color: var(--color-primary);
-  color: white;
-}
-
-.button-accept:hover:not(:disabled) {
-  background-color: var(--color-primary-hover);
-}
-
-.button-cancel {
-  background-color: var(--color-cancel);
-  color: white;
-}
-
-.button-cancel:hover:not(:disabled) {
-  background-color: var(--color-cancel-hover);
-}
-
-.button-maybe {
-  background-color: var(--color-maybe);
-  color: white;
-}
-
-.button-maybe:hover:not(:disabled) {
-  background-color: var(--color-maybe-hover);
-}
-
-.button-full-width {
-  width: 100%;
-}
-
-/* Fallback button sizes */
-.button-sm {
-  padding: calc(var(--space-sm) * 0.75) var(--space-sm);
-  font-size: 0.875rem;
-  min-height: 36px;
-}
-
-.button-md {
-  padding: var(--space-sm) var(--space-md);
-  font-size: 1rem;
-  min-height: 44px;
-}
-
-.button-lg {
-  padding: calc(var(--space-sm) * 1.25) calc(var(--space-md) * 1.25);
-  font-size: 1.125rem;
-  min-height: 52px;
-}
-
-/* Mobile responsive fallback buttons */
+/* Mobile responsive buttons */
 @media (max-width: 768px) {
   button {
     min-height: 44px; /* Touch-friendly height */
@@ -1931,22 +1880,6 @@ input:disabled + .slider {
 .role-actions {
   display: flex;
   gap: var(--space-xs);
-}
-
-.button-secondary {
-  background: var(--color-secondary);
-  color: white;
-  border: 1px solid var(--color-secondary);
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--border-radius-sm);
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-}
-
-.button-secondary:hover {
-  background: var(--color-secondary-hover);
-  border-color: var(--color-secondary-hover);
 }
 
 .action-button.edit {
