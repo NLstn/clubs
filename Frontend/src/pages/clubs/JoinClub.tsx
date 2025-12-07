@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { Button } from '../../components/ui';
 import api from '../../utils/api';
 import ClubNotFound from './ClubNotFound';
 import { removeRecentClub } from '../../utils/recentClubs';
@@ -140,18 +141,18 @@ const JoinClub: React.FC = () => {
               You are already a member of this club!
             </div>
             <div className="join-actions">
-              <button 
+              <Button 
                 onClick={() => navigate(`/clubs/${clubId}`)} 
-                className="button-accept"
+                variant="accept"
               >
                 Go to Club
-              </button>
-              <button 
+              </Button>
+              <Button 
                 onClick={() => navigate('/')} 
-                className="button-cancel"
+                variant="cancel"
               >
                 Back to Dashboard
-              </button>
+              </Button>
             </div>
           </div>
         ) : club.hasPendingInvite ? (
@@ -160,18 +161,18 @@ const JoinClub: React.FC = () => {
               You have already been invited to this club! Please check your profile invitations page to accept or decline the invitation.
             </div>
             <div className="join-actions">
-              <button 
+              <Button 
                 onClick={() => navigate('/profile/invites')} 
-                className="button-accept"
+                variant="accept"
               >
                 View Invitations
-              </button>
-              <button 
+              </Button>
+              <Button 
                 onClick={() => navigate('/')} 
-                className="button-cancel"
+                variant="cancel"
               >
                 Back to Dashboard
-              </button>
+              </Button>
             </div>
           </div>
         ) : club.hasPendingRequest ? (
@@ -180,30 +181,30 @@ const JoinClub: React.FC = () => {
               You have already sent a join request for this club. Please wait for an admin to review your request.
             </div>
             <div className="join-actions">
-              <button 
+              <Button 
                 onClick={() => navigate('/')} 
-                className="button-cancel"
+                variant="cancel"
               >
                 Back to Dashboard
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
           <div>
             <div className="join-actions">
-              <button 
+              <Button 
                 onClick={handleJoinClub} 
                 disabled={isJoining}
-                className="button-accept"
+                variant="accept"
               >
                 {isJoining ? 'Sending Request...' : 'Request to Join'}
-              </button>
-              <button 
+              </Button>
+              <Button 
                 onClick={() => navigate('/')} 
-                className="button-cancel"
+                variant="cancel"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
 
             <div className="join-info">

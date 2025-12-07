@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Layout from '../../components/layout/Layout';
-import { Input, Modal } from '@/components/ui';
+import { Input, Modal, Button } from '@/components/ui';
 import './AdminTeamDetails.css';
 
 interface Team {
@@ -283,8 +283,8 @@ const AdminTeamDetails = () => {
                                         rows={4}
                                     />
                                     <div className="form-actions">
-                                        <button onClick={updateTeam} className="button-accept">Save</button>
-                                        <button onClick={() => setIsEditing(false)} className="button-cancel">Cancel</button>
+                                        <Button onClick={updateTeam} variant="accept">Save</Button>
+                                        <Button onClick={() => setIsEditing(false)} variant="cancel">Cancel</Button>
                                     </div>
                                 </div>
                             ) : (
@@ -295,13 +295,13 @@ const AdminTeamDetails = () => {
                                             <p>{team.description}</p>
                                         </div>
                                         <div className="team-actions">
-                                            <button onClick={handleEdit} className="button-accept">Edit Team</button>
-                                            <button 
+                                            <Button onClick={handleEdit} variant="accept">Edit Team</Button>
+                                            <Button 
                                                 onClick={() => navigate(`/clubs/${clubId}/teams/${teamId}`)} 
-                                                className="button-secondary"
+                                                variant="secondary"
                                             >
                                                 View Team
-                                            </button>
+                                            </Button>
                                         </div>
                                     </div>
 
@@ -342,12 +342,12 @@ const AdminTeamDetails = () => {
                         <div className={`tab-panel ${activeTab === 'events' ? 'active' : ''}`}>
                             <div className="section-header">
                                 <h3>Team Events</h3>
-                                <button 
+                                <Button 
                                     onClick={() => setShowCreateEventModal(true)} 
-                                    className="button-accept"
+                                    variant="accept"
                                 >
                                     Create Event
-                                </button>
+                                </Button>
                             </div>
 
                             <div className="events-list">
@@ -355,12 +355,13 @@ const AdminTeamDetails = () => {
                                     <div key={event.id} className="event-card">
                                         <div className="event-header">
                                             <h4>{event.name}</h4>
-                                            <button 
+                                            <Button 
                                                 onClick={() => deleteEvent(event.id)}
-                                                className="button-cancel button-sm"
+                                                variant="cancel"
+                                                size="sm"
                                             >
                                                 Delete
-                                            </button>
+                                            </Button>
                                         </div>
                                         <p>{event.description}</p>
                                         <div className="event-details">
@@ -378,12 +379,12 @@ const AdminTeamDetails = () => {
                         <div className={`tab-panel ${activeTab === 'fines' ? 'active' : ''}`}>
                             <div className="section-header">
                                 <h3>Team Fines</h3>
-                                <button 
+                                <Button 
                                     onClick={() => setShowCreateFineModal(true)} 
-                                    className="button-accept"
+                                    variant="accept"
                                 >
                                     Create Fine
-                                </button>
+                                </Button>
                             </div>
 
                             <div className="fines-list">
@@ -392,12 +393,13 @@ const AdminTeamDetails = () => {
                                         <div className="fine-header">
                                             <h4>{fine.userName}</h4>
                                             <div className="fine-amount">${fine.amount}</div>
-                                            <button 
+                                            <Button 
                                                 onClick={() => deleteFine(fine.id)}
-                                                className="button-cancel button-sm"
+                                                variant="cancel"
+                                                size="sm"
                                             >
                                                 Delete
-                                            </button>
+                                            </Button>
                                         </div>
                                         <p>{fine.reason}</p>
                                         <div className="fine-status">
@@ -455,12 +457,12 @@ const AdminTeamDetails = () => {
                     </div>
                 </Modal.Body>
                 <Modal.Actions>
-                    <button onClick={createEvent} className="button-accept">
+                    <Button onClick={createEvent} variant="accept">
                         Create Event
-                    </button>
-                    <button onClick={() => setShowCreateEventModal(false)} className="button-cancel">
+                    </Button>
+                    <Button onClick={() => setShowCreateEventModal(false)} variant="cancel">
                         Cancel
-                    </button>
+                    </Button>
                 </Modal.Actions>
             </Modal>
 
@@ -493,12 +495,12 @@ const AdminTeamDetails = () => {
                     </div>
                 </Modal.Body>
                 <Modal.Actions>
-                    <button onClick={createFine} className="button-accept">
+                    <Button onClick={createFine} variant="accept">
                         Create Fine
-                    </button>
-                    <button onClick={() => setShowCreateFineModal(false)} className="button-cancel">
+                    </Button>
+                    <Button onClick={() => setShowCreateFineModal(false)} variant="cancel">
                         Cancel
-                    </button>
+                    </Button>
                 </Modal.Actions>
             </Modal>
         </Layout>

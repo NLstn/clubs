@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import api from "../../../../utils/api";
-import { Input, Modal } from '@/components/ui';
+import { Input, Modal, Button } from '@/components/ui';
 
 interface AddEventProps {
     isOpen: boolean;
@@ -219,9 +219,9 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
             </Modal.Body>
 
             <Modal.Actions>
-                <button 
+                <Button 
                     onClick={handleSubmit} 
-                    className="button-accept"
+                    variant="accept"
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? (
@@ -232,14 +232,14 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                     ) : (
                         'Add Event'
                     )}
-                </button>
-                <button 
+                </Button>
+                <Button 
                     onClick={handleClose} 
-                    className="button-cancel"
+                    variant="cancel"
                     disabled={isSubmitting}
                 >
                     Cancel
-                </button>
+                </Button>
             </Modal.Actions>
         </Modal>
     );

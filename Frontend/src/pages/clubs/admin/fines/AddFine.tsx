@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import api from "../../../../utils/api";
-import { TypeAheadDropdown, Input, Modal } from '@/components/ui';
+import { TypeAheadDropdown, Input, Modal, Button } from '@/components/ui';
 
 interface Member {
     id: string;
@@ -205,18 +205,17 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
             </Modal.Body>
             
             <Modal.Actions>
-                <button 
-                    type="button"
-                    onClick={onClose} 
-                    className="button-cancel"
+                <Button 
+                    variant="cancel"
+                    onClick={onClose}
                     disabled={isSubmitting}
                 >
                     Cancel
-                </button>
-                <button 
+                </Button>
+                <Button 
+                    variant="accept"
                     type="submit"
-                    disabled={!selectedOption || !amount || !reason || isSubmitting} 
-                    className="button-accept"
+                    disabled={!selectedOption || !amount || !reason || isSubmitting}
                 >
                     {isSubmitting ? (
                         <>
@@ -226,7 +225,7 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                     ) : (
                         "Add Fine"
                     )}
-                </button>
+                </Button>
             </Modal.Actions>
         </Modal>
     );

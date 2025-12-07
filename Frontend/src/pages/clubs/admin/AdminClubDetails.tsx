@@ -8,7 +8,7 @@ import AdminClubTeamList from './teams/AdminClubTeamList';
 import AdminClubFineList from './fines/AdminClubFineList';
 import AdminClubEventList from './events/AdminClubEventList';
 import AdminClubNewsList from './news/AdminClubNewsList';
-import { Input, Modal } from '@/components/ui';
+import { Input, Modal, Button } from '@/components/ui';
 import AdminClubSettings from './settings/AdminClubSettings';
 import { useClubSettings } from '../../../hooks/useClubSettings';
 import { useT } from '../../../hooks/useTranslation';
@@ -328,8 +328,8 @@ const AdminClubDetails = () => {
                                         rows={4}
                                     />
                                     <div className="form-actions">
-                                        <button onClick={updateClub} className="button-accept">{t('common.save')}</button>
-                                        <button onClick={() => setIsEditing(false)} className="button-cancel">{t('common.cancel')}</button>
+                                        <Button variant="accept" onClick={updateClub}>{t('common.save')}</Button>
+                                        <Button variant="cancel" onClick={() => setIsEditing(false)}>{t('common.cancel')}</Button>
                                     </div>
                                 </div>
                             ) : (
@@ -353,20 +353,22 @@ const AdminClubDetails = () => {
                                                                     onChange={handleLogoUpload}
                                                                     style={{ display: 'none' }}
                                                                 />
-                                                                <button
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="secondary"
                                                                     onClick={() => document.getElementById('logo-upload')?.click()}
-                                                                    className="logo-change-btn"
                                                                     disabled={logoUploading}
                                                                 >
                                                                     {logoUploading ? 'Uploading...' : 'Change'}
-                                                                </button>
-                                                                <button
+                                                                </Button>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="cancel"
                                                                     onClick={handleLogoDelete}
-                                                                    className="logo-delete-btn"
                                                                     disabled={logoUploading}
                                                                 >
                                                                     Delete
-                                                                </button>
+                                                                </Button>
                                                             </div>
                                                         )}
                                                     </div>
@@ -403,26 +405,26 @@ const AdminClubDetails = () => {
                                         <div className="club-actions">
                                             {!club.deleted && (
                                                 <>
-                                                    <button onClick={handleEdit} className="button-accept">{t('clubs.editClub')}</button>
+                                                    <Button variant="accept" onClick={handleEdit}>{t('clubs.editClub')}</Button>
                                                     {isOwner && (
-                                                        <button 
-                                                            onClick={handleDeleteClub} 
-                                                            className="button-cancel"
+                                                        <Button 
+                                                            variant="cancel"
+                                                            onClick={handleDeleteClub}
                                                             style={{ marginLeft: '10px' }}
                                                         >
                                                             {t('clubs.deleteClub')}
-                                                        </button>
+                                                        </Button>
                                                     )}
                                                 </>
                                             )}
                                             {club.deleted && isOwner && (
-                                                <button 
-                                                    onClick={handleHardDeleteClub} 
-                                                    className="button-cancel"
+                                                <Button 
+                                                    variant="cancel"
+                                                    onClick={handleHardDeleteClub}
                                                     style={{ backgroundColor: '#d32f2f', borderColor: '#d32f2f' }}
                                                 >
                                                     {t('clubs.hardDeleteClub')}
-                                                </button>
+                                                </Button>
                                             )}
                                         </div>
                                     </div>
@@ -486,18 +488,18 @@ const AdminClubDetails = () => {
                     <p>{t('clubs.deleteConfirmation', { clubName: club?.name })}</p>
                 </Modal.Body>
                 <Modal.Actions>
-                    <button 
-                        onClick={confirmDeleteClub} 
-                        className="button-cancel"
+                    <Button 
+                        variant="cancel"
+                        onClick={confirmDeleteClub}
                     >
                         {t('common.delete')}
-                    </button>
-                    <button 
-                        onClick={() => setShowDeletePopup(false)} 
-                        className="button-accept"
+                    </Button>
+                    <Button 
+                        variant="accept"
+                        onClick={() => setShowDeletePopup(false)}
                     >
                         {t('common.cancel')}
-                    </button>
+                    </Button>
                 </Modal.Actions>
             </Modal>
 
@@ -512,19 +514,19 @@ const AdminClubDetails = () => {
                     <p>{t('clubs.hardDeleteConfirmation', { clubName: club?.name })}</p>
                 </Modal.Body>
                 <Modal.Actions>
-                    <button 
-                        onClick={confirmHardDeleteClub} 
-                        className="button-cancel"
+                    <Button 
+                        variant="cancel"
+                        onClick={confirmHardDeleteClub}
                         style={{ backgroundColor: '#d32f2f', borderColor: '#d32f2f' }}
                     >
                         {t('clubs.hardDeleteClub')}
-                    </button>
-                    <button 
-                        onClick={() => setShowHardDeletePopup(false)} 
-                        className="button-accept"
+                    </Button>
+                    <Button 
+                        variant="accept"
+                        onClick={() => setShowHardDeletePopup(false)}
                     >
                         {t('common.cancel')}
-                    </button>
+                    </Button>
                 </Modal.Actions>
             </Modal>
         </Layout>

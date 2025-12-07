@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Button } from '../../components/ui';
 import api from '../../utils/api';
 
 interface Event {
@@ -72,9 +73,11 @@ const UpcomingEvents = () => {
                             <h4 style={{ margin: 0 }}>{event.name}</h4>
                             <Link 
                                 to={`/clubs/${id}/events/${event.id}`} 
-                                className="button-info"
+                                style={{ textDecoration: 'none' }}
                             >
-                                View Details
+                                <Button variant="secondary" size="sm">
+                                    View Details
+                                </Button>
                             </Link>
                         </div>
                         <p>
@@ -102,24 +105,27 @@ const UpcomingEvents = () => {
                                 )}
                             </p>
                             <div className="rsvp-buttons">
-                                <button
+                                <Button
+                                    size="sm"
+                                    variant={event.user_rsvp?.response === 'yes' ? 'accept' : 'primary'}
                                     onClick={() => handleRSVP(event.id, 'yes')}
-                                    className={event.user_rsvp?.response === 'yes' ? 'button-accept' : 'button'}
                                 >
                                     Yes
-                                </button>
-                                <button
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant={event.user_rsvp?.response === 'maybe' ? 'maybe' : 'primary'}
                                     onClick={() => handleRSVP(event.id, 'maybe')}
-                                    className={event.user_rsvp?.response === 'maybe' ? 'button-maybe' : 'button'}
                                 >
                                     Maybe
-                                </button>
-                                <button
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant={event.user_rsvp?.response === 'no' ? 'cancel' : 'primary'}
                                     onClick={() => handleRSVP(event.id, 'no')}
-                                    className={event.user_rsvp?.response === 'no' ? 'button-cancel' : 'button'}
                                 >
                                     No
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
-import { Table, TableColumn } from '@/components/ui';
+import { Table, TableColumn, Button } from '@/components/ui';
 import api from '../../utils/api';
 import './Profile.css';
 
@@ -74,18 +74,20 @@ const ProfileInvites = () => {
       header: 'Actions',
       render: (invite) => (
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button
-            className="button-accept"
+          <Button
+            variant="accept"
+            size="sm"
             onClick={() => handleAccept(invite.id, invite.clubName)}
           >
             Accept
-          </button>
-          <button
-            className="button-cancel"
+          </Button>
+          <Button
+            variant="cancel"
+            size="sm"
             onClick={() => handleDecline(invite.id)}
           >
             Decline
-          </button>
+          </Button>
         </div>
       )
     }

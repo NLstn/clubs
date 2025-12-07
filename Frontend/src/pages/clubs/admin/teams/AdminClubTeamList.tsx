@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
-import { Input, Modal } from '@/components/ui';
+import { Input, Modal, Button } from '@/components/ui';
 
 interface Team {
     id: string;
@@ -201,12 +201,12 @@ const AdminClubTeamList = () => {
                 <div className="teams-list-section">
                     <div className="section-header">
                         <h3>{t('teams.title')}</h3>
-                        <button 
-                            onClick={() => setShowCreateModal(true)} 
-                            className="button-accept"
+                        <Button 
+                            variant="accept"
+                            onClick={() => setShowCreateModal(true)}
                         >
                             {t('teams.createTeam')}
-                        </button>
+                        </Button>
                     </div>
 
                     <div className="teams-grid">
@@ -219,24 +219,26 @@ const AdminClubTeamList = () => {
                                 <div className="team-header">
                                     <h4>{team.name}</h4>
                                     <div className="team-actions">
-                                        <button 
+                                        <Button 
+                                            size="sm"
+                                            variant="secondary"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 openEditModal(team);
                                             }}
-                                            className="action-button edit"
                                         >
                                             {t('common.edit')}
-                                        </button>
-                                        <button 
+                                        </Button>
+                                        <Button 
+                                            size="sm"
+                                            variant="cancel"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleDeleteTeam(team.id);
                                             }}
-                                            className="action-button remove"
                                         >
                                             {t('common.delete')}
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
                                 {team.description && <p className="team-description">{team.description}</p>}
@@ -250,12 +252,12 @@ const AdminClubTeamList = () => {
                     <div className="team-members-section">
                         <div className="section-header">
                             <h3>{t('teams.membersOf', { teamName: selectedTeam.name })}</h3>
-                            <button 
-                                onClick={() => setShowAddMemberModal(true)} 
-                                className="button-accept"
+                            <Button 
+                                variant="accept"
+                                onClick={() => setShowAddMemberModal(true)}
                             >
                                 {t('teams.addMember')}
-                            </button>
+                            </Button>
                         </div>
 
                         <table className="members-table">
@@ -337,12 +339,12 @@ const AdminClubTeamList = () => {
                     </div>
                 </Modal.Body>
                 <Modal.Actions>
-                    <button onClick={handleCreateTeam} className="button-accept">
+                    <Button variant="accept" onClick={handleCreateTeam}>
                         {t('common.create')}
-                    </button>
-                    <button onClick={() => setShowCreateModal(false)} className="button-cancel">
+                    </Button>
+                    <Button variant="cancel" onClick={() => setShowCreateModal(false)}>
                         {t('common.cancel')}
-                    </button>
+                    </Button>
                 </Modal.Actions>
             </Modal>
 
@@ -368,12 +370,12 @@ const AdminClubTeamList = () => {
                     </div>
                 </Modal.Body>
                 <Modal.Actions>
-                    <button onClick={handleUpdateTeam} className="button-accept">
+                    <Button variant="accept" onClick={handleUpdateTeam}>
                         {t('common.save')}
-                    </button>
-                    <button onClick={() => setShowEditModal(false)} className="button-cancel">
+                    </Button>
+                    <Button variant="cancel" onClick={() => setShowEditModal(false)}>
                         {t('common.cancel')}
-                    </button>
+                    </Button>
                 </Modal.Actions>
             </Modal>
 
@@ -385,18 +387,20 @@ const AdminClubTeamList = () => {
                             <div key={member.id} className="member-option">
                                 <span>{member.name}</span>
                                 <div className="role-actions">
-                                    <button
+                                    <Button
+                                        variant="accept"
+                                        size="sm"
                                         onClick={() => handleAddMember(member.userId, 'member')}
-                                        className="button-accept"
                                     >
                                         {t('teams.addAsMember')}
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
                                         onClick={() => handleAddMember(member.userId, 'admin')}
-                                        className="button-secondary"
                                     >
                                         {t('teams.addAsAdmin')}
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         ))}
@@ -406,9 +410,9 @@ const AdminClubTeamList = () => {
                     </div>
                 </Modal.Body>
                 <Modal.Actions>
-                    <button onClick={() => setShowAddMemberModal(false)} className="button-cancel">
+                    <Button variant="cancel" onClick={() => setShowAddMemberModal(false)}>
                         {t('common.cancel')}
-                    </button>
+                    </Button>
                 </Modal.Actions>
             </Modal>
         </div>

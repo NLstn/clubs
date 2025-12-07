@@ -247,49 +247,54 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             render: (member) => (
                 <div className="member-actions">
                     {canDeleteMember(currentUserRole, member.role) && (
-                        <button
+                        <Button
+                            size="sm"
+                            variant="cancel"
                             onClick={() => deleteMember(member.id)}
-                            className="action-button remove"
                             aria-label="Remove member"
                         >
                             Remove
-                        </button>
+                        </Button>
                     )}
                     {member.role === 'member' && canChangeRole(currentUserRole, member.role, 'admin', member) && (
-                        <button
+                        <Button
+                            size="sm"
+                            variant="secondary"
                             onClick={() => handleRoleChange(member.id, 'admin')}
-                            className="action-button promote"
                         >
                             Promote
-                        </button>
+                        </Button>
                     )}
                     {member.role === 'admin' && (
                         <>
                             {canChangeRole(currentUserRole, member.role, 'member', member) && (
-                                <button
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
                                     onClick={() => handleRoleChange(member.id, 'member')}
-                                    className="action-button demote"
                                 >
                                     Demote
-                                </button>
+                                </Button>
                             )}
                             {canChangeRole(currentUserRole, member.role, 'owner', member) && (
-                                <button
+                                <Button
+                                    size="sm"
+                                    variant="secondary"
                                     onClick={() => handleRoleChange(member.id, 'owner')}
-                                    className="action-button promote"
                                 >
                                     Promote
-                                </button>
+                                </Button>
                             )}
                         </>
                     )}
                     {member.role === 'owner' && canChangeRole(currentUserRole, member.role, 'admin', member) && (
-                        <button
+                        <Button
+                            size="sm"
+                            variant="secondary"
                             onClick={() => handleRoleChange(member.id, 'admin')}
-                            className="action-button demote"
                         >
                             Demote
-                        </button>
+                        </Button>
                     )}
                 </div>
             )
@@ -348,14 +353,14 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                                     onChange={(e) => setInviteEmail(e.target.value)}
                                     placeholder="Enter email"
                                 />
-                                <button 
-                                    onClick={() => inviteEmail && sendInvite(inviteEmail)} 
-                                    disabled={!inviteEmail} 
-                                    className="button-accept"
+                                <Button 
+                                    variant="accept"
+                                    onClick={() => inviteEmail && sendInvite(inviteEmail)}
+                                    disabled={!inviteEmail}
                                     style={{ marginTop: '12px' }}
                                 >
                                     Send Invite
-                                </button>
+                                </Button>
                             </div>
                         </div>
                         
@@ -366,7 +371,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                         </div>
                     </Modal.Body>
                     <Modal.Actions>
-                        <button onClick={() => setShowManageInvites(false)} className="button-cancel">Close</button>
+                        <Button variant="cancel" onClick={() => setShowManageInvites(false)}>Close</Button>
                     </Modal.Actions>
                 </Modal>
             )}
@@ -396,12 +401,12 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                         </div>
                     </Modal.Body>
                     <Modal.Actions>
-                        <button onClick={copyToClipboard} className="button-accept">
+                        <Button variant="accept" onClick={copyToClipboard}>
                             Copy Link
-                        </button>
-                        <button onClick={() => setShowInviteLink(false)} className="button-cancel">
+                        </Button>
+                        <Button variant="cancel" onClick={() => setShowInviteLink(false)}>
                             Close
-                        </button>
+                        </Button>
                     </Modal.Actions>
                 </Modal>
             )}
@@ -416,7 +421,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                         <AdminClubJoinRequestList onRequestsChange={fetchJoinRequestCount} />
                     </Modal.Body>
                     <Modal.Actions>
-                        <button onClick={handleCloseJoinRequests} className="button-cancel">Close</button>
+                        <Button variant="cancel" onClick={handleCloseJoinRequests}>Close</Button>
                     </Modal.Actions>
                 </Modal>
             )}

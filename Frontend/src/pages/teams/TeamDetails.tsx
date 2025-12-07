@@ -6,6 +6,7 @@ import TeamNews from './TeamNews';
 import TeamUpcomingEvents from './TeamUpcomingEvents';
 import TeamFines from './TeamFines';
 import TeamMembers from './TeamMembers';
+import { Button } from '../../components/ui';
 import { useT } from '../../hooks/useTranslation';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import './TeamDetails.css';
@@ -113,19 +114,19 @@ const TeamDetails = () => {
                     {/* Action Buttons */}
                     <div className="club-actions">
                         {isAdmin && (
-                            <button 
-                                className="button button-primary"
+                            <Button 
+                                variant="primary"
                                 onClick={() => navigate(`/clubs/${clubId}/teams/${teamId}/admin`)}
                             >
                                 Manage Team
-                            </button>
+                            </Button>
                         )}
-                        <button 
-                            className="button button-cancel"
+                        <Button 
+                            variant="cancel"
                             onClick={() => navigate(`/clubs/${clubId}`)}
                         >
                             Back to Club
-                        </button>
+                        </Button>
                     </div>
                 </div>
 

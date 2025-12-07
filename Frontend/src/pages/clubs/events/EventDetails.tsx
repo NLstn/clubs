@@ -1,5 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { Button } from "../../../components/ui";
 import api from "../../../utils/api";
 import "./EventDetails.css";
 
@@ -138,11 +139,13 @@ const EventDetails: FC = () => {
                     <h2>Error</h2>
                     <p>{error}</p>
                     <div className="button-group">
-                        <button onClick={() => navigate(-1)} className="button-secondary">
+                        <Button onClick={() => navigate(-1)} variant="secondary">
                             Go Back
-                        </button>
-                        <Link to={`/clubs/${clubId}`} className="button-primary">
-                            Back to Club
+                        </Button>
+                        <Link to={`/clubs/${clubId}`} style={{ textDecoration: 'none' }}>
+                            <Button variant="primary">
+                                Back to Club
+                            </Button>
                         </Link>
                     </div>
                 </div>
@@ -168,9 +171,9 @@ const EventDetails: FC = () => {
                     <span> / </span>
                     <span>Event Details</span>
                 </div>
-                <button onClick={() => navigate(-1)} className="button-secondary">
+                <Button onClick={() => navigate(-1)} variant="secondary">
                     Go Back
-                </button>
+                </Button>
             </div>
 
             <div className="event-details-card">
@@ -229,27 +232,30 @@ const EventDetails: FC = () => {
                             <div className="rsvp-actions">
                                 <h4>Update your response:</h4>
                                 <div className="button-group">
-                                    <button 
+                                    <Button 
+                                        variant="primary"
                                         onClick={() => handleRSVP('yes')}
                                         disabled={rsvpLoading}
-                                        className={`button-primary ${user_rsvp?.response === 'yes' ? 'active' : ''}`}
+                                        className={user_rsvp?.response === 'yes' ? 'active' : ''}
                                     >
                                         {rsvpLoading ? 'Updating...' : 'Yes, I\'ll attend'}
-                                    </button>
-                                    <button 
+                                    </Button>
+                                    <Button 
+                                        variant="maybe"
                                         onClick={() => handleRSVP('maybe')}
                                         disabled={rsvpLoading}
-                                        className={`button-maybe ${user_rsvp?.response === 'maybe' ? 'active' : ''}`}
+                                        className={user_rsvp?.response === 'maybe' ? 'active' : ''}
                                     >
                                         {rsvpLoading ? 'Updating...' : 'Maybe, I\'m not sure'}
-                                    </button>
-                                    <button 
+                                    </Button>
+                                    <Button 
+                                        variant="cancel"
                                         onClick={() => handleRSVP('no')}
                                         disabled={rsvpLoading}
-                                        className={`button-cancel ${user_rsvp?.response === 'no' ? 'active' : ''}`}
+                                        className={user_rsvp?.response === 'no' ? 'active' : ''}
                                     >
                                         {rsvpLoading ? 'Updating...' : 'No, I can\'t attend'}
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         </div>

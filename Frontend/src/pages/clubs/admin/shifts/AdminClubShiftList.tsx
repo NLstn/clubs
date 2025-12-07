@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import EditShift from "./EditShift";
+import { Button } from "../../../../components/ui";
 import api from "../../../../utils/api";
 
 interface Shift {
@@ -105,12 +106,13 @@ const AdminClubShiftList = () => {
                                             </span>
                                         </td>
                                         <td>
-                                            <button
+                                            <Button
                                                 onClick={() => handleEditShift(shift)}
-                                                className="button-accept"
+                                                variant="accept"
+                                                size="sm"
                                             >
                                                 Edit
-                                            </button>
+                                            </Button>
                                         </td>
                                     </tr>
                                 ))

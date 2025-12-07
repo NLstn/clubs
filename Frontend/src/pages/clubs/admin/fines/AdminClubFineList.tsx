@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import api from "../../../../utils/api";
 import AddFine from "./AddFine";
 import AdminClubFineTemplateList from "./AdminClubFineTemplateList";
-import { Table, TableColumn, Modal } from '@/components/ui';
+import { Table, TableColumn, Modal, Button } from '@/components/ui';
 
 interface Fine {
     id: string;
@@ -101,12 +101,13 @@ const AdminClubFineList = () => {
             key: 'actions',
             header: 'Actions',
             render: (fine) => (
-                <button 
+                <Button 
+                    variant="cancel"
+                    size="sm"
                     onClick={() => handleDeleteFine(fine.id)}
-                    className="button-cancel"
                 >
                     Delete
-                </button>
+                </Button>
             )
         }
     ];
@@ -144,9 +145,9 @@ const AdminClubFineList = () => {
                 }
             />
             <div style={{ marginTop: '20px' }}>
-                <button onClick={() => setIsModalOpen(true)} className="button-accept">
+                <Button variant="accept" onClick={() => setIsModalOpen(true)}>
                     Add Fine
-                </button>
+                </Button>
             </div>
             <AddFine 
                 isOpen={isModalOpen}
@@ -165,7 +166,7 @@ const AdminClubFineList = () => {
                     <AdminClubFineTemplateList />
                 </Modal.Body>
                 <Modal.Actions>
-                    <button onClick={() => setShowFineTemplates(false)} className="button-cancel">Close</button>
+                    <Button variant="cancel" onClick={() => setShowFineTemplates(false)}>Close</Button>
                 </Modal.Actions>
             </Modal>
         </div>

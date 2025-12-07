@@ -1,5 +1,5 @@
 import { FC, useState, useEffect, useCallback } from "react";
-import { Table, TableColumn, Input } from '@/components/ui';
+import { Table, TableColumn, Input, Button } from '@/components/ui';
 import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
 import { useClubSettings } from "../../../../hooks/useClubSettings";
@@ -313,13 +313,13 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                                         onChange={(e) => setShiftEndTime(e.target.value)}
                                         disabled={isAddingShift}
                                     />
-                                    <button 
+                                    <Button 
                                         onClick={handleAddShift}
-                                        className="button-accept"
+                                        variant="accept"
                                         disabled={isAddingShift || !shiftStartTime || !shiftEndTime}
                                     >
                                         {isAddingShift ? 'Adding...' : 'Add Shift'}
-                                    </button>
+                                    </Button>
                                 </div>
 
                                 {/* Shifts List */}
@@ -338,20 +338,20 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                 </div>
             </Modal.Body>
             <Modal.Actions>
-                <button 
+                <Button 
                     onClick={handleSubmit} 
-                    className="button-accept"
+                    variant="accept"
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? 'Updating...' : 'Update Event'}
-                </button>
-                <button 
+                </Button>
+                <Button 
                     onClick={handleClose} 
-                    className="button-cancel"
+                    variant="cancel"
                     disabled={isSubmitting}
                 >
                     Cancel
-                </button>
+                </Button>
             </Modal.Actions>
         </Modal>
     );

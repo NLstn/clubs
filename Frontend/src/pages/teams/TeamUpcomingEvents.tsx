@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Button } from '../../components/ui';
 import api from '../../utils/api';
 
 interface Event {
@@ -72,9 +73,11 @@ const TeamUpcomingEvents = () => {
                             <h4 style={{ margin: 0 }}>{event.name}</h4>
                             <Link 
                                 to={`/clubs/${clubId}/teams/${teamId}/events/${event.id}`} 
-                                className="button-info"
+                                className="link-button"
                             >
-                                View Details
+                                <Button variant="secondary" size="sm">
+                                    View Details
+                                </Button>
                             </Link>
                         </div>
                         <p>
@@ -102,24 +105,27 @@ const TeamUpcomingEvents = () => {
                                 )}
                             </p>
                             <div className="rsvp-buttons">
-                                <button
+                                <Button
                                     onClick={() => handleRSVP(event.id, 'yes')}
-                                    className={event.user_rsvp?.response === 'yes' ? 'button-accept' : 'button'}
+                                    variant={event.user_rsvp?.response === 'yes' ? 'accept' : 'primary'}
+                                    size="sm"
                                 >
                                     Yes
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     onClick={() => handleRSVP(event.id, 'maybe')}
-                                    className={event.user_rsvp?.response === 'maybe' ? 'button-maybe' : 'button'}
+                                    variant={event.user_rsvp?.response === 'maybe' ? 'maybe' : 'primary'}
+                                    size="sm"
                                 >
                                     Maybe
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     onClick={() => handleRSVP(event.id, 'no')}
-                                    className={event.user_rsvp?.response === 'no' ? 'button-cancel' : 'button'}
+                                    variant={event.user_rsvp?.response === 'no' ? 'cancel' : 'primary'}
+                                    size="sm"
                                 >
                                     No
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>

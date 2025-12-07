@@ -3,7 +3,7 @@ import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from "../../hooks/useAuth";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
-import { Input } from '@/components/ui';
+import { Input, Button } from '@/components/ui';
 import './Profile.css';
 
 interface UserProfile {
@@ -131,17 +131,17 @@ const Profile = () => {
                             </div>
                             <div className="profile-actions">
                                 {!isEditing ? (
-                                    <button onClick={handleEdit} className="edit-button">Edit Profile</button>
+                                    <Button onClick={handleEdit} variant="primary">Edit Profile</Button>
                                 ) : (
                                     <>
-                                        <button 
+                                        <Button 
                                             onClick={handleSave}
-                                            className="button-accept"
+                                            variant="accept"
                                             disabled={!editedFirstName.trim() || !editedLastName.trim()}
                                         >
                                             Save Changes
-                                        </button>
-                                        <button onClick={handleCancel} className="button-cancel">Cancel</button>
+                                        </Button>
+                                        <Button onClick={handleCancel} variant="cancel">Cancel</Button>
                                     </>
                                 )}
                             </div>
