@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import CookieConsent from '../../components/CookieConsent';
-import { Input } from '@/components/ui';
+import { Input, Button } from '@/components/ui';
 
 const Signup: React.FC = () => {
   const { api } = useAuth();
@@ -74,9 +74,9 @@ const Signup: React.FC = () => {
             placeholder="Enter your last name"
           />
 
-          <button type="submit" disabled={isSubmitting || !firstName.trim() || !lastName.trim()}>
+          <Button type="submit" disabled={isSubmitting || !firstName.trim() || !lastName.trim()} variant="primary" fullWidth>
             {isSubmitting ? 'Saving...' : 'Complete Profile'}
-          </button>
+          </Button>
         </form>
       </div>
       <CookieConsent />

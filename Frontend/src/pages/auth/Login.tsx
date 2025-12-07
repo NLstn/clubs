@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import CookieConsent from '../../components/CookieConsent';
 import { useT } from '../../hooks/useTranslation';
-import { Input } from '@/components/ui';
+import { Input, Button } from '@/components/ui';
 
 const Login: React.FC = () => {
   const { t } = useT();
@@ -92,23 +92,24 @@ const Login: React.FC = () => {
             required
             disabled={isSubmitting}
           />
-          <button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting} variant="primary" fullWidth>
             {isSubmitting ? t('auth.sending') : t('auth.sendMagicLink')}
-          </button>
+          </Button>
         </form>
 
         <div className="divider">
           <span>{t('auth.or')}</span>
         </div>
 
-        <button 
+        <Button 
           type="button" 
-          className="keycloak-login-btn"
           onClick={handleKeycloakLogin}
           disabled={isSubmitting}
+          variant="secondary"
+          fullWidth
         >
           {t('auth.loginWithKeycloak')}
-        </button>
+        </Button>
       </div>
       <CookieConsent />
     </div>
