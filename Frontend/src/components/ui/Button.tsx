@@ -24,7 +24,7 @@ export const Button: React.FC<ButtonProps> = ({
   const variantClass = `ui-button--${variant}`;
   const sizeClass = `ui-button--${size}`;
   const fullWidthClass = fullWidth ? 'ui-button--full-width' : '';
-  const counterClass = counter && counter > 0 ? 'ui-button--with-counter' : '';
+  const counterClass = counter != null && counter > 0 ? 'ui-button--with-counter' : '';
 
   const classes = [
     baseClass,
