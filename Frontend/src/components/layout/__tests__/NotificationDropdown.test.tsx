@@ -253,3 +253,26 @@ describe('NotificationDropdown', () => {
       expect(screen.queryByText('Notifications')).not.toBeInTheDocument();
     });
   });
+
+  it('shows full text in title attribute for long notification texts', () => {
+    const longTextNotification = {
+      id: '1',
+      type: 'info',
+      title: 'This is a very long notification title that might be truncated in the UI',
+      message: 'This is a very long notification message that will definitely be truncated because it exceeds the two line limit set by the CSS line-clamp property',
+      read: false,
+      createdAt: '2024-01-01T10:00:00Z',
+    };
+
+    render(<NotificationDropdown {...defaultProps} notifications={[longTextNotification]} />);
+    
+    const bellButton = screen.getByRole('button', { name: /notifications/i });
+    fireEvent.click(bellButton);
+
+    // Check that title attribute is set for both title and message
+    const titleElement = screen.getByText(longTextNotification.title);
+    const messageElement = screen.getByText(longTextNotification.message);
+    
+    expect(titleElement).toHaveAttribute('title', longTextNotification.title);
+    expect(messageElement).toHaveAttribute('title', longTextNotification.message);
+  });
