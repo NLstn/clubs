@@ -229,7 +229,8 @@ func SetupTestDB(t *testing.T) {
 			club_id TEXT,
 			event_id TEXT,
 			fine_id TEXT,
-			invite_id TEXT
+			invite_id TEXT,
+			join_request_id TEXT
 		)
 	`)
 	testDB.Exec(`

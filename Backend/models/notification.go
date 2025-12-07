@@ -19,10 +19,11 @@ type Notification struct {
 	Read      bool      `json:"read" gorm:"default:false"`
 	CreatedAt time.Time `json:"createdAt"`
 	// Optional data for linking to specific resources
-	ClubID   *string `json:"clubId,omitempty" gorm:"type:uuid"`
-	EventID  *string `json:"eventId,omitempty" gorm:"type:uuid"`
-	FineID   *string `json:"fineId,omitempty" gorm:"type:uuid"`
-	InviteID *string `json:"inviteId,omitempty" gorm:"type:uuid"`
+	ClubID         *string `json:"clubId,omitempty" gorm:"type:uuid"`
+	EventID        *string `json:"eventId,omitempty" gorm:"type:uuid"`
+	FineID         *string `json:"fineId,omitempty" gorm:"type:uuid"`
+	InviteID       *string `json:"inviteId,omitempty" gorm:"type:uuid"`
+	JoinRequestID  *string `json:"joinRequestId,omitempty" gorm:"type:uuid"`
 }
 
 // UserNotificationPreferences represents user's notification settings
@@ -125,6 +126,21 @@ func CreateNotificationWithInvite(userID, notificationType, title, message strin
 		EventID:  eventID,
 		FineID:   fineID,
 		InviteID: inviteID,
+	}
+	return database.Db.Create(&notification).Error
+}
+
+// CreateNotificationWithJoinRequest creates a new notification with join request reference
+func CreateNotificationWithJoinRequest(userID, notificationType, title, message string, clubID, eventID, fineID, joinRequestID *string) error {
+	notification := Notification{
+		UserID:        userID,
+		Type:          notificationType,
+		Title:         title,
+		Message:       message,
+		ClubID:        clubID,
+		EventID:       eventID,
+		FineID:        fineID,
+		JoinRequestID: joinRequestID,
 	}
 	return database.Db.Create(&notification).Error
 }
@@ -242,8 +258,8 @@ func RemoveInviteNotifications(inviteID string) error {
 }
 
 // RemoveJoinRequestNotifications removes join request notifications when a join request is accepted or rejected
-func RemoveJoinRequestNotifications(clubID string) error {
-	return database.Db.Where("club_id = ? AND type = ?", clubID, "join_request_received").Delete(&Notification{}).Error
+func RemoveJoinRequestNotifications(joinRequestID string) error {
+	return database.Db.Where("join_request_id = ? AND type = ?", joinRequestID, "join_request_received").Delete(&Notification{}).Error
 }
 
 // SendRoleChangedNotifications handles both in-app and email notifications for role changes
