@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Button } from './ui';
 import './CookieConsent.css';
 
 const COOKIE_CONSENT_KEY = 'cookie-consent';
@@ -32,20 +33,22 @@ const CookieConsent: React.FC = () => {
           We use cookies to improve your experience on our site. By using our site, you accept our use of cookies.
         </p>
         <div className="cookie-consent-actions">
-          <button 
-            className="cookie-consent-btn cookie-consent-btn-learn-more"
+          <Button 
             onClick={handleLearnMore}
             type="button"
+            variant="secondary"
+            size="sm"
           >
             Learn More
-          </button>
-          <button 
-            className="cookie-consent-btn cookie-consent-btn-accept"
+          </Button>
+          <Button 
             onClick={handleAccept}
             type="button"
+            variant="primary"
+            size="sm"
           >
             Accept
-          </button>
+          </Button>
         </div>
       </div>
     </div>
