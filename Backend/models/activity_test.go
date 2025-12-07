@@ -95,6 +95,14 @@ func TestCreateMemberJoinedActivity(t *testing.T) {
 		t.Errorf("expected user_id %s, got %s", userID, activity.UserID)
 	}
 
+	if activity.Title != "" {
+		t.Errorf("expected empty title, got %s", activity.Title)
+	}
+
+	if activity.Content != "" {
+		t.Errorf("expected empty content, got %s", activity.Content)
+	}
+
 	var meta map[string]interface{}
 	if err := json.Unmarshal([]byte(activity.Metadata), &meta); err != nil {
 		t.Fatalf("failed to unmarshal metadata: %v", err)
@@ -136,6 +144,14 @@ func TestAddMemberCreatesActivity(t *testing.T) {
 	activity := activities[0]
 	if activity.Type != "member_joined" {
 		t.Errorf("expected type 'member_joined', got %s", activity.Type)
+	}
+
+	if activity.Title != "" {
+		t.Errorf("expected empty title, got %s", activity.Title)
+	}
+
+	if activity.Content != "" {
+		t.Errorf("expected empty content, got %s", activity.Content)
 	}
 
 	var meta map[string]interface{}
