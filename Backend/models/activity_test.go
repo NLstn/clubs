@@ -63,3 +63,88 @@ func TestCreateRoleChangeActivity(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateMemberJoinedActivity(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+	db := database.Db
+
+	clubID := "club-1"
+	userID := "user-1"
+	clubName := "Test Club"
+
+	err := models.CreateMemberJoinedActivity(clubID, userID, clubName)
+	if err != nil {
+		t.Fatalf("CreateMemberJoinedActivity returned error: %v", err)
+	}
+
+	var activity models.Activity
+	if err := db.First(&activity).Error; err != nil {
+		t.Fatalf("failed to fetch activity: %v", err)
+	}
+
+	if activity.Type != "member_joined" {
+		t.Errorf("expected type 'member_joined', got %s", activity.Type)
+	}
+
+	if activity.ClubID != clubID {
+		t.Errorf("expected club_id %s, got %s", clubID, activity.ClubID)
+	}
+
+	if activity.UserID != userID {
+		t.Errorf("expected user_id %s, got %s", userID, activity.UserID)
+	}
+
+	var meta map[string]interface{}
+	if err := json.Unmarshal([]byte(activity.Metadata), &meta); err != nil {
+		t.Fatalf("failed to unmarshal metadata: %v", err)
+	}
+
+	if meta["club_name"] != clubName {
+		t.Errorf("metadata club_name expected %s, got %v", clubName, meta["club_name"])
+	}
+}
+
+func TestAddMemberCreatesActivity(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+	db := database.Db
+
+	// Create test club and users
+	owner, _ := handlers.CreateTestUser(t, "owner@example.com")
+	newMember, _ := handlers.CreateTestUser(t, "newmember@example.com")
+	club := handlers.CreateTestClub(t, owner, "Test Club")
+
+	// Add new member
+	err := club.AddMember(newMember.ID, "member")
+	if err != nil {
+		t.Fatalf("AddMember returned error: %v", err)
+	}
+
+	// Verify activity was created
+	var activities []models.Activity
+	err = db.Where("club_id = ? AND user_id = ? AND type = ?", club.ID, newMember.ID, "member_joined").Find(&activities).Error
+	if err != nil {
+		t.Fatalf("failed to fetch activities: %v", err)
+	}
+
+	if len(activities) == 0 {
+		t.Errorf("expected activity to be created, but none found")
+	}
+
+	if len(activities) > 0 {
+		activity := activities[0]
+		if activity.Type != "member_joined" {
+			t.Errorf("expected type 'member_joined', got %s", activity.Type)
+		}
+
+		var meta map[string]interface{}
+		if err := json.Unmarshal([]byte(activity.Metadata), &meta); err != nil {
+			t.Fatalf("failed to unmarshal metadata: %v", err)
+		}
+
+		if meta["club_name"] != club.Name {
+			t.Errorf("metadata club_name expected %s, got %v", club.Name, meta["club_name"])
+		}
+	}
+}
