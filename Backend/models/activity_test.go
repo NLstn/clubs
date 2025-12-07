@@ -73,7 +73,7 @@ func TestCreateMemberJoinedActivity(t *testing.T) {
 	userID := "user-1"
 	clubName := "Test Club"
 
-	err := models.CreateMemberJoinedActivity(clubID, userID, clubName)
+	err := models.CreateMemberJoinedActivity(clubID, userID, clubName, nil)
 	if err != nil {
 		t.Fatalf("CreateMemberJoinedActivity returned error: %v", err)
 	}

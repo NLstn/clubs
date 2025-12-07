@@ -77,8 +77,8 @@ func AcceptJoinRequest(requestId, adminUserId string) error {
 		return fmt.Errorf("user not authorized to accept this request")
 	}
 
-	// Add user to club
-	err = club.AddMember(joinRequest.UserID, "member")
+	// Add user to club with the admin as the actor
+	err = club.AddMemberWithActor(joinRequest.UserID, "member", adminUserId)
 	if err != nil {
 		return err
 	}
