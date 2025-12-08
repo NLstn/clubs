@@ -265,9 +265,30 @@ import { Input } from '@/components/ui';
 ## 🛠️ Implementation Guidelines
 
 ### CSS Architecture
-- **Custom Properties**: Use CSS variables for all design tokens
-- **BEM Methodology**: Follow consistent naming conventions
+
+#### Root `index.css`
+The root `src/index.css` file should contain **only**:
+- **CSS Variables**: All design tokens (colors, spacing, typography, etc.)
+- **Global Resets**: Basic HTML element resets (body, html, *, etc.)
+- **Base Typography**: Font family, line height, and base text styling
+- **Universal Box Model**: Universal box-sizing rules
+
+**What NOT to include in `index.css`:**
+- Component-specific styles
+- Layout styles
+- Button styles
+- Form styles
+- Page-specific styles
+
+#### Component Styles
+- **Reusable Components**: Create components in `Frontend/src/components/ui/` for commonly used UI patterns (buttons, inputs, cards, modals, etc.)
+- **Component CSS Files**: Each component should have its own CSS file (e.g., `Button.tsx` → `Button.css`)
+- **Page/Component-Specific Styles**: Custom styles that are only used in specific pages or components should be in their own CSS files, not in `index.css`
+
+#### CSS Best Practices
+- **Use CSS Variables**: Always use CSS variables for colors, spacing, and other design tokens
 - **Mobile-First**: Write responsive CSS starting with mobile
+- **BEM Methodology**: Follow consistent naming conventions for component classes
 - **Performance**: Optimize selectors and minimize specificity
 
 ### Component Development
