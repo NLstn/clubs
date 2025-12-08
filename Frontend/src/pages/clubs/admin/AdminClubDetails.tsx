@@ -356,7 +356,7 @@ const AdminClubDetails = () => {
                                                     <Button 
                                                         variant="cancel"
                                                         onClick={handleHardDeleteClub}
-                                                        style={{ backgroundColor: '#d32f2f', borderColor: '#d32f2f' }}
+                                                        className="hard-delete-button"
                                                     >
                                                         {t('clubs.hardDeleteClub')}
                                                     </Button>
