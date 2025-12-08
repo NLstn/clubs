@@ -1,8 +1,8 @@
 /* Reusable Table Component Styles */
 .table-container {
-    background: #1a1a1a;
+    background: var(--color-background);
     border-radius: var(--border-radius-md);
-    border: 1px solid #444;
+    border: 1px solid var(--color-border);
     overflow: hidden;
     box-shadow: var(--shadow-sm);
 }
@@ -10,17 +10,17 @@
 .reusable-table {
     width: 100%;
     border-collapse: collapse;
-    background: #1a1a1a;
-    color: rgba(255, 255, 255, 0.9);
+    background: var(--color-background);
+    color: var(--color-text);
 }
 
 .reusable-table th {
-    background: #333;
-    color: rgba(255, 255, 255, 0.95);
+    background: var(--color-background-light);
+    color: var(--color-text);
     font-weight: 600;
     padding: var(--space-md);
     text-align: left;
-    border-bottom: 2px solid #555;
+    border-bottom: 2px solid var(--color-border-light);
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -28,13 +28,13 @@
 
 .reusable-table td {
     padding: var(--space-md);
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--color-background-light);
     vertical-align: middle;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--color-text-secondary);
 }
 
 .reusable-table tbody tr:hover {
-    background: #2a2a2a;
+    background: var(--color-background-medium);
     transition: background-color 0.2s ease;
 }
 
@@ -44,16 +44,16 @@
 
 /* Ensure proper visual completion of table without footer */
 .table-container:not(:has(.table-footer)) .reusable-table tbody tr:last-child td {
-    border-bottom: 1px solid #444;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .table-footer {
     padding: var(--space-md);
-    background: #333;
-    color: rgba(255, 255, 255, 0.7);
+    background: var(--color-background-light);
+    color: var(--color-text-secondary);
     font-size: 0.85rem;
     text-align: center;
-    border-top: 1px solid #555;
+    border-top: 1px solid var(--color-border-light);
     font-weight: 500;
 }
 
@@ -63,12 +63,12 @@
 .table-empty-text {
     padding: var(--space-lg);
     text-align: center;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--color-text-secondary);
     font-style: italic;
 }
 
 .table-error-text {
-    color: #f44336;
+    color: var(--color-error-text);
 }
 
 
@@ -93,47 +93,47 @@
 }
 
 .action-button.edit {
-    background-color: #2196f3;
-    color: #ffffff;
-    border-color: #42a5f5;
+    background-color: var(--color-secondary);
+    color: white;
+    border-color: var(--color-secondary);
 }
 
 .action-button.edit:hover {
-    background-color: #1976d2;
-    border-color: #2196f3;
+    background-color: var(--color-secondary-hover);
+    border-color: var(--color-secondary-hover);
 }
 
 .action-button.remove {
-    background-color: #f44336;
-    color: #ffffff;
-    border-color: #e57373;
+    background-color: var(--color-cancel);
+    color: white;
+    border-color: var(--color-cancel);
 }
 
 .action-button.remove:hover {
-    background-color: #d32f2f;
-    border-color: #f44336;
+    background-color: var(--color-cancel-hover);
+    border-color: var(--color-cancel-hover);
 }
 
 .action-button.promote {
-    background-color: #4caf50;
-    color: #ffffff;
-    border-color: #66bb6a;
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
 }
 
 .action-button.promote:hover {
-    background-color: #388e3c;
-    border-color: #4caf50;
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
 }
 
 .action-button.demote {
-    background-color: #ff9800;
-    color: #ffffff;
-    border-color: #ffb74d;
+    background-color: var(--color-maybe);
+    color: white;
+    border-color: var(--color-maybe);
 }
 
 .action-button.demote:hover {
-    background-color: #f57c00;
-    border-color: #ff9800;
+    background-color: var(--color-maybe-hover);
+    border-color: var(--color-maybe-hover);
 }
 
 /* Responsive styles */
