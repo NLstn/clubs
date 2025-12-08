@@ -1,6 +1,7 @@
 import { FC, useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "../../../components/ui";
+import PageHeader from "../../../components/layout/PageHeader";
 import api from "../../../utils/api";
 import "./EventDetails.css";
 import '../../../styles/events.css';
@@ -166,16 +167,20 @@ const EventDetails: FC = () => {
 
     return (
         <div className="container">
-            <div className="page-header">
+            <PageHeader
+                variant="simple"
+                actions={
+                    <Button onClick={() => navigate(-1)} variant="secondary">
+                        Go Back
+                    </Button>
+                }
+            >
                 <div className="breadcrumb">
                     <Link to={`/clubs/${clubId}`}>Club</Link>
                     <span> / </span>
                     <span>Event Details</span>
                 </div>
-                <Button onClick={() => navigate(-1)} variant="secondary">
-                    Go Back
-                </Button>
-            </div>
+            </PageHeader>
 
             <div className="event-details-card">
                 <h1>{eventData.name}</h1>

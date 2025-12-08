@@ -1,6 +1,7 @@
 import { FC, useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "../../../../components/ui";
+import PageHeader from "../../../../components/layout/PageHeader";
 import api from "../../../../utils/api";
 import EventRSVPList from "./EventRSVPList";
 import EditEvent from "./EditEvent";
@@ -223,21 +224,25 @@ const AdminEventDetails: FC = () => {
 
     return (
         <div className="admin-container">
-            <div className="page-header">
+            <PageHeader
+                variant="simple"
+                actions={
+                    <>
+                        <Button onClick={() => setIsEditModalOpen(true)} variant="primary">
+                            Edit Event
+                        </Button>
+                        <Button onClick={() => navigate(-1)} variant="secondary">
+                            Go Back
+                        </Button>
+                    </>
+                }
+            >
                 <div className="breadcrumb">
                     <Link to={`/clubs/${clubId}/admin`}>Admin Dashboard</Link>
                     <span> / </span>
                     <span>Event Details</span>
                 </div>
-                <div className="header-actions">
-                    <Button onClick={() => setIsEditModalOpen(true)} variant="primary">
-                        Edit Event
-                    </Button>
-                    <Button onClick={() => navigate(-1)} variant="secondary">
-                        Go Back
-                    </Button>
-                </div>
-            </div>
+            </PageHeader>
 
             <div className="admin-event-details-card">
                 <div className="event-header">

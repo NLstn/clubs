@@ -5,26 +5,7 @@
   padding: 0;
 }
 
-/* Header */
-.profile-header-section {
-  background: var(--color-background-light);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-lg);
-  padding: var(--space-xl);
-  margin-bottom: var(--space-lg);
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--space-lg);
-}
-
-.profile-header-content {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-lg);
-  flex: 1;
-}
+/* Profile-specific header content styles */
 
 .profile-avatar-section {
   flex-shrink: 0;

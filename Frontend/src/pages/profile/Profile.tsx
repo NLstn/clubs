@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
+import PageHeader from '../../components/layout/PageHeader';
 import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from "../../hooks/useAuth";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
@@ -114,23 +115,9 @@ const Profile = () => {
                 <div className="profile-content">
                     {/* New unified header like ClubDetails */}
                     <div className="profile-page-container">
-                        <div className="profile-header-section">
-                            <div className="profile-header-content">
-                                <div className="profile-avatar-section">
-                                    {/* No avatar yet, use initials */}
-                                    <div className="profile-avatar-placeholder">
-                                        <span className="avatar-placeholder-text">
-                                            {(profile.firstName?.[0] || 'U')}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="profile-main-info">
-                                    <h1 className="profile-title">{profile.firstName || 'User'} {profile.lastName}</h1>
-                                    <p className="profile-subtitle">{profile.email}</p>
-                                </div>
-                            </div>
-                            <div className="profile-actions">
-                                {!isEditing ? (
+                        <PageHeader
+                            actions={
+                                !isEditing ? (
                                     <Button onClick={handleEdit} variant="primary">Edit Profile</Button>
                                 ) : (
                                     <>
@@ -143,9 +130,22 @@ const Profile = () => {
                                         </Button>
                                         <Button onClick={handleCancel} variant="cancel">Cancel</Button>
                                     </>
-                                )}
+                                )
+                            }
+                        >
+                            <div className="profile-avatar-section">
+                                {/* No avatar yet, use initials */}
+                                <div className="profile-avatar-placeholder">
+                                    <span className="avatar-placeholder-text">
+                                        {(profile.firstName?.[0] || 'U')}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
+                            <div className="profile-main-info">
+                                <h1 className="profile-title">{profile.firstName || 'User'} {profile.lastName}</h1>
+                                <p className="profile-subtitle">{profile.email}</p>
+                            </div>
+                        </PageHeader>
 
                         {message && (
                             <div className={message.includes('Failed') ? 'error-message' : 'success-message'}>

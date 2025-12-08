@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Layout from '../../components/layout/Layout';
+import PageHeader from '../../components/layout/PageHeader';
 import TeamNews from './TeamNews';
 import TeamUpcomingEvents from './TeamUpcomingEvents';
 import TeamFines from './TeamFines';
@@ -84,51 +85,50 @@ const TeamDetails = () => {
         <Layout title={team.name}>
             <div className="club-details-container">
                 {/* Team Header */}
-                <div className="club-header-section">
-                    <div className="club-header-content">
-                        {/* Team Logo Placeholder */}
-                        <div className="club-logo-section">
-                            <div className="club-logo-placeholder">
-                                <span className="logo-placeholder-text">
-                                    {team.name.charAt(0).toUpperCase()}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="club-main-info">
-                            <h1 className="club-title">{team.name}</h1>
-                            {team.description && (
-                                <p className="club-description">{team.description}</p>
+                <PageHeader
+                    actions={
+                        <>
+                            {isAdmin && (
+                                <Button 
+                                    variant="primary"
+                                    onClick={() => navigate(`/clubs/${clubId}/teams/${teamId}/admin`)}
+                                >
+                                    Manage Team
+                                </Button>
                             )}
-                            {userRole && (
-                                <div className="user-role-container">
-                                    <span className="role-label">Your role</span>
-                                    <div className={`role-badge role-${userRole}`}>
-                                        <span className="role-text">{userRole}</span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    
-                    {/* Action Buttons */}
-                    <div className="club-actions">
-                        {isAdmin && (
                             <Button 
-                                variant="primary"
-                                onClick={() => navigate(`/clubs/${clubId}/teams/${teamId}/admin`)}
+                                variant="cancel"
+                                onClick={() => navigate(`/clubs/${clubId}`)}
                             >
-                                Manage Team
+                                Back to Club
                             </Button>
-                        )}
-                        <Button 
-                            variant="cancel"
-                            onClick={() => navigate(`/clubs/${clubId}`)}
-                        >
-                            Back to Club
-                        </Button>
+                        </>
+                    }
+                >
+                    {/* Team Logo Placeholder */}
+                    <div className="club-logo-section">
+                        <div className="club-logo-placeholder">
+                            <span className="logo-placeholder-text">
+                                {team.name.charAt(0).toUpperCase()}
+                            </span>
+                        </div>
                     </div>
-                </div>
+
+                    <div className="club-main-info">
+                        <h1 className="club-title">{team.name}</h1>
+                        {team.description && (
+                            <p className="club-description">{team.description}</p>
+                        )}
+                        {userRole && (
+                            <div className="user-role-container">
+                                <span className="role-label">Your role</span>
+                                <div className={`role-badge role-${userRole}`}>
+                                    <span className="role-text">{userRole}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </PageHeader>
 
                 {/* Content Sections */}
                 <div className="club-content">
