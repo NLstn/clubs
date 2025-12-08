@@ -80,14 +80,14 @@
 .profile-sidebar {
   width: 220px;
   flex-shrink: 0;
-  padding: 20px 0;
+  padding: var(--space-lg) 0;
   border-right: 1px solid var(--color-border);
   height: 100%;
   margin-left: 0;
 }
 
 .profile-sidebar h3 {
-  padding: 0 20px;
+  padding: 0 var(--space-lg);
   margin-top: 0;
 }
 
@@ -98,7 +98,7 @@
 }
 
 .profile-nav-item {
-  padding: 12px 20px;
+  padding: var(--space-sm) var(--space-lg);
   cursor: pointer;
   transition: all 0.2s;
   border-left: 4px solid transparent;
@@ -228,7 +228,7 @@
 .success-message {
   background-color: var(--color-success-bg);
   color: var(--color-success-text);
-  padding: 12px 16px;
+  padding: var(--space-sm) var(--space-md);
   border-radius: var(--border-radius-md);
   border: 1px solid #c3e6cb;
   margin-bottom: var(--space-md);
@@ -238,7 +238,7 @@
 .error-message {
   background-color: var(--color-error-bg);
   color: var(--color-error-text);
-  padding: 12px 16px;
+  padding: var(--space-sm) var(--space-md);
   border-radius: var(--border-radius-md);
   border: 1px solid #f5c6cb;
   margin-bottom: var(--space-md);
@@ -249,7 +249,7 @@
   background-color: var(--color-secondary);
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: var(--space-sm) var(--space-lg);
   border-radius: var(--border-radius-sm);
   font-size: 0.9rem;
   font-weight: 500;
@@ -380,7 +380,7 @@
 
 /* Form field display styles */
 .form-field-display {
-  padding: 12px 16px;
+  padding: var(--space-sm) var(--space-md);
   background-color: var(--color-background-light);
   border: 2px solid transparent;
   border-radius: var(--border-radius-md);

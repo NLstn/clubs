@@ -128,7 +128,7 @@
 }
 
 .dropdownItem {
-  padding: 12px 15px;
+  padding: var(--space-sm) var(--space-md);
   width: 100%;
   text-align: left;
   background: none;
