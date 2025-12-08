@@ -285,27 +285,30 @@ const AdminClubTeamList = () => {
                                             <td>
                                                 <div className="member-actions">
                                                     {member.role === 'member' && (
-                                                        <button
+                                                        <Button
                                                             onClick={() => handleUpdateMemberRole(member.id, 'admin')}
-                                                            className="action-button promote"
+                                                            variant="primary"
+                                                            size="sm"
                                                         >
                                                             {t('teams.promoteToAdmin')}
-                                                        </button>
+                                                        </Button>
                                                     )}
                                                     {member.role === 'admin' && (
-                                                        <button
+                                                        <Button
                                                             onClick={() => handleUpdateMemberRole(member.id, 'member')}
-                                                            className="action-button demote"
+                                                            variant="maybe"
+                                                            size="sm"
                                                         >
                                                             {t('teams.demoteToMember')}
-                                                        </button>
+                                                        </Button>
                                                     )}
-                                                    <button
+                                                    <Button
                                                         onClick={() => handleRemoveMember(member.id)}
-                                                        className="action-button remove"
+                                                        variant="cancel"
+                                                        size="sm"
                                                     >
                                                         {t('common.remove')}
-                                                    </button>
+                                                    </Button>
                                                 </div>
                                             </td>
                                         </tr>
