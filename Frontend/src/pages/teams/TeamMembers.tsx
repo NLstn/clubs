@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../utils/api';
-import { useT } from '../../hooks/useTranslation';
+import { useTranslation } from 'react-i18next';
 import { Table, TableColumn } from '@/components/ui';
 
 interface Member {
@@ -14,16 +14,17 @@ interface Member {
 }
 
 const TeamMembers = () => {
-    const { t } = useT();
+    const { t, i18n } = useTranslation();
     const { clubId, teamId } = useParams();
     const [members, setMembers] = useState<Member[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const translateRole = (role: string): string => {
-        const teamRole = t(`teams.roles.${role}`);
-        if (teamRole !== `teams.roles.${role}`) {
-            return teamRole;
+        // Try team role first, fall back to club role if not found
+        const teamRoleKey = `teams.roles.${role}`;
+        if (i18n.exists(teamRoleKey)) {
+            return t(teamRoleKey);
         }
         return t(`clubs.roles.${role}`);
     };
