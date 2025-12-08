@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from "../../hooks/useAuth";
+import { FormGroup } from '@/components/ui';
 import './Profile.css';
 
 interface Club {
@@ -128,7 +129,7 @@ const ProfilePrivacy = () => {
                                     These settings apply to all clubs unless overridden by club-specific settings below.
                                 </p>
                                 
-                                <div className="form-group">
+                                <FormGroup>
                                     <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' }}>
                                         <input
                                             type="checkbox"
@@ -137,7 +138,7 @@ const ProfilePrivacy = () => {
                                         />
                                         <span>Share my birth date with club members</span>
                                     </label>
-                                </div>
+                                </FormGroup>
                             </div>
 
                             <div className="profile-section">

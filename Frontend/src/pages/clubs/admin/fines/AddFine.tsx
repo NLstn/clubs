@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import api from "../../../../utils/api";
-import { TypeAheadDropdown, Input, Modal, Button } from '@/components/ui';
+import { TypeAheadDropdown, Input, Modal, Button, FormGroup } from '@/components/ui';
 
 interface Member {
     id: string;
@@ -154,7 +154,7 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
             
             <Modal.Body>
                 <form className="modal-form-section" onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
-                    <div className="form-group">
+                    <FormGroup>
                         <TypeAheadDropdown<MemberOption>
                             options={memberOptions}
                             value={selectedOption}
@@ -164,9 +164,9 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                             id="member"
                             label="Member"
                         />
-                    </div>
+                    </FormGroup>
                     
-                    <div className="form-group">
+                    <FormGroup>
                         <TypeAheadDropdown<FineTemplateOption>
                             options={templateOptions}
                             value={selectedTemplate}
@@ -176,10 +176,10 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                             id="template"
                             label="Fine Template (Optional)"
                         />
-                    </div>
+                    </FormGroup>
                     
                     <div className="modal-form-row">
-                        <div className="form-group">
+                        <FormGroup>
                             <Input
                                 label="Amount"
                                 id="amount"
@@ -188,10 +188,10 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                                 onChange={(e) => setAmount(Number(e.target.value))}
                                 placeholder="Enter amount"
                             />
-                        </div>
+                        </FormGroup>
                     </div>
                     
-                    <div className="form-group">
+                    <FormGroup>
                         <Input
                             label="Reason"
                             id="reason"
@@ -200,7 +200,7 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                             onChange={(e) => setReason(e.target.value)}
                             placeholder="Enter reason for the fine"
                         />
-                    </div>
+                    </FormGroup>
                 </form>
             </Modal.Body>
             

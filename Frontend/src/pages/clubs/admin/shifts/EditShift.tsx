@@ -1,6 +1,6 @@
 import { FC, useState, useEffect, useCallback } from 'react';
 import api from '../../../../utils/api';
-import { Modal, Button } from '@/components/ui';
+import { Modal, Button, FormGroup } from '@/components/ui';
 
 interface Shift {
     id: string;
@@ -154,7 +154,7 @@ const EditShift: FC<EditShiftProps> = ({ isOpen, onClose, shift, clubId }) => {
 
                     <div>
                         <h3>Add Member to Shift</h3>
-                        <div className="form-group">
+                        <FormGroup>
                             <label htmlFor="member-select">Select Member</label>
                             <select
                                 id="member-select"
@@ -170,7 +170,7 @@ const EditShift: FC<EditShiftProps> = ({ isOpen, onClose, shift, clubId }) => {
                                     </option>
                                 ))}
                             </select>
-                        </div>
+                        </FormGroup>
                         <Button
                             onClick={addMemberToShift}
                             disabled={!selectedMemberId}

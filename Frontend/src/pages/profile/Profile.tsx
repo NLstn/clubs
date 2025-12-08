@@ -3,7 +3,7 @@ import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from "../../hooks/useAuth";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
-import { Input, Button } from '@/components/ui';
+import { Input, Button, FormGroup } from '@/components/ui';
 import './Profile.css';
 
 interface UserProfile {
@@ -161,7 +161,7 @@ const Profile = () => {
                             <div className="profile-content-sections">
                                 <div className="content-section">
                                     <h3>Personal Information</h3>
-                                    <div className="form-group">
+                                    <FormGroup>
                                         <label htmlFor="firstName">First Name</label>
                                         {isEditing ? (
                                             <Input
@@ -176,9 +176,9 @@ const Profile = () => {
                                                 <span>{profile.firstName || 'Not set'}</span>
                                             </div>
                                         )}
-                                    </div>
+                                    </FormGroup>
 
-                                    <div className="form-group">
+                                    <FormGroup>
                                         <label htmlFor="lastName">Last Name</label>
                                         {isEditing ? (
                                             <Input
@@ -193,9 +193,9 @@ const Profile = () => {
                                                 <span>{profile.lastName || 'Not set'}</span>
                                             </div>
                                         )}
-                                    </div>
+                                    </FormGroup>
 
-                                    <div className="form-group">
+                                    <FormGroup>
                                         <label htmlFor="birthDate">Birth Date</label>
                                         {isEditing ? (
                                             <Input
@@ -209,25 +209,25 @@ const Profile = () => {
                                                 <span>{profile.birthDate ? new Date(profile.birthDate).toLocaleDateString() : 'Not set'}</span>
                                             </div>
                                         )}
-                                    </div>
+                                    </FormGroup>
 
-                                    <div className="form-group">
+                                    <FormGroup>
                                         <label htmlFor="email">Email Address</label>
                                         <div className="form-field-display form-field-readonly">
                                             <span>{profile.email}</span>
                                             <span className="field-note">Cannot be changed</span>
                                         </div>
-                                    </div>
+                                    </FormGroup>
                                 </div>
 
                                 <div className="content-section">
                                     <h3>Preferences</h3>
-                                    <div className="form-group">
+                                    <FormGroup>
                                         <label>Language</label>
                                         <div style={{ marginTop: 'var(--space-xs)' }}>
                                             <LanguageSwitcher />
                                         </div>
-                                    </div>
+                                    </FormGroup>
                                 </div>
                             </div>
                         )}
