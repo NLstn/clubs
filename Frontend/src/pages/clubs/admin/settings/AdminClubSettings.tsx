@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
+import { ToggleSwitch } from '../../../../components/ToggleSwitch';
 
 interface ClubSettings {
     id: string;
@@ -107,15 +108,11 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                         <h4>{t('clubs.fines')}</h4>
                         <p>{t('clubs.finesDescription')}</p>
                     </div>
-                    <label className="toggle-switch">
-                        <input
-                            type="checkbox"
-                            checked={settings.finesEnabled}
-                            onChange={handleFinesToggle}
-                            disabled={saving}
-                        />
-                        <span className="slider"></span>
-                    </label>
+                    <ToggleSwitch
+                        checked={settings.finesEnabled}
+                        onChange={handleFinesToggle}
+                        disabled={saving}
+                    />
                 </div>
 
                 <div className="setting-item">
@@ -123,15 +120,11 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                         <h4>{t('clubs.shifts')}</h4>
                         <p>{t('clubs.shiftsDescription')}</p>
                     </div>
-                    <label className="toggle-switch">
-                        <input
-                            type="checkbox"
-                            checked={settings.shiftsEnabled}
-                            onChange={handleShiftsToggle}
-                            disabled={saving}
-                        />
-                        <span className="slider"></span>
-                    </label>
+                    <ToggleSwitch
+                        checked={settings.shiftsEnabled}
+                        onChange={handleShiftsToggle}
+                        disabled={saving}
+                    />
                 </div>
 
                 <div className="setting-item">
@@ -139,15 +132,11 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                         <h4>{t('clubs.teams')}</h4>
                         <p>{t('clubs.teamsDescription')}</p>
                     </div>
-                    <label className="toggle-switch">
-                        <input
-                            type="checkbox"
-                            checked={settings.teamsEnabled}
-                            onChange={handleTeamsToggle}
-                            disabled={saving}
-                        />
-                        <span className="slider"></span>
-                    </label>
+                    <ToggleSwitch
+                        checked={settings.teamsEnabled}
+                        onChange={handleTeamsToggle}
+                        disabled={saving}
+                    />
                 </div>
 
                 <div className="setting-item">
@@ -155,15 +144,11 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                         <h4>{t('clubs.membersList')}</h4>
                         <p>{t('clubs.membersListDescription')}</p>
                     </div>
-                    <label className="toggle-switch">
-                        <input
-                            type="checkbox"
-                            checked={settings.membersListVisible}
-                            onChange={handleMembersListToggle}
-                            disabled={saving}
-                        />
-                        <span className="slider"></span>
-                    </label>
+                    <ToggleSwitch
+                        checked={settings.membersListVisible}
+                        onChange={handleMembersListToggle}
+                        disabled={saving}
+                    />
                 </div>
             </div>
 
