@@ -225,7 +225,7 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                         ...(clubSettings?.shiftsEnabled ? [{ id: 'shifts', label: 'Shifts' }] : [])
                     ]}
                     activeTab={activeTab}
-                    onTabChange={setActiveTab}
+                    onTabChange={(tabId) => setActiveTab(tabId as 'event' | 'shifts')}
                 >
                         {/* Event Details Tab */}
                         <div className={`tab-panel ${activeTab === 'event' ? 'active' : ''}`}>

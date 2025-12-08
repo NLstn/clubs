@@ -248,7 +248,7 @@ const AdminTeamDetails = () => {
                         { id: 'fines', label: 'Fines' }
                     ]}
                     activeTab={activeTab}
-                    onTabChange={setActiveTab}
+                    onTabChange={(tabId) => setActiveTab(tabId as 'overview' | 'events' | 'fines')}
                 >
                         <div className={`tab-panel ${activeTab === 'overview' ? 'active' : ''}`}>
                             {isEditing ? (

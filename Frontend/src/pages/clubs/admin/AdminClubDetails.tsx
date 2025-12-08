@@ -13,6 +13,7 @@ import AdminClubSettings from './settings/AdminClubSettings';
 import { useClubSettings } from '../../../hooks/useClubSettings';
 import { useT } from '../../../hooks/useTranslation';
 import { removeRecentClub } from '../../../utils/recentClubs';
+import '@/components/ui/Tabs.css';
 import './AdminClubDetails.css';
 
 interface Club {
