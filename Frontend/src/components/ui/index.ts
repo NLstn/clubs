@@ -7,3 +7,4 @@ export { Tabs, type TabsProps, type Tab } from './Tabs';
 export { FormGroup } from './FormGroup';
 export { Card, type CardProps } from './Card';
 export { ToggleSwitch } from './ToggleSwitch';
+export { default as Divider, type DividerProps } from './Divider';

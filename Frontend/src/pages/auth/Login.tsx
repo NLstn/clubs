@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import CookieConsent from '../../components/CookieConsent';
 import { useT } from '../../hooks/useTranslation';
-import { Input, Button } from '@/components/ui';
+import { Input, Button, Divider } from '@/components/ui';
 import './Login.css';
 
 const Login: React.FC = () => {
@@ -98,9 +98,7 @@ const Login: React.FC = () => {
           </Button>
         </form>
 
-        <div className="divider">
-          <span>{t('auth.or')}</span>
-        </div>
+        <Divider text={t('auth.or')} />
 
         <Button 
           type="button" 
