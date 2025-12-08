@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getRecentClubs, RecentClub, removeRecentClub } from '../../utils/recentClubs';
 import api from '../../utils/api';
+import { Divider } from '@/components/ui';
 import './RecentClubsDropdown.css';
 
 const RecentClubsDropdown: React.FC = () => {
@@ -93,7 +94,7 @@ const RecentClubsDropdown: React.FC = () => {
                   </button>
                 </div>
               ))}
-              <div className="recent-clubs-divider"></div>
+              <Divider spacing="sm" />
             </>
           ) : (
             <div className="no-recent-clubs">No recent clubs</div>
