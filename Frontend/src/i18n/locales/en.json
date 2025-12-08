@@ -25,7 +25,10 @@
     "role": "Role",
     "actions": "Actions",
     "note": "Note",
-    "goToDashboard": "Go to Dashboard"
+    "goToDashboard": "Go to Dashboard",
+    "notAvailable": "N/A",
+    "notShared": "Not shared",
+    "unknownRole": "Unknown Role"
   },
   "navigation": {
     "home": "Home",

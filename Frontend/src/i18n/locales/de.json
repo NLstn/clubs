@@ -24,7 +24,10 @@
     "name": "Name",
     "role": "Rolle",
     "actions": "Aktionen",
-    "note": "Hinweis"
+    "note": "Hinweis",
+    "notAvailable": "Nicht verfügbar",
+    "notShared": "Nicht geteilt",
+    "unknownRole": "Unbekannte Rolle"
   },
   "navigation": {
     "home": "Startseite",

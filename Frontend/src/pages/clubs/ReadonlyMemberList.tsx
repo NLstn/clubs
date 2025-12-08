@@ -93,7 +93,7 @@ const ReadonlyMemberList = () => {
             key: 'joinedAt',
             header: t('clubs.joined'),
             render: (member) => (
-                <span>{member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'N/A'}</span>
+                <span>{member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : t('common.notAvailable')}</span>
             ),
             className: 'hide-mobile'
         },
@@ -101,7 +101,7 @@ const ReadonlyMemberList = () => {
             key: 'birthDate',
             header: t('clubs.birthDate'),
             render: (member) => (
-                <span>{member.birthDate ? new Date(member.birthDate).toLocaleDateString() : 'Not shared'}</span>
+                <span>{member.birthDate ? new Date(member.birthDate).toLocaleDateString() : t('common.notShared')}</span>
             ),
             className: 'hide-small'
         }

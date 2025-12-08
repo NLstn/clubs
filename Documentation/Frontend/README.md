@@ -367,8 +367,8 @@ function MyComponent() {
 5. **Add translations before committing**: Ensure all new translation keys have entries in both language files
 
 #### Translation Files Location
-- English: `Frontend/src/i18n/en.json`
-- German: `Frontend/src/i18n/de.json`
+- English: `Frontend/src/i18n/locales/en.json`
+- German: `Frontend/src/i18n/locales/de.json`
 
 ### File Structure
 ```
