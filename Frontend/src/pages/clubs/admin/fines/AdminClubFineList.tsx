@@ -126,7 +126,7 @@ const AdminClubFineList = () => {
                         />
                         Show all fines
                     </label>
-                    <button onClick={() => setShowFineTemplates(true)}>Manage Templates</button>
+                    <Button variant="secondary" onClick={() => setShowFineTemplates(true)}>Manage Templates</Button>
                 </div>
             </div>
             <Table
