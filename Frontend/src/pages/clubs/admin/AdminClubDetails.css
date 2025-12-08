@@ -2,6 +2,24 @@
 
 /* Club-specific styles for admin page */
 
+/* Dashboard Grid Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-xl);
+    margin-bottom: var(--space-xl);
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+        margin-top: var(--space-lg);
+        margin-bottom: var(--space-lg);
+    }
+}
+
 /* Hard delete button - more dangerous looking than regular cancel */
 .hard-delete-button {
     background-color: #d32f2f !important;

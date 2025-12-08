@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import api, { hardDeleteClub } from '../../../utils/api';
 import Layout from '../../../components/layout/Layout';
@@ -14,6 +14,7 @@ import AdminClubSettings from './settings/AdminClubSettings';
 import { useClubSettings } from '../../../hooks/useClubSettings';
 import { useT } from '../../../hooks/useTranslation';
 import { removeRecentClub } from '../../../utils/recentClubs';
+import StatisticsCard from '../../../components/dashboard/StatisticsCard';
 import '@/components/ui/Tabs.css';
 import './AdminClubDetails.css';
 
@@ -23,6 +24,12 @@ interface Club {
     description: string;
     logo_url?: string;
     deleted?: boolean;
+}
+
+interface MemberStats {
+    total: number;
+    newThisMonth: number;
+    pendingInvites: number;
 }
 
 const AdminClubDetails = () => {
@@ -59,6 +66,42 @@ const AdminClubDetails = () => {
     const [showHardDeletePopup, setShowHardDeletePopup] = useState(false);
     const [logoUploading, setLogoUploading] = useState(false);
     const [logoError, setLogoError] = useState<string | null>(null);
+    const [memberStats, setMemberStats] = useState<MemberStats>({ total: 0, newThisMonth: 0, pendingInvites: 0 });
+    const [statsLoading, setStatsLoading] = useState(true);
+
+    const fetchMemberStats = useCallback(async () => {
+        if (!id) return;
+        
+        setStatsLoading(true);
+        try {
+            const [membersResponse, invitesResponse] = await Promise.all([
+                api.get(`/api/v1/clubs/${id}/members`),
+                api.get(`/api/v1/clubs/${id}/invites`),
+            ]);
+
+            const members = membersResponse.data;
+            const invites = invitesResponse.data;
+
+            // Calculate members joined in the last 30 days
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const newMembers = members.filter((member: { joinedAt: string }) => {
+                const joinedDate = new Date(member.joinedAt);
+                return joinedDate >= thirtyDaysAgo;
+            });
+
+            setMemberStats({
+                total: members.length,
+                newThisMonth: newMembers.length,
+                pendingInvites: invites.length,
+            });
+        } catch (err) {
+            console.error('Error fetching member stats:', err);
+        } finally {
+            setStatsLoading(false);
+        }
+    }, [id]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -76,6 +119,11 @@ const AdminClubDetails = () => {
 
                 setClub(clubResponse.data);
                 setIsOwner(adminResponse.data.isOwner || false);
+                
+                // Fetch member statistics for overview tab
+                if (activeTab === 'overview') {
+                    fetchMemberStats();
+                }
                 
                 setLoading(false);
             } catch (err: unknown) {
@@ -106,7 +154,7 @@ const AdminClubDetails = () => {
             setError('No club ID provided');
             setLoading(false);
         }
-    }, [id, navigate, t]);
+    }, [id, navigate, t, activeTab, fetchMemberStats]);
 
     // Redirect to valid tab if current tab becomes unavailable
     useEffect(() => {
@@ -443,6 +491,22 @@ const AdminClubDetails = () => {
                                             <strong>{t('clubs.clubDeleted')}</strong>
                                         </div>
                                     )}
+                                    
+                                    {/* Statistics Dashboard */}
+                                    <div className="dashboard-grid">
+                                        <StatisticsCard
+                                            title={t('clubs.members')}
+                                            value={memberStats.total}
+                                            icon="👥"
+                                            subtitle={`${memberStats.pendingInvites} pending invites`}
+                                            trend={
+                                                memberStats.newThisMonth > 0
+                                                    ? { value: memberStats.newThisMonth, isPositive: true }
+                                                    : undefined
+                                            }
+                                            loading={statsLoading}
+                                        />
+                                    </div>
                                 </>
                             )}
                         </div>
