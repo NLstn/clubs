@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
-import { Button } from '../../components/ui';
+import { Button, Card } from '../../components/ui';
 import api from '../../utils/api';
 import { addRecentClub } from '../../utils/recentClubs';
 import { useT } from '../../hooks/useTranslation';
@@ -90,10 +90,14 @@ const ClubList = () => {
                         <h2>Clubs I Manage</h2>
                         <div className="clubs-grid">
                             {adminClubs.map(club => (
-                                <div 
-                                    key={club.id} 
-                                    className="club-card"
+                                <Card
+                                    key={club.id}
+                                    variant="light"
+                                    padding="lg"
+                                    clickable
+                                    hover
                                     onClick={() => handleClubClick(club.id, club.name)}
+                                    className="club-card"
                                 >
                                     <div className="club-header">
                                         <h3>{club.name}</h3>
@@ -124,7 +128,7 @@ const ClubList = () => {
                                             </div>
                                         </div>
                                     )}
-                                </div>
+                                </Card>
                             ))}
                         </div>
                     </div>
@@ -135,10 +139,14 @@ const ClubList = () => {
                         <h2>Clubs I'm a Member Of</h2>
                         <div className="clubs-grid">
                             {memberClubs.map(club => (
-                                <div 
-                                    key={club.id} 
-                                    className="club-card"
+                                <Card
+                                    key={club.id}
+                                    variant="light"
+                                    padding="lg"
+                                    clickable
+                                    hover
                                     onClick={() => handleClubClick(club.id, club.name)}
+                                    className="club-card"
                                 >
                                     <div className="club-header">
                                         <h3>{club.name}</h3>
@@ -164,7 +172,7 @@ const ClubList = () => {
                                             </div>
                                         </div>
                                     )}
-                                </div>
+                                </Card>
                             ))}
                         </div>
                     </div>

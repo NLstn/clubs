@@ -60,35 +60,11 @@
     }
 }
 
+/* Card component handles base styling, only keep card-specific overrides */
 .club-card {
-    background: var(--color-background-light);
-    border: 2px solid var(--color-border);
-    border-radius: var(--border-radius-lg);
-    padding: var(--space-lg);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
     height: 100%;
-    position: relative;
-    overflow: hidden;
-}
-
-.club-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.club-card:hover {
-    background: var(--color-background);
 }
 
 .club-header {
@@ -101,10 +77,6 @@
 
 /* Mobile responsive club cards */
 @media (max-width: 768px) {
-    .club-card {
-        padding: var(--space-md);
-    }
-    
     .club-header {
         flex-direction: column;
         align-items: flex-start;
@@ -122,9 +94,6 @@
 }
 
 @media (max-width: 480px) {
-    .club-card {
-        padding: var(--space-sm);
-    }
     
     .club-header h3 {
         font-size: 1rem;
