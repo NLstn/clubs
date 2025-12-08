@@ -15,7 +15,7 @@ const Dashboard = () => {
     const { user: currentUser } = useCurrentUser();
 
     const translateRole = (role: string | undefined): string => {
-        if (!role) return 'Unknown Role';
+        if (!role) return t('common.unknownRole');
         return t(`clubs.roles.${role}`);
     };
 
