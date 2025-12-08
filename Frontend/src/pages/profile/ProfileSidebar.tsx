@@ -9,6 +9,7 @@ interface ProfileNavItem {
 
 const navItems: ProfileNavItem[] = [
   { label: 'Profile', path: '/profile' },
+  { label: 'Preferences', path: '/profile/preferences' },
   { label: 'Privacy', path: '/profile/privacy' },
   { label: 'Invites', path: '/profile/invites' },
   { label: 'Fines', path: '/profile/fines' },
