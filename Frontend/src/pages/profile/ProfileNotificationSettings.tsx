@@ -3,7 +3,7 @@ import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useNotificationPreferences } from '../../hooks/useNotifications';
 import { useT } from '../../hooks/useTranslation';
-import { ToggleSwitch } from '../../components/ToggleSwitch';
+import { ToggleSwitch } from '@/components/ui';
 import './ProfileNotificationSettings.css';
 import './Profile.css';
 
