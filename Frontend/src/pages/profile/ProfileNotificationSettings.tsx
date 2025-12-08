@@ -3,6 +3,7 @@ import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useNotificationPreferences } from '../../hooks/useNotifications';
 import { useT } from '../../hooks/useTranslation';
+import { ToggleSwitch } from '../../components/ToggleSwitch';
 import './ProfileNotificationSettings.css';
 import './Profile.css';
 
@@ -160,27 +161,19 @@ const ProfileNotificationSettings: React.FC = () => {
                     </div>
                     
                     <div className="settings-table-cell toggle-cell">
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={preferences[type.inAppKey] as boolean}
-                          onChange={(e) => handleToggle(type.inAppKey, e.target.checked)}
-                          disabled={saving}
-                        />
-                        <span className="slider"></span>
-                      </label>
+                      <ToggleSwitch
+                        checked={preferences[type.inAppKey] as boolean}
+                        onChange={(checked) => handleToggle(type.inAppKey, checked)}
+                        disabled={saving}
+                      />
                     </div>
                     
                     <div className="settings-table-cell toggle-cell">
-                      <label className="toggle-switch">
-                        <input
-                          type="checkbox"
-                          checked={preferences[type.emailKey] as boolean}
-                          onChange={(e) => handleToggle(type.emailKey, e.target.checked)}
-                          disabled={saving}
-                        />
-                        <span className="slider"></span>
-                      </label>
+                      <ToggleSwitch
+                        checked={preferences[type.emailKey] as boolean}
+                        onChange={(checked) => handleToggle(type.emailKey, checked)}
+                        disabled={saving}
+                      />
                     </div>
                   </div>
                 ))}
