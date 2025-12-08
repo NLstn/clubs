@@ -303,136 +303,12 @@ input {
   }
 }
 
-.rsvp-section {
-  margin-top: var(--space-xs);
-}
-
-.rsvp-status {
-  margin-left: var(--space-xs);
-  font-weight: bold;
-}
-
-.rsvp-status.yes {
-  color: var(--color-primary);
-}
-
-.rsvp-status.no {
-  color: var(--color-cancel);
-}
-
-.rsvp-status.none {
-  color: var(--color-text-secondary);
-}
-
-.rsvp-buttons {
-  margin-top: var(--space-xs);
-  display: flex;
-  gap: var(--space-xs);
-}
-
 .news-meta {
   color: var(--color-text-secondary);
 }
 
-.news-title {
-  margin: 0 0 var(--space-xs) 0;
-}
-
-.news-content {
-  margin: 0 0 var(--space-xs) 0;
-  line-height: 1.5;
-}
-
-.news-section {
-  margin-top: var(--space-xl);
-}
-
 .error {
   color: var(--color-error-text);
-}
-
-.clubs-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
-}
-
-/* Mobile responsive clubs list */
-@media (max-width: 768px) {
-  .clubs-list {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--space-sm);
-    margin-top: var(--space-sm);
-  }
-}
-
-@media (max-width: 480px) {
-  .clubs-list {
-    grid-template-columns: 1fr;
-    gap: var(--space-sm);
-    margin-top: var(--space-sm);
-  }
-}
-
-.club-card {
-  background-color: white;
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-lg);
-  padding: var(--space-md);
-  cursor: pointer;
-  color: black;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.club-card-header {
-  margin-bottom: var(--space-sm);
-}
-
-.club-card-header h4 {
-  margin: 0;
-  color: var(--color-primary);
-}
-
-/* Mobile responsive club cards in dashboard */
-@media (max-width: 768px) {
-  .club-card {
-    padding: var(--space-sm);
-  }
-  
-  .club-card-header h4 {
-    font-size: 1.1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .club-card {
-    padding: var(--space-xs);
-  }
-  
-  .club-card-header h4 {
-    font-size: 1rem;
-  }
-}
-
-.club-description {
-  flex-grow: 1;
-  margin-bottom: var(--space-sm);
-  line-height: 1.5;
-}
-
-.club-card-footer {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.club-link {
-  color: var(--color-primary);
-  font-weight: 500;
-  font-size: 0.9rem;
 }
 
 .event-title,
@@ -538,53 +414,6 @@ select:focus {
   display: block;
 }
 
-/* Fines section styles */
-.fines-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-md);
-}
-
-.fines-controls {
-  display: flex;
-  gap: var(--space-sm);
-  align-items: center;
-}
-
-/* Mobile responsive fines section */
-@media (max-width: 768px) {
-  .fines-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-sm);
-  }
-  
-  .fines-controls {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 480px) {
-  .fines-controls {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-xs);
-  }
-  
-  .checkbox-label {
-    justify-content: center;
-  }
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  cursor: pointer;
-}
-
 /* Club overview styles */
 .club-header {
   display: flex;
@@ -604,31 +433,6 @@ select:focus {
 
 @media (max-width: 480px) {
   .club-header {
-    gap: var(--space-xs);
-  }
-}
-
-/* Member actions styles */
-.member-actions {
-  display: flex;
-  gap: var(--space-xs);
-  flex-wrap: wrap;
-}
-
-.member-actions.buttons {
-  gap: var(--space-sm);
-}
-
-/* Mobile responsive member actions */
-@media (max-width: 768px) {
-  .member-actions {
-    gap: var(--space-xs);
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .member-actions.buttons {
-    flex-direction: row;
     gap: var(--space-xs);
   }
 }

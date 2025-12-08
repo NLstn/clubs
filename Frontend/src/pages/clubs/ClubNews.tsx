@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../utils/api";
 import { useT } from "../../hooks/useTranslation";
+import './ClubNews.css';
 
 interface News {
     id: string;

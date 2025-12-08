@@ -4,6 +4,7 @@ import api from "../../../../utils/api";
 import AddFine from "./AddFine";
 import AdminClubFineTemplateList from "./AdminClubFineTemplateList";
 import { Table, TableColumn, Modal, Button } from '@/components/ui';
+import './AdminClubFineList.css';
 
 interface Fine {
     id: string;

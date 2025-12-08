@@ -8,6 +8,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { useT } from "../../../../hooks/useTranslation";
 import { useCurrentUser } from "../../../../hooks/useCurrentUser";
 import { useOwnerCount } from "../../../../hooks/useOwnerCount";
+import './AdminClubMemberList.css';
 
 interface Member {
     id: string;

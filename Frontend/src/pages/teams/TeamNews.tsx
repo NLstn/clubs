@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useT } from "../../hooks/useTranslation";
+import './TeamNews.css';
 
 interface News {
     id: string;

@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "../../../components/ui";
 import api from "../../../utils/api";
 import "./EventDetails.css";
+import '../../../styles/events.css';
 
 interface UserRSVP {
     id: string;

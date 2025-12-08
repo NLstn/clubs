@@ -1,0 +1,18 @@
+/* Team News page styles */
+
+.news-meta {
+  color: var(--color-text-secondary);
+}
+
+.news-title {
+  margin: 0 0 var(--space-xs) 0;
+}
+
+.news-content {
+  margin: 0 0 var(--space-xs) 0;
+  line-height: 1.5;
+}
+
+.news-section {
+  margin-top: var(--space-xl);
+}

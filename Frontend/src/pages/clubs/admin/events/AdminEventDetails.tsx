@@ -5,6 +5,7 @@ import api from "../../../../utils/api";
 import EventRSVPList from "./EventRSVPList";
 import EditEvent from "./EditEvent";
 import "./AdminEventDetails.css";
+import '../../../../styles/events.css';
 
 interface UserRSVP {
     id: string;

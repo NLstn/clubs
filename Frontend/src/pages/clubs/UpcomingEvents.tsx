@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '../../components/ui';
 import api from '../../utils/api';
+import '../../styles/events.css';
 
 interface Event {
     id: string;

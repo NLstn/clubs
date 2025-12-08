@@ -6,6 +6,7 @@ import Layout from '../components/layout/Layout';
 import { Button } from '../components/ui';
 import { addRecentClub } from '../utils/recentClubs';
 import './Dashboard.css';
+import '../styles/events.css';
 
 const Dashboard = () => {
     const { t } = useT();
