@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import './ToggleSwitch.css';
 
 interface ToggleSwitchProps {
@@ -16,7 +16,8 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
   label,
   id,
 }) => {
-  const toggleId = id || `toggle-${Math.random().toString(36).substr(2, 9)}`;
+  const generatedId = useId();
+  const toggleId = id || `toggle-${generatedId}`;
 
   return (
     <label className="toggle-switch" htmlFor={toggleId}>

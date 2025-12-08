@@ -1,0 +1,25 @@
+/* Admin Club Member List page styles */
+
+.member-actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.member-actions.buttons {
+  gap: var(--space-sm);
+}
+
+/* Mobile responsive member actions */
+@media (max-width: 768px) {
+  .member-actions {
+    gap: var(--space-xs);
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .member-actions.buttons {
+    flex-direction: row;
+    gap: var(--space-xs);
+  }
+}

@@ -1,0 +1,28 @@
+/* Shared event styles used across multiple pages */
+
+.rsvp-section {
+  margin-top: var(--space-xs);
+}
+
+.rsvp-status {
+  margin-left: var(--space-xs);
+  font-weight: bold;
+}
+
+.rsvp-status.yes {
+  color: var(--color-primary);
+}
+
+.rsvp-status.no {
+  color: var(--color-cancel);
+}
+
+.rsvp-status.none {
+  color: var(--color-text-secondary);
+}
+
+.rsvp-buttons {
+  margin-top: var(--space-xs);
+  display: flex;
+  gap: var(--space-xs);
+}
