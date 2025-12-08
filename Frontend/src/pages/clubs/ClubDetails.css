@@ -96,7 +96,7 @@
 .role-badge {
   display: inline-flex;
   align-items: center;
-  padding: 6px 14px;
+  padding: calc(var(--space-xs) * 1.2) var(--space-md);
   border-radius: var(--border-radius-sm);
   font-weight: 700;
   font-size: 0.85rem;
@@ -144,7 +144,7 @@
 .role-value {
   font-size: 0.9rem;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: calc(var(--space-xs) * 0.4) var(--space-sm);
   border-radius: var(--border-radius-sm);
   text-transform: capitalize;
 }
@@ -341,7 +341,7 @@
 
   .role-badge {
     font-size: 0.8rem;
-    padding: 5px 12px;
+    padding: var(--space-xs) var(--space-sm);
   }
 }
 
@@ -403,7 +403,7 @@
 
   .role-badge {
     font-size: 0.75rem;
-    padding: 4px 10px;
+    padding: var(--space-xs) var(--space-sm);
   }
 }
 
