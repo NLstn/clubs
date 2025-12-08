@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
-import { Input, Modal, Button } from '@/components/ui';
+import { Input, Modal, Button, Card } from '@/components/ui';
 import './AdminClubTeamList.css';
 
 interface Team {
@@ -212,10 +212,14 @@ const AdminClubTeamList = () => {
 
                     <div className="teams-grid">
                         {teams.map(team => (
-                            <div 
-                                key={team.id} 
-                                className={`team-card ${selectedTeam?.id === team.id ? 'selected' : ''}`}
+                            <Card
+                                key={team.id}
+                                variant="light"
+                                padding="md"
+                                clickable
+                                hover
                                 onClick={() => setSelectedTeam(team)}
+                                className={`team-card ${selectedTeam?.id === team.id ? 'selected' : ''}`}
                             >
                                 <div className="team-header">
                                     <h4>{team.name}</h4>
@@ -243,7 +247,7 @@ const AdminClubTeamList = () => {
                                     </div>
                                 </div>
                                 {team.description && <p className="team-description">{team.description}</p>}
-                            </div>
+                            </Card>
                         ))}
                     </div>
                 </div>

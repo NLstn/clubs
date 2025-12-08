@@ -3,6 +3,7 @@ import Layout from '../../components/layout/Layout';
 import ProfileSidebar from './ProfileSidebar';
 import { useAuth } from '../../hooks/useAuth';
 import { useT } from '../../hooks/useTranslation';
+import { Card } from '@/components/ui';
 
 interface UserShift {
     id: string;
@@ -98,15 +99,10 @@ function ProfileShifts() {
                     {!loading && !error && shifts.length > 0 && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {shifts.map((shift) => (
-                                <div
+                                <Card
                                     key={shift.id}
-                                    style={{
-                                        background: 'var(--color-card-bg)',
-                                        border: '1px solid var(--color-border)',
-                                        borderRadius: '8px',
-                                        padding: '1.5rem',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                    }}
+                                    variant="default"
+                                    padding="lg"
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                                         <div>
@@ -215,7 +211,7 @@ function ProfileShifts() {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </Card>
                             ))}
                         </div>
                     )}

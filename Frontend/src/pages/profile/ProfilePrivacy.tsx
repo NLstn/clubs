@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileSidebar from "./ProfileSidebar";
 import { useAuth } from "../../hooks/useAuth";
-import { FormGroup } from '@/components/ui';
+import { FormGroup, Card } from '@/components/ui';
 import './Profile.css';
 
 interface Club {
@@ -154,15 +154,12 @@ const ProfilePrivacy = () => {
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
                                         {clubs.map((club) => (
-                                            <div key={club.id} style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                padding: 'var(--space-sm)',
-                                                backgroundColor: 'var(--color-card-bg)',
-                                                borderRadius: 'var(--border-radius)',
-                                                border: '1px solid var(--color-border)'
-                                            }}>
+                                            <Card
+                                                key={club.id}
+                                                variant="default"
+                                                padding="sm"
+                                                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                                            >
                                                 <span style={{ fontWeight: '500' }}>{club.name}</span>
                                                 <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
                                                     <input
@@ -172,19 +169,14 @@ const ProfilePrivacy = () => {
                                                     />
                                                     <span style={{ fontSize: '0.9rem' }}>Share birth date</span>
                                                 </label>
-                                            </div>
+                                            </Card>
                                         ))}
                                     </div>
                                 )}
                             </div>
 
                             <div className="profile-section">
-                                <div style={{
-                                    padding: 'var(--space-md)',
-                                    backgroundColor: 'var(--color-background-light)',
-                                    borderRadius: 'var(--border-radius)',
-                                    border: '1px solid var(--color-border)'
-                                }}>
+                                <Card variant="light" padding="md">
                                     <h4 style={{ margin: '0 0 var(--space-sm) 0', color: 'var(--color-text-primary)' }}>
                                         Privacy Information
                                     </h4>
@@ -199,7 +191,7 @@ const ProfilePrivacy = () => {
                                         <li>You can change these settings at any time</li>
                                         <li>Global settings provide a default for all clubs, but you can override them per club</li>
                                     </ul>
-                                </div>
+                                </Card>
                             </div>
                         </div>
                     )}
