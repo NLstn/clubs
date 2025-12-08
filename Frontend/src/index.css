@@ -1228,78 +1228,6 @@ input:disabled + .slider {
   white-space: nowrap;
 }
 
-/* Magic link page styles */
-.magic-link-container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--color-background);
-  padding: var(--space-lg);
-  box-sizing: border-box;
-}
-
-.magic-link-box {
-  background-color: var(--color-background-light);
-  padding: var(--space-xl);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-md);
-  width: 100%;
-  max-width: 400px;
-  color: var(--color-text);
-  text-align: center;
-}
-
-.magic-link-box h1 {
-  margin-top: 0;
-  margin-bottom: var(--space-md);
-  font-size: 2rem;
-  text-align: center;
-  color: var(--color-text);
-}
-
-.magic-link-box p {
-  margin-bottom: var(--space-lg);
-  text-align: center;
-  color: var(--color-text-secondary);
-}
-
-.magic-link-box .message {
-  margin-bottom: var(--space-md);
-  padding: var(--space-sm);
-  border-radius: var(--border-radius-sm);
-  text-align: center;
-}
-
-.magic-link-box .message.success {
-  background-color: var(--color-success-bg);
-  color: var(--color-success-text);
-}
-
-.magic-link-box .message.error {
-  background-color: var(--color-error-bg);
-  color: var(--color-error-text);
-}
-
-.magic-link-actions {
-  margin-top: var(--space-lg);
-}
-
-.return-link {
-  display: inline-block;
-  background-color: var(--color-primary);
-  color: white;
-  text-decoration: none;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--border-radius-sm);
-  font-size: 1rem;
-  transition: background-color 0.2s;
-}
-
-.return-link:hover {
-  background-color: var(--color-primary-hover);
-}
-
 /* Responsive adjustments for small screens */
 @media (max-width: 480px) {
   .login-container {
@@ -1311,18 +1239,6 @@ input:disabled + .slider {
   }
   
   .login-box h1 {
-    font-size: 1.75rem;
-  }
-
-  .magic-link-container {
-    padding: var(--space-sm);
-  }
-  
-  .magic-link-box {
-    padding: var(--space-lg);
-  }
-  
-  .magic-link-box h1 {
     font-size: 1.75rem;
   }
 }
