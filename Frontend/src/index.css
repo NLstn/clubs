@@ -182,37 +182,6 @@ input {
   border-radius: var(--border-radius-sm);
 }
 
-.form-field-display {
-  padding: 12px 16px;
-  background-color: var(--color-background-light);
-  border: 2px solid transparent;
-  border-radius: var(--border-radius-md);
-  font-size: 1rem;
-  color: var(--color-text);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 20px;
-  transition: all 0.2s ease;
-}
-
-.form-field-display:hover {
-  background-color: var(--color-background);
-  border-color: var(--color-border);
-}
-
-.form-field-readonly {
-  background-color: var(--color-background);
-  border: 2px solid var(--color-border);
-  opacity: 0.8;
-}
-
-.form-field-readonly .field-note {
-  color: var(--color-text-secondary);
-  font-size: 0.85rem;
-  font-style: italic;
-}
-
 .form-actions {
   display: flex;
   gap: var(--space-sm);
@@ -252,69 +221,24 @@ input {
   cursor: pointer;
 }
 
-.event-card {
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-lg);
-  padding: var(--space-sm);
-  margin-bottom: var(--space-xs);
-  color: var(--color-text);
-}
-
-.news-card {
-  background-color: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-sm);
-  padding: var(--space-md);
-  margin-bottom: var(--space-md);
-  color: var(--color-text);
-}
-
 /* Mobile responsive cards */
 @media (max-width: 768px) {
-  .card, .event-card {
-    padding: var(--space-sm);
-    margin-bottom: var(--space-sm);
-  }
-  
   .card {
-    border-radius: var(--border-radius-md);
-  }
-  
-  .news-card {
     padding: var(--space-sm);
     margin-bottom: var(--space-sm);
+    border-radius: var(--border-radius-md);
   }
 }
 
 @media (max-width: 480px) {
-  .card, .event-card {
-    padding: var(--space-xs);
-    margin-bottom: var(--space-xs);
-  }
-  
-  .event-card {
-    border-radius: var(--border-radius-sm);
-  }
-  
-  .news-card {
+  .card {
     padding: var(--space-xs);
     margin-bottom: var(--space-xs);
   }
 }
 
 .news-meta {
-  color: var(--color-text-secondary);
-}
-
-.error {
   color: var(--color-error-text);
-}
-
-.event-title,
-.news-title {
-  margin: 0 0 var(--space-xs) 0;
-  color: var(--color-text);
 }
 
 .empty-state {
@@ -350,7 +274,7 @@ input {
 
 /* Modal styles have been moved to Modal.css component */
 
-/* dropdown styles */
+/* Dropdown styles */
 select {
     padding: 8px;
     border: 1px solid var(--color-border);
@@ -369,35 +293,6 @@ select:hover {
 select:focus {
     outline: none;
     border-color: var(--color-primary);
-}
-
-/* Type Ahead styles */
-.ta-select {
-  position: relative;
-  margin-bottom: 1rem;
-}
-
-.ta-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1000;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.ta-option {
-  background: var(--color-background);
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-.ta-option:hover {
-  background-color: var(--color-background-light);
 }
 
 /* Tab panel styles (used by pages with tab content) */

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Input } from './Input';
+import './TypeAheadDropdown.css';
 
 interface Option {
     id: string;

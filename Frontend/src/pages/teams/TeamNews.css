@@ -1,5 +1,14 @@
 /* Team News page styles */
 
+.news-card {
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  color: var(--color-text);
+}
+
 .news-meta {
   color: var(--color-text-secondary);
 }
@@ -15,4 +24,19 @@
 
 .news-section {
   margin-top: var(--space-xl);
+}
+
+/* Mobile responsive news cards */
+@media (max-width: 768px) {
+  .news-card {
+    padding: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .news-card {
+    padding: var(--space-xs);
+    margin-bottom: var(--space-xs);
+  }
 }
