@@ -1,10 +1,8 @@
 /* Tabs component styles */
 .tabs-container {
   margin-top: var(--space-lg);
-  height: calc(100vh - 200px);
   display: flex;
   flex-direction: column;
-  min-height: 0;
   width: 100%;
 }
 
@@ -44,9 +42,6 @@
 
 .tab-content {
   padding: 0;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
   width: 100%;
   box-sizing: border-box;
 }
@@ -55,7 +50,6 @@
 @media (max-width: 768px) {
   .tabs-container {
     margin-top: var(--space-md);
-    height: calc(100vh - 150px);
   }
   
   .tabs-nav {
@@ -76,7 +70,6 @@
 @media (max-width: 480px) {
   .tabs-container {
     margin-top: var(--space-sm);
-    height: calc(100vh - 120px);
   }
   
   .tabs-nav {
