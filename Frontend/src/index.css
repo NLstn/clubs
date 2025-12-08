@@ -1238,15 +1238,6 @@ select:focus {
   gap: var(--space-sm);
 }
 
-.action-button {
-  font-size: 0.8rem;
-  padding: 4px 8px;
-  border: none;
-  border-radius: var(--border-radius-sm);
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
 /* Mobile responsive member actions */
 @media (max-width: 768px) {
   .member-actions {
@@ -1259,48 +1250,6 @@ select:focus {
     flex-direction: row;
     gap: var(--space-xs);
   }
-  
-  .action-button {
-    font-size: 0.9rem;
-    padding: 8px 12px;
-    min-height: 36px;
-  }
-}
-
-@media (max-width: 480px) {
-  .action-button {
-    font-size: 0.85rem;
-    padding: 6px 10px;
-    min-height: 40px;
-  }
-}
-
-.action-button.promote {
-  background-color: var(--color-primary);
-  color: white;
-}
-
-.action-button.promote:hover {
-  background-color: var(--color-primary-hover);
-}
-
-.action-button.demote {
-  background-color: var(--color-cancel);
-  color: var(--color-cancel-text);
-}
-
-.action-button.demote:hover {
-  background-color: var(--color-cancel-hover);
-}
-
-.action-button.remove {
-  background-color: var(--color-cancel);
-  color: var(--color-cancel-text);
-  font-size: 0.9rem;
-}
-
-.action-button.remove:hover {
-  background-color: var(--color-cancel-hover);
 }
 
 /* Club Settings Styles */
@@ -1825,39 +1774,6 @@ input:disabled + .slider {
 .role-actions {
   display: flex;
   gap: var(--space-xs);
-}
-
-.action-button.edit {
-  background: var(--color-secondary);
-  color: white;
-  border: 1px solid var(--color-secondary);
-}
-
-.action-button.edit:hover {
-  background: var(--color-secondary-hover);
-  border-color: var(--color-secondary-hover);
-}
-
-.action-button.promote {
-  background: var(--color-primary);
-  color: white;
-  border: 1px solid var(--color-primary);
-}
-
-.action-button.promote:hover {
-  background: var(--color-primary-hover);
-  border-color: var(--color-primary-hover);
-}
-
-.action-button.demote {
-  background: #ff9800;
-  color: white;
-  border: 1px solid #ff9800;
-}
-
-.action-button.demote:hover {
-  background: #f57c00;
-  border-color: #f57c00;
 }
 
 @media (max-width: 768px) {
