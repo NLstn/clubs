@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
-import { ToggleSwitch } from '../../../../components/ToggleSwitch';
+import { ToggleSwitch } from '@/components/ui';
 import './AdminClubSettings.css';
 
 interface ClubSettings {
@@ -72,24 +72,24 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
         }
     };
 
-    const handleFinesToggle = async () => {
+    const handleFinesToggle = async (checked: boolean) => {
         if (!settings) return;
-        await updateSettings({ finesEnabled: !settings.finesEnabled });
+        await updateSettings({ finesEnabled: checked });
     };
 
-    const handleShiftsToggle = async () => {
+    const handleShiftsToggle = async (checked: boolean) => {
         if (!settings) return;
-        await updateSettings({ shiftsEnabled: !settings.shiftsEnabled });
+        await updateSettings({ shiftsEnabled: checked });
     };
 
-    const handleTeamsToggle = async () => {
+    const handleTeamsToggle = async (checked: boolean) => {
         if (!settings) return;
-        await updateSettings({ teamsEnabled: !settings.teamsEnabled });
+        await updateSettings({ teamsEnabled: checked });
     };
 
-    const handleMembersListToggle = async () => {
+    const handleMembersListToggle = async (checked: boolean) => {
         if (!settings) return;
-        await updateSettings({ membersListVisible: !settings.membersListVisible });
+        await updateSettings({ membersListVisible: checked });
     };
 
     if (loading) return <div>{t('clubs.loading.settings')}</div>;
