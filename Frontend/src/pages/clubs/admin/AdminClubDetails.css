@@ -1,23 +1,6 @@
 /* AdminClubDetails.css */
-.club-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: var(--space-lg);
-    padding: var(--space-lg);
-    background: var(--color-background-light);
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-md);
-    transition: all 0.3s ease;
-}
 
-.club-info {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-lg);
-    flex: 1;
-}
+/* Club-specific styles for admin page */
 
 .club-logo-section {
     flex-shrink: 0;

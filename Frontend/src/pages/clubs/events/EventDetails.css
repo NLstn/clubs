@@ -4,15 +4,7 @@
     padding: var(--space-lg);
 }
 
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-xl);
-    padding-bottom: var(--space-lg);
-    border-bottom: 1px solid var(--color-border);
-}
-
+/* Event-specific breadcrumb styles */
 .breadcrumb {
     color: var(--color-text-secondary);
 }

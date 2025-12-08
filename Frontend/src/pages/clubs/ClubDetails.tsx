@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Layout from '../../components/layout/Layout';
+import PageHeader from '../../components/layout/PageHeader';
 import MyOpenClubFines from './MyOpenClubFines';
 import UpcomingEvents from './UpcomingEvents';
 import ClubNews from './ClubNews';
@@ -139,61 +140,60 @@ const ClubDetails = () => {
         <Layout title={club.name}>
             <div className="club-details-container">
                 {/* Club Header */}
-                <div className="club-header-section">
-                    <div className="club-header-content">
-                        {/* Club Logo */}
-                        <div className="club-logo-section">
-                            {club.logo_url ? (
-                                <img
-                                    src={club.logo_url}
-                                    alt={`${club.name} logo`}
-                                    className="club-logo"
-                                />
-                            ) : (
-                                <div className="club-logo-placeholder">
-                                    <span className="logo-placeholder-text">
-                                        {club.name.charAt(0).toUpperCase()}
-                                    </span>
-                                </div>
+                <PageHeader
+                    actions={
+                        <>
+                            {isAdmin && !club.deleted && (
+                                <Button 
+                                    variant="primary"
+                                    onClick={() => navigate(`/clubs/${id}/admin`)}
+                                >
+                                    Manage Club
+                                </Button>
                             )}
-                        </div>
+                            {userRole && !club.deleted && (
+                                <Button 
+                                    variant="cancel"
+                                    onClick={handleLeaveClub}
+                                >
+                                    Leave Club
+                                </Button>
+                            )}
+                        </>
+                    }
+                >
+                    {/* Club Logo */}
+                    <div className="club-logo-section">
+                        {club.logo_url ? (
+                            <img
+                                src={club.logo_url}
+                                alt={`${club.name} logo`}
+                                className="club-logo"
+                            />
+                        ) : (
+                            <div className="club-logo-placeholder">
+                                <span className="logo-placeholder-text">
+                                    {club.name.charAt(0).toUpperCase()}
+                                </span>
+                            </div>
+                        )}
+                    </div>
 
-                        <div className="club-main-info">
-                            <h1 className="club-title">{club.name}</h1>
-                            {club.description && (
-                                <p className="club-description">{club.description}</p>
-                            )}
-                            {userRole && (
-                                <div className="user-role-container">
-                                    <span className="role-label">Your role</span>
-                                    <div className={`role-badge role-${userRole}`}>
-                                        <span className="role-text">{userRole}</span>
-                                    </div>
+                    <div className="club-main-info">
+                        <h1 className="club-title">{club.name}</h1>
+                        {club.description && (
+                            <p className="club-description">{club.description}</p>
+                        )}
+                        {userRole && (
+                            <div className="user-role-container">
+                                <span className="role-label">Your role</span>
+                                <div className={`role-badge role-${userRole}`}>
+                                    <span className="role-text">{userRole}</span>
                                 </div>
-                            )}
-                        </div>
-                    </div>
-                    
-                    {/* Action Buttons */}
-                    <div className="club-actions">
-                        {isAdmin && !club.deleted && (
-                            <Button 
-                                variant="primary"
-                                onClick={() => navigate(`/clubs/${id}/admin`)}
-                            >
-                                Manage Club
-                            </Button>
-                        )}
-                        {userRole && !club.deleted && (
-                            <Button 
-                                variant="cancel"
-                                onClick={handleLeaveClub}
-                            >
-                                Leave Club
-                            </Button>
+                            </div>
                         )}
                     </div>
-                </div>
+                </PageHeader>
 
                 {/* Deleted Club Notice */}
                 {club.deleted && (
