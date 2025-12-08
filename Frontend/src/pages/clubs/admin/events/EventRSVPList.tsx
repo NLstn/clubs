@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from "react";
-import { Table, TableColumn, Button } from '@/components/ui';
+import { Table, TableColumn, Button, Card } from '@/components/ui';
 import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
 
@@ -107,7 +107,7 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
         >
             <Modal.Body>
                 {/* Summary */}
-                <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: 'var(--color-background)', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--color-border)' }}>
+                <Card variant="dark" padding="md" style={{ marginBottom: '20px' }}>
                     <h3 style={{ margin: '0 0 10px 0', color: 'var(--color-text)' }}>Summary</h3>
                     <div style={{ display: 'flex', gap: '20px' }}>
                         <span style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>
@@ -123,7 +123,7 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
                             Total: {(counts.yes || 0) + (counts.no || 0) + (counts.maybe || 0)}
                         </span>
                     </div>
-                </div>
+                </Card>
 
                 {loading && <p>Loading RSVPs...</p>}
                 {error && <p style={{ color: 'red' }}>Error: {error}</p>}
