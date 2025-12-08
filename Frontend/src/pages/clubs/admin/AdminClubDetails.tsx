@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import api, { hardDeleteClub } from '../../../utils/api';
 import Layout from '../../../components/layout/Layout';
@@ -39,6 +39,7 @@ const AdminClubDetails = () => {
     const location = useLocation();
     const [searchParams] = useSearchParams();
     const [club, setClub] = useState<Club | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const { settings: clubSettings, refetch: refetchSettings } = useClubSettings(id);
     
     // Determine current tab from route
@@ -409,6 +410,16 @@ const AdminClubDetails = () => {
                                         }
                                     >
                                         <div className="club-logo-section">
+                                            {/* Single file input for both logo states */}
+                                            {!club.deleted && (
+                                                <input
+                                                    ref={fileInputRef}
+                                                    type="file"
+                                                    accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                                                    onChange={handleLogoUpload}
+                                                    style={{ display: 'none' }}
+                                                />
+                                            )}
                                             {club.logo_url ? (
                                                 <div className="club-logo-container">
                                                     <img 
@@ -418,17 +429,10 @@ const AdminClubDetails = () => {
                                                     />
                                                     {!club.deleted && (
                                                         <div className="logo-actions">
-                                                            <input
-                                                                type="file"
-                                                                id="logo-upload"
-                                                                accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
-                                                                onChange={handleLogoUpload}
-                                                                style={{ display: 'none' }}
-                                                            />
                                                             <Button
                                                                 size="sm"
                                                                 variant="secondary"
-                                                                onClick={() => document.getElementById('logo-upload')?.click()}
+                                                                onClick={() => fileInputRef.current?.click()}
                                                                 disabled={logoUploading}
                                                             >
                                                                 {logoUploading ? 'Uploading...' : 'Change'}
@@ -448,19 +452,10 @@ const AdminClubDetails = () => {
                                                 <div className="club-logo-placeholder">
                                                     <div 
                                                         className="logo-placeholder"
-                                                        onClick={!club.deleted ? () => document.getElementById('logo-upload')?.click() : undefined}
+                                                        onClick={!club.deleted ? () => fileInputRef.current?.click() : undefined}
                                                     >
                                                         {!club.deleted ? 'Click to upload logo' : 'No logo'}
                                                     </div>
-                                                    {!club.deleted && (
-                                                        <input
-                                                            type="file"
-                                                            id="logo-upload"
-                                                            accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
-                                                            onChange={handleLogoUpload}
-                                                            style={{ display: 'none' }}
-                                                        />
-                                                    )}
                                                 </div>
                                             )}
                                         </div>
