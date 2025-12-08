@@ -321,6 +321,55 @@ interface MyComponentProps {
 />
 ```
 
+### Internationalization (i18n)
+
+The application uses **i18next** for internationalization, supporting multiple languages (English and German).
+
+#### Translation Hook
+Use the `useT` hook to access the translation function:
+
+```tsx
+import { useT } from '@/hooks/useTranslation';
+
+function MyComponent() {
+  const { t } = useT();
+  
+  return <h1>{t('common.welcome')}</h1>;
+}
+```
+
+#### **IMPORTANT: Do NOT Use Fallback Texts**
+
+**Never** use fallback text with the `||` operator when calling the translation function `t()`:
+
+```tsx
+// ❌ WRONG - Do not use fallback text
+<h1>{t('common.welcome') || 'Welcome'}</h1>
+<span>{t('common.name') || 'Name'}</span>
+
+// ✅ CORRECT - Use translation key only
+<h1>{t('common.welcome')}</h1>
+<span>{t('common.name')}</span>
+```
+
+**Rationale:**
+- The `t()` function automatically returns the translation key if no translation is found
+- Fallback texts hide missing translations, making it impossible to identify untranslated strings
+- This makes it difficult to maintain complete translations across all supported languages
+- By removing fallbacks, missing translations become immediately visible during development and testing
+
+#### Translation Best Practices
+
+1. **Use descriptive translation keys**: `clubs.members.addButton` instead of `button1`
+2. **Organize keys hierarchically**: Group related translations under common prefixes
+3. **Test in all languages**: Verify translations in both English and German
+4. **Check for missing translations**: Look for displayed translation keys (e.g., "common.welcome") in the UI
+5. **Add translations before committing**: Ensure all new translation keys have entries in both language files
+
+#### Translation Files Location
+- English: `Frontend/src/i18n/en.json`
+- German: `Frontend/src/i18n/de.json`
+
 ### File Structure
 ```
 Frontend/src/components/

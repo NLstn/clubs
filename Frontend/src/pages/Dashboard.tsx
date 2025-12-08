@@ -16,7 +16,7 @@ const Dashboard = () => {
 
     const translateRole = (role: string | undefined): string => {
         if (!role) return 'Unknown Role';
-        return t(`clubs.roles.${role}`) || role;
+        return t(`clubs.roles.${role}`);
     };
 
     const handleClubClick = (clubId: string, clubName: string) => {

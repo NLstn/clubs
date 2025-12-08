@@ -81,10 +81,10 @@ const ClubDetails = () => {
                             removeRecentClub(id);
                         }
                     } else {
-                        setError(t('clubs.errors.loadingClub') || 'Error fetching club details');
+                        setError(t('clubs.errors.loadingClub'));
                     }
                 } else {
-                    setError(t('clubs.errors.loadingClub') || 'Error fetching club details');
+                    setError(t('clubs.errors.loadingClub'));
                 }
                 setLoading(false);
             }

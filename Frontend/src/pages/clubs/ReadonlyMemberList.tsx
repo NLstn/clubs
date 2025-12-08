@@ -22,7 +22,7 @@ const ReadonlyMemberList = () => {
     const [error, setError] = useState<string | null>(null);
 
     const translateRole = (role: string): string => {
-        return t(`clubs.roles.${role}`) || role;
+        return t(`clubs.roles.${role}`);
     };
 
     const sortMembersByRole = (members: Member[]): Member[] => {
@@ -77,12 +77,12 @@ const ReadonlyMemberList = () => {
     const columns: TableColumn<Member>[] = [
         {
             key: 'name',
-            header: t('common.name') || 'Name',
+            header: t('common.name'),
             render: (member) => <span>{member.name}</span>
         },
         {
             key: 'role',
-            header: t('common.role') || 'Role',
+            header: t('common.role'),
             render: (member) => (
                 <span className={`role-badge ${member.role.toLowerCase()}`}>
                     {translateRole(member.role)}
@@ -91,7 +91,7 @@ const ReadonlyMemberList = () => {
         },
         {
             key: 'joinedAt',
-            header: t('clubs.joined') || 'Joined',
+            header: t('clubs.joined'),
             render: (member) => (
                 <span>{member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'N/A'}</span>
             ),
@@ -99,7 +99,7 @@ const ReadonlyMemberList = () => {
         },
         {
             key: 'birthDate',
-            header: t('clubs.birthDate') || 'Birth Date',
+            header: t('clubs.birthDate'),
             render: (member) => (
                 <span>{member.birthDate ? new Date(member.birthDate).toLocaleDateString() : 'Not shared'}</span>
             ),
@@ -112,7 +112,7 @@ const ReadonlyMemberList = () => {
 
     return (
         <div className="content-section">
-            <h3>{t('clubs.members') || 'Members'}</h3>
+            <h3>{t('clubs.members')}</h3>
             <Table
                 columns={columns}
                 data={members}
@@ -125,7 +125,7 @@ const ReadonlyMemberList = () => {
                 footer={
                     members.length > 0 ? (
                         <div>
-                            {t('clubs.totalMembers', { count: members.length }) || `Total: ${members.length} members`}
+                            {t('clubs.totalMembers', { count: members.length })}
                         </div>
                     ) : null
                 }
