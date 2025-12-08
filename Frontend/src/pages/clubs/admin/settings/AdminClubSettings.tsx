@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
 import { ToggleSwitch } from '../../../../components/ToggleSwitch';
+import './AdminClubSettings.css';
 
 interface ClubSettings {
     id: string;
