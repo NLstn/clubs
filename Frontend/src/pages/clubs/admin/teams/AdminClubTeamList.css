@@ -23,20 +23,7 @@
   margin-top: var(--space-md);
 }
 
-.team-card {
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-md);
-  padding: var(--space-md);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.team-card:hover {
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
-}
-
+/* Card component handles base styling, only keep team-specific overrides */
 .team-card.selected {
   border-color: var(--color-primary);
   background: var(--color-background-light);
