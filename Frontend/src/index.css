@@ -91,14 +91,8 @@
     padding: var(--space-xs) !important;
   }
   
-  /* Improve touch targets */
-  button, .button, .clickable {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
   /* Better tap highlighting */
-  button, .button, .clickable, a {
+  a {
     -webkit-tap-highlight-color: rgba(76, 175, 80, 0.2);
   }
   
@@ -115,12 +109,6 @@
   
   .mobile-sm-small-text {
     font-size: 0.8rem !important;
-  }
-  
-  /* Larger touch targets for small screens */
-  button, .button, .clickable {
-    min-height: 48px;
-    min-width: 48px;
   }
 }
 
@@ -354,68 +342,11 @@ input {
     margin-top: var(--space-md);
     padding-top: var(--space-sm);
   }
-  
-  .form-actions button {
-    width: 100%;
-    min-height: 44px; /* Touch-friendly height */
-    font-size: 1rem;
-  }
 }
 
 @media (max-width: 480px) {
   .form-actions {
     margin-top: var(--space-sm);
-  }
-  
-  .form-actions button {
-    min-height: 48px; /* Larger touch target */
-    font-size: 0.95rem;
-  }
-}
-
-/* Fallback button styles for raw HTML buttons (not using Button component) */
-/* These should be migrated to use the Button component over time */
-button {
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--border-radius-sm);
-  font-size: 1rem;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-button:hover:not(:disabled) {
-  background-color: var(--color-primary-hover);
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-/* Mobile responsive buttons */
-@media (max-width: 768px) {
-  button {
-    min-height: 44px; /* Touch-friendly height */
-    padding: var(--space-sm) var(--space-md);
-    font-size: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  button {
-    min-height: 48px; /* Larger touch target for phones */
-    padding: var(--space-sm) var(--space-sm);
-    font-size: 0.95rem;
   }
 }
 
@@ -860,55 +791,11 @@ button:focus-visible {
   color: var(--color-cancel);
 }
 
-.view-event-btn {
-  align-self: flex-start;
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--border-radius-md);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.view-event-btn:hover {
-  background-color: var(--color-primary-dark);
-  transform: translateY(-1px);
-}
-
-.view-event-btn:active {
-  transform: translateY(0);
-}
-
 /* News Activity specific styles */
 .news-activity {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-}
-
-.view-news-btn {
-  align-self: flex-start;
-  background-color: var(--color-secondary);
-  color: white;
-  border: none;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--border-radius-md);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.view-news-btn:hover {
-  background-color: var(--color-secondary-dark);
-  transform: translateY(-1px);
-}
-
-.view-news-btn:active {
-  transform: translateY(0);
 }
 
 /* Mobile responsive activity feed */
