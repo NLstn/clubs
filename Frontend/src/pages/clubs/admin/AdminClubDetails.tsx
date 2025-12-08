@@ -259,11 +259,7 @@ const AdminClubDetails = () => {
             const formData = new FormData();
             formData.append('logo', file);
 
-            const response = await api.post(`/api/v1/clubs/${id}/logo`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            const response = await api.post(`/api/v1/clubs/${id}/logo`, formData);
 
             // Update the club state with the new logo URL
             if (club) {
