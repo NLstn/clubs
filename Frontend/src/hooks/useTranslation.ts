@@ -13,6 +13,7 @@ export const useT = () => {
   
   return {
     t,
+    i18n,
     changeLanguage,
     getCurrentLanguage,
     language: i18n.language

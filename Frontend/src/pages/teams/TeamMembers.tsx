@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../utils/api';
-import { useTranslation } from 'react-i18next';
+import { useT } from '../../hooks/useTranslation';
 import { Table, TableColumn } from '@/components/ui';
 
 interface Member {
@@ -14,7 +14,7 @@ interface Member {
 }
 
 const TeamMembers = () => {
-    const { t, i18n } = useTranslation();
+    const { t, i18n } = useT();
     const { clubId, teamId } = useParams();
     const [members, setMembers] = useState<Member[]>([]);
     const [loading, setLoading] = useState(true);
