@@ -5,6 +5,7 @@ import { Button } from '../../components/ui';
 import api from '../../utils/api';
 import ClubNotFound from './ClubNotFound';
 import { removeRecentClub } from '../../utils/recentClubs';
+import './JoinClub.css';
 
 interface Club {
   id: string;
