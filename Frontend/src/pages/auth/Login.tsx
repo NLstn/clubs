@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import CookieConsent from '../../components/CookieConsent';
 import { useT } from '../../hooks/useTranslation';
 import { Input, Button } from '@/components/ui';
+import './Login.css';
 
 const Login: React.FC = () => {
   const { t } = useT();
