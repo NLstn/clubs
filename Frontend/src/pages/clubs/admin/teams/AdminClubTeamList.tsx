@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
 import { Input, Modal, Button } from '@/components/ui';
+import './AdminClubTeamList.css';
 
 interface Team {
     id: string;
