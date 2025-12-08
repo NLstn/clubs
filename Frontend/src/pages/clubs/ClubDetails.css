@@ -455,7 +455,7 @@
 /* Improve table styling within content sections */
 .club-content table,
 .content-section table {
-  margin: var(--space-md) 0 0 0;
+  margin: 0;
   font-size: 0.95rem;
 }
 
