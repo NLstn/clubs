@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthProvider';
+import { ThemeProvider } from './context/ThemeProvider';
 
 // Lazy load page components for code splitting
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -15,6 +16,7 @@ const MagicLinkHandler = lazy(() => import('./pages/auth/MagicLinkHandler'));
 const KeycloakCallback = lazy(() => import('./pages/auth/KeycloakCallback'));
 const Signup = lazy(() => import('./pages/auth/Signup'));
 const Profile = lazy(() => import('./pages/profile/Profile'));
+const ProfilePreferences = lazy(() => import('./pages/profile/ProfilePreferences'));
 const ProfileInvites = lazy(() => import('./pages/profile/ProfileInvites'));
 const ProfileFines = lazy(() => import('./pages/profile/ProfileFines'));
 const ProfileShifts = lazy(() => import('./pages/profile/ProfileShifts'));
@@ -41,10 +43,11 @@ const PageLoader = () => (
 
 function App() {
     return (
-        <AuthProvider>
-            <BrowserRouter>
-                <Suspense fallback={<PageLoader />}>
-                    <Routes data-testid="routes">
+        <ThemeProvider>
+            <AuthProvider>
+                <BrowserRouter>
+                    <Suspense fallback={<PageLoader />}>
+                        <Routes data-testid="routes">
                         <Route path="/" element={
                             <ProtectedRoute>
                                 <Dashboard />
@@ -180,6 +183,12 @@ function App() {
                             </ProtectedRoute>
                         } />
 
+                        <Route path="/profile/preferences" element={
+                            <ProtectedRoute>
+                                <ProfilePreferences />
+                            </ProtectedRoute>
+                        } />
+
                         <Route path="/profile/privacy" element={
                             <ProtectedRoute>
                                 <ProfilePrivacy />
@@ -226,6 +235,7 @@ function App() {
                 </Suspense>
             </BrowserRouter>
         </AuthProvider>
+        </ThemeProvider>
     );
 }
 

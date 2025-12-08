@@ -3,19 +3,48 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Color System */
+  /* UI Elements - Theme Independent */
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+  --border-radius-circle: 50%;
+
+  /* Spacing - Theme Independent */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark Theme (Default) */
+:root,
+:root.dark-theme {
+  /* Primary Colors */
   --color-primary: #4CAF50;
   --color-primary-hover: #45a049;
   --color-secondary: #646cff;
   --color-secondary-hover: #535bf2;
+
+  /* Background Colors */
   --color-background: #1a1a1a;
   --color-background-light: #333;
   --color-background-medium: #2a2a2a;
+
+  /* Text Colors */
   --color-text: rgba(255, 255, 255, 0.9);
   --color-text-secondary: rgba(255, 255, 255, 0.7);
+
+  /* Border Colors */
   --color-border: #444;
   --color-border-light: #555;
 
+  /* System Colors */
   --color-cancel: #f44336;
   --color-cancel-hover: #e53935;
   --color-cancel-text: #fff;
@@ -28,29 +57,56 @@
   --color-error-bg: rgba(244, 67, 54, 0.15);
   --color-error-text: #f44336;
 
-  /* UI Elements */
+  /* Shadows */
   --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --border-radius-sm: 4px;
-  --border-radius-md: 6px;
-  --border-radius-lg: 8px;
-  --border-radius-circle: 50%;
 
-  /* Spacing */
-  --space-xs: 0.5rem;
-  --space-sm: 1rem;
-  --space-md: 1.5rem;
-  --space-lg: 2rem;
-  --space-xl: 3rem;
-
-  color-scheme: light dark;
+  color-scheme: dark;
   color: var(--color-text);
   background-color: var(--color-background);
+}
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Light Theme */
+:root.light-theme {
+  /* Primary Colors */
+  --color-primary: #2e7d32;
+  --color-primary-hover: #1b5e20;
+  --color-secondary: #1976d2;
+  --color-secondary-hover: #1565c0;
+
+  /* Background Colors */
+  --color-background: #f5f5f5;
+  --color-background-light: #ffffff;
+  --color-background-medium: #fafafa;
+
+  /* Text Colors */
+  --color-text: rgba(0, 0, 0, 0.87);
+  --color-text-secondary: rgba(0, 0, 0, 0.6);
+
+  /* Border Colors */
+  --color-border: #e0e0e0;
+  --color-border-light: #eeeeee;
+
+  /* System Colors */
+  --color-cancel: #d32f2f;
+  --color-cancel-hover: #c62828;
+  --color-cancel-text: #fff;
+  --color-maybe: #f57c00;
+  --color-maybe-hover: #ef6c00;
+
+  /* Component Colors */
+  --color-success-bg: #e8f5e9;
+  --color-success-text: #2e7d32;
+  --color-error-bg: #ffebee;
+  --color-error-text: #c62828;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  color-scheme: light;
+  color: var(--color-text);
+  background-color: var(--color-background);
 }
 
 /* Mobile-specific spacing adjustments */
