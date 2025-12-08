@@ -1,5 +1,5 @@
 import { FC, useState, useEffect, useCallback } from "react";
-import { Table, TableColumn, Input, Button } from '@/components/ui';
+import { Table, TableColumn, Input, Button, Tabs } from '@/components/ui';
 import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
 import { useClubSettings } from "../../../../hooks/useClubSettings";
@@ -219,25 +219,14 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                 {error && <p style={{ color: 'red' }}>{error}</p>}
                 
                 {/* Tab Navigation */}
-                <div className="tabs-container">
-                    <nav className="tabs-nav">
-                        <button 
-                            className={`tab-button ${activeTab === 'event' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('event')}
-                        >
-                            Event Details
-                        </button>
-                        {clubSettings?.shiftsEnabled && (
-                            <button 
-                                className={`tab-button ${activeTab === 'shifts' ? 'active' : ''}`}
-                                onClick={() => setActiveTab('shifts')}
-                            >
-                                Shifts
-                            </button>
-                        )}
-                    </nav>
-
-                    <div className="tab-content">
+                <Tabs
+                    tabs={[
+                        { id: 'event', label: 'Event Details' },
+                        ...(clubSettings?.shiftsEnabled ? [{ id: 'shifts', label: 'Shifts' }] : [])
+                    ]}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                >
                         {/* Event Details Tab */}
                         <div className={`tab-panel ${activeTab === 'event' ? 'active' : ''}`}>
                             <Input
@@ -334,8 +323,7 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                                 </div>
                             </div>
                         )}
-                    </div>
-                </div>
+                </Tabs>
             </Modal.Body>
             <Modal.Actions>
                 <Button 

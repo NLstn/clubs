@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Layout from '../../components/layout/Layout';
-import { Input, Modal, Button } from '@/components/ui';
+import { Input, Modal, Button, Tabs } from '@/components/ui';
 import './AdminTeamDetails.css';
 
 interface Team {
@@ -241,29 +241,15 @@ const AdminTeamDetails = () => {
     return (
         <Layout title={`${team.name} - Admin`}>
             <div className="admin-team-container">
-                <div className="tabs-container">
-                    <nav className="tabs-nav">
-                        <button 
-                            className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('overview')}
-                        >
-                            Overview
-                        </button>
-                        <button 
-                            className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('events')}
-                        >
-                            Events
-                        </button>
-                        <button 
-                            className={`tab-button ${activeTab === 'fines' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('fines')}
-                        >
-                            Fines
-                        </button>
-                    </nav>
-
-                    <div className="tab-content">
+                <Tabs
+                    tabs={[
+                        { id: 'overview', label: 'Overview' },
+                        { id: 'events', label: 'Events' },
+                        { id: 'fines', label: 'Fines' }
+                    ]}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                >
                         <div className={`tab-panel ${activeTab === 'overview' ? 'active' : ''}`}>
                             {isEditing ? (
                                 <div className="edit-form">
@@ -412,8 +398,7 @@ const AdminTeamDetails = () => {
                                 )}
                             </div>
                         </div>
-                    </div>
-                </div>
+                </Tabs>
             </div>
 
             {/* Create Event Modal */}
