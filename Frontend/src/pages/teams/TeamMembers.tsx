@@ -21,7 +21,11 @@ const TeamMembers = () => {
     const [error, setError] = useState<string | null>(null);
 
     const translateRole = (role: string): string => {
-        return t(`teams.roles.${role}`) || t(`clubs.roles.${role}`) || role;
+        const teamRole = t(`teams.roles.${role}`);
+        if (teamRole !== `teams.roles.${role}`) {
+            return teamRole;
+        }
+        return t(`clubs.roles.${role}`);
     };
 
     const sortMembersByRole = (members: Member[]): Member[] => {
@@ -75,12 +79,12 @@ const TeamMembers = () => {
     const columns: TableColumn<Member>[] = [
         {
             key: 'name',
-            header: t('common.name') || 'Name',
+            header: t('common.name'),
             render: (member) => <span>{member.name}</span>
         },
         {
             key: 'role',
-            header: t('common.role') || 'Role',
+            header: t('common.role'),
             render: (member) => (
                 <span className={`role-badge ${member.role.toLowerCase()}`}>
                     {translateRole(member.role)}
@@ -89,7 +93,7 @@ const TeamMembers = () => {
         },
         {
             key: 'joinedAt',
-            header: t('teams.joined') || 'Joined Team',
+            header: t('teams.joined'),
             render: (member) => (
                 <span>{member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'N/A'}</span>
             ),
@@ -97,7 +101,7 @@ const TeamMembers = () => {
         },
         {
             key: 'birthDate',
-            header: t('clubs.birthDate') || 'Birth Date',
+            header: t('clubs.birthDate'),
             render: (member) => (
                 <span>{member.birthDate ? new Date(member.birthDate).toLocaleDateString() : 'Not shared'}</span>
             ),
@@ -110,7 +114,7 @@ const TeamMembers = () => {
 
     return (
         <div className="content-section">
-            <h3>{t('teams.members') || 'Team Members'}</h3>
+            <h3>{t('teams.members')}</h3>
             <Table
                 columns={columns}
                 data={members}
@@ -123,7 +127,7 @@ const TeamMembers = () => {
                 footer={
                     members.length > 0 ? (
                         <div>
-                            {t('teams.totalMembers', { count: members.length }) || `Total: ${members.length} team members`}
+                            {t('teams.totalMembers', { count: members.length })}
                         </div>
                     ) : null
                 }

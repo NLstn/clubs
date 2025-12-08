@@ -62,7 +62,7 @@ const MyTeams = () => {
 
     return (
         <div className="content-section">
-            <h3>{t('teams.myTeams') || 'My Teams'}</h3>
+            <h3>{t('teams.myTeams')}</h3>
             <div className="teams-list">
                 {teams.map(team => (
                     <div 

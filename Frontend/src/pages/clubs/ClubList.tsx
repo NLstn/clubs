@@ -33,7 +33,7 @@ const ClubList = () => {
     const navigate = useNavigate();
 
     const translateRole = (role: string): string => {
-        return t(`clubs.roles.${role}`) || role;
+        return t(`clubs.roles.${role}`);
     };
 
     useEffect(() => {

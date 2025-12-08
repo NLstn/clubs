@@ -278,7 +278,7 @@ const AdminClubTeamList = () => {
                                 {teamMembers.length === 0 ? (
                                     <tr>
                                         <td colSpan={4} style={{textAlign: 'center', fontStyle: 'italic', padding: 'var(--space-lg)'}}>
-                                            {t('teams.noMembers') || 'No team members yet.'}
+                                            {t('teams.noMembers')}
                                         </td>
                                     </tr>
                                 ) : (

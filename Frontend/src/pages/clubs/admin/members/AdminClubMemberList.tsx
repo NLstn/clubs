@@ -42,7 +42,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
     const [joinRequestCount, setJoinRequestCount] = useState<number>(0);
 
     const translateRole = (role: string): string => {
-        return t(`clubs.roles.${role}`) || role;
+        return t(`clubs.roles.${role}`);
     };
 
     const sortMembersByRole = useCallback((members: Member[]): Member[] => {
@@ -319,7 +319,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                 footer={
                     members.length > 0 ? (
                         <div>
-                            {t('clubs.totalMembers', { count: members.length }) || `Total: ${members.length} members`}
+                            {t('clubs.totalMembers', { count: members.length })}
                         </div>
                     ) : null
                 }

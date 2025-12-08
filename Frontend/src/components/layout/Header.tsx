@@ -60,7 +60,7 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
         onClick={() => navigate('/')}
         style={{ cursor: 'pointer', height: '40px' }} 
       />
-      <h1>{title || t('navigation.clubs')}</h1>
+      <h1>{title ? title : t('navigation.clubs')}</h1>
       <div className="header-actions">
         <GlobalSearch />
         {showRecentClubs && <RecentClubsDropdown />}
