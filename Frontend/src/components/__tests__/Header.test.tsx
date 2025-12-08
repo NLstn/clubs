@@ -184,13 +184,13 @@ describe('Header', () => {
     expect(screen.getByText('My Clubs')).toBeInTheDocument()
   })
 
-  it('does not show My Clubs when showRecentClubs is true', () => {
+  it('shows My Clubs when showRecentClubs is true', () => {
     renderWithRouter(<Header showRecentClubs={true} />)
     
     const userIcon = screen.getByText('U')
     fireEvent.click(userIcon)
     
-    expect(screen.queryByText('My Clubs')).not.toBeInTheDocument()
+    expect(screen.getByText('My Clubs')).toBeInTheDocument()
   })
 
   it('closes dropdown when clicking outside', () => {

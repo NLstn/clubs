@@ -90,14 +90,12 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
                   {t('navigation.adminPanel')}
                 </button>
               )}
-              {!showRecentClubs && (
-                <button
-                  className="dropdownItem"
-                  onClick={() => navigate('/clubs')}
-                >
-                  {t('navigation.myClubs')}
-                </button>
-              )}
+              <button
+                className="dropdownItem"
+                onClick={() => navigate('/clubs')}
+              >
+                {t('navigation.myClubs')}
+              </button>
               <button
                 className="dropdownItem"
                 onClick={() => navigate('/profile')}
