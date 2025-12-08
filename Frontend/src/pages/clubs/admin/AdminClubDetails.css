@@ -2,6 +2,17 @@
 
 /* Club-specific styles for admin page */
 
+/* Hard delete button - more dangerous looking than regular cancel */
+.hard-delete-button {
+    background-color: #d32f2f !important;
+    border-color: #d32f2f !important;
+}
+
+.hard-delete-button:hover {
+    background-color: #b71c1c !important;
+    border-color: #b71c1c !important;
+}
+
 .club-logo-section {
     flex-shrink: 0;
 }

@@ -94,7 +94,7 @@
 .club-badge {
   background-color: var(--color-primary);
   color: white;
-  padding: var(--space-xs) var(--space-sm);
+  padding: calc(var(--space-xs) * 0.25) calc(var(--space-xs) * 0.75);
   border-radius: var(--border-radius-sm);
   font-size: 0.8rem;
   cursor: pointer;
@@ -123,7 +123,7 @@
 @media (max-width: 480px) {
   .club-badge {
     font-size: 0.7rem;
-    padding: calc(var(--space-xs) * 0.4) calc(var(--space-xs) * 1.2);
+    padding: calc(var(--space-xs) * 0.25) calc(var(--space-xs) * 0.75);
   }
 }
 

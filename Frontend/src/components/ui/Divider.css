@@ -47,16 +47,3 @@
 .divider--lg {
     margin: var(--space-lg) 0;
 }
-
-/* Ensure proper spacing for text dividers */
-.divider--text.divider--sm {
-    margin: var(--space-sm) 0;
-}
-
-.divider--text.divider--md {
-    margin: var(--space-lg) 0;
-}
-
-.divider--text.divider--lg {
-    margin: var(--space-xl) 0;
-}

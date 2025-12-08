@@ -75,7 +75,7 @@
 }
 
 .input-lg {
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-md) calc(var(--space-sm) + var(--space-xs) / 2);
   font-size: 1.1rem;
 }
 
@@ -128,7 +128,7 @@
   }
   
   .input-sm {
-    padding: calc(var(--space-xs) * 1.2) var(--space-sm);
+    padding: calc(var(--space-xs) * 0.75) var(--space-sm);
     font-size: 0.85rem;
   }
   
@@ -159,7 +159,7 @@
   }
   
   .input-sm {
-    padding: calc(var(--space-xs) * 1.2) var(--space-sm);
+    padding: calc(var(--space-xs) * 0.75) var(--space-sm);
     font-size: 0.8rem;
   }
   
