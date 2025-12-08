@@ -78,6 +78,24 @@
   - Table.md - Data table components
   - TypeAheadDropdown.md - Autocomplete dropdowns
 
+## Important: Read Documentation Before Making Changes
+
+**Before making any changes to code in a specific folder or area, ALWAYS read the respective folder's README.md file first (if it exists).**
+
+This is crucial because:
+- **Frontend changes**: Read `/workspace/Documentation/Frontend/README.md` for the complete design system, component library, styling guidelines, and implementation patterns
+- **Backend changes**: Review documentation in `/workspace/Documentation/Backend/` including API.md and AddNewTable.md
+- **Component development**: Check component-specific documentation in `/workspace/Documentation/Frontend/components/`
+
+The README files contain essential information about:
+- Design systems and patterns to follow
+- Coding conventions and standards
+- Component usage and best practices
+- Architecture decisions and rationale
+- Testing requirements
+
+**Failure to read the relevant README files may result in inconsistent implementations that don't follow established patterns.**
+
 ## Development Environment
 
 This project uses a **Dev Container** for a consistent development environment. The dev container automatically handles all setup including:
