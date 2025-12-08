@@ -125,6 +125,7 @@
     "removeMemberConfirmation": "Are you sure you want to remove this member from the team?",
     "joinedAt": "Joined",
     "noAvailableMembers": "All club members are already in this team",
+    "noMembers": "No team members yet",
     "addAsMember": "Add as Member",
     "addAsAdmin": "Add as Admin",
     "promoteToAdmin": "Promote to Admin",

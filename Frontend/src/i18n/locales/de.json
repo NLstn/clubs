@@ -113,6 +113,7 @@
     "removeMemberConfirmation": "Sind Sie sicher, dass Sie dieses Mitglied aus dem Team entfernen möchten?",
     "joinedAt": "Beigetreten",
     "noAvailableMembers": "Alle Vereinsmitglieder sind bereits in diesem Team",
+    "noMembers": "Noch keine Teammitglieder",
     "addAsMember": "Als Mitglied hinzufügen",
     "addAsAdmin": "Als Administrator hinzufügen",
     "promoteToAdmin": "Zum Administrator befördern",
