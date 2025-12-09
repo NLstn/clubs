@@ -119,6 +119,86 @@ func (s *Service) registerFunctions() error {
 		return fmt.Errorf("failed to register SearchGlobal function: %w", err)
 	}
 
+	// Bound functions for Team entity
+	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
+		Name:       "GetOverview",
+		IsBound:    true,
+		EntitySet:  "Teams",
+		Parameters: []odata.ParameterDefinition{},
+		ReturnType: reflect.TypeOf(TeamOverviewResponse{}),
+		Handler:    s.getTeamOverviewFunction,
+	}); err != nil {
+		return fmt.Errorf("failed to register GetOverview function for Team: %w", err)
+	}
+
+	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
+		Name:       "GetEvents",
+		IsBound:    true,
+		EntitySet:  "Teams",
+		Parameters: []odata.ParameterDefinition{},
+		ReturnType: reflect.TypeOf([]models.Event{}),
+		Handler:    s.getTeamEventsFunction,
+	}); err != nil {
+		return fmt.Errorf("failed to register GetEvents function for Team: %w", err)
+	}
+
+	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
+		Name:       "GetUpcomingEvents",
+		IsBound:    true,
+		EntitySet:  "Teams",
+		Parameters: []odata.ParameterDefinition{},
+		ReturnType: reflect.TypeOf([]models.Event{}),
+		Handler:    s.getTeamUpcomingEventsFunction,
+	}); err != nil {
+		return fmt.Errorf("failed to register GetUpcomingEvents function for Team: %w", err)
+	}
+
+	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
+		Name:       "GetFines",
+		IsBound:    true,
+		EntitySet:  "Teams",
+		Parameters: []odata.ParameterDefinition{},
+		ReturnType: reflect.TypeOf([]models.Fine{}),
+		Handler:    s.getTeamFinesFunction,
+	}); err != nil {
+		return fmt.Errorf("failed to register GetFines function for Team: %w", err)
+	}
+
+	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
+		Name:       "GetMembers",
+		IsBound:    true,
+		EntitySet:  "Teams",
+		Parameters: []odata.ParameterDefinition{},
+		ReturnType: reflect.TypeOf([]map[string]interface{}{}),
+		Handler:    s.getTeamMembersFunction,
+	}); err != nil {
+		return fmt.Errorf("failed to register GetMembers function for Team: %w", err)
+	}
+
+	// More bound functions for Event entity
+	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
+		Name:       "GetRSVPs",
+		IsBound:    true,
+		EntitySet:  "Events",
+		Parameters: []odata.ParameterDefinition{},
+		ReturnType: reflect.TypeOf(EventRSVPResponse{}),
+		Handler:    s.getEventRSVPsFunction,
+	}); err != nil {
+		return fmt.Errorf("failed to register GetRSVPs function for Event: %w", err)
+	}
+
+	// More bound functions for Club entity
+	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
+		Name:       "GetMyTeams",
+		IsBound:    true,
+		EntitySet:  "Clubs",
+		Parameters: []odata.ParameterDefinition{},
+		ReturnType: reflect.TypeOf([]models.Team{}),
+		Handler:    s.getMyTeamsFunction,
+	}); err != nil {
+		return fmt.Errorf("failed to register GetMyTeams function for Club: %w", err)
+	}
+
 	return nil
 }
 
@@ -164,6 +244,18 @@ type SearchResult struct {
 type SearchResponse struct {
 	Clubs  []SearchResult `json:"clubs"`
 	Events []SearchResult `json:"events"`
+}
+
+type TeamOverviewResponse struct {
+	Team     models.Team            `json:"team"`
+	Stats    map[string]interface{} `json:"stats"`
+	UserRole string                 `json:"userRole"`
+	IsAdmin  bool                   `json:"isAdmin"`
+}
+
+type EventRSVPResponse struct {
+	Counts map[string]int          `json:"counts"`
+	RSVPs  []models.EventRSVP      `json:"rsvps"`
 }
 
 // isAdminFunction checks if the current user is an admin of the club
@@ -679,4 +771,273 @@ func calculateNextOccurrence(current time.Time, pattern string, interval int) ti
 	default:
 		return current
 	}
+}
+
+// getTeamOverviewFunction returns team overview with stats and user role
+// GET /api/v2/Teams('{teamId}')/GetOverview()
+func (s *Service) getTeamOverviewFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
+	team := ctx.(*models.Team)
+
+	// Get user ID from request context
+	userID, ok := r.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: missing user id")
+	}
+
+	// Get user from database
+	var user models.User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	// Verify user is a member of the club
+	club, err := models.GetClubByID(team.ClubID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find club: %w", err)
+	}
+
+	if !club.IsMember(user) {
+		return nil, fmt.Errorf("forbidden: user is not a member of this club")
+	}
+
+	// Get team stats
+	stats, err := team.GetTeamStats()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get team stats: %w", err)
+	}
+
+	// Get user's role in the team
+	userRole := ""
+	if team.IsMember(user) {
+		userRole, _ = team.GetUserRole(user)
+	}
+
+	return TeamOverviewResponse{
+		Team:     *team,
+		Stats:    stats,
+		UserRole: userRole,
+		IsAdmin:  team.IsAdmin(user),
+	}, nil
+}
+
+// getTeamEventsFunction returns all events for the team
+// GET /api/v2/Teams('{teamId}')/GetEvents()
+func (s *Service) getTeamEventsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
+	team := ctx.(*models.Team)
+
+	// Get user ID from request context
+	userID, ok := r.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: missing user id")
+	}
+
+	// Get user from database
+	var user models.User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	// Verify user has access (team member or club admin)
+	club, err := models.GetClubByID(team.ClubID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find club: %w", err)
+	}
+
+	if !team.IsMember(user) && !club.IsAdmin(user) {
+		return nil, fmt.Errorf("forbidden: user is not a member of this team")
+	}
+
+	events, err := team.GetEvents()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get events: %w", err)
+	}
+
+	return events, nil
+}
+
+// getTeamUpcomingEventsFunction returns upcoming events for the team
+// GET /api/v2/Teams('{teamId}')/GetUpcomingEvents()
+func (s *Service) getTeamUpcomingEventsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
+	team := ctx.(*models.Team)
+
+	// Get user ID from request context
+	userID, ok := r.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: missing user id")
+	}
+
+	// Get user from database
+	var user models.User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	// Verify user has access (team member or club admin)
+	club, err := models.GetClubByID(team.ClubID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find club: %w", err)
+	}
+
+	if !team.IsMember(user) && !club.IsAdmin(user) {
+		return nil, fmt.Errorf("forbidden: user is not a member of this team")
+	}
+
+	events, err := team.GetUpcomingEvents()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get upcoming events: %w", err)
+	}
+
+	return events, nil
+}
+
+// getTeamFinesFunction returns all fines for the team
+// GET /api/v2/Teams('{teamId}')/GetFines()
+func (s *Service) getTeamFinesFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
+	team := ctx.(*models.Team)
+
+	// Get user ID from request context
+	userID, ok := r.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: missing user id")
+	}
+
+	// Get user from database
+	var user models.User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	// Verify user has access (team member or club admin)
+	club, err := models.GetClubByID(team.ClubID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find club: %w", err)
+	}
+
+	if !team.IsMember(user) && !club.IsAdmin(user) {
+		return nil, fmt.Errorf("forbidden: user is not a member of this team")
+	}
+
+	// Get fines for this team
+	var fines []models.Fine
+	if err := s.db.Where("team_id = ?", team.ID).Preload("User").Find(&fines).Error; err != nil {
+		return nil, fmt.Errorf("failed to get fines: %w", err)
+	}
+
+	return fines, nil
+}
+
+// getTeamMembersFunction returns all team members with user details
+// GET /api/v2/Teams('{teamId}')/GetMembers()
+func (s *Service) getTeamMembersFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
+	team := ctx.(*models.Team)
+
+	// Get user ID from request context
+	userID, ok := r.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: missing user id")
+	}
+
+	// Get user from database
+	var user models.User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	// Verify user is a member of the club
+	club, err := models.GetClubByID(team.ClubID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find club: %w", err)
+	}
+
+	if !club.IsMember(user) {
+		return nil, fmt.Errorf("forbidden: user is not a member of this club")
+	}
+
+	// Get team members with user details using the existing method
+	members, err := team.GetTeamMembersWithUserInfo()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get team members: %w", err)
+	}
+
+	return members, nil
+}
+
+// getEventRSVPsFunction returns all RSVPs for an event with counts
+// GET /api/v2/Events('{eventId}')/GetRSVPs()
+func (s *Service) getEventRSVPsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
+	event := ctx.(*models.Event)
+
+	// Get user ID from request context
+	userID, ok := r.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: missing user id")
+	}
+
+	// Get user from database
+	var user models.User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	// Verify user is an admin of the club
+	club, err := models.GetClubByID(event.ClubID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find club: %w", err)
+	}
+
+	if !club.IsOwner(user) && !club.IsAdmin(user) {
+		return nil, fmt.Errorf("forbidden: only club admins can view RSVPs")
+	}
+
+	// Get RSVP counts
+	counts, err := models.GetEventRSVPCounts(event.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get RSVP counts: %w", err)
+	}
+
+	// Get RSVPs with user details
+	rsvps, err := models.GetEventRSVPs(event.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get RSVPs: %w", err)
+	}
+
+	return EventRSVPResponse{
+		Counts: counts,
+		RSVPs:  rsvps,
+	}, nil
+}
+
+// getMyTeamsFunction returns teams the current user is a member of
+// GET /api/v2/Clubs('{clubId}')/GetMyTeams()
+func (s *Service) getMyTeamsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
+	club := ctx.(*models.Club)
+
+	// Get user ID from request context
+	userID, ok := r.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: missing user id")
+	}
+
+	// Get user from database
+	var user models.User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	// Verify user is a member of the club
+	if !club.IsMember(user) {
+		return nil, fmt.Errorf("forbidden: user is not a member of this club")
+	}
+
+	// Get teams where user is a member by joining through team_members table
+	var teams []models.Team
+	if err := s.db.
+		Table("teams").
+		Joins("INNER JOIN team_members ON team_members.team_id = teams.id").
+		Where("team_members.user_id = ? AND teams.club_id = ?", userID, club.ID).
+		Find(&teams).Error; err != nil {
+		return nil, fmt.Errorf("failed to get user's teams: %w", err)
+	}
+
+	return teams, nil
 }
