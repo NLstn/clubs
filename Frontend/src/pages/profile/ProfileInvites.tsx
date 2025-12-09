@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
-import ProfileSidebar from "./ProfileSidebar";
+import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { Table, TableColumn, Button } from '@/components/ui';
 import api from '../../utils/api';
 import './Profile.css';
@@ -95,45 +95,29 @@ const ProfileInvites = () => {
 
   return (
     <Layout title="Club Invitations">
-      <div style={{
-        display: 'flex',
-        minHeight: 'calc(100vh - 90px)',
-        width: '100%',
-        position: 'relative'
-      }}>
-        <ProfileSidebar />
-        <div style={{
-          flex: '1 1 auto',
-          padding: '20px',
-          maxWidth: 'calc(100% - 200px)'
-        }}>
-          <h2>Pending Invitations</h2>
-
-          {message && (
-            <div className={message.includes('Failed') ? 'error' : 'success'}
-              style={{
-                padding: '10px',
-                marginBottom: '20px',
-                backgroundColor: message.includes('Failed') ? 'var(--color-error-bg)' : 'var(--color-success-bg)',
-                color: message.includes('Failed') ? 'var(--color-error-text)' : 'var(--color-success-text)',
-                borderRadius: '4px'
-              }}>
-              {message}
-            </div>
-          )}
-
-          <div className="invitations-list" style={{ maxWidth: '800px' }}>
-            <Table
-              columns={columns}
-              data={invites}
-              keyExtractor={(invite) => invite.id}
-              emptyMessage="You have no pending invitations."
-              loading={loading}
-              loadingMessage="Loading invitations..."
-            />
+      <ProfileContentLayout title="Pending Invitations">
+        {message && (
+          <div className={message.includes('Failed') ? 'error' : 'success'}
+            style={{
+              padding: '10px',
+              marginBottom: '20px',
+              backgroundColor: message.includes('Failed') ? 'var(--color-error-bg)' : 'var(--color-success-bg)',
+              color: message.includes('Failed') ? 'var(--color-error-text)' : 'var(--color-success-text)',
+              borderRadius: '4px'
+            }}>
+            {message}
           </div>
-        </div>
-      </div>
+        )}
+
+        <Table
+          columns={columns}
+          data={invites}
+          keyExtractor={(invite) => invite.id}
+          emptyMessage="You have no pending invitations."
+          loading={loading}
+          loadingMessage="Loading invitations..."
+        />
+      </ProfileContentLayout>
     </Layout>
   );
 };
