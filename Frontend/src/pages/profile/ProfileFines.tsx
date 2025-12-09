@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../utils/api";
 import Layout from "../../components/layout/Layout";
-import ProfileSidebar from "./ProfileSidebar";
+import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { Table, TableColumn } from '@/components/ui';
 import './Profile.css';
 
@@ -80,32 +80,19 @@ const ProfileFines = () => {
 
     return (
         <Layout title="Fines">
-            <div style={{
-                display: 'flex',
-                minHeight: 'calc(100vh - 90px)',
-                width: '100%',
-                position: 'relative'
-            }}>
-                <ProfileSidebar />
-                <div style={{
-                    flex: '1 1 auto',
-                    padding: '20px',
-                    maxWidth: 'calc(100% - 200px)'
-                }}>
-                    <h1>Fines</h1>
-                    <Table
-                        columns={columns}
-                        data={fines}
-                        keyExtractor={(fine) => fine.id}
-                        loading={loading}
-                        error={error}
-                        emptyMessage="No fines found"
-                        loadingMessage="Loading fines..."
-                        errorMessage="Failed to load fines"
-                        footer={footerContent}
-                    />
-                </div>
-            </div>
+            <ProfileContentLayout title="Fines">
+                <Table
+                    columns={columns}
+                    data={fines}
+                    keyExtractor={(fine) => fine.id}
+                    loading={loading}
+                    error={error}
+                    emptyMessage="No fines found"
+                    loadingMessage="Loading fines..."
+                    errorMessage="Failed to load fines"
+                    footer={footerContent}
+                />
+            </ProfileContentLayout>
         </Layout>
     )
 }

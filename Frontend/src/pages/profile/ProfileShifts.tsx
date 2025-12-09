@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/layout/Layout';
-import ProfileSidebar from './ProfileSidebar';
+import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { useAuth } from '../../hooks/useAuth';
 import { useT } from '../../hooks/useTranslation';
 import { Card } from '@/components/ui';
@@ -54,50 +54,44 @@ function ProfileShifts() {
 
     return (
         <Layout>
-            <div style={{ display: 'flex', gap: '2rem', maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
-                <ProfileSidebar />
-                <div style={{ flex: 1 }}>
-                    <h1 style={{ color: 'var(--color-text-primary)', marginBottom: '2rem' }}>
-                        {t('My Future Shifts')}
-                    </h1>
+            <ProfileContentLayout title={t('My Future Shifts')}>
+                {loading && (
+                    <div style={{ 
+                        textAlign: 'center', 
+                        padding: '2rem', 
+                        color: 'var(--color-text-secondary)' 
+                    }}>
+                        Loading shifts...
+                    </div>
+                )}
 
-                    {loading && (
-                        <div style={{ 
-                            textAlign: 'center', 
-                            padding: '2rem', 
-                            color: 'var(--color-text-secondary)' 
-                        }}>
-                            Loading shifts...
-                        </div>
-                    )}
+                {error && (
+                    <div style={{ 
+                        background: 'var(--color-error-bg)', 
+                        color: 'var(--color-error)', 
+                        padding: '1rem', 
+                        borderRadius: '4px',
+                        marginBottom: '1rem'
+                    }}>
+                        {error}
+                    </div>
+                )}
 
-                    {error && (
-                        <div style={{ 
-                            background: 'var(--color-error-bg)', 
-                            color: 'var(--color-error)', 
-                            padding: '1rem', 
-                            borderRadius: '4px',
-                            marginBottom: '1rem'
-                        }}>
-                            {error}
-                        </div>
-                    )}
+                {!loading && !error && shifts.length === 0 && (
+                    <div style={{ 
+                        textAlign: 'center', 
+                        padding: '3rem', 
+                        color: 'var(--color-text-secondary)' 
+                    }}>
+                        <p>{t('No upcoming shifts found.')}</p>
+                        <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                            {t('Check back later or contact your club administrators if you expect to see shifts here.')}
+                        </p>
+                    </div>
+                )}
 
-                    {!loading && !error && shifts.length === 0 && (
-                        <div style={{ 
-                            textAlign: 'center', 
-                            padding: '3rem', 
-                            color: 'var(--color-text-secondary)' 
-                        }}>
-                            <p>{t('No upcoming shifts found.')}</p>
-                            <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                                {t('Check back later or contact your club administrators if you expect to see shifts here.')}
-                            </p>
-                        </div>
-                    )}
-
-                    {!loading && !error && shifts.length > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {!loading && !error && shifts.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {shifts.map((shift) => (
                                 <Card
                                     key={shift.id}
@@ -215,8 +209,7 @@ function ProfileShifts() {
                             ))}
                         </div>
                     )}
-                </div>
-            </div>
+            </ProfileContentLayout>
         </Layout>
     );
 }

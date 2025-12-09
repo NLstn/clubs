@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from "../../components/layout/Layout";
-import ProfileSidebar from "./ProfileSidebar";
+import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { useAuth } from '../../hooks/useAuth';
 import { Table, TableColumn, Button } from '@/components/ui';
 import './Profile.css';
@@ -125,43 +125,29 @@ const ProfileSessions = () => {
 
   return (
     <Layout title="Active Sessions">
-      <div style={{
-        display: 'flex',
-        minHeight: 'calc(100vh - 90px)',
-        width: '100%',
-        position: 'relative'
-      }}>
-        <ProfileSidebar />
-        <div style={{
-          flex: '1 1 auto',
-          padding: '20px',
-          maxWidth: 'calc(100% - 200px)'
-        }}>
-          <h2>Active Sessions</h2>
-          
-          {message && (
-            <div className={message.includes('Failed') ? 'error' : 'success'} 
-                 style={{ 
-                   padding: '10px', 
-                   marginBottom: '20px',
-                   backgroundColor: message.includes('Failed') ? 'var(--color-error-bg)' : 'var(--color-success-bg)',
-                   color: message.includes('Failed') ? 'var(--color-error-text)' : 'var(--color-success-text)',
-                   borderRadius: '4px'
-                 }}>
-              {message}
-            </div>
-          )}
+      <ProfileContentLayout title="Active Sessions">
+        {message && (
+          <div className={message.includes('Failed') ? 'error' : 'success'} 
+               style={{ 
+                 padding: '10px', 
+                 marginBottom: '20px',
+                 backgroundColor: message.includes('Failed') ? 'var(--color-error-bg)' : 'var(--color-success-bg)',
+                 color: message.includes('Failed') ? 'var(--color-error-text)' : 'var(--color-success-text)',
+                 borderRadius: '4px'
+               }}>
+            {message}
+          </div>
+        )}
 
-          <Table
-            columns={tableColumns}
-            data={sessions}
-            keyExtractor={(session) => session.id}
-            emptyMessage="No active sessions found."
-            loading={isLoading}
-            loadingMessage="Loading sessions..."
-          />
-        </div>
-      </div>
+        <Table
+          columns={tableColumns}
+          data={sessions}
+          keyExtractor={(session) => session.id}
+          emptyMessage="No active sessions found."
+          loading={isLoading}
+          loadingMessage="Loading sessions..."
+        />
+      </ProfileContentLayout>
     </Layout>
   );
 };

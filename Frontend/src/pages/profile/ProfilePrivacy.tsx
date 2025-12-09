@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
-import ProfileSidebar from "./ProfileSidebar";
+import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { useAuth } from "../../hooks/useAuth";
 import { FormGroup, Card } from '@/components/ui';
 import './Profile.css';
@@ -99,19 +99,12 @@ const ProfilePrivacy = () => {
 
     return (
         <Layout title="Privacy Settings">
-            <div className="profile-layout">
-                <ProfileSidebar />
-                <div className="profile-content">
-                    <div className="profile-header">
-                        <h2>Privacy Settings</h2>
-                        <p>Control who can see your personal information</p>
+            <ProfileContentLayout title="Privacy Settings">
+                {message && (
+                    <div className={message.includes('Failed') ? 'error-message' : 'success-message'}>
+                        {message}
                     </div>
-                    
-                    {message && (
-                        <div className={message.includes('Failed') ? 'error-message' : 'success-message'}>
-                            {message}
-                        </div>
-                    )}
+                )}
                     
                     {isLoading ? (
                         <div style={{ 
@@ -195,8 +188,7 @@ const ProfilePrivacy = () => {
                             </div>
                         </div>
                     )}
-                </div>
-            </div>
+            </ProfileContentLayout>
         </Layout>
     );
 };

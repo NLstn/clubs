@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Layout from "../../components/layout/Layout";
-import ProfileSidebar from "./ProfileSidebar";
+import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { useNotificationPreferences } from '../../hooks/useNotifications';
 import { useT } from '../../hooks/useTranslation';
 import { ToggleSwitch } from '@/components/ui';
@@ -41,18 +41,15 @@ const ProfileNotificationSettings: React.FC = () => {
   if (loading && !preferences) {
     return (
       <Layout title="Notification Settings">
-        <div className="profile-layout">
-          <ProfileSidebar />
-          <div className="profile-content">
-            <div style={{ 
-              textAlign: 'center', 
-              padding: 'var(--space-xl)',
-              color: 'var(--color-text-secondary)'
-            }}>
-              <p>Loading notification settings...</p>
-            </div>
+        <ProfileContentLayout title="Notification Settings">
+          <div style={{ 
+            textAlign: 'center', 
+            padding: 'var(--space-xl)',
+            color: 'var(--color-text-secondary)'
+          }}>
+            <p>Loading notification settings...</p>
           </div>
-        </div>
+        </ProfileContentLayout>
       </Layout>
     );
   }
@@ -60,18 +57,15 @@ const ProfileNotificationSettings: React.FC = () => {
   if (error && !preferences) {
     return (
       <Layout title="Notification Settings">
-        <div className="profile-layout">
-          <ProfileSidebar />
-          <div className="profile-content">
-            <div style={{ 
-              textAlign: 'center', 
-              padding: 'var(--space-xl)',
-              color: 'var(--color-error-text)'
-            }}>
-              <p>Failed to load notification settings</p>
-            </div>
+        <ProfileContentLayout title="Notification Settings">
+          <div style={{ 
+            textAlign: 'center', 
+            padding: 'var(--space-xl)',
+            color: 'var(--color-error-text)'
+          }}>
+            <p>Failed to load notification settings</p>
           </div>
-        </div>
+        </ProfileContentLayout>
       </Layout>
     );
   }
@@ -79,18 +73,15 @@ const ProfileNotificationSettings: React.FC = () => {
   if (!preferences) {
     return (
       <Layout title="Notification Settings">
-        <div className="profile-layout">
-          <ProfileSidebar />
-          <div className="profile-content">
-            <div style={{ 
-              textAlign: 'center', 
-              padding: 'var(--space-xl)',
-              color: 'var(--color-error-text)'
-            }}>
-              <p>Notification settings not found</p>
-            </div>
+        <ProfileContentLayout title="Notification Settings">
+          <div style={{ 
+            textAlign: 'center', 
+            padding: 'var(--space-xl)',
+            color: 'var(--color-error-text)'
+          }}>
+            <p>Notification settings not found</p>
           </div>
-        </div>
+        </ProfileContentLayout>
       </Layout>
     );
   }
@@ -128,21 +119,14 @@ const ProfileNotificationSettings: React.FC = () => {
 
   return (
     <Layout title="Notification Settings">
-      <div className="profile-layout">
-        <ProfileSidebar />
-        <div className="profile-content">
-          <div className="profile-header">
-            <h2>Notification Settings</h2>
-            <p>Choose how you want to be notified about activities in your clubs.</p>
+      <ProfileContentLayout title="Notification Settings">
+        {saveMessage && (
+          <div className={`save-message ${saveMessage.includes('success') ? 'success' : 'error'}`}>
+            {saveMessage}
           </div>
+        )}
 
-          {saveMessage && (
-            <div className={`save-message ${saveMessage.includes('success') ? 'success' : 'error'}`}>
-              {saveMessage}
-            </div>
-          )}
-
-          <div className="profile-container" style={{ maxWidth: '800px' }}>
+        <div className="profile-container" style={{ maxWidth: '800px' }}>
             <div className="notification-settings-content">
               <div className="settings-table">
                 <div className="settings-table-header">
@@ -185,8 +169,6 @@ const ProfileNotificationSettings: React.FC = () => {
                 </p>
               </div>
             </div>
-          </div>
-
           {saving && (
             <div className="saving-indicator" style={{
               textAlign: 'center',
@@ -197,7 +179,7 @@ const ProfileNotificationSettings: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
+      </ProfileContentLayout>
     </Layout>
   );
 };
