@@ -15,8 +15,9 @@ func AuthMiddleware(jwtSecret []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Skip auth for metadata and service document endpoints
+			// When wrapped with http.StripPrefix, the path is relative to the mount point
 			path := r.URL.Path
-			if path == "" || path == "/" || path == "/$metadata" {
+			if path == "" || path == "/" || path == "$metadata" || path == "/$metadata" {
 				next.ServeHTTP(w, r)
 				return
 			}

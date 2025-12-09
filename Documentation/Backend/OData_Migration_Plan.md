@@ -188,64 +188,115 @@ func ODataAuthMiddleware(next http.Handler) http.Handler {
 }
 ```
 
-#### 2.2 Read Hooks for Authorization
+#### 2.2 Read Hooks for Authorization (go-odata v0.5.0)
 
-**Goal:** Implement row-level security using OData read hooks
+**Goal:** Implement row-level security using entity read hooks
 
 **Strategy:**
-- Use `RegisterReadHook` to filter queries based on user permissions
-- Implement club membership checks
-- Filter soft-deleted items for non-owners
-- Apply privacy settings
+- Implement `odata.ReadHook` interface methods on entity types
+- Use `BeforeReadCollection` to return GORM scopes for filtering
+- Use `AfterReadCollection` to redact sensitive data
+- Apply club membership checks, soft-delete filtering, privacy settings
 
-**Example:**
+**Example - Clubs Entity:**
 ```go
-// Register read hook for Clubs entity
-service.RegisterReadHook("Clubs", func(ctx context.Context, query *gorm.DB) (*gorm.DB, error) {
-    userID := ctx.Value("userID").(string)
+// BeforeReadCollection filters clubs by user membership
+func (c *Club) BeforeReadCollection(
+    ctx context.Context, 
+    r *http.Request, 
+    opts *query.QueryOptions,
+) ([]func(*gorm.DB) *gorm.DB, error) {
+    userID := ctx.Value(auth.UserIDKey).(string)
+    if userID == "" {
+        return nil, fmt.Errorf("unauthorized: missing user id")
+    }
     
-    // Only return clubs where user is a member
-    return query.
-        Joins("INNER JOIN members ON members.club_id = clubs.id").
-        Where("members.user_id = ?", userID).
-        Where("clubs.deleted = false OR clubs.created_by = ?", userID), nil
-})
+    // Return GORM scope that filters clubs
+    scope := func(db *gorm.DB) *gorm.DB {
+        return db.Where(
+            "(id IN (SELECT club_id FROM members WHERE user_id = ?) AND deleted = false) OR created_by = ?",
+            userID, userID,
+        )
+    }
+    
+    return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
 
-// Register read hook for Members entity
-service.RegisterReadHook("Members", func(ctx context.Context, query *gorm.DB) (*gorm.DB, error) {
-    userID := ctx.Value("userID").(string)
+// AfterReadCollection redacts sensitive data for non-admins
+func (c *Club) AfterReadCollection(
+    ctx context.Context,
+    r *http.Request,
+    opts *query.QueryOptions,
+    results interface{},
+) (interface{}, error) {
+    clubs, ok := results.([]*Club)
+    if !ok {
+        return results, nil
+    }
     
-    // Check club membership and settings
-    return query.
-        Joins("INNER JOIN members m2 ON m2.club_id = members.club_id").
-        Where("m2.user_id = ?", userID), nil
-})
+    userID, _ := ctx.Value(auth.UserIDKey).(string)
+    
+    for _, club := range clubs {
+        isAdmin, _ := IsClubAdmin(userID, club.ID)
+        if !isAdmin {
+            club.InviteCode = "***" // Hide sensitive data
+        }
+    }
+    
+    return clubs, nil
+}
 ```
 
-#### 2.3 Lifecycle Hooks for Write Authorization
+#### 2.3 Write Hooks for Authorization (go-odata v0.5.0 with Transaction Support)
 
-**Goal:** Implement write permission checks using BeforeCreate/BeforeUpdate hooks
+**Goal:** Implement write permission checks using entity write hooks
 
-**Example:**
+**Strategy:**
+- Implement `odata.EntityHook` interface methods on entity types
+- Use `BeforeCreate/Update/Delete` to validate permissions
+- Use `AfterCreate/Update/Delete` for audit logging
+- Access shared transaction via `odata.TransactionFromContext(ctx)`
+
+**Example - Events Entity:**
 ```go
-// Register before create hook for Events
-service.RegisterBeforeCreate("Events", func(ctx context.Context, entity interface{}) error {
-    userID := ctx.Value("userID").(string)
-    event := entity.(*Event)
+// BeforeCreate validates user can create event in club
+func (e *Event) BeforeCreate(ctx context.Context, r *http.Request) error {
+    userID := ctx.Value(auth.UserIDKey).(string)
+    if userID == "" {
+        return fmt.Errorf("unauthorized: missing user id")
+    }
+    
+    // Get shared transaction
+    tx, ok := odata.TransactionFromContext(ctx)
+    if !ok {
+        return fmt.Errorf("transaction unavailable")
+    }
     
     // Check if user is admin/owner of the club
-    isAdmin, err := checkAdminRights(event.ClubID, userID)
-    if err != nil {
+    var memberCount int64
+    if err := tx.Model(&Member{}).
+        Where("user_id = ? AND club_id = ? AND role IN ?",
+              userID, e.ClubID, []string{"admin", "owner"}).
+        Count(&memberCount).Error; err != nil {
         return err
     }
-    if !isAdmin {
-        return fmt.Errorf("only admins can create events")
+    
+    if memberCount == 0 {
+        return fmt.Errorf("forbidden: only admins can create events")
     }
     
-    event.CreatedBy = userID
-    event.UpdatedBy = userID
+    // Set audit fields
+    e.CreatedBy = userID
+    e.UpdatedBy = userID
+    
     return nil
-})
+}
+
+// AfterCreate logs the creation
+func (e *Event) AfterCreate(ctx context.Context, r *http.Request) error {
+    log.Printf("Event created: %s by user %s", e.ID, e.CreatedBy)
+    return nil
+}
 ```
 
 ### Phase 3: Core CRUD Operations
