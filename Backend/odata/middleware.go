@@ -65,7 +65,42 @@ func AuthMiddleware(jwtSecret []byte) func(http.Handler) http.Handler {
 
 			// Add user ID to context for use in read/write hooks
 			ctx := context.WithValue(r.Context(), auth.UserIDKey, userID)
+
+			// Phase 5: Parse includeDeleted query parameter
+			ctx = ParseIncludeDeletedFromQuery(ctx, r)
+
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// Context keys for additional OData features
+type contextKey string
+
+const (
+	// IncludeDeletedKey enables visibility of soft-deleted items (owners only)
+	IncludeDeletedKey contextKey = "includeDeleted"
+)
+
+// ParseIncludeDeletedFromQuery checks if the request has ?includeDeleted=true
+// and sets it in the context for use in authorization hooks
+//
+// Phase 5: Complex Scenarios - Soft Delete Visibility
+//
+// Usage: GET /api/v2/Clubs?includeDeleted=true
+//
+// Authorization: Only club owners can see their deleted clubs
+func ParseIncludeDeletedFromQuery(ctx context.Context, r *http.Request) context.Context {
+	// Check query parameter
+	if r.URL.Query().Get("includeDeleted") == "true" {
+		return context.WithValue(ctx, IncludeDeletedKey, true)
+	}
+
+	return ctx
+}
+
+// GetIncludeDeletedFromContext retrieves the includeDeleted flag from context
+func GetIncludeDeletedFromContext(ctx context.Context) bool {
+	includeDeleted, ok := ctx.Value(IncludeDeletedKey).(bool)
+	return ok && includeDeleted
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
@@ -60,6 +61,21 @@ func (s *Service) registerFunctions() error {
 		return fmt.Errorf("failed to register GetUpcomingEvents function for Club: %w", err)
 	}
 
+	// Bound functions for Event entity
+	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
+		Name:      "ExpandRecurrence",
+		IsBound:   true,
+		EntitySet: "Events",
+		Parameters: []odata.ParameterDefinition{
+			{Name: "startDate", Type: reflect.TypeOf(time.Time{}), Required: true},
+			{Name: "endDate", Type: reflect.TypeOf(time.Time{}), Required: true},
+		},
+		ReturnType: reflect.TypeOf([]models.Event{}),
+		Handler:    s.expandRecurrenceFunction,
+	}); err != nil {
+		return fmt.Errorf("failed to register ExpandRecurrence function for Event: %w", err)
+	}
+
 	// Unbound functions
 	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
 		Name:       "GetDashboardNews",
@@ -92,8 +108,8 @@ func (s *Service) registerFunctions() error {
 	}
 
 	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
-		Name:       "SearchGlobal",
-		IsBound:    false,
+		Name:    "SearchGlobal",
+		IsBound: false,
 		Parameters: []odata.ParameterDefinition{
 			{Name: "query", Type: reflect.TypeOf(""), Required: true},
 		},
@@ -511,4 +527,156 @@ func (s *Service) searchEvents(user models.User, query string) ([]SearchResult, 
 	}
 
 	return results, nil
+}
+
+// expandRecurrenceFunction generates recurring event instances for a given date range
+// GET /api/v2/Events('{eventId}')/ExpandRecurrence(startDate=2024-01-01T00:00:00Z,endDate=2024-12-31T23:59:59Z)
+//
+// This function takes a recurring event pattern and expands it into individual event instances
+// within the specified date range. This is useful for displaying recurring events in calendars
+// without creating all instances in the database upfront.
+//
+// Parameters:
+// - startDate: The start of the date range to generate instances for
+// - endDate: The end of the date range to generate instances for
+//
+// Returns:
+// - Array of Event objects representing the expanded instances
+//
+// Authorization: User must be a member of the club that owns the event
+func (s *Service) expandRecurrenceFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
+	event := ctx.(*models.Event)
+
+	// Extract parameters
+	startDate, ok := params["startDate"].(time.Time)
+	if !ok {
+		return nil, fmt.Errorf("startDate parameter is required")
+	}
+
+	endDate, ok := params["endDate"].(time.Time)
+	if !ok {
+		return nil, fmt.Errorf("endDate parameter is required")
+	}
+
+	// Get user ID from request context
+	userID, ok := r.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: missing user id")
+	}
+
+	// Get user from database
+	var user models.User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	// Get club and verify user has access
+	club, err := models.GetClubByID(event.ClubID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find club: %w", err)
+	}
+
+	if !club.IsMember(user) {
+		return nil, fmt.Errorf("forbidden: user is not a member of this club")
+	}
+
+	// Check if event is recurring
+	if !event.IsRecurring {
+		// If not recurring, just return the event itself if it falls within range
+		if (event.StartTime.After(startDate) || event.StartTime.Equal(startDate)) &&
+			(event.StartTime.Before(endDate) || event.StartTime.Equal(endDate)) {
+			return []models.Event{*event}, nil
+		}
+		// Event is outside the requested range
+		return []models.Event{}, nil
+	}
+
+	// Generate recurring instances
+	instances, err := generateRecurringInstances(event, startDate, endDate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate recurring instances: %w", err)
+	}
+
+	// Return the expanded instances
+	return instances, nil
+}
+
+// generateRecurringInstances generates event instances from a recurring pattern
+func generateRecurringInstances(parentEvent *models.Event, startDate, endDate time.Time) ([]models.Event, error) {
+	if parentEvent.RecurrencePattern == nil || *parentEvent.RecurrencePattern == "" {
+		return nil, fmt.Errorf("event has no recurrence pattern")
+	}
+
+	pattern := *parentEvent.RecurrencePattern
+	interval := parentEvent.RecurrenceInterval
+	if interval < 1 {
+		interval = 1
+	}
+
+	var instances []models.Event
+	currentStart := parentEvent.StartTime
+	duration := parentEvent.EndTime.Sub(parentEvent.StartTime)
+
+	// If parent event is within range, include it
+	if (currentStart.After(startDate) || currentStart.Equal(startDate)) &&
+		(currentStart.Before(endDate) || currentStart.Equal(endDate)) {
+		instances = append(instances, *parentEvent)
+	}
+
+	// Generate instances until we reach the end date or recurrence end
+	maxEnd := endDate
+	if parentEvent.RecurrenceEnd != nil && parentEvent.RecurrenceEnd.Before(endDate) {
+		maxEnd = *parentEvent.RecurrenceEnd
+	}
+
+	// Start from the next occurrence after the parent event
+	currentStart = calculateNextOccurrence(currentStart, pattern, interval)
+
+	for currentStart.Before(maxEnd) || currentStart.Equal(maxEnd) {
+		currentEnd := currentStart.Add(duration)
+
+		// Only include if within requested range
+		if (currentStart.After(startDate) || currentStart.Equal(startDate)) &&
+			(currentStart.Before(endDate) || currentStart.Equal(endDate)) {
+
+			// Create instance (not saved to DB, just for response)
+			instance := models.Event{
+				ID:            fmt.Sprintf("%s-%s", parentEvent.ID, currentStart.Format("20060102T150405")),
+				ClubID:        parentEvent.ClubID,
+				TeamID:        parentEvent.TeamID,
+				Name:          parentEvent.Name,
+				Description:   parentEvent.Description,
+				Location:      parentEvent.Location,
+				StartTime:     currentStart,
+				EndTime:       currentEnd,
+				CreatedBy:     parentEvent.CreatedBy,
+				UpdatedBy:     parentEvent.UpdatedBy,
+				CreatedAt:     parentEvent.CreatedAt,
+				UpdatedAt:     parentEvent.UpdatedAt,
+				IsRecurring:   false,
+				ParentEventID: &parentEvent.ID,
+			}
+
+			instances = append(instances, instance)
+		}
+
+		// Calculate next occurrence
+		currentStart = calculateNextOccurrence(currentStart, pattern, interval)
+	}
+
+	return instances, nil
+}
+
+// calculateNextOccurrence calculates the next occurrence based on pattern and interval
+func calculateNextOccurrence(current time.Time, pattern string, interval int) time.Time {
+	switch pattern {
+	case "daily":
+		return current.AddDate(0, 0, interval)
+	case "weekly":
+		return current.AddDate(0, 0, 7*interval)
+	case "monthly":
+		return current.AddDate(0, interval, 0)
+	default:
+		return current
+	}
 }
