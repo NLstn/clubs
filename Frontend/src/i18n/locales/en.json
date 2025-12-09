@@ -178,6 +178,27 @@
     "language": "Language",
     "selectLanguage": "Select Language"
   },
+  "preferences": {
+    "title": "Preferences",
+    "language": "Language",
+    "preferredLanguage": "Preferred Language",
+    "appearance": "Appearance",
+    "selectTheme": "Select Theme",
+    "themeDescription": "Pick a theme to customize the appearance.",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "systemSetting": "Use System Setting",
+    "lightModeDescription": "Always use light theme",
+    "darkModeDescription": "Always use dark theme",
+    "systemSettingDescription": "Automatically switch based on your device settings",
+    "currentlyActive": "Currently active:",
+    "lightTheme": "Light theme",
+    "darkTheme": "Dark theme",
+    "automaticallySet": "(automatically set by your device)",
+    "default": "(Default)",
+    "themeSaved": "Theme preference saved successfully!",
+    "systemSettingLabel": "System setting"
+  },
   "notifications": {
     "title": "Notification Settings",
     "description": "Choose how you want to be notified about activities in your clubs.",
