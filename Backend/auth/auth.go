@@ -32,6 +32,12 @@ func Init() error {
 	return nil
 }
 
+// GetJWTSecret returns the JWT secret for use in external packages
+// This is used by OData middleware for token validation
+func GetJWTSecret() []byte {
+	return jwtSecret
+}
+
 type contextKey string
 
 const UserIDKey contextKey = "userID"

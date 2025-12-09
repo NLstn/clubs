@@ -78,12 +78,20 @@ func main() {
 
 	mux.Handle("/api/v1/", handlers.Handler_v1())
 
-	// Mount OData v2 API (Phase 1: Basic service without authentication)
+	// Mount OData v2 API (Phase 2: With authentication and authorization)
 	odataService, err := odata.NewService(database.Db)
 	if err != nil {
 		log.Fatal("Could not initialize OData service:", err)
 	}
-	mux.Handle("/api/v2/", http.StripPrefix("/api/v2", odataService))
+
+	// Get JWT secret for OData authentication middleware
+	jwtSecret := []byte(auth.GetJWTSecret())
+
+	// Wrap OData service with authentication middleware
+	// This enforces JWT token validation on all /api/v2/ endpoints
+	// except for metadata and service document endpoints
+	odataWithAuth := http.StripPrefix("/api/v2", odata.AuthMiddleware(jwtSecret)(odataService))
+	mux.Handle("/api/v2/", odataWithAuth)
 
 	handler := handlers.CorsMiddleware(mux)
 	handlerWithLogging := handlers.LoggingMiddleware(handler)
