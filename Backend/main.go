@@ -87,10 +87,19 @@ func main() {
 	// Get JWT secret for OData authentication middleware
 	jwtSecret := []byte(auth.GetJWTSecret())
 
-	// Wrap OData service with authentication middleware
+	// Create a submux for /api/v2/ to handle both OData and custom routes
+	odataV2Mux := http.NewServeMux()
+
+	// Register custom handlers (e.g., file uploads) that don't fit standard OData patterns
+	odataService.RegisterCustomHandlers(odataV2Mux)
+
+	// Register the OData service as the default handler
+	odataV2Mux.Handle("/", odataService)
+
+	// Wrap OData v2 service with authentication middleware
 	// This enforces JWT token validation on all /api/v2/ endpoints
 	// except for metadata and service document endpoints
-	odataWithAuth := http.StripPrefix("/api/v2", odata.AuthMiddleware(jwtSecret)(odataService))
+	odataWithAuth := http.StripPrefix("/api/v2", odata.AuthMiddleware(jwtSecret)(odataV2Mux))
 	mux.Handle("/api/v2/", odataWithAuth)
 
 	handler := handlers.CorsMiddleware(mux)
