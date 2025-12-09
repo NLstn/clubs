@@ -75,20 +75,21 @@ const AdminClubDetails = () => {
         
         setStatsLoading(true);
         try {
+            // OData v2: Fetch Members and Invites using OData queries
             const [membersResponse, invitesResponse] = await Promise.all([
-                api.get(`/api/v1/clubs/${id}/members`),
-                api.get(`/api/v1/clubs/${id}/invites`),
+                api.get(`/api/v2/Members?$filter=ClubID eq '${id}'`),
+                api.get(`/api/v2/Invites?$filter=ClubID eq '${id}'`),
             ]);
 
-            const members = membersResponse.data;
-            const invites = invitesResponse.data;
+            const members = membersResponse.data.value || [];
+            const invites = invitesResponse.data.value || [];
 
             // Calculate members joined in the last 30 days
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-            const newMembers = members.filter((member: { joinedAt: string }) => {
-                const joinedDate = new Date(member.joinedAt);
+            const newMembers = members.filter((member: { JoinedAt: string }) => {
+                const joinedDate = new Date(member.JoinedAt);
                 return joinedDate >= thirtyDaysAgo;
             });
 
@@ -107,13 +108,15 @@ const AdminClubDetails = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // OData v2: Use IsAdmin function and fetch club data
                 const [adminResponse, clubResponse] = await Promise.all([
-                    api.get(`/api/v1/clubs/${id}/isAdmin`),
-                    api.get(`/api/v1/clubs/${id}`),
+                    api.get(`/api/v2/Clubs('${id}')/IsAdmin()`),
+                    api.get(`/api/v2/Clubs('${id}')`),
                     
                 ]);
 
-                if (!adminResponse.data.isAdmin) {
+                const adminData = adminResponse.data.value || adminResponse.data;
+                if (!adminData.isAdmin) {
                     navigate(`/clubs/${id}`);
                     return;
                 }
@@ -171,7 +174,11 @@ const AdminClubDetails = () => {
 
     const updateClub = async () => {
         try {
-            const response = await api.patch(`/api/v1/clubs/${id}`, editForm);
+            // OData v2: Update club using PATCH
+            const response = await api.patch(`/api/v2/Clubs('${id}')`, {
+                Name: editForm.name,
+                Description: editForm.description
+            });
             const updatedClub = response.data;
             setClub(updatedClub);
             
@@ -199,7 +206,8 @@ const AdminClubDetails = () => {
         if (!club) return;
 
         try {
-            await api.delete(`/api/v1/clubs/${id}`);
+            // OData v2: Soft delete club using DELETE (or custom HardDelete action if needed)
+            await api.delete(`/api/v2/Clubs('${id}')`);
             // Note: We don't remove from recent clubs for soft delete since owners can still access it
             // Navigate to clubs list after deletion
             navigate('/');
@@ -260,7 +268,8 @@ const AdminClubDetails = () => {
             const formData = new FormData();
             formData.append('logo', file);
 
-            const response = await api.post(`/api/v1/clubs/${id}/logo`, formData);
+            // OData v2: Use custom handler for logo upload (multipart/form-data)
+            const response = await api.post(`/api/v2/Clubs('${id}')/UploadLogo`, formData);
 
             // Update the club state with the new logo URL
             if (club) {
@@ -283,7 +292,8 @@ const AdminClubDetails = () => {
         setLogoError(null);
 
         try {
-            await api.delete(`/api/v1/clubs/${id}/logo`);
+            // OData v2: Use DeleteLogo action on Club entity
+            await api.post(`/api/v2/Clubs('${id}')/DeleteLogo`, {});
             
             // Update the club state to remove logo URL
             setClub({ ...club, logo_url: undefined });

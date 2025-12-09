@@ -69,24 +69,34 @@ describe('MyTeams Component', () => {
   });
 
   it('renders teams when user has teams', async () => {
-    const mockTeams = [
-      {
-        id: 'team-1',
-        name: 'Development Team',
-        description: 'Team for developers',
-        createdAt: '2024-01-01T00:00:00Z',
-        clubId: 'test-club-id'
-      },
-      {
-        id: 'team-2',
-        name: 'Marketing Team',
-        description: 'Team for marketing',
-        createdAt: '2024-01-01T00:00:00Z',
-        clubId: 'test-club-id'
-      }
-    ];
+    const mockMembers = {
+      value: [
+        {
+          Teams: [
+            {
+              Team: {
+                ID: 'team-1',
+                Name: 'Development Team',
+                Description: 'Team for developers',
+                CreatedAt: '2024-01-01T00:00:00Z',
+                ClubID: 'test-club-id'
+              }
+            },
+            {
+              Team: {
+                ID: 'team-2',
+                Name: 'Marketing Team',
+                Description: 'Team for marketing',
+                CreatedAt: '2024-01-01T00:00:00Z',
+                ClubID: 'test-club-id'
+              }
+            }
+          ]
+        }
+      ]
+    };
 
-    mockGet.mockResolvedValueOnce({ data: mockTeams });
+    mockGet.mockResolvedValueOnce({ data: mockMembers });
 
     renderWithRouter(<MyTeams />);
 
@@ -100,11 +110,11 @@ describe('MyTeams Component', () => {
     expect(screen.getByText('Marketing Team')).toBeInTheDocument();
     expect(screen.getByText('Team for marketing')).toBeInTheDocument();
 
-    expect(mockGet).toHaveBeenCalledWith('/api/v1/clubs/test-club-id/teams?user');
+    expect(mockGet).toHaveBeenCalledWith('/api/v2/Members?$filter=ClubID eq \'test-club-id\'&$expand=Teams($expand=Team)&$select=Teams');
   });
 
   it('does not render anything when user has no teams', async () => {
-    mockGet.mockResolvedValueOnce({ data: [] });
+    mockGet.mockResolvedValueOnce({ data: { value: [] } });
 
     const { container } = renderWithRouter(<MyTeams />);
 

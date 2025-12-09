@@ -48,8 +48,8 @@ describe('AdminClubFineList', () => {
     const { default: api } = await import('../../../../../utils/api')
     const mockGet = vi.mocked(api.get)
     
-    // Mock API to return empty array
-    mockGet.mockResolvedValue({ data: [] })
+    // Mock API to return empty OData response
+    mockGet.mockResolvedValue({ data: { value: [] } })
 
     renderWithRouter(<AdminClubFineList />)
 
@@ -61,7 +61,7 @@ describe('AdminClubFineList', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/clubs/test-club-id/fines')
+      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$filter=ClubID eq \'test-club-id\'&$expand=User')
     })
 
     // After loading is complete, check that table headers are rendered
@@ -91,7 +91,7 @@ describe('AdminClubFineList', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/clubs/test-club-id/fines')
+      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$filter=ClubID eq \'test-club-id\'&$expand=User')
     })
 
     // Component should still render basic UI elements
@@ -110,7 +110,7 @@ describe('AdminClubFineList', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/clubs/test-club-id/fines')
+      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$filter=ClubID eq \'test-club-id\'&$expand=User')
     })
 
     // Component should still render basic UI elements
@@ -142,26 +142,28 @@ describe('AdminClubFineList', () => {
     const { default: api } = await import('../../../../../utils/api')
     const mockGet = vi.mocked(api.get)
     
-    const mockFines = [
-      {
-        id: '1',
-        userName: 'John Doe',
-        amount: 25.50,
-        reason: 'Late arrival',
-        createdAt: '2024-01-01T10:00:00Z',
-        updatedAt: '2024-01-01T10:00:00Z',
-        paid: false
-      },
-      {
-        id: '2',
-        userName: 'Jane Smith',
-        amount: 10.00,
-        reason: 'Missed meeting',
-        createdAt: '2024-01-02T10:00:00Z',
-        updatedAt: '2024-01-02T10:00:00Z',
-        paid: true
-      }
-    ]
+    const mockFines = {
+      value: [
+        {
+          ID: '1',
+          Amount: 25.50,
+          Reason: 'Late arrival',
+          CreatedAt: '2024-01-01T10:00:00Z',
+          UpdatedAt: '2024-01-01T10:00:00Z',
+          Paid: false,
+          User: { Name: 'John Doe' }
+        },
+        {
+          ID: '2',
+          Amount: 10.00,
+          Reason: 'Missed meeting',
+          CreatedAt: '2024-01-02T10:00:00Z',
+          UpdatedAt: '2024-01-02T10:00:00Z',
+          Paid: true,
+          User: { Name: 'Jane Smith' }
+        }
+      ]
+    }
 
     mockGet.mockResolvedValue({ data: mockFines })
 
@@ -169,7 +171,7 @@ describe('AdminClubFineList', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/clubs/test-club-id/fines')
+      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$filter=ClubID eq \'test-club-id\'&$expand=User')
     })
 
     // Check that fines are rendered (by default only unpaid fines)
@@ -187,26 +189,28 @@ describe('AdminClubFineList', () => {
     const { default: api } = await import('../../../../../utils/api')
     const mockGet = vi.mocked(api.get)
     
-    const mockFines = [
-      {
-        id: '1',
-        userName: 'John Doe',
-        amount: 25.50,
-        reason: 'Late arrival',
-        createdAt: '2024-01-01T10:00:00Z',
-        updatedAt: '2024-01-01T10:00:00Z',
-        paid: false
-      },
-      {
-        id: '2',
-        userName: 'Jane Smith',
-        amount: 10.00,
-        reason: 'Missed meeting',
-        createdAt: '2024-01-02T10:00:00Z',
-        updatedAt: '2024-01-02T10:00:00Z',
-        paid: true
-      }
-    ]
+    const mockFines = {
+      value: [
+        {
+          ID: '1',
+          Amount: 25.50,
+          Reason: 'Late arrival',
+          CreatedAt: '2024-01-01T10:00:00Z',
+          UpdatedAt: '2024-01-01T10:00:00Z',
+          Paid: false,
+          User: { Name: 'John Doe' }
+        },
+        {
+          ID: '2',
+          Amount: 10.00,
+          Reason: 'Missed meeting',
+          CreatedAt: '2024-01-02T10:00:00Z',
+          UpdatedAt: '2024-01-02T10:00:00Z',
+          Paid: true,
+          User: { Name: 'Jane Smith' }
+        }
+      ]
+    }
 
     mockGet.mockResolvedValue({ data: mockFines })
 
@@ -214,7 +218,7 @@ describe('AdminClubFineList', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/clubs/test-club-id/fines')
+      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$filter=ClubID eq \'test-club-id\'&$expand=User')
     })
 
     // Initially only unpaid fine should be visible

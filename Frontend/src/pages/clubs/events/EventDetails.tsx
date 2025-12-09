@@ -44,11 +44,33 @@ const EventDetails: FC = () => {
         setError(null);
         
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/events/${eventId}`, {
+            // OData v2: Get Event entity with expanded user RSVP
+            const response = await api.get(`/api/v2/Events('${eventId}')?$expand=UserRSVP`, {
                 signal: abortSignal
             });
             if (!abortSignal?.aborted) {
-                setEventData(response.data);
+                // Map OData response to expected format
+                const event = response.data;
+                setEventData({
+                    id: event.ID,
+                    name: event.Name,
+                    description: event.Description,
+                    location: event.Location,
+                    start_time: event.StartTime,
+                    end_time: event.EndTime,
+                    created_at: event.CreatedAt,
+                    created_by: event.CreatedBy,
+                    updated_at: event.UpdatedAt,
+                    updated_by: event.UpdatedBy,
+                    user_rsvp: event.UserRSVP ? {
+                        id: event.UserRSVP.ID,
+                        event_id: event.UserRSVP.EventID,
+                        user_id: event.UserRSVP.UserID,
+                        response: event.UserRSVP.Response,
+                        created_at: event.UserRSVP.CreatedAt,
+                        updated_at: event.UserRSVP.UpdatedAt
+                    } : undefined
+                });
             }
         } catch (error: unknown) {
             if (!abortSignal?.aborted) {
@@ -88,7 +110,8 @@ const EventDetails: FC = () => {
         setRsvpLoading(true);
         
         try {
-            await api.post(`/api/v1/clubs/${clubId}/events/${eventId}/rsvp`, { response });
+            // OData v2: Use AddRSVP action on Event entity
+            await api.post(`/api/v2/Events('${eventId}')/AddRSVP`, { response });
             // Refresh event details to update RSVP status
             await fetchEventDetails();
         } catch (error) {

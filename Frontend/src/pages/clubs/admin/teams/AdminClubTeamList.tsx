@@ -47,7 +47,8 @@ const AdminClubTeamList = () => {
 
     const fetchTeams = useCallback(async () => {
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/teams`);
+            // OData v2: Query Teams for this club
+            const response = await api.get(`/api/v2/Teams?$filter=ClubID eq '${clubId}'`);
             setTeams(response.data);
         } catch {
             setError('Failed to fetch teams');
@@ -56,7 +57,8 @@ const AdminClubTeamList = () => {
 
     const fetchClubMembers = useCallback(async () => {
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/members`);
+            // OData v2: Query Members for this club
+            const response = await api.get(`/api/v2/Members?$filter=ClubID eq '${clubId}'&$expand=User`);
             setClubMembers(response.data);
         } catch {
             setError('Failed to fetch club members');
@@ -65,14 +67,15 @@ const AdminClubTeamList = () => {
 
     const fetchTeamMembers = useCallback(async (teamId: string) => {
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/members`);
+            // OData v2: Use GetMembers function on Team entity
+            const response = await api.get(`/api/v2/Teams('${teamId}')/GetMembers()`);
             // Ensure we always set an array, even if API returns null (prevents .map() crashes)
             setTeamMembers(response.data || []);
         } catch {
             setError('Failed to fetch team members');
             setTeamMembers([]); // Reset to empty array on error to prevent crashes
         }
-    }, [clubId]);
+    }, []);
 
     useEffect(() => {
         const loadData = async () => {
@@ -95,9 +98,11 @@ const AdminClubTeamList = () => {
         if (!newTeamName.trim()) return;
 
         try {
-            await api.post(`/api/v1/clubs/${clubId}/teams`, {
-                name: newTeamName,
-                description: newTeamDescription
+            // OData v2: Create new team
+            await api.post(`/api/v2/Teams`, {
+                ClubID: clubId,
+                Name: newTeamName,
+                Description: newTeamDescription,
             });
             setNewTeamName('');
             setNewTeamDescription('');
@@ -112,9 +117,10 @@ const AdminClubTeamList = () => {
         if (!selectedTeam || !editTeamName.trim()) return;
 
         try {
-            await api.put(`/api/v1/clubs/${clubId}/teams/${selectedTeam.id}`, {
-                name: editTeamName,
-                description: editTeamDescription
+            // OData v2: Update team using PATCH
+            await api.patch(`/api/v2/Teams('${selectedTeam.id}')`, {
+                Name: editTeamName,
+                Description: editTeamDescription,
             });
             setShowEditModal(false);
             await fetchTeams();
@@ -129,7 +135,8 @@ const AdminClubTeamList = () => {
         if (!confirm(t('teams.deleteConfirmation'))) return;
 
         try {
-            await api.delete(`/api/v1/clubs/${clubId}/teams/${teamId}`);
+            // OData v2: Delete team
+            await api.delete(`/api/v2/Teams('${teamId}')`);
             await fetchTeams();
             if (selectedTeam?.id === teamId) {
                 setSelectedTeam(null);
@@ -144,9 +151,11 @@ const AdminClubTeamList = () => {
         if (!selectedTeam) return;
 
         try {
-            await api.post(`/api/v1/clubs/${clubId}/teams/${selectedTeam.id}/members`, {
-                userId,
-                role
+            // OData v2: Create TeamMember entity directly
+            await api.post(`/api/v2/TeamMembers`, {
+                TeamID: selectedTeam.id,
+                UserID: userId,
+                Role: role
             });
             setShowAddMemberModal(false);
             await fetchTeamMembers(selectedTeam.id);
@@ -159,9 +168,14 @@ const AdminClubTeamList = () => {
         if (!selectedTeam) return;
 
         try {
-            await api.patch(`/api/v1/clubs/${clubId}/teams/${selectedTeam.id}/members/${memberId}`, {
-                role: newRole
-            });
+            // OData v2: Find TeamMember and update role
+            const tmResponse = await api.get(`/api/v2/TeamMembers?$filter=TeamID eq '${selectedTeam.id}' and MemberID eq '${memberId}'`);
+            const teamMember = tmResponse.data.value[0];
+            if (teamMember) {
+                await api.patch(`/api/v2/TeamMembers('${teamMember.ID}')`, {
+                    Role: newRole
+                });
+            }
             await fetchTeamMembers(selectedTeam.id);
         } catch {
             setError('Failed to update member role');
@@ -172,7 +186,12 @@ const AdminClubTeamList = () => {
         if (!selectedTeam || !confirm(t('teams.removeMemberConfirmation'))) return;
 
         try {
-            await api.delete(`/api/v1/clubs/${clubId}/teams/${selectedTeam.id}/members/${memberId}`);
+            // OData v2: Find TeamMember and delete
+            const tmResponse = await api.get(`/api/v2/TeamMembers?$filter=TeamID eq '${selectedTeam.id}' and MemberID eq '${memberId}'`);
+            const teamMember = tmResponse.data.value[0];
+            if (teamMember) {
+                await api.delete(`/api/v2/TeamMembers('${teamMember.ID}')`);
+            }
             await fetchTeamMembers(selectedTeam.id);
         } catch {
             setError('Failed to remove team member');

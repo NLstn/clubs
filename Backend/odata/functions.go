@@ -254,8 +254,8 @@ type TeamOverviewResponse struct {
 }
 
 type EventRSVPResponse struct {
-	Counts map[string]int          `json:"counts"`
-	RSVPs  []models.EventRSVP      `json:"rsvps"`
+	Counts map[string]int     `json:"counts"`
+	RSVPs  []models.EventRSVP `json:"rsvps"`
 }
 
 // isAdminFunction checks if the current user is an admin of the club

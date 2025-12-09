@@ -27,6 +27,7 @@ const ProfileSessions = () => {
       if (refreshToken) {
         headers['X-Refresh-Token'] = refreshToken;
       }
+      // Note: Sessions API may need to remain on v1 if not yet migrated to OData
       const response = await api.get('/api/v1/me/sessions', { headers });
       if (response.status === 200) {
         setSessions(response.data || []);

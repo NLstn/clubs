@@ -23,7 +23,8 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
             setLoading(true);
             setError(null);
             try {
-                const response = await api.get(`/api/v1/clubs/${id}/joinRequests`);
+                // OData v2: Query JoinRequests for this club with expanded User data
+                const response = await api.get(`/api/v2/JoinRequests?$filter=ClubID eq '${id}'&$expand=User`);
                 setJoinRequests(response.data);
             } catch (error) {
                 console.error("Error fetching join requests:", error);
@@ -69,7 +70,8 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
 
     const handleApprove = async (requestId: string) => {
         try {
-            await api.post(`/api/v1/joinRequests/${requestId}/accept`);
+            // OData v2: Use Accept action on JoinRequest entity
+            await api.post(`/api/v2/JoinRequests('${requestId}')/Accept`, {});
             setJoinRequests(joinRequests.filter(request => request.id !== requestId));
             onRequestsChange?.(); // Notify parent component about the change
         } catch (error) {
@@ -79,7 +81,8 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
 
     const handleReject = async (requestId: string) => {
         try {
-            await api.post(`/api/v1/joinRequests/${requestId}/reject`);
+            // OData v2: Use Reject action on JoinRequest entity
+            await api.post(`/api/v2/JoinRequests('${requestId}')/Reject`, {});
             setJoinRequests(joinRequests.filter(request => request.id !== requestId));
             onRequestsChange?.(); // Notify parent component about the change
         } catch (error) {

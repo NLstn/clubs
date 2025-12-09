@@ -30,7 +30,8 @@ const AdminClubShiftList = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get(`/api/v1/clubs/${id}/shifts`);
+            // OData v2: Query Shifts for this club with expanded Event data
+            const response = await api.get(`/api/v2/Shifts?$filter=Event/ClubID eq '${id}'&$expand=Event`);
             const shiftsData = response.data || [];
             setShifts(shiftsData);
             
@@ -38,7 +39,8 @@ const AdminClubShiftList = () => {
             const eventIds = [...new Set(shiftsData.map((shift: Shift) => shift.eventId))];
             if (eventIds.length > 0) {
                 try {
-                    const eventsResponse = await api.get(`/api/v1/clubs/${id}/events`);
+                    // OData v2: Query Events for this club
+                    const eventsResponse = await api.get(`/api/v2/Events?$filter=ClubID eq '${id}'`);
                     const eventsData = eventsResponse.data || [];
                     const eventMap: {[key: string]: string} = {};
                     eventsData.forEach((event: Event) => {

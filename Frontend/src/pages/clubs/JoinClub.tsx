@@ -78,10 +78,9 @@ const JoinClub: React.FC = () => {
     setMessage('');
 
     try {
-      // Note: Join club creates a JoinRequest, which is handled via v1 for now
-      // TODO: Implement as OData action or direct JoinRequest entity creation
-      const response = await api.post(`/api/v1/clubs/${clubId}/join`);
-      if (response.status === 201) {
+      // OData v2: Use Join action on Club entity
+      const response = await api.post(`/api/v2/Clubs('${clubId}')/Join`);
+      if (response.status === 201 || response.status === 200) {
         setMessage('Join request sent successfully! An admin will review your request.');
         // Redirect to profile invites page after a delay
         setTimeout(() => {

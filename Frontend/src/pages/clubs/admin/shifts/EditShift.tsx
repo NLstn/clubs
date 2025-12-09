@@ -39,7 +39,8 @@ const EditShift: FC<EditShiftProps> = ({ isOpen, onClose, shift, clubId }) => {
 
         try {
             setLoading(true);
-            const response = await api.get(`/api/v1/clubs/${clubId}/shifts/${shift.id}/members`);
+            // OData v2: Query ShiftMembers for this shift with expanded Member and User
+            const response = await api.get(`/api/v2/ShiftMembers?$filter=ShiftID eq '${shift.id}'&$expand=Member($expand=User)`);
             setShiftMembers(response.data);
         } catch {
             setError('Failed to fetch shift members');
@@ -52,7 +53,8 @@ const EditShift: FC<EditShiftProps> = ({ isOpen, onClose, shift, clubId }) => {
         if (!clubId) return;
 
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/members`);
+            // OData v2: Query Members for this club with expanded User
+            const response = await api.get(`/api/v2/Members?$filter=ClubID eq '${clubId}'&$expand=User`);
             setAvailableMembers(response.data);
         } catch {
             setError('Failed to fetch club members');
@@ -70,8 +72,9 @@ const EditShift: FC<EditShiftProps> = ({ isOpen, onClose, shift, clubId }) => {
         if (!selectedMemberId || !shift || !clubId) return;
 
         try {
-            await api.post(`/api/v1/clubs/${clubId}/shifts/${shift.id}/members`, {
-                userId: selectedMemberId
+            // OData v2: Use AddMember action on Shift entity
+            await api.post(`/api/v2/Shifts('${shift.id}')/AddMember`, {
+                memberId: selectedMemberId
             });
 
             // Refresh shift members
@@ -87,7 +90,10 @@ const EditShift: FC<EditShiftProps> = ({ isOpen, onClose, shift, clubId }) => {
         if (!shift || !clubId) return;
 
         try {
-            await api.delete(`/api/v1/clubs/${clubId}/shifts/${shift.id}/members/${memberId}`);
+            // OData v2: Use RemoveMember action on Shift entity
+            await api.post(`/api/v2/Shifts('${shift.id}')/RemoveMember`, {
+                memberId
+            });
 
             // Refresh shift members
             await fetchShiftMembers();

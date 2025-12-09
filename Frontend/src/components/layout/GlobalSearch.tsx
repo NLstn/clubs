@@ -66,7 +66,26 @@ const GlobalSearch: React.FC = () => {
       const data = response.data;
       // Map OData response to match expected format
       interface ODataClub { id?: string; ID?: string; name?: string; Name?: string; description?: string; Description?: string; }
-      interface ODataEvent { id?: string; ID?: string; name?: string; Name?: string; description?: string; Description?: string; clubId?: string; ClubID?: string; clubName?: string; ClubName?: string; startTime?: string; StartTime?: string; endTime?: string; EndTime?: string; }
+      interface ODataEvent { 
+        id?: string; 
+        ID?: string; 
+        name?: string; 
+        Name?: string; 
+        description?: string; 
+        Description?: string; 
+        clubId?: string; 
+        ClubID?: string; 
+        club_id?: string;
+        clubName?: string; 
+        ClubName?: string; 
+        club_name?: string;
+        startTime?: string; 
+        StartTime?: string; 
+        start_time?: string;
+        endTime?: string; 
+        EndTime?: string;
+        end_time?: string;
+      }
       const mappedClubs = (data.clubs || []).map((c: ODataClub) => ({
         type: 'club' as const,
         id: c.id || c.ID || '',
@@ -78,10 +97,10 @@ const GlobalSearch: React.FC = () => {
         id: e.id || e.ID,
         name: e.name || e.Name,
         description: e.description || e.Description,
-        club_id: e.clubId || e.ClubID,
-        club_name: e.clubName || e.ClubName,
-        start_time: e.startTime || e.StartTime,
-        end_time: e.endTime || e.EndTime
+        club_id: e.clubId || e.ClubID || e.club_id,
+        club_name: e.clubName || e.ClubName || e.club_name,
+        start_time: e.startTime || e.StartTime || e.start_time,
+        end_time: e.endTime || e.EndTime || e.end_time
       }));
       setResults({ clubs: mappedClubs, events: mappedEvents });
       setIsOpen(true);

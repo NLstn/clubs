@@ -95,14 +95,14 @@ export const setupDefaultApiMocks = () => {
   mockApi.reset();
   mockAxios.reset();
 
-  // Notifications endpoints
-  mockApi.onGet('/api/v1/notifications').reply(200, mockNotifications);
-  mockApi.onGet('/api/v1/notifications/count').reply(200, { count: 1 });
-  mockApi.onPut(/\/api\/v1\/notifications\/[\w-]+/).reply(200);
-  mockApi.onDelete(/\/api\/v1\/notifications\/[\w-]+/).reply(200);
-  mockApi.onPost('/api/v1/notifications/mark-all-read').reply(200);
+  // Notifications endpoints (v2 OData)
+  mockApi.onGet(/\/api\/v2\/Notifications/).reply(200, { value: mockNotifications });
+  mockApi.onGet(/\/api\/v2\/Notifications\/\$count/).reply(200, 1);
+  mockApi.onPost(/\/api\/v2\/Notifications\('[\w-]+'\)\/MarkAsRead/).reply(200);
+  mockApi.onDelete(/\/api\/v2\/Notifications\('[\w-]+'\)/).reply(200);
+  mockApi.onPost('/api/v2/MarkAllNotificationsRead').reply(200);
 
-  // Auth endpoints
+  // Auth endpoints (keep on v1 - these are authentication concerns, not data operations)
   mockApi.onPost('/api/v1/auth/refreshToken').reply(200, {
     access: 'mock-access-token',
     refresh: 'mock-refresh-token'
@@ -113,41 +113,48 @@ export const setupDefaultApiMocks = () => {
   });
   mockApi.onPost('/api/v1/auth/logout').reply(200);
 
-  // User endpoints  
-  mockApi.onGet('/api/v1/users/me').reply(200, mockUsers[0]);
-  mockApi.onPut('/api/v1/users/me').reply(200, mockUsers[0]);
+  // User endpoints (v2 OData)
+  mockApi.onGet(/\/api\/v2\/Users/).reply(200, { value: mockUsers });
+  mockApi.onPatch(/\/api\/v2\/Users\('[\w-]+'\)/).reply(200, mockUsers[0]);
 
-  // Club endpoints
-  mockApi.onGet('/api/v1/clubs').reply(200, mockClubs);
-  mockApi.onGet(/\/api\/v1\/clubs\/[\w-]+/).reply(200, mockClubs[0]);
-  mockApi.onPost('/api/v1/clubs').reply(201, mockClubs[0]);
-  mockApi.onPut(/\/api\/v1\/clubs\/[\w-]+/).reply(200, mockClubs[0]);
-  mockApi.onDelete(/\/api\/v1\/clubs\/[\w-]+/).reply(200);
+  // Club endpoints (v2 OData)
+  mockApi.onGet(/\/api\/v2\/Clubs$/).reply(200, { value: mockClubs });
+  mockApi.onGet(/\/api\/v2\/Clubs\('[\w-]+'\)/).reply(200, mockClubs[0]);
+  mockApi.onPost('/api/v2/Clubs').reply(201, mockClubs[0]);
+  mockApi.onPatch(/\/api\/v2\/Clubs\('[\w-]+'\)/).reply(200, mockClubs[0]);
+  mockApi.onDelete(/\/api\/v2\/Clubs\('[\w-]+'\)/).reply(200);
 
-  // Dashboard endpoints
-  mockApi.onGet('/api/v1/dashboard/activity').reply(200, mockActivities);
+  // Dashboard endpoints (v2 OData functions)
+  mockApi.onGet(/\/api\/v2\/GetDashboardActivities/).reply(200, mockActivities);
 
-  // Club-specific endpoints
-  mockApi.onGet(/\/api\/v1\/clubs\/[\w-]+\/members/).reply(200, mockUsers);
-  mockApi.onGet(/\/api\/v1\/clubs\/[\w-]+\/fines/).reply(200, mockFines);
-  mockApi.onGet(/\/api\/v1\/clubs\/[\w-]+\/teams/).reply(200, mockTeams);
-  mockApi.onPost(/\/api\/v1\/clubs\/[\w-]+\/teams/).reply(201, mockTeams[0]);
-  mockApi.onPut(/\/api\/v1\/clubs\/[\w-]+\/teams\/[\w-]+/).reply(200, mockTeams[0]);
-  mockApi.onDelete(/\/api\/v1\/clubs\/[\w-]+\/teams\/[\w-]+/).reply(200);
+  // Members endpoints (v2 OData)
+  mockApi.onGet(/\/api\/v2\/Members/).reply(200, { value: mockUsers });
 
-  // Fine endpoints
-  mockApi.onPost(/\/api\/v1\/clubs\/[\w-]+\/fines/).reply(201, mockFines[0]);
-  mockApi.onPut(/\/api\/v1\/clubs\/[\w-]+\/fines\/[\w-]+/).reply(200, mockFines[0]);
-  mockApi.onDelete(/\/api\/v1\/clubs\/[\w-]+\/fines\/[\w-]+/).reply(200);
+  // Fines endpoints (v2 OData with filters)
+  mockApi.onGet(/\/api\/v2\/Fines/).reply(200, { value: mockFines });
+  mockApi.onPost('/api/v2/Fines').reply(201, mockFines[0]);
+  mockApi.onPatch(/\/api\/v2\/Fines\('[\w-]+'\)/).reply(200, mockFines[0]);
+  mockApi.onDelete(/\/api\/v2\/Fines\('[\w-]+'\)/).reply(200);
 
-  // Events endpoints
-  mockApi.onGet(/\/api\/v1\/clubs\/[\w-]+\/events/).reply(200, []);
+  // Teams endpoints (v2 OData)
+  mockApi.onGet(/\/api\/v2\/Teams/).reply(200, { value: mockTeams });
+  mockApi.onPost('/api/v2/Teams').reply(201, mockTeams[0]);
+  mockApi.onPatch(/\/api\/v2\/Teams\('[\w-]+'\)/).reply(200, mockTeams[0]);
+  mockApi.onDelete(/\/api\/v2\/Teams\('[\w-]+'\)/).reply(200);
+
+  // Events endpoints (v2 OData)
+  mockApi.onGet(/\/api\/v2\/Events/).reply(200, { value: [] });
+  mockApi.onPost('/api/v2/Events').reply(201, {});
+  mockApi.onDelete(/\/api\/v2\/Events\('[\w-]+'\)/).reply(200);
   
-  // Join requests endpoints
-  mockApi.onGet(/\/api\/v1\/clubs\/[\w-]+\/join-requests/).reply(200, []);
+  // Join requests endpoints (v2 OData)
+  mockApi.onGet(/\/api\/v2\/JoinRequests/).reply(200, { value: [] });
   
-  // Invites endpoints
-  mockApi.onGet(/\/api\/v1\/clubs\/[\w-]+\/invites/).reply(200, []);
+  // Invites endpoints (v2 OData)
+  mockApi.onGet(/\/api\/v2\/Invites/).reply(200, { value: [] });
+
+  // Search endpoint (v2 OData function)
+  mockApi.onGet(/\/api\/v2\/SearchGlobal/).reply(200, { clubs: [], events: [] });
 
   // Default fallback for any unmatched requests
   mockApi.onAny().reply(404, { message: 'API endpoint not mocked' });

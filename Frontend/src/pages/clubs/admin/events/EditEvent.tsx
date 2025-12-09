@@ -63,7 +63,8 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
         if (!event || !clubId || !clubSettings?.shiftsEnabled) return;
         
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/events/${event.id}/shifts`);
+            // OData v2: Query Shifts for this event
+            const response = await api.get(`/api/v2/Shifts?$filter=EventID eq '${event.id}'`);
             setShifts(response.data || []);
         } catch (error) {
             console.error("Error fetching event shifts:", error);
@@ -144,7 +145,9 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
         setError(null);
         
         try {
-            await api.post(`/api/v1/clubs/${clubId}/events/${event.id}/shifts`, {
+            // OData v2: Create Shift entity
+            await api.post(`/api/v2/Shifts`, {
+                EventID: event.id,
                 startTime: shiftStart.toISOString(),
                 endTime: shiftEnd.toISOString()
             });
@@ -182,7 +185,8 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
         setIsSubmitting(true);
         
         try {
-            await api.put(`/api/v1/clubs/${clubId}/events/${event.id}`, { 
+            // OData v2: Update event using PATCH
+            await api.patch(`/api/v2/Events('${event.id}')`, { 
                 name,
                 description,
                 location,

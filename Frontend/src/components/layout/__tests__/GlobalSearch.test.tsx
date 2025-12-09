@@ -100,7 +100,7 @@ describe('GlobalSearch', () => {
 
     // Wait for search to complete
     await waitFor(() => {
-      expect(mockApi.get).toHaveBeenCalledWith('/api/v1/search?q=test');
+      expect(mockApi.get).toHaveBeenCalledWith("/api/v2/SearchGlobal(query='test')");
     });
 
     // Check if results are displayed
@@ -259,7 +259,7 @@ describe('GlobalSearch', () => {
     // Wait for debounce
     await waitFor(() => {
       expect(mockApi.get).toHaveBeenCalledTimes(1);
-      expect(mockApi.get).toHaveBeenCalledWith('/api/v1/search?q=test');
+      expect(mockApi.get).toHaveBeenCalledWith("/api/v2/SearchGlobal(query='test')");
     }, { timeout: 1000 });
   });
 

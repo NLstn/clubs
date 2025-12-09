@@ -47,8 +47,8 @@ describe('ProfileFines', () => {
     const { default: api } = await import('../../../utils/api')
     const mockGet = vi.mocked(api.get)
     
-    // Mock API to return empty array
-    mockGet.mockResolvedValue({ status: 200, data: [] })
+    // Mock API to return empty OData response
+    mockGet.mockResolvedValue({ status: 200, data: { value: [] } })
 
     renderWithRouter(<ProfileFines />)
 
@@ -57,7 +57,7 @@ describe('ProfileFines', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/me/fines')
+      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$expand=Club&$filter=Paid eq false or Paid eq true')
     })
 
     // Verify empty message is shown
@@ -71,35 +71,37 @@ describe('ProfileFines', () => {
     const { default: api } = await import('../../../utils/api')
     const mockGet = vi.mocked(api.get)
     
-    const mockFines = [
-      {
-        id: '1',
-        clubName: 'Test Club A',
-        amount: 25.50,
-        reason: 'Late arrival',
-        createdAt: '2024-01-01T10:00:00Z',
-        updatedAt: '2024-01-01T10:00:00Z',
-        paid: false
-      },
-      {
-        id: '2',
-        clubName: 'Test Club B',
-        amount: 10.00,
-        reason: 'Missed meeting',
-        createdAt: '2024-01-02T10:00:00Z',
-        updatedAt: '2024-01-02T10:00:00Z',
-        paid: true
-      },
-      {
-        id: '3',
-        clubName: 'Test Club C',
-        amount: 15.75,
-        reason: 'Equipment damage',
-        createdAt: '2024-01-03T10:00:00Z',
-        updatedAt: '2024-01-03T10:00:00Z',
-        paid: false
-      }
-    ]
+    const mockFines = {
+      value: [
+        {
+          ID: '1',
+          Amount: 25.50,
+          Reason: 'Late arrival',
+          CreatedAt: '2024-01-01T10:00:00Z',
+          UpdatedAt: '2024-01-01T10:00:00Z',
+          Paid: false,
+          Club: { Name: 'Test Club A' }
+        },
+        {
+          ID: '2',
+          Amount: 10.00,
+          Reason: 'Missed meeting',
+          CreatedAt: '2024-01-02T10:00:00Z',
+          UpdatedAt: '2024-01-02T10:00:00Z',
+          Paid: true,
+          Club: { Name: 'Test Club B' }
+        },
+        {
+          ID: '3',
+          Amount: 15.75,
+          Reason: 'Equipment damage',
+          CreatedAt: '2024-01-03T10:00:00Z',
+          UpdatedAt: '2024-01-03T10:00:00Z',
+          Paid: false,
+          Club: { Name: 'Test Club C' }
+        }
+      ]
+    }
 
     mockGet.mockResolvedValue({ status: 200, data: mockFines })
 
@@ -107,7 +109,7 @@ describe('ProfileFines', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/me/fines')
+      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$expand=Club&$filter=Paid eq false or Paid eq true')
     })
 
     // Check that fines are rendered
@@ -131,26 +133,28 @@ describe('ProfileFines', () => {
     const { default: api } = await import('../../../utils/api')
     const mockGet = vi.mocked(api.get)
     
-    const mockFines = [
-      {
-        id: '1',
-        clubName: 'Test Club',
-        amount: 12.33,
-        reason: 'Test reason',
-        createdAt: '2024-01-01T10:00:00Z',
-        updatedAt: '2024-01-01T10:00:00Z',
-        paid: false
-      },
-      {
-        id: '2',
-        clubName: 'Test Club',
-        amount: 7.67,
-        reason: 'Test reason',
-        createdAt: '2024-01-02T10:00:00Z',
-        updatedAt: '2024-01-02T10:00:00Z',
-        paid: true
-      }
-    ]
+    const mockFines = {
+      value: [
+        {
+          ID: '1',
+          Amount: 12.33,
+          Reason: 'Test reason',
+          CreatedAt: '2024-01-01T10:00:00Z',
+          UpdatedAt: '2024-01-01T10:00:00Z',
+          Paid: false,
+          Club: { Name: 'Test Club' }
+        },
+        {
+          ID: '2',
+          Amount: 7.67,
+          Reason: 'Test reason',
+          CreatedAt: '2024-01-02T10:00:00Z',
+          UpdatedAt: '2024-01-02T10:00:00Z',
+          Paid: true,
+          Club: { Name: 'Test Club' }
+        }
+      ]
+    }
 
     mockGet.mockResolvedValue({ status: 200, data: mockFines })
 
@@ -158,7 +162,7 @@ describe('ProfileFines', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/me/fines')
+      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$expand=Club&$filter=Paid eq false or Paid eq true')
     })
 
     // Check that total amount is calculated correctly
@@ -191,17 +195,19 @@ describe('ProfileFines', () => {
     const { default: api } = await import('../../../utils/api')
     const mockGet = vi.mocked(api.get)
     
-    const mockFines = [
-      {
-        id: '1',
-        clubName: 'Test Club',
-        amount: 42.99,
-        reason: 'Single fine',
-        createdAt: '2024-01-01T10:00:00Z',
-        updatedAt: '2024-01-01T10:00:00Z',
-        paid: false
-      }
-    ]
+    const mockFines = {
+      value: [
+        {
+          ID: '1',
+          Amount: 42.99,
+          Reason: 'Single fine',
+          CreatedAt: '2024-01-01T10:00:00Z',
+          UpdatedAt: '2024-01-01T10:00:00Z',
+          Paid: false,
+          Club: { Name: 'Test Club' }
+        }
+      ]
+    }
 
     mockGet.mockResolvedValue({ status: 200, data: mockFines })
 
@@ -209,7 +215,7 @@ describe('ProfileFines', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/me/fines')
+      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$expand=Club&$filter=Paid eq false or Paid eq true')
     })
 
     // Check that fine is rendered
