@@ -11,6 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// Helper function to convert string to *string
+func strPtr(s string) *string {
+	return &s
+}
+
 func TestSearchEventsForUser(t *testing.T) {
 	handlers.SetupTestDB(t)
 	defer handlers.TeardownTestDB(t)
@@ -21,12 +26,13 @@ func TestSearchEventsForUser(t *testing.T) {
 	club2ID := uuid.New().String()
 
 	// Create test user
+	keycloakID := userID + "-keycloak"
 	user := models.User{
 		ID:         userID,
 		FirstName:  "Test",
 		LastName:   "User",
 		Email:      "test@example.com",
-		KeycloakID: userID + "-keycloak", // Make it unique
+		KeycloakID: &keycloakID,
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
 	}
@@ -37,7 +43,7 @@ func TestSearchEventsForUser(t *testing.T) {
 	club1 := models.Club{
 		ID:          club1ID,
 		Name:        "Test Club 1",
-		Description: "First test club",
+		Description: strPtr("First test club"),
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 		CreatedBy:   userID,
@@ -46,7 +52,7 @@ func TestSearchEventsForUser(t *testing.T) {
 	club2 := models.Club{
 		ID:          club2ID,
 		Name:        "Test Club 2",
-		Description: "Second test club",
+		Description: strPtr("Second test club"),
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 		CreatedBy:   userID,
@@ -76,8 +82,8 @@ func TestSearchEventsForUser(t *testing.T) {
 		ID:          uuid.New().String(),
 		ClubID:      club1ID,
 		Name:        "Search Test Event",
-		Description: "",
-		Location:    "",
+		Description: strPtr(""),
+		Location:    strPtr(""),
 		StartTime:   time.Now().Add(24 * time.Hour),
 		EndTime:     time.Now().Add(26 * time.Hour),
 		CreatedAt:   time.Now(),
@@ -89,8 +95,8 @@ func TestSearchEventsForUser(t *testing.T) {
 		ID:          uuid.New().String(),
 		ClubID:      club1ID,
 		Name:        "Another Event",
-		Description: "",
-		Location:    "",
+		Description: strPtr(""),
+		Location:    strPtr(""),
 		StartTime:   time.Now().Add(48 * time.Hour),
 		EndTime:     time.Now().Add(50 * time.Hour),
 		CreatedAt:   time.Now(),
@@ -102,8 +108,8 @@ func TestSearchEventsForUser(t *testing.T) {
 		ID:          uuid.New().String(),
 		ClubID:      club2ID,
 		Name:        "Search Private Event",
-		Description: "",
-		Location:    "",
+		Description: strPtr(""),
+		Location:    strPtr(""),
 		StartTime:   time.Now().Add(72 * time.Hour),
 		EndTime:     time.Now().Add(74 * time.Hour),
 		CreatedAt:   time.Now(),
@@ -155,12 +161,13 @@ func TestSearchEventsForUser(t *testing.T) {
 	t.Run("SearchEventsUserNotMemberOfAnyClub", func(t *testing.T) {
 		// Create a new user who is not a member of any club
 		newUserID := uuid.New().String()
+		newKeycloakID := newUserID + "-keycloak"
 		newUser := models.User{
 			ID:         newUserID,
 			FirstName:  "New",
 			LastName:   "User",
 			Email:      "new@example.com",
-			KeycloakID: newUserID + "-keycloak", // Make it unique
+			KeycloakID: &newKeycloakID,
 			CreatedAt:  time.Now(),
 			UpdatedAt:  time.Now(),
 		}
