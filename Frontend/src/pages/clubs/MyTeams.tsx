@@ -27,8 +27,34 @@ const MyTeams = () => {
             }
 
             try {
-                const response = await api.get(`/api/v1/clubs/${clubId}/teams?user`);
-                setTeams(response.data || []);
+                // OData v2: Query Teams through Members relationship
+                // Get current user's team memberships for this club
+                const response = await api.get(
+                    `/api/v2/Members?$filter=ClubID eq '${clubId}'&$expand=Teams($expand=Team)&$select=Teams`
+                );
+                const members = response.data.value || [];
+                // Extract unique teams from the member's team relationships
+                interface ODataTeam { ID: string; Name: string; Description: string; CreatedAt: string; ClubID: string; }
+                interface ODataTeamMember { Team: ODataTeam; }
+                interface ODataMember { Teams?: ODataTeamMember[]; }
+                const teamsSet = new Set<string>();
+                const teamsMap = new Map<string, Team>();
+                members.forEach((member: ODataMember) => {
+                    member.Teams?.forEach((teamMember: ODataTeamMember) => {
+                        const team = teamMember.Team;
+                        if (team && !teamsSet.has(team.ID)) {
+                            teamsSet.add(team.ID);
+                            teamsMap.set(team.ID, {
+                                id: team.ID,
+                                name: team.Name,
+                                description: team.Description,
+                                createdAt: team.CreatedAt,
+                                clubId: team.ClubID
+                            });
+                        }
+                    });
+                });
+                setTeams(Array.from(teamsMap.values()));
                 setError(null);
             } catch (err) {
                 console.error('Error fetching user teams:', err);

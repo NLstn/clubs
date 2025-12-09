@@ -42,20 +42,29 @@ const ClubDetails = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // OData v2: Fetch club and check admin status
                 const [clubResponse, adminResponse] = await Promise.all([
-                    api.get(`/api/v1/clubs/${id}`),
-                    api.get(`/api/v1/clubs/${id}/isAdmin`)
+                    api.get(`/api/v2/Clubs('${id}')`),
+                    api.get(`/api/v2/Clubs('${id}')/IsAdmin()`)
                 ]);
                 const clubData = clubResponse.data;
-                setClub(clubData);
+                setClub({
+                    id: clubData.ID,
+                    name: clubData.Name,
+                    description: clubData.Description,
+                    logo_url: clubData.LogoURL,
+                    deleted: clubData.Deleted
+                });
                 setIsAdmin(adminResponse.data.isAdmin);
 
                 // Get user's role by fetching club members and finding current user
                 try {
-                    const membersResponse = await api.get(`/api/v1/clubs/${id}/members`);
-                    const currentUserMember = membersResponse.data.find((member: { userId: string; role: string }) => member.userId === currentUser?.ID);
+                    interface ODataMember { UserID: string; Role: string; }
+                    const membersResponse = await api.get(`/api/v2/Members?$filter=ClubID eq '${id}'&$expand=User`);
+                    const members = membersResponse.data.value || [];
+                    const currentUserMember = members.find((member: ODataMember) => member.UserID === currentUser?.ID);
                     if (currentUserMember) {
-                        setUserRole(currentUserMember.role);
+                        setUserRole(currentUserMember.Role);
                     }
                 } catch (memberErr) {
                     // If we can't fetch members, we might not be a member or might not have access
@@ -107,7 +116,8 @@ const ClubDetails = () => {
 
         setIsLeavingClub(true);
         try {
-            await api.post(`/api/v1/clubs/${id}/leave`);
+            // OData v2: Use Leave action on Club entity
+            await api.post(`/api/v2/Clubs('${id}')/Leave`);
             // Remove from recent clubs since user is no longer a member
             removeRecentClub(id);
             // Navigate back to clubs list

@@ -22,11 +22,17 @@ const ProfileInvites = () => {
   const fetchInvitations = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/api/v1/invites');
+      // OData v2: Query Invites entity - backend filters to current user's invites
+      const response = await api.get('/api/v2/Invites?$expand=Club');
       if (response.status === 200) {
-  const data = response.data;
-  // Normalize to array if backend returns null/undefined
-  setInvites(Array.isArray(data) ? data : []);
+        interface ODataInvite { ID: string; ClubName?: string; Club?: { Name: string; }; }
+        const data = response.data.value || [];
+        // Map OData response to match expected format
+        const mappedInvites = data.map((invite: ODataInvite) => ({
+          id: invite.ID,
+          clubName: invite.Club?.Name || invite.ClubName || 'Unknown Club'
+        }));
+        setInvites(mappedInvites);
       }
     } catch (error) {
       console.error('Error fetching invitations:', error);
@@ -37,7 +43,8 @@ const ProfileInvites = () => {
 
   const handleAccept = async (inviteId: string, clubName: string) => {
     try {
-      await api.post(`/api/v1/invites/${inviteId}/accept`);
+      // OData v2: Use Accept action on Invite entity
+      await api.post(`/api/v2/Invites('${inviteId}')/Accept`);
       setInvites((prev) => (Array.isArray(prev) ? prev.filter(invite => invite.id !== inviteId) : []));
 
       // Show success message
@@ -51,7 +58,8 @@ const ProfileInvites = () => {
 
   const handleDecline = async (inviteId: string) => {
     try {
-      await api.post(`/api/v1/invites/${inviteId}/reject`);
+      // OData v2: Use Reject action on Invite entity
+      await api.post(`/api/v2/Invites('${inviteId}')/Reject`);
       setInvites((prev) => (Array.isArray(prev) ? prev.filter(invite => invite.id !== inviteId) : []));
 
       // Show success message

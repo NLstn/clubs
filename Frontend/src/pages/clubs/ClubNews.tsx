@@ -23,8 +23,19 @@ const ClubNews = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get(`/api/v1/clubs/${id}/news`);
-            setNews(response.data || []);
+            // OData v2: Query News filtered by club ID, ordered by creation date
+            const response = await api.get(`/api/v2/News?$filter=ClubID eq '${id}'&$orderby=CreatedAt desc`);
+            interface ODataNews { ID: string; Title: string; Content: string; CreatedAt: string; UpdatedAt: string; }
+            const newsData = response.data.value || [];
+            // Map OData response to match expected format
+            const mappedNews = newsData.map((item: ODataNews) => ({
+                id: item.ID,
+                title: item.Title,
+                content: item.Content,
+                created_at: item.CreatedAt,
+                updated_at: item.UpdatedAt
+            }));
+            setNews(mappedNews);
         } catch (error) {
             console.error("Error fetching news:", error);
             setError(error instanceof Error ? error.message : "Failed to fetch news");

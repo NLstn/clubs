@@ -19,8 +19,15 @@ export const useCurrentUser = () => {
     const fetchCurrentUser = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/api/v1/me');
-        setUser(response.data);
+        // OData v2: Query Users entity - backend hooks filter to current user
+        const response = await api.get('/api/v2/Users');
+        // OData returns collection with 'value' array
+        const users = response.data.value || [];
+        if (users.length > 0) {
+          setUser(users[0]);
+        } else {
+          throw new Error('User not found');
+        }
         setError(null);
       } catch (err) {
         console.error('Error fetching current user:', err);

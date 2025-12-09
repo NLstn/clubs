@@ -72,14 +72,14 @@ describe('useDashboardData', () => {
   });
 
   it('should fetch dashboard data successfully', async () => {
-    // Mock successful API responses
+    // Mock successful API responses with OData v2 format
     mockApiGet.mockImplementation((url: string) => {
-      if (url === '/api/v1/dashboard/news') {
-        return Promise.resolve({ data: mockNews });
-      } else if (url === '/api/v1/dashboard/events') {
-        return Promise.resolve({ data: mockEvents });
-      } else if (url === '/api/v1/dashboard/activities') {
-        return Promise.resolve({ data: mockActivities });
+      if (url === '/api/v2/GetDashboardNews()') {
+        return Promise.resolve({ data: { value: mockNews } });
+      } else if (url === '/api/v2/GetDashboardEvents()') {
+        return Promise.resolve({ data: { value: mockEvents } });
+      } else if (url === '/api/v2/GetDashboardActivities()') {
+        return Promise.resolve({ data: { value: mockActivities } });
       }
       return Promise.reject(new Error('Unknown endpoint'));
     });
@@ -95,10 +95,10 @@ describe('useDashboardData', () => {
     expect(result.current.activities).toEqual(mockActivities);
     expect(result.current.error).toBeNull();
     
-    // Verify all three API endpoints were called
-    expect(mockApiGet).toHaveBeenCalledWith('/api/v1/dashboard/news');
-    expect(mockApiGet).toHaveBeenCalledWith('/api/v1/dashboard/events');
-    expect(mockApiGet).toHaveBeenCalledWith('/api/v1/dashboard/activities');
+    // Verify all three OData v2 endpoints were called
+    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/GetDashboardNews()');
+    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/GetDashboardEvents()');
+    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/GetDashboardActivities()');
   });
 
   it('should handle API errors gracefully', async () => {
@@ -120,12 +120,12 @@ describe('useDashboardData', () => {
   it('should refetch data when refetch is called', async () => {
     // Simple test that focuses on the refetch functionality without complex mock switching
     mockApiGet.mockImplementation((url: string) => {
-      if (url === '/api/v1/dashboard/news') {
-        return Promise.resolve({ data: mockNews });
-      } else if (url === '/api/v1/dashboard/events') {
-        return Promise.resolve({ data: mockEvents });
-      } else if (url === '/api/v1/dashboard/activities') {
-        return Promise.resolve({ data: mockActivities });
+      if (url === '/api/v2/GetDashboardNews()') {
+        return Promise.resolve({ data: { value: mockNews } });
+      } else if (url === '/api/v2/GetDashboardEvents()') {
+        return Promise.resolve({ data: { value: mockEvents } });
+      } else if (url === '/api/v2/GetDashboardActivities()') {
+        return Promise.resolve({ data: { value: mockActivities } });
       }
       return Promise.reject(new Error('Unknown endpoint'));
     });
@@ -149,10 +149,10 @@ describe('useDashboardData', () => {
       await result.current.refetch();
     });
 
-    // Verify refetch called all endpoints
-    expect(mockApiGet).toHaveBeenCalledWith('/api/v1/dashboard/news');
-    expect(mockApiGet).toHaveBeenCalledWith('/api/v1/dashboard/events');
-    expect(mockApiGet).toHaveBeenCalledWith('/api/v1/dashboard/activities');
+    // Verify refetch called all OData v2 endpoints
+    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/GetDashboardNews()');
+    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/GetDashboardEvents()');
+    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/GetDashboardActivities()');
     expect(mockApiGet).toHaveBeenCalledTimes(3);
   });
 });

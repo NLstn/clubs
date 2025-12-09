@@ -14,11 +14,16 @@ const CreateClub = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await api.post('/api/v1/clubs', { name: clubName, description });
+            // OData v2: POST to Clubs entity set
+            const response = await api.post('/api/v2/Clubs', { 
+                Name: clubName, 
+                Description: description 
+            });
             const createdClub = response.data;
             setMessage('Club created successfully!');
             setTimeout(() => {
-                navigate(`/clubs/${createdClub.id}`);
+                // OData returns ID property with capital I
+                navigate(`/clubs/${createdClub.ID || createdClub.id}`);
             }, 1000);
         } catch (error) {
             setMessage('Error creating club');

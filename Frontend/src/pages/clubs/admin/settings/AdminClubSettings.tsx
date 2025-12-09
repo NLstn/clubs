@@ -34,8 +34,23 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
         const fetchSettings = async () => {
             try {
                 setLoading(true);
-                const response = await api.get(`/api/v1/clubs/${id}/settings`);
-                setSettings(response.data);
+                const response = await api.get(`/api/v2/ClubSettings?$filter=ClubID eq '${id}'`);
+                const settingsData = response.data.value?.[0];
+                if (settingsData) {
+                    // Map OData response to expected format
+                    setSettings({
+                        id: settingsData.ID,
+                        clubId: settingsData.ClubID,
+                        finesEnabled: settingsData.FinesEnabled,
+                        shiftsEnabled: settingsData.ShiftsEnabled,
+                        teamsEnabled: settingsData.TeamsEnabled,
+                        membersListVisible: settingsData.MembersListVisible,
+                        createdAt: settingsData.CreatedAt,
+                        createdBy: settingsData.CreatedBy,
+                        updatedAt: settingsData.UpdatedAt,
+                        updatedBy: settingsData.UpdatedBy
+                    });
+                }
                 setError(null);
             } catch (err: unknown) {
                 console.error('Error fetching club settings:', err);
@@ -54,13 +69,31 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
         try {
             setSaving(true);
             const completeSettings = {
+                FinesEnabled: newSettings.finesEnabled ?? settings.finesEnabled,
+                ShiftsEnabled: newSettings.shiftsEnabled ?? settings.shiftsEnabled,
+                TeamsEnabled: newSettings.teamsEnabled ?? settings.teamsEnabled,
+                MembersListVisible: newSettings.membersListVisible ?? settings.membersListVisible,
+            };
+            
+            if (settings.id) {
+                // Update existing settings
+                await api.patch(`/api/v2/ClubSettings('${settings.id}')`, completeSettings);
+            } else {
+                // Create new settings
+                await api.post(`/api/v2/ClubSettings`, {
+                    ...completeSettings,
+                    ClubID: id
+                });
+            }
+            
+            // Update local state
+            const updatedSettings = {
                 finesEnabled: newSettings.finesEnabled ?? settings.finesEnabled,
                 shiftsEnabled: newSettings.shiftsEnabled ?? settings.shiftsEnabled,
                 teamsEnabled: newSettings.teamsEnabled ?? settings.teamsEnabled,
                 membersListVisible: newSettings.membersListVisible ?? settings.membersListVisible,
             };
-            await api.post(`/api/v1/clubs/${id}/settings`, completeSettings);
-            setSettings({ ...settings, ...completeSettings });
+            setSettings({ ...settings, ...updatedSettings });
             setError(null);
             // Notify parent component that settings have been updated
             onSettingsUpdate?.();

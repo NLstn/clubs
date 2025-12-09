@@ -49,35 +49,64 @@ const renderWithRouter = (component: React.ReactElement) => {
     );
 };
 
-const mockClubs = [
+// Mock localStorage
+const mockUserId = 'test-user-123';
+Object.defineProperty(window, 'localStorage', {
+    value: {
+        getItem: vi.fn((key: string) => key === 'user_id' ? mockUserId : null),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn(),
+    },
+    writable: true
+});
+
+// OData response format with members and teams
+const mockODataClubs = [
     {
         id: '1',
         name: 'Admin Club',
         description: 'A club where I am admin',
-        user_role: 'admin',
-        created_at: '2024-01-01T00:00:00Z',
+        createdAt: '2024-01-01T00:00:00Z',
+        deleted: false,
+        members: [
+            { userId: mockUserId, role: 'admin' },
+            { userId: 'other-user', role: 'member' }
+        ],
+        teams: []
     },
     {
         id: '2',
         name: 'Owner Club',
         description: 'A club where I am owner',
-        user_role: 'owner',
-        created_at: '2024-01-02T00:00:00Z',
+        createdAt: '2024-01-02T00:00:00Z',
+        deleted: false,
+        members: [
+            { userId: mockUserId, role: 'owner' }
+        ],
+        teams: []
     },
     {
         id: '3',
         name: 'Member Club',
         description: 'A club where I am just a member',
-        user_role: 'member',
-        created_at: '2024-01-03T00:00:00Z',
+        createdAt: '2024-01-03T00:00:00Z',
+        deleted: false,
+        members: [
+            { userId: mockUserId, role: 'member' }
+        ],
+        teams: []
     },
     {
         id: '4',
         name: 'Deleted Club',
         description: 'A deleted club where I am owner',
-        user_role: 'owner',
-        created_at: '2024-01-04T00:00:00Z',
+        createdAt: '2024-01-04T00:00:00Z',
         deleted: true,
+        members: [
+            { userId: mockUserId, role: 'owner' }
+        ],
+        teams: []
     },
 ];
 
@@ -103,7 +132,7 @@ describe('ClubList', () => {
     });
 
     it('renders empty state when no clubs', async () => {
-        mockedApi.get.mockResolvedValue({ data: [] });
+        mockedApi.get.mockResolvedValue({ data: { value: [] } });
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {
@@ -113,7 +142,7 @@ describe('ClubList', () => {
     });
 
     it('renders clubs separated by role sections', async () => {
-        mockedApi.get.mockResolvedValue({ data: mockClubs });
+        mockedApi.get.mockResolvedValue({ data: { value: mockODataClubs } });
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {
@@ -134,7 +163,7 @@ describe('ClubList', () => {
     });
 
     it('navigates to club details when club card is clicked', async () => {
-        mockedApi.get.mockResolvedValue({ data: mockClubs });
+        mockedApi.get.mockResolvedValue({ data: { value: mockODataClubs } });
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {
@@ -156,7 +185,7 @@ describe('ClubList', () => {
     });
 
     it('displays role badges correctly', async () => {
-        mockedApi.get.mockResolvedValue({ data: mockClubs });
+        mockedApi.get.mockResolvedValue({ data: { value: mockODataClubs } });
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {
@@ -167,7 +196,7 @@ describe('ClubList', () => {
     });
 
     it('displays deleted badge for deleted clubs', async () => {
-        mockedApi.get.mockResolvedValue({ data: mockClubs });
+        mockedApi.get.mockResolvedValue({ data: { value: mockODataClubs } });
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {

@@ -23,13 +23,26 @@ const MyOpenClubFines = () => {
     const fetchFines = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await api.get(`/api/v1/me/fines`);
-            if (!response.data) {
-                setFines([]);
-                return;
-            }
-            const filteredFines = response.data.filter((fine: Fine) => fine.clubId === id);
-            setFines(filteredFines);
+            // OData v2: Query Fines filtered by club ID, expand creator for name
+            const response = await api.get(
+                `/api/v2/Fines?$filter=ClubID eq '${id}'&$expand=CreatedByUser`
+            );
+            interface ODataFine { ID: string; ClubID: string; Amount: number; Reason: string; CreatedAt: string; UpdatedAt: string; Paid: boolean; CreatedByUser?: { FirstName: string; LastName: string; }; }
+            const finesData = response.data.value || [];
+            // Map OData response to match expected format
+            const mappedFines = finesData.map((fine: ODataFine) => ({
+                id: fine.ID,
+                clubId: fine.ClubID,
+                amount: fine.Amount,
+                reason: fine.Reason,
+                createdAt: fine.CreatedAt,
+                updatedAt: fine.UpdatedAt,
+                paid: fine.Paid,
+                createdByName: fine.CreatedByUser ? 
+                    `${fine.CreatedByUser.FirstName} ${fine.CreatedByUser.LastName}`.trim() : 
+                    'Unknown'
+            }));
+            setFines(mappedFines);
             setError(null);
         } catch (err) {
             setError("Failed to fetch fines: " + err);

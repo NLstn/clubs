@@ -30,16 +30,19 @@ const Profile = () => {
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
-                const response = await api.get('/api/v1/me');
-                const birthDate = response.data.BirthDate ? response.data.BirthDate.split('T')[0] : undefined;
+                // OData v2: Query Users entity - backend filters to current user
+                const response = await api.get('/api/v2/Users');
+                const users = response.data.value || [];
+                const userData = users[0] || {};
+                const birthDate = userData.BirthDate ? userData.BirthDate.split('T')[0] : undefined;
                 setProfile({
-                    firstName: response.data.FirstName || '',
-                    lastName: response.data.LastName || '',
-                    email: response.data.Email || '',
+                    firstName: userData.FirstName || '',
+                    lastName: userData.LastName || '',
+                    email: userData.Email || '',
                     birthDate: birthDate
                 });
-                setEditedFirstName(response.data.FirstName || '');
-                setEditedLastName(response.data.LastName || '');
+                setEditedFirstName(userData.FirstName || '');
+                setEditedLastName(userData.LastName || '');
                 setEditedBirthDate(birthDate || '');
             } catch (error) {
                 console.error('Error fetching user profile:', error);
@@ -66,6 +69,15 @@ const Profile = () => {
     const handleSave = async () => {
         setIsLoading(true);
         try {
+            // First fetch current user to get ID
+            const userResponse = await api.get('/api/v2/Users');
+            const users = userResponse.data.value || [];
+            const userId = users[0]?.ID;
+            
+            if (!userId) {
+                throw new Error('User ID not found');
+            }
+            
             const updateData: {
                 firstName: string;
                 lastName: string;
@@ -80,7 +92,8 @@ const Profile = () => {
                 updateData.birthDate = editedBirthDate + 'T00:00:00Z';
             }
             
-            await api.put('/api/v1/me', updateData);
+            // OData v2: PATCH to update user entity
+            await api.patch(`/api/v2/Users('${userId}')`, updateData);
 
             setProfile({
                 ...profile,

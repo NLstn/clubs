@@ -20,6 +20,13 @@ type Club struct {
 	Deleted     bool       `json:"deleted" gorm:"default:false"`
 	DeletedAt   *time.Time `json:"deleted_at,omitempty" odata:"nullable"`
 	DeletedBy   *string    `json:"deleted_by,omitempty" gorm:"type:uuid" odata:"nullable"`
+
+	// Navigation properties for OData
+	Members []Member `gorm:"foreignKey:ClubID" json:"members,omitempty" odata:"nav"`
+	Teams   []Team   `gorm:"foreignKey:ClubID" json:"teams,omitempty" odata:"nav"`
+	Events  []Event  `gorm:"foreignKey:ClubID" json:"events,omitempty" odata:"nav"`
+	News    []News   `gorm:"foreignKey:ClubID" json:"news,omitempty" odata:"nav"`
+	Fines   []Fine   `gorm:"foreignKey:ClubID" json:"fines,omitempty" odata:"nav"`
 }
 
 func GetAllClubs() ([]Club, error) {

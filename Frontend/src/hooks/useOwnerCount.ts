@@ -13,7 +13,8 @@ export const useOwnerCount = (clubId: string) => {
         setError(null);
         
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/ownerCount`);
+            // OData v2: Use GetOwnerCount function on Club entity
+            const response = await api.get(`/api/v2/Clubs('${clubId}')/GetOwnerCount()`);
             setOwnerCount(response.data.ownerCount);
         } catch (err) {
             setError('Failed to fetch owner count');

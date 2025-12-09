@@ -25,6 +25,30 @@ interface Team {
     clubId: string;
 }
 
+// OData response types
+interface ODataClub {
+    id: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    deleted?: boolean;
+    members?: ODataMember[];
+    teams?: ODataTeam[];
+}
+
+interface ODataMember {
+    userId: string;
+    role: string;
+}
+
+interface ODataTeam {
+    id: string;
+    name: string;
+    description: string;
+    createdAt: string;
+    clubId: string;
+}
+
 const ClubList = () => {
     const { t } = useT();
     const [clubs, setClubs] = useState<Club[]>([]);
@@ -42,8 +66,34 @@ const ClubList = () => {
 
     const fetchClubs = async () => {
         try {
-            const response = await api.get('/api/v1/clubs');
-            setClubs(response.data || []);
+            // OData v2 API: Get clubs with expanded Members and Teams
+            // The backend filters clubs by membership automatically via hooks
+            const response = await api.get('/api/v2/Clubs?$expand=Members,Teams');
+            
+            // Get current user ID from local storage (set during auth)
+            const currentUserId = localStorage.getItem('user_id');
+            
+            // Transform OData response to match existing interface
+            const odataClubs: ODataClub[] = response.data.value || [];
+            const transformedClubs = odataClubs.map((club) => ({
+                id: club.id,
+                name: club.name,
+                description: club.description,
+                created_at: club.createdAt,
+                deleted: club.deleted,
+                // Find current user's role from expanded Members
+                user_role: club.members?.find((m) => m.userId === currentUserId)?.role || 'member',
+                // Map expanded Teams
+                user_teams: club.teams?.map((team) => ({
+                    id: team.id,
+                    name: team.name,
+                    description: team.description,
+                    createdAt: team.createdAt,
+                    clubId: team.clubId
+                })) || []
+            }));
+            
+            setClubs(transformedClubs);
         } catch (err: Error | unknown) {
             console.error('Error fetching clubs:', err);
             setError('Failed to fetch clubs');

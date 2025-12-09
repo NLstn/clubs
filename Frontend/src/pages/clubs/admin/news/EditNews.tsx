@@ -18,7 +18,7 @@ interface EditNewsProps {
     onSuccess: () => void;
 }
 
-const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, clubId, onSuccess }) => {
+const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, onSuccess }) => {
     const [title, setTitle] = useState<string>('');
     const [content, setContent] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
@@ -43,9 +43,9 @@ const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, clubId, onSuccess 
         setIsSubmitting(true);
         
         try {
-            await api.put(`/api/v1/clubs/${clubId}/news/${news.id}`, { 
-                title,
-                content
+            await api.patch(`/api/v2/News('${news.id}')`, { 
+                Title: title,
+                Content: content
             });
             onSuccess();
             onClose();

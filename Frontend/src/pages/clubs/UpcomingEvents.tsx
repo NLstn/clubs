@@ -26,8 +26,21 @@ const UpcomingEvents = () => {
         if (!id) return;
         
         try {
-            const response = await api.get(`/api/v1/clubs/${id}/events/upcoming`);
-            setEvents(response.data || []);
+            // OData v2: Use GetUpcomingEvents function on Club
+            const response = await api.get(`/api/v2/Clubs('${id}')/GetUpcomingEvents()`);
+            interface ODataEvent { ID: string; Name: string; Description: string; Location: string; StartTime: string; EndTime: string; UserRSVP?: { Response: string; }; }
+            const eventsData = response.data.value || response.data || [];
+            // Map OData response to match expected format
+            const mappedEvents = eventsData.map((event: ODataEvent) => ({
+                id: event.ID,
+                name: event.Name,
+                description: event.Description,
+                location: event.Location,
+                start_time: event.StartTime,
+                end_time: event.EndTime,
+                user_rsvp: event.UserRSVP ? { response: event.UserRSVP.Response } : undefined
+            }));
+            setEvents(mappedEvents);
         } catch (error) {
             console.error("Error fetching upcoming events:", error);
             setError("Failed to load upcoming events");
@@ -42,6 +55,8 @@ const UpcomingEvents = () => {
 
     const handleRSVP = async (eventId: string, response: string) => {
         try {
+            // TODO: Implement RSVP as OData action or direct EventRSVP entity creation
+            // For now, using v1 endpoint
             await api.post(`/api/v1/clubs/${id}/events/${eventId}/rsvp`, { response });
             // Refresh events to update RSVP status
             fetchUpcomingEvents();
