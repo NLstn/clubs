@@ -7,11 +7,11 @@ import (
 )
 
 type UserPrivacySettings struct {
-	ID             string  `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	UserID         string  `gorm:"type:uuid;not null"`
-	ClubID         *string `gorm:"type:uuid"` // NULL means global setting
-	ShareBirthDate bool    `gorm:"default:false"`
-	CreatedAt      time.Time
+	ID             string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
+	UserID         string    `gorm:"type:uuid;not null" odata:"required"`
+	ClubID         *string   `gorm:"type:uuid" odata:"nullable"` // NULL means global setting
+	ShareBirthDate bool      `gorm:"default:false"`
+	CreatedAt      time.Time `odata:"immutable"`
 	UpdatedAt      time.Time
 }
 

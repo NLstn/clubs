@@ -339,12 +339,13 @@ func CreateTestUser(t *testing.T, email string) (models.User, string) {
 	keycloakID := uuid.New().String() // Generate unique KeycloakID for test users
 
 	// Create user directly in database
+	keycloakPtr := &keycloakID
 	user := models.User{
 		ID:         userID,
 		Email:      email,
 		FirstName:  "Test",
 		LastName:   "User",
-		KeycloakID: keycloakID,
+		KeycloakID: keycloakPtr,
 	}
 
 	if err := testDB.Create(&user).Error; err != nil {
@@ -362,11 +363,12 @@ func CreateTestUser(t *testing.T, email string) (models.User, string) {
 // CreateTestClub creates a test club with the given user as owner
 func CreateTestClub(t *testing.T, user models.User, clubName string) models.Club {
 	clubID := uuid.New().String()
+	description := "Test club description"
 
 	club := models.Club{
 		ID:          clubID,
 		Name:        clubName,
-		Description: "Test club description",
+		Description: &description,
 	}
 
 	if err := testDB.Create(&club).Error; err != nil {

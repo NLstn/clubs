@@ -11,11 +11,11 @@ import (
 
 // JoinRequest represents a user request to join a club (via invitation link)
 type JoinRequest struct {
-	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID    string    `json:"club_id" gorm:"type:uuid"`
-	UserID    string    `json:"user_id" gorm:"type:uuid"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        string    `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
+	ClubID    string    `json:"club_id" gorm:"type:uuid" odata:"required"`
+	UserID    string    `json:"user_id" gorm:"type:uuid" odata:"required"`
+	Email     string    `json:"email" odata:"required"`
+	CreatedAt time.Time `json:"created_at" odata:"immutable"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 

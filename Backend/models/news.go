@@ -8,14 +8,14 @@ import (
 )
 
 type News struct {
-	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	ClubID    string    `gorm:"type:uuid;not null" json:"club_id"`
-	Title     string    `gorm:"not null" json:"title"`
-	Content   string    `gorm:"type:text;not null" json:"content"`
-	CreatedAt time.Time `json:"created_at"`
-	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
+	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id" odata:"key"`
+	ClubID    string    `gorm:"type:uuid;not null" json:"club_id" odata:"required"`
+	Title     string    `gorm:"not null" json:"title" odata:"required"`
+	Content   string    `gorm:"type:text;not null" json:"content" odata:"required"`
+	CreatedAt time.Time `json:"created_at" odata:"immutable"`
+	CreatedBy string    `json:"created_by" gorm:"type:uuid" odata:"required"`
 	UpdatedAt time.Time `json:"updated_at"`
-	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
+	UpdatedBy string    `json:"updated_by" gorm:"type:uuid" odata:"required"`
 }
 
 // CreateNews creates a new news post for the club

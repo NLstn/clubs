@@ -95,14 +95,18 @@ func searchClubs(user models.User, query string) ([]SearchResult, error) {
 		}
 
 		// Check if club name or description contains the query
+		description := ""
+		if club.Description != nil {
+			description = *club.Description
+		}
 		if strings.Contains(strings.ToLower(club.Name), queryLower) ||
-			strings.Contains(strings.ToLower(club.Description), queryLower) {
+			strings.Contains(strings.ToLower(description), queryLower) {
 
 			results = append(results, SearchResult{
 				Type:        "club",
 				ID:          club.ID,
 				Name:        club.Name,
-				Description: club.Description,
+				Description: description,
 			})
 		}
 	}

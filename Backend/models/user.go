@@ -12,13 +12,13 @@ import (
 )
 
 type User struct {
-	ID         string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	FirstName  string
-	LastName   string
-	Email      string     `gorm:"uniqueIndex;not null"`
-	KeycloakID string     `gorm:"uniqueIndex"`
-	BirthDate  *time.Time `gorm:"type:date"`
-	CreatedAt  time.Time
+	ID         string     `gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
+	FirstName  string     `odata:"required"`
+	LastName   string     `odata:"required"`
+	Email      string     `gorm:"uniqueIndex;not null" odata:"required"`
+	KeycloakID *string    `gorm:"uniqueIndex" odata:"nullable"`
+	BirthDate  *time.Time `gorm:"type:date" odata:"nullable"`
+	CreatedAt  time.Time  `odata:"immutable"`
 	UpdatedAt  time.Time
 }
 
@@ -73,7 +73,7 @@ func FindOrCreateUserWithKeycloakID(keycloakID, email, fullName string) (User, e
 	err = database.Db.Where("email = ?", email).First(&user).Error
 	if err == nil {
 		// User exists with this email, update with Keycloak ID
-		user.KeycloakID = keycloakID
+		user.KeycloakID = &keycloakID
 		database.Db.Save(&user)
 		return user, nil
 	}
@@ -85,7 +85,7 @@ func FindOrCreateUserWithKeycloakID(keycloakID, email, fullName string) (User, e
 
 		user = User{
 			Email:      email,
-			KeycloakID: keycloakID,
+			KeycloakID: &keycloakID,
 			FirstName:  firstName,
 			LastName:   lastName,
 		}

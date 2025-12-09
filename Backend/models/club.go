@@ -9,17 +9,17 @@ import (
 )
 
 type Club struct {
-	ID          string     `json:"id" gorm:"type:uuid;primary_key"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	LogoURL     *string    `json:"logo_url,omitempty"`
-	CreatedAt   time.Time  `json:"created_at"`
-	CreatedBy   string     `json:"created_by" gorm:"type:uuid"`
+	ID          string     `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
+	Name        string     `json:"name" odata:"required"`
+	Description *string    `json:"description" odata:"nullable"`
+	LogoURL     *string    `json:"logo_url,omitempty" odata:"nullable"`
+	CreatedAt   time.Time  `json:"created_at" odata:"immutable"`
+	CreatedBy   string     `json:"created_by" gorm:"type:uuid" odata:"required"`
 	UpdatedAt   time.Time  `json:"updated_at"`
-	UpdatedBy   string     `json:"updated_by" gorm:"type:uuid"`
+	UpdatedBy   string     `json:"updated_by" gorm:"type:uuid" odata:"required"`
 	Deleted     bool       `json:"deleted" gorm:"default:false"`
-	DeletedAt   *time.Time `json:"deleted_at,omitempty"`
-	DeletedBy   *string    `json:"deleted_by,omitempty" gorm:"type:uuid"`
+	DeletedAt   *time.Time `json:"deleted_at,omitempty" odata:"nullable"`
+	DeletedBy   *string    `json:"deleted_by,omitempty" gorm:"type:uuid" odata:"nullable"`
 }
 
 func GetAllClubs() ([]Club, error) {
@@ -53,7 +53,7 @@ func CreateClub(name, description, ownerID string) (Club, error) {
 	var club Club
 	club.ID = uuid.New().String()
 	club.Name = name
-	club.Description = description
+	club.Description = &description
 	club.CreatedBy = ownerID
 	club.UpdatedBy = ownerID
 

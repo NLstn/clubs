@@ -9,6 +9,7 @@ import (
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
 	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/odata"
 	frontend "github.com/NLstn/clubs/tools"
 	"github.com/joho/godotenv"
 )
@@ -76,6 +77,13 @@ func main() {
 	mux.HandleFunc("/health", handlers.HealthCheck)
 
 	mux.Handle("/api/v1/", handlers.Handler_v1())
+
+	// Mount OData v2 API (Phase 1: Basic service without authentication)
+	odataService, err := odata.NewService(database.Db)
+	if err != nil {
+		log.Fatal("Could not initialize OData service:", err)
+	}
+	mux.Handle("/api/v2/", http.StripPrefix("/api/v2", odataService))
 
 	handler := handlers.CorsMiddleware(mux)
 	handlerWithLogging := handlers.LoggingMiddleware(handler)
