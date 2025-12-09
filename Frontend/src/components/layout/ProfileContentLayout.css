@@ -14,7 +14,7 @@
     max-width: 100%;
     min-width: 0; /* Prevents flex item from overflowing */
     padding: var(--space-sm);
-    border-left: 1px solid var(--border-color);
+    border-left: 1px solid var(--color-border);
 }
 
 .profile-content-header {
@@ -24,7 +24,7 @@
     padding: var(--space-lg);
     background: var(--color-background-light);
     border-radius: var(--border-radius-lg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--color-border);
     margin-bottom: var(--space-xl);
 }
 
@@ -37,7 +37,7 @@
     margin: 0;
     font-size: 2.2rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--color-text);
     letter-spacing: -0.02em;
     line-height: 1.2;
 }
@@ -46,14 +46,14 @@
     margin: 0 0 var(--space-xl) 0;
     font-size: 2rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--color-text);
     letter-spacing: -0.02em;
 }
 
 .profile-content-subtitle {
     margin: var(--space-xs) 0 0 0;
     font-size: 1rem;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     line-height: 1.4;
 }
 

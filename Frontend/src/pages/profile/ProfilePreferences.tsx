@@ -4,40 +4,42 @@ import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 import { useTheme } from "../../hooks/useTheme";
 import { ThemeMode } from "../../context/ThemeContext";
+import { useT } from '../../hooks/useTranslation';
 import { FormGroup } from '@/components/ui';
 import './Profile.css';
 
 const ProfilePreferences = () => {
+    const { t } = useT();
     const { theme, setTheme, effectiveTheme } = useTheme();
     const [message, setMessage] = useState('');
 
     const handleThemeChange = (newTheme: ThemeMode) => {
         setTheme(newTheme);
-        setMessage('Theme preference saved successfully!');
+        setMessage(t('preferences.themeSaved'));
         setTimeout(() => setMessage(''), 3000);
     };
 
     const themeOptions: { value: ThemeMode; label: string; description: string }[] = [
         {
             value: 'light',
-            label: 'Light Mode',
-            description: 'Always use light theme'
+            label: t('preferences.lightMode'),
+            description: t('preferences.lightModeDescription')
         },
         {
             value: 'dark',
-            label: 'Dark Mode',
-            description: 'Always use dark theme'
+            label: t('preferences.darkMode'),
+            description: t('preferences.darkModeDescription')
         },
         {
             value: 'system',
-            label: 'Use System Setting',
-            description: 'Automatically switch based on your device settings'
+            label: t('preferences.systemSetting'),
+            description: t('preferences.systemSettingDescription')
         }
     ];
 
     return (
-        <Layout title="Preferences">
-            <ProfileContentLayout title="Preferences">
+        <Layout title={t('preferences.title')}>
+            <ProfileContentLayout title={t('preferences.title')}>
                 {message && (
                     <div className="success-message">
                         {message}
@@ -46,9 +48,9 @@ const ProfilePreferences = () => {
 
                 <div className="profile-content-sections">
                     <div className="content-section">
-                        <h3>Language</h3>
+                        <h3>{t('preferences.language')}</h3>
                                 <FormGroup>
-                                    <label>Preferred Language</label>
+                                    <label>{t('preferences.preferredLanguage')}</label>
                                     <div style={{ marginTop: 'var(--space-xs)' }}>
                                         <LanguageSwitcher />
                                     </div>
@@ -56,17 +58,17 @@ const ProfilePreferences = () => {
                             </div>
 
                             <div className="content-section">
-                                <h3>Appearance</h3>
+                                <h3>{t('preferences.appearance')}</h3>
                                 
                                 <FormGroup>
-                                    <label>Select Theme</label>
+                                    <label>{t('preferences.selectTheme')}</label>
                                     <p style={{ 
                                         fontSize: '0.9rem', 
                                         color: 'var(--color-text-secondary)',
                                         marginTop: 'var(--space-xs)',
                                         marginBottom: 'var(--space-md)'
                                     }}>
-                                        Pick a theme to customize the appearance.
+                                        {t('preferences.themeDescription')}
                                     </p>
                                     
                                     <div style={{ 
@@ -76,7 +78,7 @@ const ProfilePreferences = () => {
                                         marginTop: 'var(--space-sm)'
                                     }}>
                                         {themeOptions.map((option) => (
-                                            <div
+                                            <button
                                                 key={option.value}
                                                 onClick={() => handleThemeChange(option.value)}
                                                 style={{
@@ -86,8 +88,12 @@ const ProfilePreferences = () => {
                                                     overflow: 'hidden',
                                                     transition: 'all 0.2s',
                                                     backgroundColor: 'var(--color-background)',
-                                                    position: 'relative'
+                                                    position: 'relative',
+                                                    padding: 0,
+                                                    textAlign: 'left',
+                                                    width: '100%'
                                                 }}
+                                                aria-label={`${option.label}${theme === option.value ? ' (selected)' : ''}`}
                                             >
                                                 {/* Preview area */}
                                                 <div style={{
@@ -183,7 +189,7 @@ const ProfilePreferences = () => {
                                                             fontSize: '16px',
                                                             boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
                                                         }}>
-                                                            ℹ️
+                                                            <span role="img" aria-label={t('preferences.systemSettingLabel')}>ℹ️</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -206,7 +212,7 @@ const ProfilePreferences = () => {
                                                             color: 'var(--color-text)'
                                                         }}>
                                                             {option.label}
-                                                            {option.value === 'light' && theme === 'light' && ' (Default)'}
+                                                            {option.value === 'system' && theme === 'system' && ` ${t('preferences.default')}`}
                                                         </div>
                                                         {theme === option.value && (
                                                             <div style={{
@@ -233,7 +239,7 @@ const ProfilePreferences = () => {
                                                         {option.description}
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </button>
                                         ))}
                                     </div>
                                     
@@ -245,8 +251,8 @@ const ProfilePreferences = () => {
                                         fontSize: '0.9rem',
                                         borderLeft: `4px solid var(--color-primary)`
                                     }}>
-                                        <strong>Currently active:</strong> {effectiveTheme === 'light' ? '☀️ Light theme' : '🌙 Dark theme'}
-                                        {theme === 'system' && ' (automatically set by your device)'}
+                                        <strong>{t('preferences.currentlyActive')}</strong> {effectiveTheme === 'light' ? <><span aria-hidden="true">☀️</span> {t('preferences.lightTheme')}</> : <><span aria-hidden="true">🌙</span> {t('preferences.darkTheme')}</>}
+                                        {theme === 'system' && ` ${t('preferences.automaticallySet')}`}
                                     </div>
                                 </FormGroup>
                             </div>

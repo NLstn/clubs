@@ -50,7 +50,7 @@ const ProfileContentLayout = ({ title, children, actions, headerContent, subtitl
         <div className="profile-content-layout">
             <ProfileSidebar />
             <div className="profile-content-main">
-                {hasRichHeader && (
+                {hasRichHeader ? (
                     <div className="profile-content-header">
                         {headerContent}
                         <div className="profile-content-header-text">
@@ -63,6 +63,8 @@ const ProfileContentLayout = ({ title, children, actions, headerContent, subtitl
                             </div>
                         )}
                     </div>
+                ) : (
+                    <h1 className="profile-content-title-simple">{title}</h1>
                 )}
                 {children}
             </div>

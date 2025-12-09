@@ -166,6 +166,27 @@
     "language": "Sprache",
     "selectLanguage": "Sprache auswählen"
   },
+  "preferences": {
+    "title": "Einstellungen",
+    "language": "Sprache",
+    "preferredLanguage": "Bevorzugte Sprache",
+    "appearance": "Erscheinungsbild",
+    "selectTheme": "Design auswählen",
+    "themeDescription": "Wählen Sie ein Design, um das Erscheinungsbild anzupassen.",
+    "lightMode": "Heller Modus",
+    "darkMode": "Dunkler Modus",
+    "systemSetting": "Systemeinstellung verwenden",
+    "lightModeDescription": "Immer helles Design verwenden",
+    "darkModeDescription": "Immer dunkles Design verwenden",
+    "systemSettingDescription": "Automatisch basierend auf Ihren Geräteeinstellungen wechseln",
+    "currentlyActive": "Derzeit aktiv:",
+    "lightTheme": "Helles Design",
+    "darkTheme": "Dunkles Design",
+    "automaticallySet": "(automatisch durch Ihr Gerät eingestellt)",
+    "default": "(Standard)",
+    "themeSaved": "Design-Einstellung erfolgreich gespeichert!",
+    "systemSettingLabel": "Systemeinstellung"
+  },
   "notifications": {
     "title": "Benachrichtigungseinstellungen",
     "description": "Wählen Sie, wie Sie über Aktivitäten in Ihren Vereinen benachrichtigt werden möchten.",
