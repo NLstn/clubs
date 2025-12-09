@@ -35,8 +35,27 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
 
             try {
                 setLoading(true);
-                const response = await api.get(`/api/v1/clubs/${clubId}/settings`);
-                setSettings(response.data);
+                // OData v2: Query ClubSettings filtered by club ID
+                const response = await api.get(`/api/v2/ClubSettings?$filter=ClubID eq '${clubId}'`);
+                const settingsData = response.data.value || [];
+                if (settingsData.length > 0) {
+                    const s = settingsData[0];
+                    setSettings({
+                        id: s.ID,
+                        clubId: s.ClubID,
+                        finesEnabled: s.FinesEnabled,
+                        shiftsEnabled: s.ShiftsEnabled,
+                        teamsEnabled: s.TeamsEnabled,
+                        membersListVisible: s.MembersListVisible,
+                        createdAt: s.CreatedAt,
+                        createdBy: s.CreatedBy,
+                        updatedAt: s.UpdatedAt,
+                        updatedBy: s.UpdatedBy
+                    });
+                } else {
+                    // No settings found, use defaults
+                    throw new Error('Settings not found');
+                }
                 setError(null);
             } catch (err: unknown) {
                 console.error('Error fetching club settings:', err);
@@ -67,8 +86,27 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
 
         try {
             setLoading(true);
-            const response = await api.get(`/api/v1/clubs/${clubId}/settings`);
-            setSettings(response.data);
+            // OData v2: Query ClubSettings filtered by club ID
+            const response = await api.get(`/api/v2/ClubSettings?$filter=ClubID eq '${clubId}'`);
+            const settingsData = response.data.value || [];
+            if (settingsData.length > 0) {
+                const s = settingsData[0];
+                setSettings({
+                    id: s.ID,
+                    clubId: s.ClubID,
+                    finesEnabled: s.FinesEnabled,
+                    shiftsEnabled: s.ShiftsEnabled,
+                    teamsEnabled: s.TeamsEnabled,
+                    membersListVisible: s.MembersListVisible,
+                    createdAt: s.CreatedAt,
+                    createdBy: s.CreatedBy,
+                    updatedAt: s.UpdatedAt,
+                    updatedBy: s.UpdatedBy
+                });
+            } else {
+                // No settings found, use defaults
+                throw new Error('Settings not found');
+            }
             setError(null);
         } catch (err: unknown) {
             console.error('Error fetching club settings:', err);

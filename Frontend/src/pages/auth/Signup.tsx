@@ -24,7 +24,17 @@ const Signup: React.FC = () => {
     }
 
     try {
-      await api.put('/api/v1/me', {
+      // First fetch current user to get ID
+      const userResponse = await api.get('/api/v2/Users');
+      const users = userResponse.data.value || [];
+      const userId = users[0]?.ID;
+      
+      if (!userId) {
+        throw new Error('User ID not found');
+      }
+      
+      // OData v2: PATCH to update user entity
+      await api.patch(`/api/v2/Users('${userId}')`, {
         firstName: firstName.trim(),
         lastName: lastName.trim()
       });

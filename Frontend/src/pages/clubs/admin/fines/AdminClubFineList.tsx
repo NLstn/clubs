@@ -16,6 +16,18 @@ interface Fine {
     paid: boolean;
 }
 
+interface ODataFine {
+    ID: string;
+    Amount: number;
+    Reason: string;
+    CreatedAt: string;
+    UpdatedAt: string;
+    Paid: boolean;
+    User?: {
+        Name: string;
+    };
+}
+
 const AdminClubFineList = () => {
 
     const { id } = useParams();
@@ -31,9 +43,20 @@ const AdminClubFineList = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get(`/api/v1/clubs/${id}/fines`);
+            const response = await api.get(`/api/v2/Fines?$filter=ClubID eq '${id}'&$expand=User`);
             // Ensure we always have an array, even if API returns null/undefined
-            setFines(Array.isArray(response.data) ? response.data : []);
+            const finesData = (response.data.value || []) as ODataFine[];
+            // Map OData response to expected format
+            const mappedFines = finesData.map((fine) => ({
+                id: fine.ID,
+                userName: fine.User?.Name || 'Unknown',
+                amount: fine.Amount,
+                reason: fine.Reason,
+                createdAt: fine.CreatedAt,
+                updatedAt: fine.UpdatedAt,
+                paid: fine.Paid
+            }));
+            setFines(Array.isArray(mappedFines) ? mappedFines : []);
         } catch (err) {
             setError("Failed to fetch fines: " + err);
             // Reset fines to empty array on error to prevent stale data issues
@@ -49,7 +72,7 @@ const AdminClubFineList = () => {
         }
 
         try {
-            await api.delete(`/api/v1/clubs/${id}/fines/${fineId}`);
+            await api.delete(`/api/v2/Fines('${fineId}')`);
             fetchFines(); // Refresh the list
         } catch (err) {
             setError("Failed to delete fine: " + err);

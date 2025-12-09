@@ -26,8 +26,8 @@ const AdminClubNewsList = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get(`/api/v1/clubs/${id}/news`);
-            setNews(response.data || []);
+            const response = await api.get(`/api/v2/News?$filter=ClubID eq '${id}'&$orderby=CreatedAt desc`);
+            setNews(response.data.value || []);
         } catch (error) {
             console.error("Error fetching news:", error);
             setError(error instanceof Error ? error.message : "Failed to fetch news");
@@ -57,7 +57,7 @@ const AdminClubNewsList = () => {
         }
 
         try {
-            await api.delete(`/api/v1/clubs/${id}/news/${newsId}`);
+            await api.delete(`/api/v2/News('${newsId}')`);
             fetchNews(); // Refresh the list
         } catch (error) {
             console.error("Error deleting news:", error);

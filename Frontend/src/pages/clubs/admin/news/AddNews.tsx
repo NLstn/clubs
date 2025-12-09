@@ -27,9 +27,10 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
         setIsSubmitting(true);
         
         try {
-            await api.post(`/api/v1/clubs/${clubId}/news`, { 
-                title,
-                content
+            await api.post(`/api/v2/News`, { 
+                Title: title,
+                Content: content,
+                ClubID: clubId
             });
             setTitle('');
             setContent('');

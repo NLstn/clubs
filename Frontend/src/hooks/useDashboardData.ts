@@ -61,15 +61,17 @@ export const useDashboardData = () => {
     setError(null);
     
     try {
+      // OData v2 API: Call unbound functions for dashboard data
       const [newsResponse, eventsResponse, activitiesResponse] = await Promise.all([
-        api.get('/api/v1/dashboard/news'),
-        api.get('/api/v1/dashboard/events'),
-        api.get('/api/v1/dashboard/activities')
+        api.get('/api/v2/GetDashboardNews()'),
+        api.get('/api/v2/GetDashboardEvents()'),
+        api.get('/api/v2/GetDashboardActivities()')
       ]);
       
-      setNews(newsResponse.data || []);
-      setEvents(eventsResponse.data || []);
-      setActivities(activitiesResponse.data || []);
+      // OData functions return the result directly in the 'value' property
+      setNews(newsResponse.data.value || []);
+      setEvents(eventsResponse.data.value || []);
+      setActivities(activitiesResponse.data.value || []);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setError('Failed to load dashboard data');
@@ -87,15 +89,17 @@ export const useDashboardData = () => {
       setError(null);
       
       try {
+        // OData v2 API: Call unbound functions for dashboard data
         const [newsResponse, eventsResponse, activitiesResponse] = await Promise.all([
-          api.get('/api/v1/dashboard/news'),
-          api.get('/api/v1/dashboard/events'),
-          api.get('/api/v1/dashboard/activities')
+          api.get('/api/v2/GetDashboardNews()'),
+          api.get('/api/v2/GetDashboardEvents()'),
+          api.get('/api/v2/GetDashboardActivities()')
         ]);
         
-        setNews(newsResponse.data || []);
-        setEvents(eventsResponse.data || []);
-        setActivities(activitiesResponse.data || []);
+        // OData functions return the result directly in the 'value' property
+        setNews(newsResponse.data.value || []);
+        setEvents(eventsResponse.data.value || []);
+        setActivities(activitiesResponse.data.value || []);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         setError('Failed to load dashboard data');

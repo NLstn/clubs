@@ -61,9 +61,29 @@ const GlobalSearch: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const response = await api.get(`/api/v1/search?q=${encodeURIComponent(searchQuery)}`);
-      const data: SearchResponse = response.data;
-      setResults(data);
+      // OData v2: Use SearchGlobal function
+      const response = await api.get(`/api/v2/SearchGlobal(query='${encodeURIComponent(searchQuery)}')`);
+      const data = response.data;
+      // Map OData response to match expected format
+      interface ODataClub { id?: string; ID?: string; name?: string; Name?: string; description?: string; Description?: string; }
+      interface ODataEvent { id?: string; ID?: string; name?: string; Name?: string; description?: string; Description?: string; clubId?: string; ClubID?: string; clubName?: string; ClubName?: string; startTime?: string; StartTime?: string; endTime?: string; EndTime?: string; }
+      const mappedClubs = (data.clubs || []).map((c: ODataClub) => ({
+        type: 'club' as const,
+        id: c.id || c.ID || '',
+        name: c.name || c.Name || '',
+        description: c.description || c.Description
+      }));
+      const mappedEvents = (data.events || []).map((e: ODataEvent) => ({
+        type: 'event' as const,
+        id: e.id || e.ID,
+        name: e.name || e.Name,
+        description: e.description || e.Description,
+        club_id: e.clubId || e.ClubID,
+        club_name: e.clubName || e.ClubName,
+        start_time: e.startTime || e.StartTime,
+        end_time: e.endTime || e.EndTime
+      }));
+      setResults({ clubs: mappedClubs, events: mappedEvents });
       setIsOpen(true);
     } catch (error) {
       console.error('Search failed:', error);

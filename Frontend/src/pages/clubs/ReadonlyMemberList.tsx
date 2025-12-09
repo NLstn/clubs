@@ -47,8 +47,22 @@ const ReadonlyMemberList = () => {
             }
 
             try {
-                const response = await api.get(`/api/v1/clubs/${clubId}/members`);
-                const sortedMembers = sortMembersByRole(response.data);
+                // OData v2: Query Members filtered by club ID with User expansion
+                const response = await api.get(
+                    `/api/v2/Members?$filter=ClubID eq '${clubId}'&$expand=User`
+                );
+                interface ODataMember { ID: string; Role: string; JoinedAt: string; UserID: string; User?: { FirstName: string; LastName: string; BirthDate?: string; }; }
+                const membersData = response.data.value || [];
+                // Map OData response to match expected format
+                const mappedMembers = membersData.map((member: ODataMember) => ({
+                    id: member.ID,
+                    name: `${member.User?.FirstName || ''} ${member.User?.LastName || ''}`.trim() || 'Unknown',
+                    role: member.Role,
+                    joinedAt: member.JoinedAt,
+                    userId: member.UserID,
+                    birthDate: member.User?.BirthDate
+                }));
+                const sortedMembers = sortMembersByRole(mappedMembers);
                 setMembers(sortedMembers);
                 setError(null);
             } catch (err) {

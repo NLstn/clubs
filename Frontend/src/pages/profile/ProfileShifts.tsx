@@ -28,8 +28,28 @@ function ProfileShifts() {
         const fetchShifts = async () => {
             try {
                 setLoading(true);
-                const response = await api.get('/api/v1/me/shifts');
-                setShifts(response.data || []);
+                // OData v2: Query ShiftMembers with expansions for current user's future shifts
+                // Filter for shifts with startTime > now() and expand related data
+                const now = new Date().toISOString();
+                const response = await api.get(
+                    `/api/v2/ShiftMembers?$expand=Shift($expand=Event($expand=Club))&$filter=Shift/StartTime gt ${now}&$orderby=Shift/StartTime`
+                );
+                
+                interface ODataShiftMember { ID: string; Shift?: { ID: string; StartTime: string; EndTime: string; Event?: { ID: string; Name: string; Location: string; Club?: { ID: string; Name: string; }; }; }; }
+                const shiftMembers = response.data.value || [];
+                // Map OData response to match expected format
+                const mappedShifts = shiftMembers.map((sm: ODataShiftMember) => ({
+                    id: sm.Shift?.ID || sm.ID,
+                    startTime: sm.Shift?.StartTime || '',
+                    endTime: sm.Shift?.EndTime || '',
+                    eventId: sm.Shift?.Event?.ID || '',
+                    eventName: sm.Shift?.Event?.Name || 'Unknown Event',
+                    location: sm.Shift?.Event?.Location || '',
+                    clubId: sm.Shift?.Event?.Club?.ID || '',
+                    clubName: sm.Shift?.Event?.Club?.Name || 'Unknown Club',
+                    members: [] // Simplified for now
+                }));
+                setShifts(mappedShifts);
                 setError(null);
             } catch (err) {
                 console.error('Error fetching shifts:', err);

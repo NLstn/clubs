@@ -15,6 +15,17 @@ interface FineTemplate {
     updated_by: string;
 }
 
+interface ODataFineTemplate {
+    ID: string;
+    ClubID: string;
+    Description: string;
+    Amount: number;
+    CreatedAt: string;
+    CreatedBy: string;
+    UpdatedAt: string;
+    UpdatedBy: string;
+}
+
 const AdminClubFineTemplateList = () => {
     const { t } = useT();
     const { id: clubId } = useParams();
@@ -27,8 +38,20 @@ const AdminClubFineTemplateList = () => {
 
     const fetchTemplates = useCallback(async () => {
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/fine-templates`);
-            setTemplates(response.data);
+            const response = await api.get(`/api/v2/FineTemplates?$filter=ClubID eq '${clubId}'`);
+            const templatesData = (response.data.value || []) as ODataFineTemplate[];
+            // Map OData response to expected format
+            const mappedTemplates = templatesData.map((template) => ({
+                id: template.ID,
+                club_id: template.ClubID,
+                description: template.Description,
+                amount: template.Amount,
+                created_at: template.CreatedAt,
+                created_by: template.CreatedBy,
+                updated_at: template.UpdatedAt,
+                updated_by: template.UpdatedBy
+            }));
+            setTemplates(mappedTemplates);
             setLoading(false);
         } catch (err: Error | unknown) {
             console.error('Error fetching fine templates:', err instanceof Error ? err.message : 'Unknown error');
@@ -53,10 +76,17 @@ const AdminClubFineTemplateList = () => {
         try {
             if (editingId) {
                 // Update existing template
-                await api.put(`/api/v1/clubs/${clubId}/fine-templates/${editingId}`, formData);
+                await api.patch(`/api/v2/FineTemplates('${editingId}')`, {
+                    Description: formData.description,
+                    Amount: formData.amount
+                });
             } else {
                 // Create new template
-                await api.post(`/api/v1/clubs/${clubId}/fine-templates`, formData);
+                await api.post(`/api/v2/FineTemplates`, {
+                    Description: formData.description,
+                    Amount: formData.amount,
+                    ClubID: clubId
+                });
             }
             setFormData({ description: '', amount: 0 });
             setIsAdding(false);
@@ -79,7 +109,7 @@ const AdminClubFineTemplateList = () => {
         if (!confirm(t('fines.deleteConfirmation'))) return;
 
         try {
-            await api.delete(`/api/v1/clubs/${clubId}/fine-templates/${templateId}`);
+            await api.delete(`/api/v2/FineTemplates('${templateId}')`);
             await fetchTemplates();
         } catch (err: Error | unknown) {
             console.error('Error deleting fine template:', err instanceof Error ? err.message : 'Unknown error');

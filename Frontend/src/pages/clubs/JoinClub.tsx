@@ -33,9 +33,19 @@ const JoinClub: React.FC = () => {
     }
 
     try {
-      const response = await api.get(`/api/v1/clubs/${clubId}/info`);
+      // OData v2: Fetch club with basic info (note: /info might need custom implementation)
+      // For now, fetch club directly - backend should filter appropriately
+      const response = await api.get(`/api/v2/Clubs('${clubId}')`);
       if (response.status === 200) {
-        setClub(response.data);
+        const clubData = response.data;
+        setClub({
+          id: clubData.ID,
+          name: clubData.Name,
+          description: clubData.Description,
+          isMember: clubData.isMember,
+          hasPendingRequest: clubData.hasPendingRequest,
+          hasPendingInvite: clubData.hasPendingInvite
+        });
       }
     } catch (error) {
       console.error('Error fetching club info:', error);
@@ -68,6 +78,8 @@ const JoinClub: React.FC = () => {
     setMessage('');
 
     try {
+      // Note: Join club creates a JoinRequest, which is handled via v1 for now
+      // TODO: Implement as OData action or direct JoinRequest entity creation
       const response = await api.post(`/api/v1/clubs/${clubId}/join`);
       if (response.status === 201) {
         setMessage('Join request sent successfully! An admin will review your request.');

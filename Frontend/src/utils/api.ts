@@ -110,7 +110,8 @@ api.interceptors.response.use(
 
 // Club API functions
 export const hardDeleteClub = async (clubId: string) => {
-  return api.delete(`/api/v1/clubs/${clubId}/hard-delete`);
+  // OData v2: Use HardDelete action on Club entity
+  return api.post(`/api/v2/Clubs('${clubId}')/HardDelete`);
 };
 
 export default api;

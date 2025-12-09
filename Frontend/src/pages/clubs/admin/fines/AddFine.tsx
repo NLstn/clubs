@@ -32,6 +32,26 @@ interface FineTemplateOption {
     template: FineTemplate;
 }
 
+interface ODataMember {
+    ID: string;
+    Role: string;
+    UserID: string;
+    User?: {
+        Name: string;
+    };
+}
+
+interface ODataFineTemplate {
+    ID: string;
+    ClubID: string;
+    Description: string;
+    Amount: number;
+    CreatedAt: string;
+    CreatedBy: string;
+    UpdatedAt: string;
+    UpdatedBy: string;
+}
+
 interface AddFineProps {
     isOpen: boolean;
     onClose: () => void;
@@ -56,8 +76,16 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
     useEffect(() => {
         const fetchMembers = async () => {
             try {
-                const response = await api.get(`/api/v1/clubs/${clubId}/members`);
-                setMembers(response.data);
+                const response = await api.get(`/api/v2/Members?$filter=ClubID eq '${clubId}'&$expand=User`);
+                const membersData = (response.data.value || []) as ODataMember[];
+                // Map OData response to expected format
+                const mappedMembers = membersData.map((member) => ({
+                    id: member.ID,
+                    name: member.User?.Name || 'Unknown',
+                    role: member.Role,
+                    userId: member.UserID
+                }));
+                setMembers(mappedMembers);
             } catch (error: unknown) {
                 if (error instanceof Error) {
                     setError("Failed to fetch members: " + error.message);
@@ -69,8 +97,20 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
 
         const fetchFineTemplates = async () => {
             try {
-                const response = await api.get(`/api/v1/clubs/${clubId}/fine-templates`);
-                setFineTemplates(response.data);
+                const response = await api.get(`/api/v2/FineTemplates?$filter=ClubID eq '${clubId}'`);
+                const templatesData = (response.data.value || []) as ODataFineTemplate[];
+                // Map OData response to expected format
+                const mappedTemplates = templatesData.map((template) => ({
+                    id: template.ID,
+                    club_id: template.ClubID,
+                    description: template.Description,
+                    amount: template.Amount,
+                    created_at: template.CreatedAt,
+                    created_by: template.CreatedBy,
+                    updated_at: template.UpdatedAt,
+                    updated_by: template.UpdatedBy
+                }));
+                setFineTemplates(mappedTemplates);
             } catch (error: unknown) {
                 if (error instanceof Error) {
                     setError("Failed to fetch fine templates: " + error.message);
@@ -96,10 +136,12 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
         setError(null);
         setIsSubmitting(true);
         try {
-            await api.post(`/api/v1/clubs/${clubId}/fines`, { 
-                amount, 
-                reason,
-                userId: selectedOption.member.userId
+            await api.post(`/api/v2/Fines`, { 
+                Amount: amount, 
+                Reason: reason,
+                UserID: selectedOption.member.userId,
+                ClubID: clubId,
+                Paid: false
             });
             setAmount(0);
             setReason('');

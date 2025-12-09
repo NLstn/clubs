@@ -30,8 +30,8 @@ const RecentClubsDropdown: React.FC = () => {
     setIsOpen(false);
     
     try {
-      // First try to check if the club exists
-      await api.get(`/api/v1/clubs/${clubId}`);
+      // First try to check if the club exists (OData v2)
+      await api.get(`/api/v2/Clubs('${clubId}')`);
       navigate(`/clubs/${clubId}`);
     } catch {
       // If club doesn't exist, remove it from recent clubs

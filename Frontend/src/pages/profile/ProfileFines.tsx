@@ -28,10 +28,22 @@ const ProfileFines = () => {
         setLoading(true);
         setError('');
         try {
-            const response = await api.get('/api/v1/me/fines');
+            // OData v2: Query Fines with expand Club for club name, filtered to current user
+            const response = await api.get('/api/v2/Fines?$expand=Club&$filter=Paid eq false or Paid eq true');
             if (response.status === 200) {
-                const data = response.data;
-                setFines(data || []);
+                interface ODataFine { ID: string; Amount: number; Reason: string; CreatedAt: string; UpdatedAt: string; Paid: boolean; Club?: { Name: string; }; }
+                const data = response.data.value || [];
+                // Map OData response to match expected format
+                const mappedFines = data.map((fine: ODataFine) => ({
+                    id: fine.ID,
+                    clubName: fine.Club?.Name || 'Unknown Club',
+                    amount: fine.Amount || 0,
+                    reason: fine.Reason || '',
+                    createdAt: fine.CreatedAt,
+                    updatedAt: fine.UpdatedAt,
+                    paid: fine.Paid || false
+                }));
+                setFines(mappedFines);
             }
         } catch (error) {
             setError('Error fetching fines: ' + error);
