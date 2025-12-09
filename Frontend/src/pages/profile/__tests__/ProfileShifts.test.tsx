@@ -22,8 +22,13 @@ vi.mock('../../../components/layout/Layout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="layout">{children}</div>
 }));
 
-vi.mock('../ProfileSidebar', () => ({
-  default: () => <div data-testid="profile-sidebar">Sidebar</div>
+vi.mock('../../../components/layout/ProfileContentLayout', () => ({
+  default: ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div data-testid="profile-content-layout">
+      <h1>{title}</h1>
+      {children}
+    </div>
+  )
 }));
 
 describe('ProfileShifts', () => {
@@ -35,7 +40,7 @@ describe('ProfileShifts', () => {
     );
 
     expect(screen.getByTestId('layout')).toBeInTheDocument();
-    expect(screen.getByTestId('profile-sidebar')).toBeInTheDocument();
+    expect(screen.getByTestId('profile-content-layout')).toBeInTheDocument();
     expect(screen.getByText('My Future Shifts')).toBeInTheDocument();
   });
 

@@ -5,6 +5,21 @@ import { beforeEach, afterEach } from 'vitest'
 // Mock environment variables for testing
 import.meta.env.VITE_API_HOST = 'http://localhost:8080'
 
+// Mock window.matchMedia for ThemeProvider
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {}, // deprecated
+    removeListener: () => {}, // deprecated
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => true,
+  }),
+})
+
 // Configure React Testing Library to not show act warnings in console
 // This is handled by our test utilities which properly wrap updates in act()
 import { configure } from '@testing-library/react'

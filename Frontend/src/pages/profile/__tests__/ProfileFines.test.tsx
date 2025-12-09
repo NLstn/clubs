@@ -20,9 +20,14 @@ vi.mock('../../../components/layout/Layout', () => ({
   ),
 }))
 
-// Mock ProfileSidebar component to avoid its complexity in unit tests
-vi.mock('../ProfileSidebar', () => ({
-  default: () => <div data-testid="profile-sidebar">Profile Sidebar</div>
+// Mock ProfileContentLayout to simplify testing
+vi.mock('../../../components/layout/ProfileContentLayout', () => ({
+  default: ({ title, children }: { title: string; children: React.ReactNode }) => (
+    <div data-testid="profile-content-layout">
+      <h1>{title}</h1>
+      {children}
+    </div>
+  )
 }))
 
 const renderWithRouter = (component: React.ReactElement) => {
