@@ -183,13 +183,46 @@ service.RegisterFunction("Club", "IsAdmin", checkAdminHandler)
 - **Testing/QA:** 1 tester (ongoing)
 - **DevOps:** Support for deployment and monitoring
 
+## Progress Status
+
+### ✅ Completed
+
+- **Phase 1: Foundation** - Entity registration, basic CRUD operations
+- **Phase 2: Authorization** - Authentication middleware, read/write hooks  
+- **Phase 3: Core CRUD** - Basic entity operations tested
+- **Phase 4: Custom Operations** - All actions and functions implemented! 🎉
+  - 8 OData Actions (state-changing operations)
+  - 8 OData Functions (read-only queries)
+
+### 🚧 In Progress
+
+- **Phase 5: Advanced Features** - Change tracking, full-text search, optimization
+
+### ⏳ Upcoming
+
+- **Phase 6: Testing & Validation** - Integration and compliance testing
+- **Phase 7: Frontend Migration** - Client updates and testing
+- **Phase 8: Deprecation** - Gradual phase-out of old endpoints
+
+## Recent Updates (December 2025)
+
+**Phase 4 Complete! ✅**
+
+- ✅ Updated go-odata to v0.5.1 with improved documentation
+- ✅ Implemented 8 custom actions (Accept/Reject invites, join requests, leave club, etc.)
+- ✅ Implemented 8 custom functions (IsAdmin, GetOwnerCount, dashboard queries, search)
+- ✅ All backend quality checks passing (go mod verify, go build)
+- ✅ Actions and functions registered and ready for use
+- ⏳ Integration testing needed for actions and functions
+
 ## Next Steps
 
 1. ✅ Review migration plan
-2. ⏳ Get team approval
-3. ⏳ Begin Phase 1 implementation
-4. ⏳ Set up weekly progress reviews
-5. ⏳ Celebrate milestones along the way!
+2. ✅ Get team approval
+3. ✅ Phase 1-3 complete
+4. 🚧 Complete Phase 4 (functions + testing)
+5. ⏳ Set up weekly progress reviews
+6. ⏳ Celebrate milestones along the way!
 
 ---
 

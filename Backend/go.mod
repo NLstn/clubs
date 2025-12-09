@@ -11,6 +11,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.17.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/joho/godotenv v1.5.1
+	github.com/nlstn/go-odata v0.5.1
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/oauth2 v0.34.0
 	golang.org/x/time v0.14.0
@@ -32,7 +33,6 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.32 // indirect
-	github.com/nlstn/go-odata v0.5.0 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect

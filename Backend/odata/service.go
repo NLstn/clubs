@@ -54,5 +54,15 @@ func NewService(db *gorm.DB) (*Service, error) {
 		return nil, fmt.Errorf("failed to register auth hooks: %w", err)
 	}
 
+	// Register custom actions (Phase 4)
+	if err := service.registerActions(); err != nil {
+		return nil, fmt.Errorf("failed to register actions: %w", err)
+	}
+
+	// Register custom functions (Phase 4)
+	if err := service.registerFunctions(); err != nil {
+		return nil, fmt.Errorf("failed to register functions: %w", err)
+	}
+
 	return service, nil
 }
