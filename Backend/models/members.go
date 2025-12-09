@@ -13,14 +13,14 @@ import (
 var ErrLastOwnerDemotion = errors.New("cannot demote the last owner of the club")
 
 type Member struct {
-	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID    string    `json:"club_id" gorm:"type:uuid"`
-	UserID    string    `json:"user_id" gorm:"type:uuid"`
-	Role      string    `json:"role" gorm:"default:member"`
-	CreatedAt time.Time `json:"created_at"`
-	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
+	ID        string    `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
+	ClubID    string    `json:"club_id" gorm:"type:uuid" odata:"required"`
+	UserID    string    `json:"user_id" gorm:"type:uuid" odata:"required"`
+	Role      string    `json:"role" gorm:"default:member" odata:"required"`
+	CreatedAt time.Time `json:"created_at" odata:"immutable"`
+	CreatedBy string    `json:"created_by" gorm:"type:uuid" odata:"required"`
 	UpdatedAt time.Time `json:"updated_at"`
-	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
+	UpdatedBy string    `json:"updated_by" gorm:"type:uuid" odata:"required"`
 }
 
 func (c *Club) IsOwner(user User) bool {

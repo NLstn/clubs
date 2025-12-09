@@ -9,16 +9,16 @@ import (
 )
 
 type ClubSettings struct {
-	ID                 string    `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID             string    `json:"clubId" gorm:"type:uuid;not null;unique"`
+	ID                 string    `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
+	ClubID             string    `json:"clubId" gorm:"type:uuid;not null;unique" odata:"required"`
 	FinesEnabled       bool      `json:"finesEnabled" gorm:"default:true"`
 	ShiftsEnabled      bool      `json:"shiftsEnabled" gorm:"default:true"`
 	TeamsEnabled       bool      `json:"teamsEnabled" gorm:"default:true"`
 	MembersListVisible bool      `json:"membersListVisible" gorm:"default:true"`
-	CreatedAt          time.Time `json:"createdAt"`
-	CreatedBy          string    `json:"createdBy" gorm:"type:uuid"`
+	CreatedAt          time.Time `json:"createdAt" odata:"immutable"`
+	CreatedBy          string    `json:"createdBy" gorm:"type:uuid" odata:"required"`
 	UpdatedAt          time.Time `json:"updatedAt"`
-	UpdatedBy          string    `json:"updatedBy" gorm:"type:uuid"`
+	UpdatedBy          string    `json:"updatedBy" gorm:"type:uuid" odata:"required"`
 }
 
 func GetClubSettings(clubID string) (ClubSettings, error) {

@@ -11,41 +11,41 @@ import (
 
 // Notification represents an in-app notification for a user
 type Notification struct {
-	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
-	UserID    string    `json:"userId" gorm:"type:uuid;not null"`
-	Type      string    `json:"type" gorm:"not null"` // e.g., "member_added", "event_created", "fine_assigned", "invite_received"
-	Title     string    `json:"title" gorm:"not null"`
-	Message   string    `json:"message" gorm:"not null"`
+	ID        string    `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
+	UserID    string    `json:"userId" gorm:"type:uuid;not null" odata:"required"`
+	Type      string    `json:"type" gorm:"not null" odata:"required"` // e.g., "member_added", "event_created", "fine_assigned", "invite_received"
+	Title     string    `json:"title" gorm:"not null" odata:"required"`
+	Message   string    `json:"message" gorm:"not null" odata:"required"`
 	Read      bool      `json:"read" gorm:"default:false"`
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt" odata:"immutable"`
 	// Optional data for linking to specific resources
-	ClubID         *string `json:"clubId,omitempty" gorm:"type:uuid"`
-	EventID        *string `json:"eventId,omitempty" gorm:"type:uuid"`
-	FineID         *string `json:"fineId,omitempty" gorm:"type:uuid"`
-	InviteID       *string `json:"inviteId,omitempty" gorm:"type:uuid"`
-	JoinRequestID  *string `json:"joinRequestId,omitempty" gorm:"type:uuid"`
+	ClubID        *string `json:"clubId,omitempty" gorm:"type:uuid" odata:"nullable"`
+	EventID       *string `json:"eventId,omitempty" gorm:"type:uuid" odata:"nullable"`
+	FineID        *string `json:"fineId,omitempty" gorm:"type:uuid" odata:"nullable"`
+	InviteID      *string `json:"inviteId,omitempty" gorm:"type:uuid" odata:"nullable"`
+	JoinRequestID *string `json:"joinRequestId,omitempty" gorm:"type:uuid" odata:"nullable"`
 }
 
 // UserNotificationPreferences represents user's notification settings
 type UserNotificationPreferences struct {
-	ID                     string    `json:"id" gorm:"type:uuid;primary_key"`
-	UserID                 string    `json:"userId" gorm:"type:uuid;not null;unique"`
-	MemberAddedInApp       bool      `json:"memberAddedInApp" gorm:"default:true"`
-	MemberAddedEmail       bool      `json:"memberAddedEmail" gorm:"default:true"`
-	InviteReceivedInApp    bool      `json:"inviteReceivedInApp" gorm:"default:true"`
-	InviteReceivedEmail    bool      `json:"inviteReceivedEmail" gorm:"default:true"`
-	EventCreatedInApp      bool      `json:"eventCreatedInApp" gorm:"default:true"`
-	EventCreatedEmail      bool      `json:"eventCreatedEmail" gorm:"default:false"`
-	FineAssignedInApp      bool      `json:"fineAssignedInApp" gorm:"default:true"`
-	FineAssignedEmail      bool      `json:"fineAssignedEmail" gorm:"default:true"`
-	NewsCreatedInApp       bool      `json:"newsCreatedInApp" gorm:"default:true"`
-	NewsCreatedEmail       bool      `json:"newsCreatedEmail" gorm:"default:false"`
-	RoleChangedInApp       bool      `json:"roleChangedInApp" gorm:"default:true"`
-	RoleChangedEmail       bool      `json:"roleChangedEmail" gorm:"default:true"`
-	JoinRequestInApp       bool      `json:"joinRequestInApp" gorm:"default:true"`
-	JoinRequestEmail       bool      `json:"joinRequestEmail" gorm:"default:true"`
-	CreatedAt              time.Time `json:"createdAt"`
-	UpdatedAt              time.Time `json:"updatedAt"`
+	ID                  string    `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
+	UserID              string    `json:"userId" gorm:"type:uuid;not null;unique" odata:"required"`
+	MemberAddedInApp    bool      `json:"memberAddedInApp" gorm:"default:true"`
+	MemberAddedEmail    bool      `json:"memberAddedEmail" gorm:"default:true"`
+	InviteReceivedInApp bool      `json:"inviteReceivedInApp" gorm:"default:true"`
+	InviteReceivedEmail bool      `json:"inviteReceivedEmail" gorm:"default:true"`
+	EventCreatedInApp   bool      `json:"eventCreatedInApp" gorm:"default:true"`
+	EventCreatedEmail   bool      `json:"eventCreatedEmail" gorm:"default:false"`
+	FineAssignedInApp   bool      `json:"fineAssignedInApp" gorm:"default:true"`
+	FineAssignedEmail   bool      `json:"fineAssignedEmail" gorm:"default:true"`
+	NewsCreatedInApp    bool      `json:"newsCreatedInApp" gorm:"default:true"`
+	NewsCreatedEmail    bool      `json:"newsCreatedEmail" gorm:"default:false"`
+	RoleChangedInApp    bool      `json:"roleChangedInApp" gorm:"default:true"`
+	RoleChangedEmail    bool      `json:"roleChangedEmail" gorm:"default:true"`
+	JoinRequestInApp    bool      `json:"joinRequestInApp" gorm:"default:true"`
+	JoinRequestEmail    bool      `json:"joinRequestEmail" gorm:"default:true"`
+	CreatedAt           time.Time `json:"createdAt" odata:"immutable"`
+	UpdatedAt           time.Time `json:"updatedAt"`
 }
 
 // BeforeCreate sets the ID for new notifications

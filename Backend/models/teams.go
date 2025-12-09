@@ -14,28 +14,28 @@ var ErrNotClubAdminOrTeamAdmin = errors.New("user is not a club admin or team ad
 var ErrLastTeamAdminDemotion = errors.New("cannot demote the last admin of the team")
 
 type Team struct {
-	ID          string     `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID      string     `json:"clubId" gorm:"type:uuid;not null"`
-	Name        string     `json:"name" gorm:"not null"`
-	Description string     `json:"description"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	CreatedBy   string     `json:"createdBy" gorm:"type:uuid"`
+	ID          string     `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
+	ClubID      string     `json:"clubId" gorm:"type:uuid;not null" odata:"required"`
+	Name        string     `json:"name" gorm:"not null" odata:"required"`
+	Description *string    `json:"description" odata:"nullable"`
+	CreatedAt   time.Time  `json:"createdAt" odata:"immutable"`
+	CreatedBy   string     `json:"createdBy" gorm:"type:uuid" odata:"required"`
 	UpdatedAt   time.Time  `json:"updatedAt"`
-	UpdatedBy   string     `json:"updatedBy" gorm:"type:uuid"`
+	UpdatedBy   string     `json:"updatedBy" gorm:"type:uuid" odata:"required"`
 	Deleted     bool       `json:"deleted" gorm:"default:false"`
-	DeletedAt   *time.Time `json:"deletedAt,omitempty"`
-	DeletedBy   *string    `json:"deletedBy,omitempty" gorm:"type:uuid"`
+	DeletedAt   *time.Time `json:"deletedAt,omitempty" odata:"nullable"`
+	DeletedBy   *string    `json:"deletedBy,omitempty" gorm:"type:uuid" odata:"nullable"`
 }
 
 type TeamMember struct {
-	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
-	TeamID    string    `json:"teamId" gorm:"type:uuid;not null"`
-	UserID    string    `json:"userId" gorm:"type:uuid;not null"`
-	Role      string    `json:"role" gorm:"default:member"` // admin, member
-	CreatedAt time.Time `json:"createdAt"`
-	CreatedBy string    `json:"createdBy" gorm:"type:uuid"`
+	ID        string    `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
+	TeamID    string    `json:"teamId" gorm:"type:uuid;not null" odata:"required"`
+	UserID    string    `json:"userId" gorm:"type:uuid;not null" odata:"required"`
+	Role      string    `json:"role" gorm:"default:member" odata:"required"` // admin, member
+	CreatedAt time.Time `json:"createdAt" odata:"immutable"`
+	CreatedBy string    `json:"createdBy" gorm:"type:uuid" odata:"required"`
 	UpdatedAt time.Time `json:"updatedAt"`
-	UpdatedBy string    `json:"updatedBy" gorm:"type:uuid"`
+	UpdatedBy string    `json:"updatedBy" gorm:"type:uuid" odata:"required"`
 }
 
 // BeforeCreate generates UUID for new team
@@ -59,7 +59,7 @@ func (c *Club) CreateTeam(name, description, createdByUserID string) (Team, erro
 	team := Team{
 		ClubID:      c.ID,
 		Name:        name,
-		Description: description,
+		Description: &description,
 		CreatedBy:   createdByUserID,
 		UpdatedBy:   createdByUserID,
 	}
@@ -359,7 +359,7 @@ func (t *Team) CanUserDeleteTeam(user User) bool {
 // GetTeamStats returns statistics for the team
 func (t *Team) GetTeamStats() (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
-	
+
 	// Get member count
 	var memberCount int64
 	err := database.Db.Model(&TeamMember{}).Where("team_id = ?", t.ID).Count(&memberCount).Error
@@ -367,7 +367,7 @@ func (t *Team) GetTeamStats() (map[string]interface{}, error) {
 		return nil, err
 	}
 	stats["member_count"] = memberCount
-	
+
 	// Get admin count
 	var adminCount int64
 	err = database.Db.Model(&TeamMember{}).Where("team_id = ? AND role = ?", t.ID, "admin").Count(&adminCount).Error
@@ -375,7 +375,7 @@ func (t *Team) GetTeamStats() (map[string]interface{}, error) {
 		return nil, err
 	}
 	stats["admin_count"] = adminCount
-	
+
 	// Get upcoming events count
 	var upcomingEventCount int64
 	now := time.Now()
@@ -384,7 +384,7 @@ func (t *Team) GetTeamStats() (map[string]interface{}, error) {
 		return nil, err
 	}
 	stats["upcoming_events"] = upcomingEventCount
-	
+
 	// Get total events count
 	var totalEventCount int64
 	err = database.Db.Model(&Event{}).Where("team_id = ?", t.ID).Count(&totalEventCount).Error
@@ -392,7 +392,7 @@ func (t *Team) GetTeamStats() (map[string]interface{}, error) {
 		return nil, err
 	}
 	stats["total_events"] = totalEventCount
-	
+
 	// Get unpaid fines count
 	var unpaidFineCount int64
 	err = database.Db.Model(&Fine{}).Where("team_id = ? AND paid = false", t.ID).Count(&unpaidFineCount).Error
@@ -400,7 +400,7 @@ func (t *Team) GetTeamStats() (map[string]interface{}, error) {
 		return nil, err
 	}
 	stats["unpaid_fines"] = unpaidFineCount
-	
+
 	// Get total fines count
 	var totalFineCount int64
 	err = database.Db.Model(&Fine{}).Where("team_id = ?", t.ID).Count(&totalFineCount).Error
@@ -408,6 +408,6 @@ func (t *Team) GetTeamStats() (map[string]interface{}, error) {
 		return nil, err
 	}
 	stats["total_fines"] = totalFineCount
-	
+
 	return stats, nil
 }

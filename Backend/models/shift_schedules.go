@@ -7,25 +7,25 @@ import (
 )
 
 type Shift struct {
-	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	ClubID    string    `gorm:"type:uuid;not null"`
-	EventID   string    `gorm:"type:uuid;not null" json:"eventId"`
-	StartTime time.Time `gorm:"not null" json:"startTime"`
-	EndTime   time.Time `gorm:"not null" json:"endTime"`
-	CreatedAt time.Time `json:"created_at"`
-	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
+	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id" odata:"key"`
+	ClubID    string    `gorm:"type:uuid;not null" odata:"required"`
+	EventID   string    `gorm:"type:uuid;not null" json:"eventId" odata:"required"`
+	StartTime time.Time `gorm:"not null" json:"startTime" odata:"required"`
+	EndTime   time.Time `gorm:"not null" json:"endTime" odata:"required"`
+	CreatedAt time.Time `json:"created_at" odata:"immutable"`
+	CreatedBy string    `json:"created_by" gorm:"type:uuid" odata:"required"`
 	UpdatedAt time.Time `json:"updated_at"`
-	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
+	UpdatedBy string    `json:"updated_by" gorm:"type:uuid" odata:"required"`
 }
 
 type ShiftMember struct {
-	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	ShiftID   string    `gorm:"type:uuid;not null"`
-	UserID    string    `gorm:"type:uuid;not null"`
-	CreatedAt time.Time `json:"created_at"`
-	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
+	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
+	ShiftID   string    `gorm:"type:uuid;not null" odata:"required"`
+	UserID    string    `gorm:"type:uuid;not null" odata:"required"`
+	CreatedAt time.Time `json:"created_at" odata:"immutable"`
+	CreatedBy string    `json:"created_by" gorm:"type:uuid" odata:"required"`
 	UpdatedAt time.Time `json:"updated_at"`
-	UpdatedBy string    `json:"updated_by" gorm:"type:uuid"`
+	UpdatedBy string    `json:"updated_by" gorm:"type:uuid" odata:"required"`
 }
 
 func (c *Club) CreateShift(startTime, endTime time.Time, createdBy string, eventID string) (string, error) {
@@ -92,20 +92,20 @@ func RemoveMemberFromShift(shiftID, userID string) error {
 }
 
 type UserShiftDetails struct {
-	ID         string    `json:"id"`
-	StartTime  time.Time `json:"startTime"`
-	EndTime    time.Time `json:"endTime"`
-	EventID    string    `json:"eventId"`
-	EventName  string    `json:"eventName"`
-	Location   string    `json:"location"`
-	ClubID     string    `json:"clubId"`
-	ClubName   string    `json:"clubName"`
-	Members    []string  `json:"members"` // Array of member names
+	ID        string    `json:"id"`
+	StartTime time.Time `json:"startTime"`
+	EndTime   time.Time `json:"endTime"`
+	EventID   string    `json:"eventId"`
+	EventName string    `json:"eventName"`
+	Location  string    `json:"location"`
+	ClubID    string    `json:"clubId"`
+	ClubName  string    `json:"clubName"`
+	Members   []string  `json:"members"` // Array of member names
 }
 
 func GetUserFutureShifts(userID string) ([]UserShiftDetails, error) {
 	var shifts []UserShiftDetails
-	
+
 	query := `
 		SELECT DISTINCT 
 			s.id, s.start_time, s.end_time, s.event_id,
@@ -118,19 +118,19 @@ func GetUserFutureShifts(userID string) ([]UserShiftDetails, error) {
 		WHERE sm.user_id = ? AND s.start_time > NOW()
 		ORDER BY s.start_time ASC
 	`
-	
+
 	err := database.Db.Raw(query, userID).Scan(&shifts).Error
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// For each shift, get all the members assigned to it
 	for i := range shifts {
 		shiftMembers, err := GetShiftMembers(shifts[i].ID)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		var memberNames []string
 		for _, shiftMember := range shiftMembers {
 			user, err := GetUserByID(shiftMember.UserID)
@@ -141,6 +141,6 @@ func GetUserFutureShifts(userID string) ([]UserShiftDetails, error) {
 		}
 		shifts[i].Members = memberNames
 	}
-	
+
 	return shifts, nil
 }

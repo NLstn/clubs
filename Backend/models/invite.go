@@ -10,11 +10,11 @@ import (
 
 // Invite represents an admin invitation to a user to join a club
 type Invite struct {
-	ID        string    `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID    string    `json:"club_id" gorm:"type:uuid"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	CreatedBy string    `json:"created_by" gorm:"type:uuid"`
+	ID        string    `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
+	ClubID    string    `json:"club_id" gorm:"type:uuid" odata:"required"`
+	Email     string    `json:"email" odata:"required"`
+	CreatedAt time.Time `json:"created_at" odata:"immutable"`
+	CreatedBy string    `json:"created_by" gorm:"type:uuid" odata:"required"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 

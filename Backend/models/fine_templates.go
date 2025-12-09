@@ -9,14 +9,14 @@ import (
 )
 
 type FineTemplate struct {
-	ID          string    `json:"id" gorm:"type:uuid;primary_key"`
-	ClubID      string    `json:"club_id" gorm:"type:uuid"`
-	Description string    `json:"description"`
-	Amount      float64   `json:"amount"`
-	CreatedAt   time.Time `json:"created_at"`
-	CreatedBy   string    `json:"created_by" gorm:"type:uuid"`
+	ID          string    `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
+	ClubID      string    `json:"club_id" gorm:"type:uuid" odata:"required"`
+	Description string    `json:"description" odata:"required"`
+	Amount      float64   `json:"amount" odata:"required"`
+	CreatedAt   time.Time `json:"created_at" odata:"immutable"`
+	CreatedBy   string    `json:"created_by" gorm:"type:uuid" odata:"required"`
 	UpdatedAt   time.Time `json:"updated_at"`
-	UpdatedBy   string    `json:"updated_by" gorm:"type:uuid"`
+	UpdatedBy   string    `json:"updated_by" gorm:"type:uuid" odata:"required"`
 }
 
 func (c *Club) CreateFineTemplate(description string, amount float64, createdBy string) (FineTemplate, error) {
