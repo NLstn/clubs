@@ -63,7 +63,8 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
         try {
             setLoading(true);
             setError(null);
-            const response = await api.get(`/api/v1/clubs/${id}/members`);
+            // OData v2: Query Members with expanded User data
+            const response = await api.get(`/api/v2/Members?$filter=ClubID eq '${id}'&$expand=User`);
             const sortedMembers = sortMembersByRole(response.data);
             setMembers(sortedMembers);
 
@@ -81,7 +82,8 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
 
     const fetchJoinRequestCount = useCallback(async () => {
         try {
-            const response = await api.get(`/api/v1/clubs/${id}/joinRequests/count`);
+            // OData v2: Use $count to get join requests count
+            const response = await api.get(`/api/v2/JoinRequests/$count?$filter=ClubID eq '${id}'`);
             setJoinRequestCount(response.data.count || 0);
         } catch (error) {
             console.error("Error fetching join request count:", error);
@@ -91,7 +93,8 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
 
     const handleShowInviteLink = async () => {
         try {
-            const response = await api.get(`/api/v1/clubs/${id}/inviteLink`);
+            // OData v2: Use GetInviteLink function on Club
+            const response = await api.get(`/api/v2/Clubs('${id}')/GetInviteLink()`);
             const fullLink = `${window.location.origin}${response.data.inviteLink}`;
             setInviteLink(fullLink);
             setShowInviteLink(true);
@@ -137,7 +140,8 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
 
     const handleRoleChange = async (memberId: string, newRole: string) => {
         try {
-            await api.patch(`/api/v1/clubs/${id}/members/${memberId}`, { role: newRole });
+            // OData v2: Use UpdateRole action on Member entity
+            await api.post(`/api/v2/Members('${memberId}')/UpdateRole`, { newRole });
             const updatedMembers = members.map(member => 
                 member.id === memberId ? { ...member, role: newRole } : member
             );
@@ -152,7 +156,8 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
 
     const deleteMember = async (memberId: string) => {
         try {
-            await api.delete(`/api/v1/clubs/${id}/members/${memberId}`);
+            // OData v2: Delete member using DELETE
+            await api.delete(`/api/v2/Members('${memberId}')`);
             setMembers(members.filter(member => member.id !== memberId));
         } catch {
             setError('Failed to delete member');
@@ -161,7 +166,8 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
 
     const sendInvite = async (email: string) => {
         try {
-            await api.post(`/api/v1/clubs/${id}/invites`, { email });
+            // OData v2: Use CreateInvite action on Club entity
+            await api.post(`/api/v2/Clubs('${id}')/CreateInvite`, { email });
             setInviteEmail(''); // Clear the email input after successful invite
             // Keep the modal open but refresh the pending invites list
             // The pending invites list will automatically refresh due to useEffect

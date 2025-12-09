@@ -50,8 +50,10 @@ const TeamMembers = () => {
             }
 
             try {
-                const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/members`);
-                const sortedMembers = sortMembersByRole(response.data);
+                // OData v2: Use GetMembers function on Team entity
+                const response = await api.get(`/api/v2/Teams('${teamId}')/GetMembers()`);
+                const membersData = response.data.value || response.data;
+                const sortedMembers = sortMembersByRole(membersData);
                 setMembers(sortedMembers);
                 setError(null);
             } catch (err) {

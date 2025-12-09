@@ -58,7 +58,7 @@ describe('CreateClub', () => {
   });
 
   it('successfully creates a club and redirects', async () => {
-    const mockResponse = { data: { id: '123', name: 'Test Club' } };
+    const mockResponse = { data: { ID: '123', Name: 'Test Club' } };
     mockPost.mockResolvedValue(mockResponse);
     
     render(<CreateClub />);
@@ -72,9 +72,9 @@ describe('CreateClub', () => {
     fireEvent.click(submitButton);
     
     await waitFor(() => {
-      expect(mockPost).toHaveBeenCalledWith('/api/v1/clubs', { 
-        name: 'Test Club', 
-        description: 'Test Description' 
+      expect(mockPost).toHaveBeenCalledWith('/api/v2/Clubs', { 
+        Name: 'Test Club', 
+        Description: 'Test Description' 
       });
     });
     

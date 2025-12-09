@@ -44,7 +44,8 @@ const AdminClubEventList = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.get(`/api/v1/clubs/${id}/events`);
+            // OData v2: Query Events for this club
+            const response = await api.get(`/api/v2/Events?$filter=ClubID eq '${id}'`);
             setEvents(response.data || []);
 
             // Fetch RSVP counts and shifts for each event
@@ -53,11 +54,13 @@ const AdminClubEventList = () => {
             for (const event of response.data || []) {
                 try {
                     // Fetch RSVP counts
-                    const rsvpResponse = await api.get(`/api/v1/clubs/${id}/events/${event.id}/rsvps`);
+                    // OData v2: Use GetRSVPs function on Event entity
+                    const rsvpResponse = await api.get(`/api/v2/Events('${event.id}')/GetRSVPs()`);
                     counts[event.id] = rsvpResponse.data.counts || {};
                     
                     // Fetch event shifts
-                    const shiftsResponse = await api.get(`/api/v1/clubs/${id}/events/${event.id}/shifts`);
+                    // OData v2: Query Shifts for this event
+                    const shiftsResponse = await api.get(`/api/v2/Shifts?$filter=EventID eq '${event.id}'`);
                     shifts[event.id] = shiftsResponse.data || [];
                 } catch (err) {
                     console.warn(`Failed to fetch data for event ${event.id}:`, err);
@@ -106,7 +109,8 @@ const AdminClubEventList = () => {
         }
 
         try {
-            await api.delete(`/api/v1/clubs/${id}/events/${eventId}`);
+            // OData v2: Delete event
+            await api.delete(`/api/v2/Events('${eventId}')`);
             fetchEvents(); // Refresh the list
         } catch (error) {
             console.error("Error deleting event:", error);

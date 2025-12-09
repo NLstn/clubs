@@ -15,7 +15,7 @@ interface Fine {
 }
 
 const TeamFines = () => {
-    const { clubId, teamId } = useParams();
+    const { teamId } = useParams();
     const [fines, setFines] = useState<Fine[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -23,8 +23,22 @@ const TeamFines = () => {
     const fetchFines = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/fines`);
-            setFines(response.data || []);
+            // OData v2: Use GetFines function on Team entity
+            const response = await api.get(`/api/v2/Teams('${teamId}')/GetFines()`);
+            const finesData = response.data.value || response.data || [];
+            // Map OData response to expected format
+            interface ODataFine { ID: string; TeamID: string; Amount: number; Reason: string; CreatedAt: string; UpdatedAt: string; Paid: boolean; createdByName?: string; CreatedByName?: string; }
+            const mappedFines = finesData.map((fine: ODataFine) => ({
+                id: fine.ID,
+                teamId: fine.TeamID,
+                amount: fine.Amount,
+                reason: fine.Reason,
+                createdAt: fine.CreatedAt,
+                updatedAt: fine.UpdatedAt,
+                paid: fine.Paid,
+                createdByName: fine.createdByName || fine.CreatedByName || 'Unknown'
+            }));
+            setFines(mappedFines);
             setError(null);
         } catch (err) {
             setError("Failed to fetch team fines: " + err);
@@ -32,7 +46,7 @@ const TeamFines = () => {
         } finally {
             setLoading(false);
         }
-    }, [clubId, teamId]);
+    }, [teamId]);
 
     useEffect(() => {
         fetchFines();

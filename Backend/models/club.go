@@ -1,11 +1,17 @@
 package models
 
 import (
+	"context"
+	"fmt"
+	"net/http"
 	"time"
 
-	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/clubs/auth"
 	"github.com/google/uuid"
+	"github.com/nlstn/go-odata"
 	"gorm.io/gorm"
+
+	"github.com/NLstn/clubs/database"
 )
 
 type Club struct {
@@ -13,10 +19,10 @@ type Club struct {
 	Name        string     `json:"name" odata:"required"`
 	Description *string    `json:"description" odata:"nullable"`
 	LogoURL     *string    `json:"logo_url,omitempty" odata:"nullable"`
-	CreatedAt   time.Time  `json:"created_at" odata:"immutable"`
-	CreatedBy   string     `json:"created_by" gorm:"type:uuid" odata:"required"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	UpdatedBy   string     `json:"updated_by" gorm:"type:uuid" odata:"required"`
+	CreatedAt   time.Time  `json:"created_at" odata:"auto,immutable"`                  // Set server-side, immutable after creation
+	CreatedBy   string     `json:"created_by" gorm:"type:uuid" odata:"auto,immutable"` // Set server-side from context
+	UpdatedAt   time.Time  `json:"updated_at" odata:"auto"`                            // Set server-side automatically
+	UpdatedBy   string     `json:"updated_by" gorm:"type:uuid" odata:"auto"`           // Set server-side from context
 	Deleted     bool       `json:"deleted" gorm:"default:false"`
 	DeletedAt   *time.Time `json:"deleted_at,omitempty" odata:"nullable"`
 	DeletedBy   *string    `json:"deleted_by,omitempty" gorm:"type:uuid" odata:"nullable"`
@@ -125,4 +131,75 @@ func (c *Club) GetAdminsAndOwners() ([]User, error) {
 		Where("members.club_id = ? AND (members.role = ? OR members.role = ?)", c.ID, "admin", "owner").
 		Find(&users).Error
 	return users, err
+}
+
+// BeforeCreate GORM hook - sets UUID if not provided
+func (c *Club) BeforeCreate(tx *gorm.DB) error {
+	if c.ID == "" {
+		c.ID = uuid.New().String()
+	}
+
+	// Note: CreatedBy and UpdatedBy are set by OData hooks from HTTP context
+	// GORM BeforeCreate runs after OData BeforeCreate
+
+	return nil
+}
+
+// OData EntityHook implementation
+
+// ODataBeforeCreate OData hook - sets audit fields from authenticated user context
+func (c *Club) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	// Extract user ID from context
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Set audit fields
+	now := time.Now()
+	c.CreatedAt = now
+	c.CreatedBy = userID
+	c.UpdatedAt = now
+	c.UpdatedBy = userID
+
+	return nil
+}
+
+// AfterCreate OData hook - creates the creator as an owner member of the club
+func (c *Club) AfterCreate(ctx context.Context, r *http.Request) error {
+	// Get transaction from context
+	tx, ok := odata.TransactionFromContext(ctx)
+	if !ok {
+		return fmt.Errorf("transaction not found in context")
+	}
+
+	// Create member record with owner role
+	member := Member{
+		ClubID:    c.ID,
+		UserID:    c.CreatedBy,
+		Role:      "owner",
+		CreatedBy: c.CreatedBy,
+		UpdatedBy: c.CreatedBy,
+	}
+
+	if err := tx.Create(&member).Error; err != nil {
+		return fmt.Errorf("failed to create owner member: %w", err)
+	}
+
+	return nil
+}
+
+// BeforeUpdate OData hook - sets UpdatedBy from authenticated user context
+func (c *Club) BeforeUpdate(ctx context.Context, r *http.Request) error {
+	// Extract user ID from context
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Set updated by and updated at
+	c.UpdatedAt = time.Now()
+	c.UpdatedBy = userID
+
+	return nil
 }

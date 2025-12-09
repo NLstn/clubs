@@ -56,19 +56,20 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
         
         try {
             const endpoint = isRecurring 
-                ? `/api/v1/clubs/${clubId}/events/recurring`
-                : `/api/v1/clubs/${clubId}/events`;
+                ? `/api/v2/Events/Recurring`
+                : `/api/v2/Events`;
 
             const payload = {
-                name,
-                description,
-                location,
-                start_time: startDateTime.toISOString(),
-                end_time: endDateTime.toISOString(),
+                ClubID: clubId,
+                Name: name,
+                Description: description,
+                Location: location,
+                StartTime: startDateTime.toISOString(),
+                EndTime: endDateTime.toISOString(),
                 ...(isRecurring && {
-                    recurrence_pattern: recurrencePattern,
-                    recurrence_interval: recurrenceInterval,
-                    recurrence_end: new Date(recurrenceEnd).toISOString()
+                    RecurrencePattern: recurrencePattern,
+                    RecurrenceInterval: recurrenceInterval,
+                    RecurrenceEnd: new Date(recurrenceEnd).toISOString()
                 })
             };
 

@@ -18,6 +18,7 @@ const mockApi = {
   get: vi.fn(),
   post: vi.fn(),
   put: vi.fn(),
+  patch: vi.fn(),
   delete: vi.fn(),
 };
 
@@ -85,7 +86,8 @@ describe('Signup', () => {
   });
 
   it('submits form with correct data and navigates to dashboard', async () => {
-    mockApi.put.mockResolvedValue({ data: {} });
+    mockApi.get.mockResolvedValue({ data: { value: [{ ID: 'user-123' }] } });
+    mockApi.patch = vi.fn().mockResolvedValue({ data: {} });
 
     render(
       <SignupWrapper>
@@ -102,7 +104,7 @@ describe('Signup', () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(mockApi.put).toHaveBeenCalledWith('/api/v1/me', {
+      expect(mockApi.patch).toHaveBeenCalledWith('/api/v2/Users(\'user-123\')', {
         firstName: 'John',
         lastName: 'Doe',
       });
@@ -111,7 +113,8 @@ describe('Signup', () => {
   });
 
   it('shows error message when API call fails', async () => {
-    mockApi.put.mockRejectedValue(new Error('API Error'));
+    mockApi.get.mockResolvedValue({ data: { value: [{ ID: 'user-123' }] } });
+    mockApi.patch = vi.fn().mockRejectedValue(new Error('API Error'));
 
     render(
       <SignupWrapper>

@@ -35,13 +35,34 @@ const ProfilePrivacy = () => {
             try {
                 setIsLoading(true);
                 
-                // Fetch privacy settings
-                const privacyResponse = await api.get('/api/v1/me/privacy/clubs');
-                setPrivacySettings(privacyResponse.data);
+                // OData v2: Fetch privacy settings
+                const privacyResponse = await api.get('/api/v2/UserPrivacySettings');
+                const privacyData = privacyResponse.data.value || [];
                 
-                // Fetch user's clubs
-                const clubsResponse = await api.get('/api/v1/clubs');
-                setClubs(clubsResponse.data || []);
+                // Process privacy settings into expected format
+                interface ODataPrivacySetting { ID: string; ClubID?: string; ShareBirthDate: boolean; }
+                const globalSetting = privacyData.find((s: ODataPrivacySetting) => !s.ClubID);
+                const clubSettings = privacyData
+                    .filter((s: ODataPrivacySetting) => s.ClubID)
+                    .map((s: ODataPrivacySetting) => ({
+                        clubId: s.ClubID!,
+                        shareBirthDate: s.ShareBirthDate
+                    }));
+                
+                setPrivacySettings({
+                    global: { shareBirthDate: globalSetting?.ShareBirthDate || false },
+                    clubs: clubSettings
+                });
+                
+                // OData v2: Fetch user's clubs
+                const clubsResponse = await api.get('/api/v2/Clubs');
+                const clubsData = clubsResponse.data.value || [];
+                interface ODataClub { ID: string; Name: string; }
+                const mappedClubs = clubsData.map((c: ODataClub) => ({
+                    id: c.ID,
+                    name: c.Name
+                }));
+                setClubs(mappedClubs);
                 
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -56,7 +77,18 @@ const ProfilePrivacy = () => {
 
     const updateGlobalSetting = async (shareBirthDate: boolean) => {
         try {
-            await api.put('/api/v1/me/privacy', { shareBirthDate });
+            // OData v2: Find or create global privacy setting
+            const privacyResponse = await api.get('/api/v2/UserPrivacySettings?$filter=ClubID eq null');
+            const privacyData = privacyResponse.data.value || [];
+            
+            if (privacyData.length > 0) {
+                // Update existing global setting
+                await api.patch(`/api/v2/UserPrivacySettings('${privacyData[0].ID}')`, { ShareBirthDate: shareBirthDate });
+            } else {
+                // Create new global setting
+                await api.post('/api/v2/UserPrivacySettings', { ShareBirthDate: shareBirthDate });
+            }
+            
             setPrivacySettings(prev => ({
                 ...prev,
                 global: { shareBirthDate }
@@ -71,7 +103,17 @@ const ProfilePrivacy = () => {
 
     const updateClubSetting = async (clubId: string, shareBirthDate: boolean) => {
         try {
-            await api.put('/api/v1/me/privacy', { shareBirthDate, clubId });
+            // OData v2: Find or create club-specific privacy setting
+            const privacyResponse = await api.get(`/api/v2/UserPrivacySettings?$filter=ClubID eq '${clubId}'`);
+            const privacyData = privacyResponse.data.value || [];
+            
+            if (privacyData.length > 0) {
+                // Update existing club setting
+                await api.patch(`/api/v2/UserPrivacySettings('${privacyData[0].ID}')`, { ShareBirthDate: shareBirthDate });
+            } else {
+                // Create new club setting
+                await api.post('/api/v2/UserPrivacySettings', { ClubID: clubId, ShareBirthDate: shareBirthDate });
+            }
             
             setPrivacySettings(prev => {
                 const updatedClubs = prev.clubs.filter(c => c.clubId !== clubId);

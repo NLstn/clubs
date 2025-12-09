@@ -63,7 +63,8 @@ const AdminEventDetails: FC = () => {
         
         try {
             // Fetch event details
-            const eventResponse = await api.get(`/api/v1/clubs/${clubId}/events/${eventId}`, {
+            // OData v2: Fetch Event with expanded data
+            const eventResponse = await api.get(`/api/v2/Events('${eventId}')`, {
                 signal: abortSignal
             });
             if (!abortSignal?.aborted) {
@@ -72,7 +73,8 @@ const AdminEventDetails: FC = () => {
 
             // Fetch RSVP counts
             try {
-                const rsvpResponse = await api.get(`/api/v1/clubs/${clubId}/events/${eventId}/rsvps`, {
+                // OData v2: Use GetRSVPs function
+                const rsvpResponse = await api.get(`/api/v2/Events('${eventId}')/GetRSVPs()`, {
                     signal: abortSignal
                 });
                 if (!abortSignal?.aborted) {
@@ -87,7 +89,8 @@ const AdminEventDetails: FC = () => {
 
             // Fetch shifts if available
             try {
-                const shiftsResponse = await api.get(`/api/v1/clubs/${clubId}/events/${eventId}/shifts`, {
+                // OData v2: Query Shifts for this event
+                const shiftsResponse = await api.get(`/api/v2/Shifts?$filter=EventID eq '${eventId}'`, {
                     signal: abortSignal
                 });
                 if (!abortSignal?.aborted) {
@@ -143,7 +146,8 @@ const AdminEventDetails: FC = () => {
         setDeleteLoading(true);
         
         try {
-            await api.delete(`/api/v1/clubs/${clubId}/events/${eventId}`);
+            // OData v2: Delete event
+            await api.delete(`/api/v2/Events('${eventId}')`);
             navigate(`/clubs/${clubId}/admin`, { 
                 state: { message: "Event deleted successfully" } 
             });

@@ -46,8 +46,10 @@ const TeamDetails = () => {
 
         const fetchData = async () => {
             try {
-                const overviewResponse = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/overview`);
-                const { team: teamData, is_admin, user_role } = overviewResponse.data;
+                // OData v2: Use GetOverview function on Team entity
+                const overviewResponse = await api.get(`/api/v2/Teams('${teamId}')/GetOverview()`);
+                const data = overviewResponse.data.value || overviewResponse.data;
+                const { team: teamData, is_admin, user_role } = data;
                 
                 setTeam(teamData);
                 setIsAdmin(is_admin);

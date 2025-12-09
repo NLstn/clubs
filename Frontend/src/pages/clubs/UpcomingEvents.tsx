@@ -55,9 +55,8 @@ const UpcomingEvents = () => {
 
     const handleRSVP = async (eventId: string, response: string) => {
         try {
-            // TODO: Implement RSVP as OData action or direct EventRSVP entity creation
-            // For now, using v1 endpoint
-            await api.post(`/api/v1/clubs/${id}/events/${eventId}/rsvp`, { response });
+            // OData v2: Use AddRSVP action on Event entity
+            await api.post(`/api/v2/Events('${eventId}')/AddRSVP`, { response });
             // Refresh events to update RSVP status
             fetchUpcomingEvents();
         } catch (error) {

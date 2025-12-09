@@ -29,7 +29,8 @@ const AdminClubPendingInviteList = () => {
             setLoading(true);
             setError(null);
             try {
-                const response = await api.get(`/api/v1/clubs/${id}/invites`);
+                // OData v2: Query Invites for this club
+                const response = await api.get(`/api/v2/Invites?$filter=ClubID eq '${id}'`);
                 setInvites(response.data);
             } catch (error) {
                 console.error("Error fetching invites:", error);

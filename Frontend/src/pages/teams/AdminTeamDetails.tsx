@@ -87,7 +87,8 @@ const AdminTeamDetails = () => {
             }
 
             try {
-                const overviewResponse = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/overview`);
+                // OData v2: Use GetOverview function on Team entity
+                const overviewResponse = await api.get(`/api/v2/Teams('${teamId}')/GetOverview()`);
                 setTeamOverview(overviewResponse.data);
                 
                 if (!overviewResponse.data.is_admin) {
@@ -120,21 +121,23 @@ const AdminTeamDetails = () => {
 
     const fetchEvents = useCallback(async () => {
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/events`);
+            // OData v2: Use GetEvents function on Team entity
+            const response = await api.get(`/api/v2/Teams('${teamId}')/GetEvents()`);
             setEvents(response.data || []);
         } catch (err) {
             console.error('Error fetching events:', err);
         }
-    }, [clubId, teamId]);
+    }, [teamId]);
 
     const fetchFines = useCallback(async () => {
         try {
-            const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/fines`);
+            // OData v2: Use GetFines function on Team entity
+            const response = await api.get(`/api/v2/Teams('${teamId}')/GetFines()`);
             setFines(response.data || []);
         } catch (err) {
             console.error('Error fetching fines:', err);
         }
-    }, [clubId, teamId]);
+    }, [teamId]);
 
     useEffect(() => {
         if (activeTab === 'events' && teamOverview) {
@@ -157,9 +160,14 @@ const AdminTeamDetails = () => {
 
     const updateTeam = async () => {
         try {
-            await api.put(`/api/v1/clubs/${clubId}/teams/${teamId}`, editForm);
+            // OData v2: Update team using PATCH
+            await api.patch(`/api/v2/Teams('${teamId}')`, {
+                Name: editForm.name,
+                Description: editForm.description
+            });
             // Refresh team data
-            const response = await api.get(`/api/v1/clubs/${clubId}/teams/${teamId}/overview`);
+            // OData v2: Use GetOverview function
+            const response = await api.get(`/api/v2/Teams('${teamId}')/GetOverview()`);
             setTeamOverview(response.data);
             setIsEditing(false);
             setError(null);
@@ -175,7 +183,12 @@ const AdminTeamDetails = () => {
         }
 
         try {
-            await api.post(`/api/v1/clubs/${clubId}/teams/${teamId}/events`, newEvent);
+            // OData v2: Create event with TeamID
+            await api.post(`/api/v2/Events`, {
+                ...newEvent,
+                TeamID: teamId,
+                ClubID: clubId
+            });
             setNewEvent({
                 name: '',
                 description: '',
@@ -194,7 +207,8 @@ const AdminTeamDetails = () => {
         if (!confirm('Are you sure you want to delete this event?')) return;
 
         try {
-            await api.delete(`/api/v1/clubs/${clubId}/teams/${teamId}/events/${eventId}`);
+            // OData v2: Delete event
+            await api.delete(`/api/v2/Events('${eventId}')`);
             fetchEvents();
         } catch {
             setError('Failed to delete event');
@@ -208,7 +222,12 @@ const AdminTeamDetails = () => {
         }
 
         try {
-            await api.post(`/api/v1/clubs/${clubId}/teams/${teamId}/fines`, newFine);
+            // OData v2: Create fine with TeamID
+            await api.post(`/api/v2/Fines`, {
+                ...newFine,
+                TeamID: teamId,
+                ClubID: clubId
+            });
             setNewFine({
                 userId: '',
                 reason: '',
@@ -225,7 +244,8 @@ const AdminTeamDetails = () => {
         if (!confirm('Are you sure you want to delete this fine?')) return;
 
         try {
-            await api.delete(`/api/v1/clubs/${clubId}/teams/${teamId}/fines/${fineId}`);
+            // OData v2: Delete fine
+            await api.delete(`/api/v2/Fines('${fineId}')`);
             fetchFines();
         } catch {
             setError('Failed to delete fine');
