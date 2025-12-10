@@ -8,6 +8,9 @@ import api from '../../../utils/api';
 vi.mock('../../../utils/api');
 const mockedApi = vi.mocked(api);
 
+// Mock localStorage user ID
+const mockUserId = 'test-user-123';
+
 // Mock the translation hook
 vi.mock('../../../hooks/useTranslation', () => ({
     useT: () => ({
@@ -20,6 +23,20 @@ vi.mock('../../../hooks/useTranslation', () => ({
             return translations[key] || key;
         }
     })
+}));
+
+// Mock the useCurrentUser hook
+vi.mock('../../../hooks/useCurrentUser', () => ({
+    useCurrentUser: () => ({
+        user: {
+            ID: mockUserId,
+            Email: 'test@example.com',
+            FirstName: 'Test',
+            LastName: 'User',
+        },
+        loading: false,
+        error: null,
+    }),
 }));
 
 // Mock Layout component to avoid AuthProvider dependency
@@ -49,64 +66,52 @@ const renderWithRouter = (component: React.ReactElement) => {
     );
 };
 
-// Mock localStorage
-const mockUserId = 'test-user-123';
-Object.defineProperty(window, 'localStorage', {
-    value: {
-        getItem: vi.fn((key: string) => key === 'user_id' ? mockUserId : null),
-        setItem: vi.fn(),
-        removeItem: vi.fn(),
-        clear: vi.fn(),
-    },
-    writable: true
-});
-
-// OData response format with members and teams
+// OData v2 response format with PascalCase field names
 const mockODataClubs = [
     {
-        id: '1',
-        name: 'Admin Club',
-        description: 'A club where I am admin',
-        createdAt: '2024-01-01T00:00:00Z',
-        deleted: false,
-        members: [
-            { userId: mockUserId, role: 'admin' },
-            { userId: 'other-user', role: 'member' }
+        ID: '1',
+        Name: 'Admin Club',
+        Description: 'A club where I am admin',
+        CreatedAt: '2024-01-01T00:00:00Z',
+        Deleted: false,
+        Members: [
+            { UserID: mockUserId, Role: 'admin' },
+            { UserID: 'other-user', Role: 'member' }
         ],
-        teams: []
+        Teams: []
     },
     {
-        id: '2',
-        name: 'Owner Club',
-        description: 'A club where I am owner',
-        createdAt: '2024-01-02T00:00:00Z',
-        deleted: false,
-        members: [
-            { userId: mockUserId, role: 'owner' }
+        ID: '2',
+        Name: 'Owner Club',
+        Description: 'A club where I am owner',
+        CreatedAt: '2024-01-02T00:00:00Z',
+        Deleted: false,
+        Members: [
+            { UserID: mockUserId, Role: 'owner' }
         ],
-        teams: []
+        Teams: []
     },
     {
-        id: '3',
-        name: 'Member Club',
-        description: 'A club where I am just a member',
-        createdAt: '2024-01-03T00:00:00Z',
-        deleted: false,
-        members: [
-            { userId: mockUserId, role: 'member' }
+        ID: '3',
+        Name: 'Member Club',
+        Description: 'A club where I am just a member',
+        CreatedAt: '2024-01-03T00:00:00Z',
+        Deleted: false,
+        Members: [
+            { UserID: mockUserId, Role: 'member' }
         ],
-        teams: []
+        Teams: []
     },
     {
-        id: '4',
-        name: 'Deleted Club',
-        description: 'A deleted club where I am owner',
-        createdAt: '2024-01-04T00:00:00Z',
-        deleted: true,
-        members: [
-            { userId: mockUserId, role: 'owner' }
+        ID: '4',
+        Name: 'Deleted Club',
+        Description: 'A deleted club where I am owner',
+        CreatedAt: '2024-01-04T00:00:00Z',
+        Deleted: true,
+        Members: [
+            { UserID: mockUserId, Role: 'owner' }
         ],
-        teams: []
+        Teams: []
     },
 ];
 

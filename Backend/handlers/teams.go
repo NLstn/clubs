@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -390,7 +391,8 @@ func handleDeleteTeam(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = team.SoftDelete(user.ID)
+	// Hard delete the team
+	err = database.Db.Delete(&team).Error
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

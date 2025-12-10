@@ -18,17 +18,14 @@ var ErrNotClubAdminOrTeamAdmin = errors.New("user is not a club admin or team ad
 var ErrLastTeamAdminDemotion = errors.New("cannot demote the last admin of the team")
 
 type Team struct {
-	ID          string     `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
-	ClubID      string     `json:"ClubID" gorm:"type:uuid;not null" odata:"required"`
-	Name        string     `json:"Name" gorm:"not null" odata:"required"`
-	Description *string    `json:"Description,omitempty" odata:"nullable"`
-	CreatedAt   time.Time  `json:"CreatedAt" odata:"immutable"`
-	CreatedBy   string     `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
-	UpdatedAt   time.Time  `json:"UpdatedAt"`
-	UpdatedBy   string     `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
-	Deleted     bool       `json:"Deleted" gorm:"default:false"`
-	DeletedAt   *time.Time `json:"DeletedAt,omitempty" odata:"nullable"`
-	DeletedBy   *string    `json:"DeletedBy,omitempty" gorm:"type:uuid" odata:"nullable"`
+	ID          string    `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
+	ClubID      string    `json:"ClubID" gorm:"type:uuid;not null" odata:"required"`
+	Name        string    `json:"Name" gorm:"not null" odata:"required"`
+	Description *string   `json:"Description,omitempty" odata:"nullable"`
+	CreatedAt   time.Time `json:"CreatedAt" odata:"immutable"`
+	CreatedBy   string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
+	UpdatedAt   time.Time `json:"UpdatedAt"`
+	UpdatedBy   string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 }
 
 type TeamMember struct {
@@ -79,14 +76,14 @@ func (c *Club) CreateTeam(name, description, createdByUserID string) (Team, erro
 // GetTeams returns all teams for a club
 func (c *Club) GetTeams() ([]Team, error) {
 	var teams []Team
-	err := database.Db.Where("club_id = ? AND deleted = false", c.ID).Find(&teams).Error
+	err := database.Db.Where("club_id = ?", c.ID).Find(&teams).Error
 	return teams, err
 }
 
 // GetTeamByID returns a team by ID
 func GetTeamByID(teamID string) (Team, error) {
 	var team Team
-	err := database.Db.Where("id = ? AND deleted = false", teamID).First(&team).Error
+	err := database.Db.Where("id = ?", teamID).First(&team).Error
 	return team, err
 }
 
@@ -97,17 +94,6 @@ func (t *Team) Update(name, description, updatedBy string) error {
 		"description": description,
 		"updated_by":  updatedBy,
 		"updated_at":  time.Now(),
-	}).Error
-}
-
-// SoftDelete soft deletes a team
-func (t *Team) SoftDelete(deletedBy string) error {
-	now := time.Now()
-	return database.Db.Model(t).Updates(map[string]interface{}{
-		"deleted":    true,
-		"deleted_at": &now,
-		"deleted_by": &deletedBy,
-		"updated_at": now,
 	}).Error
 }
 
@@ -416,31 +402,31 @@ func (t *Team) GetTeamStats() (map[string]interface{}, error) {
 	return stats, nil
 }
 
-// ODataBeforeReadCollection filters teams to only those in clubs the user belongs to and excludes soft-deleted teams
+// ODataBeforeReadCollection filters teams to only those in clubs the user belongs to
 func (t Team) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see teams of clubs they belong to, and exclude soft-deleted teams
+	// User can only see teams of clubs they belong to
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND deleted = ?", userID, false)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
 }
 
-// ODataBeforeReadEntity validates access to a specific team and excludes soft-deleted teams
+// ODataBeforeReadEntity validates access to a specific team
 func (t Team) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see teams of clubs they belong to, and exclude soft-deleted teams
+	// User can only see teams of clubs they belong to
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND deleted = ?", userID, false)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -465,7 +451,6 @@ func (t *Team) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 	t.UpdatedAt = now
 	t.CreatedBy = userID
 	t.UpdatedBy = userID
-	t.Deleted = false
 
 	return nil
 }
@@ -487,39 +472,6 @@ func (t *Team) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 	now := time.Now()
 	t.UpdatedAt = now
 	t.UpdatedBy = userID
-
-	return nil
-}
-
-// ODataAfterUpdate handles soft delete timestamp setting
-func (t *Team) ODataAfterUpdate(ctx context.Context, r *http.Request) error {
-	// If the team was just marked as deleted, set the soft delete fields
-	if t.Deleted && t.DeletedAt == nil {
-		// Get transaction from context
-		tx, ok := ctx.Value("db_transaction").(*gorm.DB)
-		if !ok {
-			tx = database.Db
-		}
-
-		// Get the user ID from context
-		userID, ok := ctx.Value(auth.UserIDKey).(string)
-		if !ok || userID == "" {
-			return nil // Log but don't fail
-		}
-
-		// Update the soft delete fields
-		now := time.Now()
-		if err := tx.Model(&Team{}).Where("id = ?", t.ID).Updates(map[string]interface{}{
-			"deleted_at": now,
-			"deleted_by": userID,
-		}).Error; err != nil {
-			return fmt.Errorf("failed to set soft delete timestamp: %w", err)
-		}
-
-		// Update the in-memory struct as well
-		t.DeletedAt = &now
-		t.DeletedBy = &userID
-	}
 
 	return nil
 }
@@ -550,7 +502,7 @@ func (tm TeamMember) ODataBeforeReadCollection(ctx context.Context, r *http.Requ
 
 	// User can only see team members of teams in clubs they belong to
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("team_id IN (SELECT id FROM teams WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND deleted = false)", userID)
+		return db.Where("team_id IN (SELECT id FROM teams WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -565,7 +517,7 @@ func (tm TeamMember) ODataBeforeReadEntity(ctx context.Context, r *http.Request,
 
 	// User can only see team members of teams in clubs they belong to
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("team_id IN (SELECT id FROM teams WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND deleted = false)", userID)
+		return db.Where("team_id IN (SELECT id FROM teams WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
