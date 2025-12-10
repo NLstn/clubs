@@ -3,11 +3,11 @@ import api from "../../../../utils/api";
 import { Input, Modal, Button } from '@/components/ui';
 
 interface News {
-    id: string;
-    title: string;
-    content: string;
-    created_at: string;
-    updated_at: string;
+    ID: string;
+    Title: string;
+    Content: string;
+    CreatedAt: string;
+    UpdatedAt: string;
 }
 
 interface EditNewsProps {
@@ -26,8 +26,8 @@ const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, onSuccess }) => {
 
     useEffect(() => {
         if (news) {
-            setTitle(news.title);
-            setContent(news.content);
+            setTitle(news.Title);
+            setContent(news.Content);
         }
     }, [news]);
 
@@ -43,7 +43,7 @@ const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, onSuccess }) => {
         setIsSubmitting(true);
         
         try {
-            await api.patch(`/api/v2/News('${news.id}')`, { 
+            await api.patch(`/api/v2/News('${news.ID}')`, { 
                 Title: title,
                 Content: content
             });

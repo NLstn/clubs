@@ -1,45 +1,28 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import EditNews from "./EditNews";
 import AddNews from "./AddNews";
-import { Table, TableColumn, Button } from '@/components/ui';
+import { ODataTable, ODataTableColumn, Button } from '@/components/ui';
 import api from "../../../../utils/api";
 
 interface News {
-    id: string;
-    title: string;
-    content: string;
-    created_at: string;
-    updated_at: string;
+    ID: string;
+    Title: string;
+    Content: string;
+    CreatedAt: string;
+    UpdatedAt: string;
 }
 
 const AdminClubNewsList = () => {
     const { id } = useParams();
-    const [news, setNews] = useState<News[]>([]);
     const [selectedNews, setSelectedNews] = useState<News | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    const fetchNews = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await api.get(`/api/v2/News?$filter=ClubID eq '${id}'&$orderby=CreatedAt desc`);
-            setNews(response.data.value || []);
-        } catch (error) {
-            console.error("Error fetching news:", error);
-            setError(error instanceof Error ? error.message : "Failed to fetch news");
-            setNews([]);
-        } finally {
-            setLoading(false);
-        }
-    }, [id]);
-
-    useEffect(() => {
-        fetchNews();
-    }, [fetchNews]);
+    const refreshNews = useCallback(() => {
+        setRefreshKey(prev => prev + 1);
+    }, []);
 
     const handleEditNews = (newsItem: News) => {
         setSelectedNews(newsItem);
@@ -58,10 +41,10 @@ const AdminClubNewsList = () => {
 
         try {
             await api.delete(`/api/v2/News('${newsId}')`);
-            fetchNews(); // Refresh the list
+            refreshNews(); // Refresh the list
         } catch (error) {
             console.error("Error deleting news:", error);
-            setError(error instanceof Error ? error.message : "Failed to delete news");
+            alert(error instanceof Error ? error.message : "Failed to delete news");
         }
     };
 
@@ -88,26 +71,32 @@ const AdminClubNewsList = () => {
         return content.substring(0, maxLength) + '...';
     };
 
-    const columns: TableColumn<News>[] = [
+    const columns: ODataTableColumn<News>[] = [
         {
-            key: 'title',
+            key: 'Title',
             header: 'Title',
-            render: (newsItem) => newsItem.title
+            render: (newsItem) => newsItem.Title,
+            sortable: true,
+            sortField: 'Title'
         },
         {
-            key: 'content',
+            key: 'Content',
             header: 'Content',
-            render: (newsItem) => truncateContent(newsItem.content)
+            render: (newsItem) => truncateContent(newsItem.Content)
         },
         {
-            key: 'created_at',
+            key: 'CreatedAt',
             header: 'Created',
-            render: (newsItem) => formatDateTime(newsItem.created_at)
+            render: (newsItem) => formatDateTime(newsItem.CreatedAt),
+            sortable: true,
+            sortField: 'CreatedAt'
         },
         {
-            key: 'updated_at',
+            key: 'UpdatedAt',
             header: 'Updated',
-            render: (newsItem) => formatDateTime(newsItem.updated_at)
+            render: (newsItem) => formatDateTime(newsItem.UpdatedAt),
+            sortable: true,
+            sortField: 'UpdatedAt'
         },
         {
             key: 'actions',
@@ -125,7 +114,7 @@ const AdminClubNewsList = () => {
                     <Button
                         variant="cancel"
                         size="sm"
-                        onClick={() => handleDeleteNews(newsItem.id)}
+                        onClick={() => handleDeleteNews(newsItem.ID)}
                     >
                         Delete
                     </Button>
@@ -137,15 +126,17 @@ const AdminClubNewsList = () => {
     return (
         <div>
             <h3>News</h3>
-            <Table
+            <ODataTable
+                key={refreshKey}
+                endpoint="/api/v2/News"
+                filter={`ClubID eq '${id}'`}
                 columns={columns}
-                data={news}
-                keyExtractor={(newsItem) => newsItem.id}
-                loading={loading}
-                error={error}
+                keyExtractor={(newsItem) => newsItem.ID}
+                pageSize={10}
+                initialSortField="CreatedAt"
+                initialSortDirection="desc"
                 emptyMessage="No news posts available"
                 loadingMessage="Loading news..."
-                errorMessage={error || "Error loading news"}
             />
             <Button 
                 variant="accept"
@@ -159,13 +150,13 @@ const AdminClubNewsList = () => {
                 onClose={handleCloseEditModal}
                 news={selectedNews}
                 clubId={id}
-                onSuccess={fetchNews}
+                onSuccess={refreshNews}
             />
             <AddNews 
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 clubId={id || ''}
-                onSuccess={fetchNews}
+                onSuccess={refreshNews}
             />
         </div>
     );
