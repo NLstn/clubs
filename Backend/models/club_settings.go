@@ -9,16 +9,16 @@ import (
 )
 
 type ClubSettings struct {
-	ID                 string    `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
-	ClubID             string    `json:"clubId" gorm:"type:uuid;not null;unique" odata:"required"`
-	FinesEnabled       bool      `json:"finesEnabled" gorm:"default:true"`
-	ShiftsEnabled      bool      `json:"shiftsEnabled" gorm:"default:true"`
-	TeamsEnabled       bool      `json:"teamsEnabled" gorm:"default:true"`
-	MembersListVisible bool      `json:"membersListVisible" gorm:"default:true"`
-	CreatedAt          time.Time `json:"createdAt" odata:"immutable"`
-	CreatedBy          string    `json:"createdBy" gorm:"type:uuid" odata:"required"`
-	UpdatedAt          time.Time `json:"updatedAt"`
-	UpdatedBy          string    `json:"updatedBy" gorm:"type:uuid" odata:"required"`
+	ID                 string    `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
+	ClubID             string    `json:"ClubID" gorm:"type:uuid;not null;unique" odata:"required"`
+	FinesEnabled       bool      `json:"FinesEnabled" gorm:"default:true"`
+	ShiftsEnabled      bool      `json:"ShiftsEnabled" gorm:"default:true"`
+	TeamsEnabled       bool      `json:"TeamsEnabled" gorm:"default:true"`
+	MembersListVisible bool      `json:"MembersListVisible" gorm:"default:true"`
+	CreatedAt          time.Time `json:"CreatedAt" odata:"immutable"`
+	CreatedBy          string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
+	UpdatedAt          time.Time `json:"UpdatedAt"`
+	UpdatedBy          string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 }
 
 func GetClubSettings(clubID string) (ClubSettings, error) {

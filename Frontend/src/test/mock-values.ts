@@ -36,14 +36,14 @@ export const defaultMockNotificationValue = {
 export const mockNotificationsWithData = {
   notifications: [
     {
-      id: '1',
-      userId: 'user-1',
-      type: 'info',
-      title: 'Welcome',
-      message: 'Welcome to the club!',
-      read: false,
-      createdAt: '2024-01-01T10:00:00Z',
-      clubId: 'club-1'
+      ID: '1',
+      UserID: 'user-1',
+      Type: 'info',
+      Title: 'Welcome',
+      Message: 'Welcome to the club!',
+      Read: false,
+      CreatedAt: '2024-01-01T10:00:00Z',
+      ClubID: 'club-1'
     }
   ],
   unreadCount: 1,

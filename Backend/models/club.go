@@ -15,24 +15,24 @@ import (
 )
 
 type Club struct {
-	ID          string     `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
-	Name        string     `json:"name" odata:"required"`
-	Description *string    `json:"description" odata:"nullable"`
-	LogoURL     *string    `json:"logo_url,omitempty" odata:"nullable"`
-	CreatedAt   time.Time  `json:"created_at" odata:"auto,immutable"`                  // Set server-side, immutable after creation
-	CreatedBy   string     `json:"created_by" gorm:"type:uuid" odata:"auto,immutable"` // Set server-side from context
-	UpdatedAt   time.Time  `json:"updated_at" odata:"auto"`                            // Set server-side automatically
-	UpdatedBy   string     `json:"updated_by" gorm:"type:uuid" odata:"auto"`           // Set server-side from context
-	Deleted     bool       `json:"deleted" gorm:"default:false"`
-	DeletedAt   *time.Time `json:"deleted_at,omitempty" odata:"nullable"`
-	DeletedBy   *string    `json:"deleted_by,omitempty" gorm:"type:uuid" odata:"nullable"`
+	ID          string     `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
+	Name        string     `json:"Name" odata:"required"`
+	Description *string    `json:"Description,omitempty" odata:"nullable"`
+	LogoURL     *string    `json:"LogoURL,omitempty" odata:"nullable"`
+	CreatedAt   time.Time  `json:"CreatedAt" odata:"auto,immutable"`                  // Set server-side, immutable after creation
+	CreatedBy   string     `json:"CreatedBy" gorm:"type:uuid" odata:"auto,immutable"` // Set server-side from context
+	UpdatedAt   time.Time  `json:"UpdatedAt" odata:"auto"`                            // Set server-side automatically
+	UpdatedBy   string     `json:"UpdatedBy" gorm:"type:uuid" odata:"auto"`           // Set server-side from context
+	Deleted     bool       `json:"Deleted" gorm:"default:false"`
+	DeletedAt   *time.Time `json:"DeletedAt,omitempty" odata:"nullable"`
+	DeletedBy   *string    `json:"DeletedBy,omitempty" gorm:"type:uuid" odata:"nullable"`
 
 	// Navigation properties for OData
-	Members []Member `gorm:"foreignKey:ClubID" json:"members,omitempty" odata:"nav"`
-	Teams   []Team   `gorm:"foreignKey:ClubID" json:"teams,omitempty" odata:"nav"`
-	Events  []Event  `gorm:"foreignKey:ClubID" json:"events,omitempty" odata:"nav"`
-	News    []News   `gorm:"foreignKey:ClubID" json:"news,omitempty" odata:"nav"`
-	Fines   []Fine   `gorm:"foreignKey:ClubID" json:"fines,omitempty" odata:"nav"`
+	Members []Member `gorm:"foreignKey:ClubID" json:"Members,omitempty" odata:"nav"`
+	Teams   []Team   `gorm:"foreignKey:ClubID" json:"Teams,omitempty" odata:"nav"`
+	Events  []Event  `gorm:"foreignKey:ClubID" json:"Events,omitempty" odata:"nav"`
+	News    []News   `gorm:"foreignKey:ClubID" json:"News,omitempty" odata:"nav"`
+	Fines   []Fine   `gorm:"foreignKey:ClubID" json:"Fines,omitempty" odata:"nav"`
 }
 
 func GetAllClubs() ([]Club, error) {

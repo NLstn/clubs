@@ -2,16 +2,16 @@ import { useState, useEffect } from 'react';
 import api from '../utils/api';
 
 interface ClubSettings {
-    id: string;
-    clubId: string;
-    finesEnabled: boolean;
-    shiftsEnabled: boolean;
-    teamsEnabled: boolean;
-    membersListVisible: boolean;
-    createdAt: string;
-    createdBy: string;
-    updatedAt: string;
-    updatedBy: string;
+    ID: string;
+    ClubID: string;
+    FinesEnabled: boolean;
+    ShiftsEnabled: boolean;
+    TeamsEnabled: boolean;
+    MembersListVisible: boolean;
+    CreatedAt: string;
+    CreatedBy: string;
+    UpdatedAt: string;
+    UpdatedBy: string;
 }
 
 interface UseClubSettingsResult {
@@ -39,19 +39,7 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
                 const response = await api.get(`/api/v2/ClubSettings?$filter=ClubID eq '${clubId}'`);
                 const settingsData = response.data.value || [];
                 if (settingsData.length > 0) {
-                    const s = settingsData[0];
-                    setSettings({
-                        id: s.ID,
-                        clubId: s.ClubID,
-                        finesEnabled: s.FinesEnabled,
-                        shiftsEnabled: s.ShiftsEnabled,
-                        teamsEnabled: s.TeamsEnabled,
-                        membersListVisible: s.MembersListVisible,
-                        createdAt: s.CreatedAt,
-                        createdBy: s.CreatedBy,
-                        updatedAt: s.UpdatedAt,
-                        updatedBy: s.UpdatedBy
-                    });
+                    setSettings(settingsData[0]);
                 } else {
                     // No settings found, use defaults
                     throw new Error('Settings not found');
@@ -61,16 +49,16 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
                 console.error('Error fetching club settings:', err);
                 // If settings don't exist, assume defaults (both features enabled)
                 setSettings({
-                id: '',
-                clubId: clubId,
-                finesEnabled: true,
-                shiftsEnabled: true,
-                teamsEnabled: true,
-                membersListVisible: true,
-                createdAt: '',
-                createdBy: '',
-                updatedAt: '',
-                updatedBy: ''
+                ID: '',
+                ClubID: clubId,
+                FinesEnabled: true,
+                ShiftsEnabled: true,
+                TeamsEnabled: true,
+                MembersListVisible: true,
+                CreatedAt: '',
+                CreatedBy: '',
+                UpdatedAt: '',
+                UpdatedBy: ''
             });
                 setError(null);
             } finally {
@@ -90,20 +78,8 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
             const response = await api.get(`/api/v2/ClubSettings?$filter=ClubID eq '${clubId}'`);
             const settingsData = response.data.value || [];
             if (settingsData.length > 0) {
-                const s = settingsData[0];
-                setSettings({
-                    id: s.ID,
-                    clubId: s.ClubID,
-                    finesEnabled: s.FinesEnabled,
-                    shiftsEnabled: s.ShiftsEnabled,
-                    teamsEnabled: s.TeamsEnabled,
-                    membersListVisible: s.MembersListVisible,
-                    createdAt: s.CreatedAt,
-                    createdBy: s.CreatedBy,
-                    updatedAt: s.UpdatedAt,
-                    updatedBy: s.UpdatedBy
-                });
-            } else {
+                setSettings(settingsData[0]);
+            } else{
                 // No settings found, use defaults
                 throw new Error('Settings not found');
             }
@@ -112,16 +88,16 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
             console.error('Error fetching club settings:', err);
             // If settings don't exist, assume defaults (all features enabled)
             setSettings({
-                id: '',
-                clubId: clubId,
-                finesEnabled: true,
-                shiftsEnabled: true,
-                teamsEnabled: true,
-                membersListVisible: true,
-                createdAt: '',
-                createdBy: '',
-                updatedAt: '',
-                updatedBy: ''
+                ID: '',
+                ClubID: clubId,
+                FinesEnabled: true,
+                ShiftsEnabled: true,
+                TeamsEnabled: true,
+                MembersListVisible: true,
+                CreatedAt: '',
+                CreatedBy: '',
+                UpdatedAt: '',
+                UpdatedBy: ''
             });
             setError(null);
         } finally {

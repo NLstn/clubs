@@ -10,12 +10,12 @@ import (
 
 // Invite represents an admin invitation to a user to join a club
 type Invite struct {
-	ID        string    `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
-	ClubID    string    `json:"club_id" gorm:"type:uuid" odata:"required"`
-	Email     string    `json:"email" odata:"required"`
-	CreatedAt time.Time `json:"created_at" odata:"immutable"`
-	CreatedBy string    `json:"created_by" gorm:"type:uuid" odata:"required"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        string    `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
+	ClubID    string    `json:"ClubID" gorm:"type:uuid" odata:"required"`
+	Email     string    `json:"Email" odata:"required"`
+	CreatedAt time.Time `json:"CreatedAt" odata:"immutable"`
+	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
+	UpdatedAt time.Time `json:"UpdatedAt"`
 }
 
 // CreateInvite creates a new invitation from an admin to a user

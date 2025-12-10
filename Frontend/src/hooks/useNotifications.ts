@@ -2,13 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
 
 export interface Notification {
-  id: string;
-  userId: string;
-  type: string;
-  title: string;
-  message: string;
-  read: boolean;
-  createdAt: string;
+  ID: string;
+  UserID: string;
+  Type: string;
+  Title: string;
+  Message: string;
+  Read: boolean;
+  CreatedAt: string;
   clubId?: string;
   eventId?: string;
   fineId?: string;
@@ -16,18 +16,18 @@ export interface Notification {
 }
 
 export interface NotificationPreferences {
-  id: string;
-  userId: string;
-  memberAddedInApp: boolean;
-  memberAddedEmail: boolean;
-  eventCreatedInApp: boolean;
-  eventCreatedEmail: boolean;
-  fineAssignedInApp: boolean;
-  fineAssignedEmail: boolean;
-  newsCreatedInApp: boolean;
-  newsCreatedEmail: boolean;
-  createdAt: string;
-  updatedAt: string;
+  ID: string;
+  UserID: string;
+  MemberAddedInApp: boolean;
+  MemberAddedEmail: boolean;
+  EventCreatedInApp: boolean;
+  EventCreatedEmail: boolean;
+  FineAssignedInApp: boolean;
+  FineAssignedEmail: boolean;
+  NewsCreatedInApp: boolean;
+  NewsCreatedEmail: boolean;
+  CreatedAt: string;
+  UpdatedAt: string;
 }
 
 export const useNotifications = () => {
@@ -88,7 +88,7 @@ export const useNotifications = () => {
       // Update local state
       setNotifications(prev => 
         prev.map(notification => 
-          notification.id === notificationId 
+          notification.ID === notificationId 
             ? { ...notification, read: true }
             : notification
         )
@@ -124,11 +124,11 @@ export const useNotifications = () => {
       await api.delete(`/api/v2/Notifications('${notificationId}')`);
       
       // Update local state
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      setNotifications(prev => prev.filter(n => n.ID !== notificationId));
       
       // Update unread count if notification was unread
-      const notification = notifications.find(n => n.id === notificationId);
-      if (notification && !notification.read) {
+      const notification = notifications.find(n => n.ID === notificationId);
+      if (notification && !notification.Read) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (err) {
@@ -156,7 +156,7 @@ export const useNotifications = () => {
         throw new Error('Preferences not found');
       }
       // OData v2: PATCH to update preferences
-      const response = await api.patch(`/api/v2/UserNotificationPreferences('${currentPrefs.id}')`, updates);
+      const response = await api.patch(`/api/v2/UserNotificationPreferences('${currentPrefs.ID}')`, updates);
       return response.data;
     } catch (err) {
       console.error('Error updating notification preferences:', err);

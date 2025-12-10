@@ -10,21 +10,21 @@ import (
 )
 
 type Activity struct {
-	ID        string    `json:"id" gorm:"primaryKey;type:char(36)"`
-	ClubID    string    `json:"club_id" gorm:"type:char(36);not null;index"`
-	UserID    string    `json:"user_id" gorm:"type:char(36);not null;index"` // User who performed the action or was affected
-	ActorID   *string   `json:"actor_id" gorm:"type:char(36);index"`         // User who initiated the action (e.g., admin who promoted someone)
-	Type      string    `json:"type" gorm:"type:varchar(50);not null;index"` // "role_changed", "member_promoted", etc.
-	Title     string    `json:"title" gorm:"type:varchar(255);not null"`
-	Content   string    `json:"content" gorm:"type:text"`
-	Metadata  string    `json:"metadata" gorm:"type:json"` // JSON field for additional data
-	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
-	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
+	ID        string    `json:"ID" gorm:"primaryKey;type:char(36)"`
+	ClubID    string    `json:"ClubID" gorm:"type:char(36);not null;index"`
+	UserID    string    `json:"UserID" gorm:"type:char(36);not null;index"`   // User who performed the action or was affected
+	ActorID   *string   `json:"ActorID,omitempty" gorm:"type:char(36);index"` // User who initiated the action (e.g., admin who promoted someone)
+	Type      string    `json:"Type" gorm:"type:varchar(50);not null;index"`  // "role_changed", "member_promoted", etc.
+	Title     string    `json:"Title" gorm:"type:varchar(255);not null"`
+	Content   string    `json:"Content" gorm:"type:text"`
+	Metadata  string    `json:"Metadata" gorm:"type:json"` // JSON field for additional data
+	CreatedAt time.Time `json:"CreatedAt" gorm:"autoCreateTime"`
+	UpdatedAt time.Time `json:"UpdatedAt" gorm:"autoUpdateTime"`
 
 	// Relations
-	Club  Club  `json:"club,omitempty" gorm:"foreignKey:ClubID"`
-	User  User  `json:"user,omitempty" gorm:"foreignKey:UserID"`
-	Actor *User `json:"actor,omitempty" gorm:"foreignKey:ActorID"`
+	Club  Club  `json:"Club,omitempty" gorm:"foreignKey:ClubID"`
+	User  User  `json:"User,omitempty" gorm:"foreignKey:UserID"`
+	Actor *User `json:"Actor,omitempty" gorm:"foreignKey:ActorID"`
 }
 
 func (a *Activity) BeforeCreate(tx *gorm.DB) error {
