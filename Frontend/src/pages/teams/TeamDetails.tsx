@@ -49,11 +49,11 @@ const TeamDetails = () => {
                 // OData v2: Use GetOverview function on Team entity
                 const overviewResponse = await api.get(`/api/v2/Teams('${teamId}')/GetOverview()`);
                 const data = overviewResponse.data.value || overviewResponse.data;
-                const { team: teamData, is_admin, user_role } = data;
+                const { Team: teamData, IsAdmin, UserRole } = data;
                 
                 setTeam(teamData);
-                setIsAdmin(is_admin);
-                setUserRole(user_role || null);
+                setIsAdmin(IsAdmin);
+                setUserRole(UserRole || null);
                 
                 setLoading(false);
             } catch (err: unknown) {

@@ -47,8 +47,8 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
         try {
             // OData v2: Use GetRSVPs function on Event entity
             const response = await api.get(`/api/v2/Events('${eventId}')/GetRSVPs()`);
-            setRsvps(response.data.rsvps || []);
-            setCounts(response.data.counts || {});
+            setRsvps(response.data.RSVPs || []);
+            setCounts(response.data.Counts || {});
         } catch (error) {
             console.error("Error fetching RSVPs:", error);
             setError("Failed to load RSVPs");

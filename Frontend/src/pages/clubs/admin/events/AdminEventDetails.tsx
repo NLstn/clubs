@@ -78,7 +78,7 @@ const AdminEventDetails: FC = () => {
                     signal: abortSignal
                 });
                 if (!abortSignal?.aborted) {
-                    setRsvpCounts(rsvpResponse.data.counts || {});
+                    setRsvpCounts(rsvpResponse.data.Counts || {});
                 }
             } catch (rsvpError) {
                 if (!abortSignal?.aborted) {

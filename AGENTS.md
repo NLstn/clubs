@@ -180,15 +180,66 @@ After modifying files in the `Backend/` directory, run the following commands in
 
 ## Key Development Guidelines
 
+### OData v2 API Conventions
+
+**CRITICAL: All OData v2 API endpoints (`/api/v2/`) MUST use PascalCase for all JSON field names.**
+
+This applies to:
+- **Entity Models:** All struct fields in `Backend/models/` must use `json:"PascalCase"` tags
+- **Custom Response Types:** All helper structs in `Backend/odata/functions.go` must use PascalCase
+- **Frontend API Calls:** All frontend code accessing v2 APIs must expect PascalCase field names
+
+**Examples:**
+```go
+// Backend - Correct ✅
+type User struct {
+    ID         string    `json:"ID" gorm:"type:uuid"`
+    FirstName  string    `json:"FirstName"`
+    Email      string    `json:"Email"`
+}
+
+type CustomResponse struct {
+    IsAdmin   bool   `json:"IsAdmin"`
+    UserRole  string `json:"UserRole"`
+}
+
+// Backend - Wrong ❌
+type User struct {
+    ID         string    `json:"id"`
+    FirstName  string    `json:"firstName"`
+    Email      string    `json:"email"`
+}
+```
+
+```typescript
+// Frontend - Correct ✅
+const response = await api.get('/api/v2/Users');
+const userId = response.data.ID;
+const firstName = response.data.FirstName;
+
+// Frontend - Wrong ❌
+const userId = response.data.id;
+const firstName = response.data.firstName;
+```
+
+**Why PascalCase?**
+- OData protocol standard uses PascalCase
+- Consistency across all v2 endpoints
+- Clear differentiation from v1 REST API (camelCase)
+
+**Migration Note:** The v1 REST API (`/api/v1/`) uses snake_case. During migration, ensure all code accessing v2 APIs uses PascalCase exclusively.
+
 ### Backend Development
 
 1. **Adding New Database Tables:**
    - Define model in `Backend/models/` with proper GORM tags
+   - **IMPORTANT:** Use PascalCase in `json` tags for OData v2 compatibility
    - Add model to `AutoMigrate` in `Backend/database/database.go`
    - Follow existing patterns for foreign keys and relationships
 
 2. **Adding New API Endpoints:**
-   - Create handler function in appropriate `Backend/handlers/` file
+   - For v2 APIs: Use OData service in `Backend/odata/`
+   - For v1 APIs: Create handler function in appropriate `Backend/handlers/` file
    - Register route in `Backend/handlers/api.go`
    - Add authentication middleware if required
    - Document endpoint in `Documentation/Backend/API.md`
