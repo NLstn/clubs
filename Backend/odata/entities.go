@@ -48,5 +48,17 @@ func (s *Service) registerEntities() error {
 			return fmt.Errorf("failed to register entity %T: %w", entity, err)
 		}
 	}
+
+	// Register virtual entities
+	virtualEntities := []interface{}{
+		&models.TimelineItem{},
+	}
+
+	for _, entity := range virtualEntities {
+		if err := s.Service.RegisterVirtualEntity(entity); err != nil {
+			return fmt.Errorf("failed to register virtual entity %T: %w", entity, err)
+		}
+	}
+
 	return nil
 }
