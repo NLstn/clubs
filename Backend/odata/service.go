@@ -59,5 +59,10 @@ func NewService(db *gorm.DB) (*Service, error) {
 		return nil, fmt.Errorf("failed to register functions: %w", err)
 	}
 
+	// Register virtual entity handlers
+	if err := service.registerTimelineHandlers(); err != nil {
+		return nil, fmt.Errorf("failed to register timeline handlers: %w", err)
+	}
+
 	return service, nil
 }
