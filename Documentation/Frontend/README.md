@@ -115,6 +115,7 @@ font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 #### Core UI Components
 - **[Input](./components/Input.md)** - Reusable input component with variants, sizes, error handling, and accessibility features
 - **[Table](./components/Table.md)** - Flexible, reusable table component with loading states and error handling
+- **[ODataTable](./components/ODataTable.md)** - Table with server-side pagination and sorting via OData v4 queries
 - **[TypeAheadDropdown](./components/TypeAheadDropdown.md)** - Type-ahead dropdown with search functionality and autocomplete
 - **[Modal](./components/Modal.md)** - Enhanced modal component with compound pattern, error handling, and loading states
 
