@@ -1,9 +1,13 @@
 package models
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -410,4 +414,254 @@ func (t *Team) GetTeamStats() (map[string]interface{}, error) {
 	stats["total_fines"] = totalFineCount
 
 	return stats, nil
+}
+
+// ODataBeforeReadCollection filters teams to only those in clubs the user belongs to and excludes soft-deleted teams
+func (t Team) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see teams of clubs they belong to, and exclude soft-deleted teams
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND deleted = ?", userID, false)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to a specific team and excludes soft-deleted teams
+func (t Team) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see teams of clubs they belong to, and exclude soft-deleted teams
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND deleted = ?", userID, false)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeCreate validates team creation permissions
+func (t *Team) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if user is an admin/owner of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", t.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can create teams")
+	}
+
+	// Set CreatedBy and UpdatedBy
+	now := time.Now()
+	t.CreatedAt = now
+	t.UpdatedAt = now
+	t.CreatedBy = userID
+	t.UpdatedBy = userID
+	t.Deleted = false
+
+	return nil
+}
+
+// ODataBeforeUpdate validates team update permissions
+func (t *Team) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if user is an admin/owner of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", t.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can update teams")
+	}
+
+	// Set UpdatedBy
+	now := time.Now()
+	t.UpdatedAt = now
+	t.UpdatedBy = userID
+
+	return nil
+}
+
+// ODataAfterUpdate handles soft delete timestamp setting
+func (t *Team) ODataAfterUpdate(ctx context.Context, r *http.Request) error {
+	// If the team was just marked as deleted, set the soft delete fields
+	if t.Deleted && t.DeletedAt == nil {
+		// Get transaction from context
+		tx, ok := ctx.Value("db_transaction").(*gorm.DB)
+		if !ok {
+			tx = database.Db
+		}
+
+		// Get the user ID from context
+		userID, ok := ctx.Value(auth.UserIDKey).(string)
+		if !ok || userID == "" {
+			return nil // Log but don't fail
+		}
+
+		// Update the soft delete fields
+		now := time.Now()
+		if err := tx.Model(&Team{}).Where("id = ?", t.ID).Updates(map[string]interface{}{
+			"deleted_at": now,
+			"deleted_by": userID,
+		}).Error; err != nil {
+			return fmt.Errorf("failed to set soft delete timestamp: %w", err)
+		}
+
+		// Update the in-memory struct as well
+		t.DeletedAt = &now
+		t.DeletedBy = &userID
+	}
+
+	return nil
+}
+
+// ODataBeforeDelete validates team deletion permissions
+func (t *Team) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if user is an admin/owner of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", t.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can delete teams")
+	}
+
+	return nil
+}
+
+// TeamMember authorization hooks
+// ODataBeforeReadCollection filters team members to only those in teams the user can access
+func (tm TeamMember) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see team members of teams in clubs they belong to
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("team_id IN (SELECT id FROM teams WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND deleted = false)", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to a specific team member record
+func (tm TeamMember) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see team members of teams in clubs they belong to
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("team_id IN (SELECT id FROM teams WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND deleted = false)", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeCreate validates team member creation permissions
+func (tm *TeamMember) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Get team to find club ID
+	var team Team
+	if err := database.Db.Where("id = ?", tm.TeamID).First(&team).Error; err != nil {
+		return fmt.Errorf("team not found")
+	}
+
+	// Check if user is an admin/owner of the club or team admin
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", team.ClubID, userID).First(&existingMember).Error; err != nil {
+		// Check if user is team admin
+		var teamMember TeamMember
+		if err := database.Db.Where("team_id = ? AND user_id = ? AND role = 'admin'", tm.TeamID, userID).First(&teamMember).Error; err != nil {
+			return fmt.Errorf("unauthorized: only club admins/owners or team admins can add team members")
+		}
+	}
+
+	// Set CreatedBy and UpdatedBy
+	now := time.Now()
+	tm.CreatedAt = now
+	tm.UpdatedAt = now
+	tm.CreatedBy = userID
+	tm.UpdatedBy = userID
+
+	return nil
+}
+
+// ODataBeforeUpdate validates team member update permissions
+func (tm *TeamMember) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Get team to find club ID
+	var team Team
+	if err := database.Db.Where("id = ?", tm.TeamID).First(&team).Error; err != nil {
+		return fmt.Errorf("team not found")
+	}
+
+	// Check if user is an admin/owner of the club or team admin
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", team.ClubID, userID).First(&existingMember).Error; err != nil {
+		// Check if user is team admin
+		var teamMember TeamMember
+		if err := database.Db.Where("team_id = ? AND user_id = ? AND role = 'admin'", tm.TeamID, userID).First(&teamMember).Error; err != nil {
+			return fmt.Errorf("unauthorized: only club admins/owners or team admins can update team members")
+		}
+	}
+
+	// Set UpdatedBy
+	now := time.Now()
+	tm.UpdatedAt = now
+	tm.UpdatedBy = userID
+
+	return nil
+}
+
+// ODataBeforeDelete validates team member deletion permissions
+func (tm *TeamMember) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Get team to find club ID
+	var team Team
+	if err := database.Db.Where("id = ?", tm.TeamID).First(&team).Error; err != nil {
+		return fmt.Errorf("team not found")
+	}
+
+	// Users can leave teams (delete their own membership)
+	if tm.UserID == userID {
+		return nil
+	}
+
+	// Check if user is an admin/owner of the club or team admin
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", team.ClubID, userID).First(&existingMember).Error; err != nil {
+		// Check if user is team admin
+		var teamMember TeamMember
+		if err := database.Db.Where("team_id = ? AND user_id = ? AND role = 'admin'", tm.TeamID, userID).First(&teamMember).Error; err != nil {
+			return fmt.Errorf("unauthorized: only club admins/owners or team admins can remove team members")
+		}
+	}
+
+	return nil
 }

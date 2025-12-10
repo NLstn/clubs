@@ -43,9 +43,9 @@ func setupTestContext(t *testing.T) *testContext {
 	err := auth.Init()
 	require.NoError(t, err, "Failed to initialize auth")
 
-	// Set up in-memory SQLite database with custom configuration
-	// SQLite doesn't support all PostgreSQL features, so we need to be careful with auto-migration
-	testDB, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
+	// Set up file-based SQLite database instead of in-memory to avoid connection visibility issues
+	// In-memory SQLite databases have issues with table visibility across different GORM sessions
+	testDB, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{
 		// Disable foreign key constraints in SQLite for simpler testing
 		DisableForeignKeyConstraintWhenMigrating: true,
 	})
@@ -62,7 +62,10 @@ func setupTestContext(t *testing.T) *testContext {
 		keycloak_id TEXT UNIQUE,
 		birth_date DATE,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		deleted BOOLEAN DEFAULT FALSE,
+		deleted_at DATETIME,
+		deleted_by TEXT
 	)`)
 
 	testDB.Exec(`CREATE TABLE IF NOT EXISTS clubs (
@@ -251,6 +254,35 @@ func setupTestContext(t *testing.T) *testContext {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	)`)
+
+	// Clean up any existing data from previous tests (shared SQLite database)
+	testDB.Exec("DELETE FROM shift_members")
+	testDB.Exec("DELETE FROM shifts")
+	testDB.Exec("DELETE FROM event_rsvps")
+	testDB.Exec("DELETE FROM events")
+	testDB.Exec("DELETE FROM fines")
+	testDB.Exec("DELETE FROM fine_templates")
+	testDB.Exec("DELETE FROM news")
+	testDB.Exec("DELETE FROM notifications")
+	testDB.Exec("DELETE FROM user_notification_preferences")
+	testDB.Exec("DELETE FROM invites")
+	testDB.Exec("DELETE FROM join_requests")
+	testDB.Exec("DELETE FROM teams")
+	testDB.Exec("DELETE FROM members")
+	testDB.Exec("DELETE FROM clubs")
+	testDB.Exec("DELETE FROM users")
+	testDB.Exec("DELETE FROM club_settings")
+	testDB.Exec("DELETE FROM user_privacy_settings")
+
+	// Verify tables exist before creating OData service
+	// This ensures GORM has properly synced with the manually created tables
+	migrator := testDB.Migrator()
+	if !migrator.HasTable("members") {
+		t.Fatal("members table not created properly")
+	}
+	if !migrator.HasTable("clubs") {
+		t.Fatal("clubs table not created properly")
+	}
 
 	// Create OData service
 	service, err := NewService(database.Db)

@@ -1,9 +1,13 @@
 package models
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/notifications"
 	"github.com/google/uuid"
@@ -248,4 +252,99 @@ func (c *Club) canChangeRole(changingUser User, targetMember Member, newRole str
 		return true, nil
 	}
 	return false, nil
+}
+
+// ODataBeforeReadCollection filters members to only those in clubs the user belongs to
+func (m Member) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see members of clubs they belong to
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to a specific member record
+func (m Member) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see members of clubs they belong to
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeCreate validates member creation permissions
+func (m *Member) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if user is an admin/owner of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", m.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can add members")
+	}
+
+	// Set CreatedBy and UpdatedBy
+	now := time.Now()
+	m.CreatedAt = now
+	m.UpdatedAt = now
+	m.CreatedBy = userID
+	m.UpdatedBy = userID
+
+	return nil
+}
+
+// ODataBeforeUpdate validates member update permissions
+func (m *Member) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if user is an admin/owner of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", m.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can update members")
+	}
+
+	// Set UpdatedBy
+	now := time.Now()
+	m.UpdatedAt = now
+	m.UpdatedBy = userID
+
+	return nil
+}
+
+// ODataBeforeDelete validates member deletion permissions
+func (m *Member) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if user is an admin/owner of the club, or is deleting themselves
+	if m.UserID == userID {
+		// Users can leave clubs (delete their own membership)
+		return nil
+	}
+
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", m.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can remove members")
+	}
+
+	return nil
 }

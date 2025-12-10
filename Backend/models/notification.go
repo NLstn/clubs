@@ -1,9 +1,12 @@
 package models
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -294,6 +297,152 @@ func SendRoleChangedNotifications(userID, clubID, clubName, oldRole, newRole str
 		// Import the notifications package for email sending
 		// Using a simplified approach to avoid circular imports
 		// The email sending will be handled by the caller using the notification package functions
+	}
+
+	return nil
+}
+
+// ODataBeforeReadCollection filters notifications to only those belonging to the user
+func (n Notification) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see their own notifications
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id = ?", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to a specific notification
+func (n Notification) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see their own notifications
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id = ?", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeUpdate validates notification update permissions
+func (n *Notification) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only update their own notifications
+	if n.UserID != userID {
+		return fmt.Errorf("unauthorized: can only update your own notifications")
+	}
+
+	return nil
+}
+
+// ODataBeforeDelete validates notification deletion permissions
+func (n *Notification) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only delete their own notifications
+	if n.UserID != userID {
+		return fmt.Errorf("unauthorized: can only delete your own notifications")
+	}
+
+	return nil
+}
+
+// UserNotificationPreferences authorization hooks
+// ODataBeforeReadCollection filters preferences to only those belonging to the user
+func (unp UserNotificationPreferences) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see their own preferences
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id = ?", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to specific notification preferences
+func (unp UserNotificationPreferences) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see their own preferences
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id = ?", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeCreate validates notification preferences creation
+func (unp *UserNotificationPreferences) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only create their own preferences
+	if unp.UserID == "" {
+		unp.UserID = userID
+	} else if unp.UserID != userID {
+		return fmt.Errorf("unauthorized: cannot create preferences for another user")
+	}
+
+	// Set CreatedAt and UpdatedAt
+	now := time.Now()
+	unp.CreatedAt = now
+	unp.UpdatedAt = now
+
+	return nil
+}
+
+// ODataBeforeUpdate validates notification preferences update permissions
+func (unp *UserNotificationPreferences) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only update their own preferences
+	if unp.UserID != userID {
+		return fmt.Errorf("unauthorized: can only update your own notification preferences")
+	}
+
+	// Set UpdatedAt
+	unp.UpdatedAt = time.Now()
+
+	return nil
+}
+
+// ODataBeforeDelete validates notification preferences deletion permissions
+func (unp *UserNotificationPreferences) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only delete their own preferences
+	if unp.UserID != userID {
+		return fmt.Errorf("unauthorized: can only delete your own notification preferences")
 	}
 
 	return nil

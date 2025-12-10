@@ -1,9 +1,14 @@
 package models
 
 import (
+	"context"
+	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
+	"gorm.io/gorm"
 )
 
 type UserPrivacySettings struct {
@@ -92,4 +97,89 @@ func UpdateOrCreatePrivacySettings(userID, clubID string, shareBirthDate bool) e
 		settings.ShareBirthDate = shareBirthDate
 		return database.Db.Save(&settings).Error
 	}
+}
+
+// ODataBeforeReadCollection filters privacy settings to only those belonging to the user
+func (ups UserPrivacySettings) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see their own privacy settings
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id = ?", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to specific privacy settings
+func (ups UserPrivacySettings) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see their own privacy settings
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id = ?", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeCreate validates privacy settings creation
+func (ups *UserPrivacySettings) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only create their own privacy settings
+	if ups.UserID == "" {
+		ups.UserID = userID
+	} else if ups.UserID != userID {
+		return fmt.Errorf("unauthorized: cannot create privacy settings for another user")
+	}
+
+	// Set CreatedAt and UpdatedAt
+	now := time.Now()
+	ups.CreatedAt = now
+	ups.UpdatedAt = now
+
+	return nil
+}
+
+// ODataBeforeUpdate validates privacy settings update permissions
+func (ups *UserPrivacySettings) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only update their own privacy settings
+	if ups.UserID != userID {
+		return fmt.Errorf("unauthorized: can only update your own privacy settings")
+	}
+
+	// Set UpdatedAt
+	ups.UpdatedAt = time.Now()
+
+	return nil
+}
+
+// ODataBeforeDelete validates privacy settings deletion permissions
+func (ups *UserPrivacySettings) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only delete their own privacy settings
+	if ups.UserID != userID {
+		return fmt.Errorf("unauthorized: can only delete your own privacy settings")
+	}
+
+	return nil
 }
