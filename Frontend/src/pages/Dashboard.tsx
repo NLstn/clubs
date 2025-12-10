@@ -34,60 +34,60 @@ const Dashboard = () => {
     };
 
     const getRoleChangeMessage = (activity: ActivityItem) => {
-        // Determine the message based on actor_name
-        return activity.actor_name 
-            ? `by ${activity.actor_name}` 
+        // Determine the message based on ActorName
+        return activity.ActorName 
+            ? `by ${activity.ActorName}` 
             : '';
     };
 
     const getPersonalizedTitle = (activity: ActivityItem) => {
         // For role change activities, generate title based on type and personalization
-        if (activity.type === 'member_promoted' || activity.type === 'member_demoted' || activity.type === 'role_changed') {
-            if (!currentUser || !activity.metadata?.affected_user_id) {
+        if (activity.Type === 'member_promoted' || activity.Type === 'member_demoted' || activity.Type === 'role_changed') {
+            if (!currentUser || !activity.Metadata?.affected_user_id) {
                 // Fallback to generic titles
-                if (activity.type === 'member_promoted') return 'Member promoted';
-                if (activity.type === 'member_demoted') return 'Member demoted';
+                if (activity.Type === 'member_promoted') return 'Member promoted';
+                if (activity.Type === 'member_demoted') return 'Member demoted';
                 return 'Role changed';
             }
 
-            const isCurrentUser = activity.metadata.affected_user_id === currentUser.ID;
-            const { new_role } = activity.metadata;
+            const isCurrentUser = activity.Metadata.affected_user_id === currentUser.ID;
+            const { new_role } = activity.Metadata;
             
             if (isCurrentUser) {
-                if (activity.type === 'member_promoted') {
+                if (activity.Type === 'member_promoted') {
                     return `You got promoted to ${translateRole(new_role)}!`;
-                } else if (activity.type === 'member_demoted') {
+                } else if (activity.Type === 'member_demoted') {
                     return `Your role changed to ${translateRole(new_role)}`;
                 } else {
                     return `Your role changed to ${translateRole(new_role)}`;
                 }
             } else {
                 // For other users
-                if (activity.type === 'member_promoted') return 'Member promoted';
-                if (activity.type === 'member_demoted') return 'Member demoted';
+                if (activity.Type === 'member_promoted') return 'Member promoted';
+                if (activity.Type === 'member_demoted') return 'Member demoted';
                 return 'Role changed';
             }
         }
         
         // For non-role activities, return the stored title or generate a default
-        return activity.title || 'Activity';
+        return activity.Title || 'Activity';
     };
 
     const getPersonalizedContent = (activity: ActivityItem) => {
         // For role change activities, generate content based on type and personalization
-        if (activity.type === 'member_promoted' || activity.type === 'member_demoted' || activity.type === 'role_changed') {
-            if (!currentUser || !activity.metadata?.affected_user_id) {
+        if (activity.Type === 'member_promoted' || activity.Type === 'member_demoted' || activity.Type === 'role_changed') {
+            if (!currentUser || !activity.Metadata?.affected_user_id) {
                 // Fallback to generic content
-                const { old_role, new_role } = activity.metadata || {};
+                const { old_role, new_role } = activity.Metadata || {};
                 return `Role changed from ${translateRole(old_role)} to ${translateRole(new_role)}`;
             }
 
-            const isCurrentUser = activity.metadata.affected_user_id === currentUser.ID;
-            const { old_role, new_role } = activity.metadata;
+            const isCurrentUser = activity.Metadata.affected_user_id === currentUser.ID;
+            const { old_role, new_role } = activity.Metadata;
             
             if (isCurrentUser) {
-                if (activity.actor_name) {
-                    return `${activity.actor_name} changed your role from ${translateRole(old_role)} to ${translateRole(new_role)}.`;
+                if (activity.ActorName) {
+                    return `${activity.ActorName} changed your role from ${translateRole(old_role)} to ${translateRole(new_role)}.`;
                 } else {
                     return `Your role was changed from ${translateRole(old_role)} to ${translateRole(new_role)}.`;
                 }
@@ -98,18 +98,18 @@ const Dashboard = () => {
         }
         
         // For non-role activities, return the stored content
-        return activity.content;
+        return activity.Content;
     };
 
     const handleEventClick = (activity: ActivityItem) => {
-        if (activity.type === 'event') {
-            addRecentClub(activity.club_id, activity.club_name);
-            navigate(`/clubs/${activity.club_id}/events/${activity.id}`);
+        if (activity.Type === 'event') {
+            addRecentClub(activity.ClubID, activity.ClubName);
+            navigate(`/clubs/${activity.ClubID}/events/${activity.ID}`);
         }
     };
 
     const renderActivityContent = (activity: ActivityItem) => {
-        if (activity.type === 'event') {
+        if (activity.Type === 'event') {
             return (
                 <div className="event-activity">
                     {(() => {
@@ -118,17 +118,17 @@ const Dashboard = () => {
                             <p className="activity-content">{personalizedContent}</p>
                         );
                     })()}
-                    {activity.metadata?.user_rsvp && (
+                    {activity.Metadata?.user_rsvp && (
                         <p className="user-rsvp">
                             <strong>Your RSVP:</strong> 
-                            <span className={`rsvp-status ${(activity.metadata.user_rsvp as { response: string }).response}`}>
-                                {(activity.metadata.user_rsvp as { response: string }).response === 'yes' ? ' Yes' : ' No'}
+                            <span className={`rsvp-status ${(activity.Metadata.user_rsvp as { response: string }).response}`}>
+                                {(activity.Metadata.user_rsvp as { response: string }).response === 'yes' ? ' Yes' : ' No'}
                             </span>
                         </p>
                     )}
                 </div>
             );
-        } else if (activity.type === 'news') {
+        } else if (activity.Type === 'news') {
             return (
                 <div className="news-activity">
                     {(() => {
@@ -163,44 +163,44 @@ const Dashboard = () => {
                             {activities.length > 0 ? (
                                 <div className="activity-feed">
                                     {activities.map(activity => (
-                                        <div key={`${activity.type}-${activity.id}`} className="activity-item">
+                                        <div key={`${activity.Type}-${activity.ID}`} className="activity-item">
                                             <div className="activity-header">
-                                                {activity.type === 'event' ? (
+                                                {activity.Type === 'event' ? (
                                                     <Button 
                                                         size="sm"
                                                         variant="secondary"
                                                         className="activity-type-badge clickable-badge"
                                                         onClick={() => handleEventClick(activity)}
                                                     >
-                                                        {activity.type.replace(/_/g, ' ')}
+                                                        {activity.Type.replace(/_/g, ' ')}
                                                     </Button>
                                                 ) : (
                                                     <div className="activity-type-badge">
-                                                        {activity.type.replace(/_/g, ' ')}
+                                                        {activity.Type.replace(/_/g, ' ')}
                                                     </div>
                                                 )}
                                                 <span 
                                                     className="club-badge"
-                                                    onClick={() => handleClubClick(activity.club_id, activity.club_name)}
+                                                    onClick={() => handleClubClick(activity.ClubID, activity.ClubName)}
                                                 >
-                                                    {activity.club_name}
+                                                    {activity.ClubName}
                                                 </span>
                                             </div>
                                             <h4 className="activity-title">{getPersonalizedTitle(activity)}</h4>
                                             {renderActivityContent(activity)}
                                             <small className="activity-meta">
-                                                {(activity.type === 'member_promoted' || activity.type === 'member_demoted' || activity.type === 'role_changed') ? (
+                                                {(activity.Type === 'member_promoted' || activity.Type === 'member_demoted' || activity.Type === 'role_changed') ? (
                                                     <>
                                                         {getRoleChangeMessage(activity) && `${getRoleChangeMessage(activity)} • `}
                                                     </>
                                                 ) : (
-                                                    activity.actor_name && activity.type !== 'event' && (
+                                                    activity.ActorName && activity.Type !== 'event' && (
                                                         <>
-                                                            {`Created by ${activity.actor_name}`} • 
+                                                            {`Created by ${activity.ActorName}`} • 
                                                         </>
                                                     )
                                                 )}
-                                                Posted on {formatDateTime(activity.created_at)}
+                                                Posted on {formatDateTime(activity.CreatedAt)}
                                             </small>
                                         </div>
                                     ))}
