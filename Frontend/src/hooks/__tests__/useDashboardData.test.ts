@@ -16,39 +16,45 @@ vi.mock('../useAuth', () => ({
   })
 }));
 
-const mockNews = [
-  { 
-    id: '1', 
-    title: 'News 1', 
-    content: 'Content 1', 
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
-    club_name: 'Club 1',
-    club_id: 'club1'
-  }
-];
-
-const mockEvents = [
-  { 
-    id: '1', 
-    name: 'Event 1', 
-    start_time: '2024-01-01T00:00:00Z',
-    end_time: '2024-01-01T02:00:00Z',
-    club_name: 'Club 1',
-    club_id: 'club1'
-  }
-];
-
-const mockActivities = [
-  { 
-    id: '1', 
-    type: 'news', 
-    title: 'User joined',
-    content: 'A new user has joined the club',
-    club_name: 'Club 1',
-    club_id: 'club1',
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z'
+// Mock timeline items from the unified Timeline entity
+const mockTimelineItems = [
+  {
+    ID: 'news-1',
+    ClubID: 'club1',
+    ClubName: 'Club 1',
+    Type: 'news',
+    Title: 'News 1',
+    Content: 'Content 1',
+    Timestamp: '2024-01-01T00:00:00Z',
+    CreatedAt: '2024-01-01T00:00:00Z',
+    UpdatedAt: '2024-01-01T00:00:00Z',
+    Metadata: {}
+  },
+  {
+    ID: 'event-1',
+    ClubID: 'club1',
+    ClubName: 'Club 1',
+    Type: 'event',
+    Title: 'Event 1',
+    Content: '',
+    Timestamp: '2024-01-01T00:00:00Z',
+    CreatedAt: '2024-01-01T00:00:00Z',
+    UpdatedAt: '2024-01-01T00:00:00Z',
+    StartTime: '2024-01-01T00:00:00Z',
+    EndTime: '2024-01-01T02:00:00Z',
+    Metadata: {}
+  },
+  {
+    ID: 'activity-1',
+    ClubID: 'club1',
+    ClubName: 'Club 1',
+    Type: 'activity',
+    Title: 'User joined',
+    Content: 'A new user has joined the club',
+    Timestamp: '2024-01-01T00:00:00Z',
+    CreatedAt: '2024-01-01T00:00:00Z',
+    UpdatedAt: '2024-01-01T00:00:00Z',
+    Metadata: {}
   }
 ];
 
@@ -72,17 +78,8 @@ describe('useDashboardData', () => {
   });
 
   it('should fetch dashboard data successfully', async () => {
-    // Mock successful API responses with OData v2 format
-    mockApiGet.mockImplementation((url: string) => {
-      if (url === '/api/v2/GetDashboardNews()') {
-        return Promise.resolve({ data: { value: mockNews } });
-      } else if (url === '/api/v2/GetDashboardEvents()') {
-        return Promise.resolve({ data: { value: mockEvents } });
-      } else if (url === '/api/v2/GetDashboardActivities()') {
-        return Promise.resolve({ data: { value: mockActivities } });
-      }
-      return Promise.reject(new Error('Unknown endpoint'));
-    });
+    // Mock successful API response with OData v2 format using Timeline entity
+    mockApiGet.mockResolvedValue({ data: { value: mockTimelineItems } });
 
     const { result } = renderHook(() => useDashboardData());
 
@@ -90,15 +87,25 @@ describe('useDashboardData', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.news).toEqual(mockNews);
-    expect(result.current.events).toEqual(mockEvents);
-    expect(result.current.activities).toEqual(mockActivities);
+    // Check that timeline data is available
+    expect(result.current.timeline).toHaveLength(3);
+    expect(result.current.timeline[0].Type).toBe('news');
+    expect(result.current.timeline[1].Type).toBe('event');
+    expect(result.current.timeline[2].Type).toBe('activity');
+    
+    // Check that legacy format is still available
+    expect(result.current.news).toHaveLength(1);
+    expect(result.current.news[0].id).toBe('news-1');
+    expect(result.current.events).toHaveLength(1);
+    expect(result.current.events[0].id).toBe('event-1');
+    expect(result.current.activities).toHaveLength(1);
+    expect(result.current.activities[0].ID).toBe('activity-1');
+    
     expect(result.current.error).toBeNull();
     
-    // Verify all three OData v2 endpoints were called
-    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/GetDashboardNews()');
-    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/GetDashboardEvents()');
-    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/GetDashboardActivities()');
+    // Verify the unified Timeline endpoint was called
+    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/TimelineItems');
+    expect(mockApiGet).toHaveBeenCalledTimes(1);
   });
 
   it('should handle API errors gracefully', async () => {
@@ -118,17 +125,8 @@ describe('useDashboardData', () => {
   });
 
   it('should refetch data when refetch is called', async () => {
-    // Simple test that focuses on the refetch functionality without complex mock switching
-    mockApiGet.mockImplementation((url: string) => {
-      if (url === '/api/v2/GetDashboardNews()') {
-        return Promise.resolve({ data: { value: mockNews } });
-      } else if (url === '/api/v2/GetDashboardEvents()') {
-        return Promise.resolve({ data: { value: mockEvents } });
-      } else if (url === '/api/v2/GetDashboardActivities()') {
-        return Promise.resolve({ data: { value: mockActivities } });
-      }
-      return Promise.reject(new Error('Unknown endpoint'));
-    });
+    // Mock successful API response
+    mockApiGet.mockResolvedValue({ data: { value: mockTimelineItems } });
 
     const { result } = renderHook(() => useDashboardData());
 
@@ -137,9 +135,10 @@ describe('useDashboardData', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.news).toEqual(mockNews);
-    expect(result.current.events).toEqual(mockEvents);
-    expect(result.current.activities).toEqual(mockActivities);
+    expect(result.current.timeline).toHaveLength(3);
+    expect(result.current.news).toHaveLength(1);
+    expect(result.current.events).toHaveLength(1);
+    expect(result.current.activities).toHaveLength(1);
 
     // Clear the call count to track refetch calls
     mockApiGet.mockClear();
@@ -149,10 +148,8 @@ describe('useDashboardData', () => {
       await result.current.refetch();
     });
 
-    // Verify refetch called all OData v2 endpoints
-    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/GetDashboardNews()');
-    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/GetDashboardEvents()');
-    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/GetDashboardActivities()');
-    expect(mockApiGet).toHaveBeenCalledTimes(3);
+    // Verify refetch called the Timeline endpoint
+    expect(mockApiGet).toHaveBeenCalledWith('/api/v2/TimelineItems');
+    expect(mockApiGet).toHaveBeenCalledTimes(1);
   });
 });
