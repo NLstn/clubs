@@ -24,17 +24,17 @@ export interface DashboardEvent {
 }
 
 export interface ActivityItem {
-  id: string;
-  type: string; // "news", "event", "role_changed", "member_promoted", "member_demoted"
-  title: string;
-  content?: string;
-  club_name: string;
-  club_id: string;
-  created_at: string;
-  updated_at: string;
-  actor?: string;        // User ID who created/initiated the activity
-  actor_name?: string;   // Name of the user who created/initiated the activity
-  metadata?: {
+  ID: string;
+  Type: string; // "news", "event", "role_changed", "member_promoted", "member_demoted"
+  Title: string;
+  Content?: string;
+  ClubName: string;
+  ClubID: string;
+  CreatedAt: string;
+  UpdatedAt: string;
+  Actor?: string;        // User ID who created/initiated the activity
+  ActorName?: string;   // Name of the user who created/initiated the activity
+  Metadata?: {
     start_time?: string;
     end_time?: string;
     user_rsvp?: {
