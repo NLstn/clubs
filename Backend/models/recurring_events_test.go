@@ -38,7 +38,8 @@ func TestCreateRecurringEvent(t *testing.T) {
 		// Check parent event
 		parentEvent := events[0]
 		assert.True(t, parentEvent.IsRecurring)
-		assert.Equal(t, "weekly", parentEvent.RecurrencePattern)
+		assert.NotNil(t, parentEvent.RecurrencePattern)
+		assert.Equal(t, "weekly", *parentEvent.RecurrencePattern)
 		assert.Equal(t, 1, parentEvent.RecurrenceInterval)
 		assert.NotNil(t, parentEvent.RecurrenceEnd)
 		assert.Nil(t, parentEvent.ParentEventID)
@@ -47,10 +48,10 @@ func TestCreateRecurringEvent(t *testing.T) {
 		for i := 1; i < len(events); i++ {
 			childEvent := events[i]
 			assert.False(t, childEvent.IsRecurring)
-			assert.Equal(t, "", childEvent.RecurrencePattern)
+			assert.Nil(t, childEvent.RecurrencePattern)
 			assert.NotNil(t, childEvent.ParentEventID)
 			assert.Equal(t, parentEvent.ID, *childEvent.ParentEventID)
-			
+
 			// Check time progression
 			expectedStartTime := startTime.AddDate(0, 0, 7*i)
 			assert.True(t, childEvent.StartTime.Equal(expectedStartTime) || childEvent.StartTime.After(expectedStartTime.Add(-time.Minute)))

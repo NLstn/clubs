@@ -21,11 +21,11 @@ type Event struct {
 	UpdatedAt   time.Time `json:"UpdatedAt"`
 	UpdatedBy   string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 	// Recurring event fields
-	IsRecurring        bool       `json:"IsRecurring" gorm:"default:false"`
-	RecurrencePattern  *string    `json:"RecurrencePattern,omitempty" gorm:"type:varchar(50)" odata:"nullable"` // "weekly", "daily", "monthly"
-	RecurrenceInterval int        `json:"RecurrenceInterval,omitempty" gorm:"default:1"`                        // Every N weeks/days/months
-	RecurrenceEnd      *time.Time `json:"RecurrenceEnd,omitempty" odata:"nullable"`                             // When recurrence stops
-	ParentEventID      *string    `json:"ParentEventID,omitempty" gorm:"type:uuid" odata:"nullable"`            // Links recurring event instances
+	IsRecurring        bool       `json:"IsRecurring" gorm:"column:is_recurring;default:false"`
+	RecurrencePattern  *string    `json:"RecurrencePattern,omitempty" gorm:"column:recurrence_pattern;type:varchar(50)" odata:"nullable"` // "weekly", "daily", "monthly"
+	RecurrenceInterval int        `json:"RecurrenceInterval,omitempty" gorm:"column:recurrence_interval;default:1"`                       // Every N weeks/days/months
+	RecurrenceEnd      *time.Time `json:"RecurrenceEnd,omitempty" gorm:"column:recurrence_end" odata:"nullable"`                          // When recurrence stops
+	ParentEventID      *string    `json:"ParentEventID,omitempty" gorm:"column:parent_event_id;type:uuid" odata:"nullable"`               // Links recurring event instances
 }
 
 type EventRSVP struct {
