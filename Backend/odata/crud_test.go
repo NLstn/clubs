@@ -470,7 +470,7 @@ func TestClubCRUD(t *testing.T) {
 		}
 	})
 
-	t.Run("DELETE soft delete club", func(t *testing.T) {
+	t.Run("DELETE mark club as deleted", func(t *testing.T) {
 		// Create a new club specifically for deletion test
 		desc := "Club for deletion test"
 		clubToDelete := &models.Club{
@@ -499,13 +499,13 @@ func TestClubCRUD(t *testing.T) {
 		resp := ctx.makeAuthenticatedRequest(t, "PATCH", path, update)
 		// Accept 200 or 204
 		assert.True(t, resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent,
-			"Expected 200 or 204 for soft delete, got %d", resp.StatusCode)
+			"Expected 200 or 204 for marking as deleted, got %d", resp.StatusCode)
 
-		// Verify club is soft deleted in database (use Unscoped to query deleted records)
+		// Verify club has deleted status in database (use Unscoped to query deleted records)
 		var club models.Club
 		err := database.Db.Unscoped().Where("id = ?", clubToDelete.ID).First(&club).Error
 		if err != nil {
-			t.Logf("Could not verify soft delete: %v - skipping database check", err)
+			t.Logf("Could not verify deleted status: %v - skipping database check", err)
 		} else {
 			assert.True(t, club.Deleted)
 			assert.NotNil(t, club.DeletedAt)

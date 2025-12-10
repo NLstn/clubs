@@ -206,9 +206,9 @@ const AdminClubDetails = () => {
         if (!club) return;
 
         try {
-            // OData v2: Soft delete club using DELETE (or custom HardDelete action if needed)
+            // OData v2: Mark club as deleted using DELETE (or custom HardDelete action if needed)
             await api.delete(`/api/v2/Clubs('${id}')`);
-            // Note: We don't remove from recent clubs for soft delete since owners can still access it
+            // Note: We don't remove from recent clubs since owners can still access deleted clubs
             // Navigate to clubs list after deletion
             navigate('/');
         } catch (err: Error | unknown) {
