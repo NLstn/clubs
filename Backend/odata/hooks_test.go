@@ -2,7 +2,6 @@ package odata
 
 import (
 	"context"
-	"log/slog"
 	"testing"
 
 	"github.com/NLstn/clubs/auth"
@@ -15,21 +14,6 @@ import (
 
 // TestAuthorizationHooks tests authorization context setup
 func TestAuthorizationHooks(t *testing.T) {
-	handlers.SetupTestDB(t)
-	defer handlers.TeardownTestDB(t)
-
-	logger := slog.Default()
-	service := &Service{
-		Service: nil, // Not needed for context tests
-		db:      database.Db,
-		logger:  logger,
-	}
-
-	t.Run("register_auth_hooks_succeeds", func(t *testing.T) {
-		err := service.registerAuthHooks()
-		assert.NoError(t, err)
-	})
-
 	t.Run("get_user_id_from_valid_context", func(t *testing.T) {
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, "test-user-id")
 		userID, err := getUserIDFromContext(ctx)

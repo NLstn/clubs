@@ -68,7 +68,7 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 
 	user := extractUser(r)
 
-	// Get all clubs including deleted ones for owners to see
+	// Get all clubs including ones with deleted status for owners to see
 	clubs, err := models.GetAllClubsIncludingDeleted()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -78,7 +78,7 @@ func handleGetAllClubs(w http.ResponseWriter, r *http.Request) {
 	var authorizedClubs []ClubWithRole
 	for _, club := range clubs {
 		if club.IsMember(user) {
-			// If club is deleted, only show to owners
+			// If club has deleted status, only show to owners
 			if club.Deleted && !club.IsOwner(user) {
 				continue
 			}
@@ -132,7 +132,7 @@ func handleGetClubByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If club is deleted, only allow owners to access it
+	// If club has deleted status, only allow owners to access it
 	if club.Deleted && !club.IsOwner(user) {
 		http.Error(w, "Club not found", http.StatusNotFound)
 		return
@@ -262,9 +262,9 @@ func handleHardDeleteClub(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Only allow hard delete if club is already soft deleted
+	// Only allow hard delete if club already has deleted status
 	if !club.Deleted {
-		http.Error(w, "Club must be soft deleted before permanent deletion", http.StatusBadRequest)
+		http.Error(w, "Club must be marked as deleted before permanent deletion", http.StatusBadRequest)
 		return
 	}
 

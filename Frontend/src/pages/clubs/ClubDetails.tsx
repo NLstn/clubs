@@ -72,8 +72,8 @@ const ClubDetails = () => {
                 }
                 
                 // Track this club visit
-                if (clubData && clubData.id && clubData.name) {
-                    addRecentClub(clubData.id, clubData.name);
+                if (clubData && clubData.ID && clubData.Name) {
+                    addRecentClub(clubData.ID, clubData.Name);
                 }
                 
                 setLoading(false);

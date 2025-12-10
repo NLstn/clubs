@@ -27,26 +27,26 @@ interface Team {
 
 // OData response types
 interface ODataClub {
-    id: string;
-    name: string;
-    description: string;
-    createdAt: string;
-    deleted?: boolean;
-    members?: ODataMember[];
-    teams?: ODataTeam[];
+    ID: string;
+    Name: string;
+    Description: string;
+    CreatedAt: string;
+    Deleted?: boolean;
+    Members?: ODataMember[];
+    Teams?: ODataTeam[];
 }
 
 interface ODataMember {
-    userId: string;
-    role: string;
+    UserID: string;
+    Role: string;
 }
 
 interface ODataTeam {
-    id: string;
-    name: string;
-    description: string;
-    createdAt: string;
-    clubId: string;
+    ID: string;
+    Name: string;
+    Description: string;
+    CreatedAt: string;
+    ClubID: string;
 }
 
 const ClubList = () => {
@@ -76,20 +76,20 @@ const ClubList = () => {
             // Transform OData response to match existing interface
             const odataClubs: ODataClub[] = response.data.value || [];
             const transformedClubs = odataClubs.map((club) => ({
-                id: club.id,
-                name: club.name,
-                description: club.description,
-                created_at: club.createdAt,
-                deleted: club.deleted,
+                id: club.ID,
+                name: club.Name,
+                description: club.Description,
+                created_at: club.CreatedAt,
+                deleted: club.Deleted,
                 // Find current user's role from expanded Members
-                user_role: club.members?.find((m) => m.userId === currentUserId)?.role || 'member',
+                user_role: club.Members?.find((m) => m.UserID === currentUserId)?.Role || 'member',
                 // Map expanded Teams
-                user_teams: club.teams?.map((team) => ({
-                    id: team.id,
-                    name: team.name,
-                    description: team.description,
-                    createdAt: team.createdAt,
-                    clubId: team.clubId
+                user_teams: club.Teams?.map((team) => ({
+                    id: team.ID,
+                    name: team.Name,
+                    description: team.Description,
+                    createdAt: team.CreatedAt,
+                    clubId: team.ClubID
                 })) || []
             }));
             

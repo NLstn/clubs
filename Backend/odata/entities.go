@@ -47,9 +47,6 @@ func (s *Service) registerEntities() error {
 		if err := s.Service.RegisterEntity(entity); err != nil {
 			return fmt.Errorf("failed to register entity %T: %w", entity, err)
 		}
-		s.logger.Info("Registered OData entity", "type", fmt.Sprintf("%T", entity))
 	}
-
-	s.logger.Info("Successfully registered all OData entities", "count", len(entities))
 	return nil
 }
