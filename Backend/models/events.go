@@ -1,10 +1,14 @@
 package models
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
+	"gorm.io/gorm"
 )
 
 type Event struct {
@@ -371,4 +375,204 @@ func (t *Team) GetEventByID(eventID string) (*Event, error) {
 		return nil, err
 	}
 	return &event, nil
+}
+
+// ODataBeforeReadCollection filters events to only those in clubs the user belongs to
+func (e Event) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see events of clubs they belong to
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to a specific event
+func (e Event) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see events of clubs they belong to
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeCreate validates event creation permissions
+func (e *Event) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if user is an admin/owner of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", e.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can create events")
+	}
+
+	// Set CreatedBy and UpdatedBy
+	now := time.Now()
+	e.CreatedAt = now
+	e.UpdatedAt = now
+	e.CreatedBy = userID
+	e.UpdatedBy = userID
+
+	return nil
+}
+
+// ODataBeforeUpdate validates event update permissions
+func (e *Event) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if user is an admin/owner of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", e.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can update events")
+	}
+
+	// Set UpdatedBy
+	now := time.Now()
+	e.UpdatedAt = now
+	e.UpdatedBy = userID
+
+	return nil
+}
+
+// ODataBeforeDelete validates event deletion permissions
+func (e *Event) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if user is an admin/owner of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", e.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can delete events")
+	}
+
+	return nil
+}
+
+// EventRSVP authorization hooks
+// ODataBeforeReadCollection filters RSVPs to only those for events the user can access
+func (er EventRSVP) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see RSVPs for events in clubs they belong to
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("event_id IN (SELECT id FROM events WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to a specific RSVP
+func (er EventRSVP) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see RSVPs for events in clubs they belong to
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("event_id IN (SELECT id FROM events WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeCreate validates RSVP creation permissions
+func (er *EventRSVP) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Get event to check club membership
+	var event Event
+	if err := database.Db.Where("id = ?", er.EventID).First(&event).Error; err != nil {
+		return fmt.Errorf("event not found")
+	}
+
+	// Check if user is a member of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ?", event.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only club members can RSVP to events")
+	}
+
+	// Users can only create RSVPs for themselves
+	if er.UserID != "" && er.UserID != userID {
+		return fmt.Errorf("unauthorized: cannot create RSVP for another user")
+	}
+
+	// Set UserID if not already set
+	if er.UserID == "" {
+		er.UserID = userID
+	}
+
+	// Set CreatedAt and UpdatedAt
+	now := time.Now()
+	er.CreatedAt = now
+	er.UpdatedAt = now
+
+	return nil
+}
+
+// ODataBeforeUpdate validates RSVP update permissions
+func (er *EventRSVP) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only update their own RSVPs
+	if er.UserID != userID {
+		return fmt.Errorf("unauthorized: can only update your own RSVPs")
+	}
+
+	// Set UpdatedAt
+	er.UpdatedAt = time.Now()
+
+	return nil
+}
+
+// ODataBeforeDelete validates RSVP deletion permissions
+func (er *EventRSVP) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only delete their own RSVPs
+	if er.UserID != userID {
+		// Check if user is club admin/owner
+		var event Event
+		if err := database.Db.Where("id = ?", er.EventID).First(&event).Error; err != nil {
+			return fmt.Errorf("event not found")
+		}
+
+		var existingMember Member
+		if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", event.ClubID, userID).First(&existingMember).Error; err != nil {
+			return fmt.Errorf("unauthorized: can only delete your own RSVPs")
+		}
+	}
+
+	return nil
 }

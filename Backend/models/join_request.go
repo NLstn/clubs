@@ -1,12 +1,16 @@
 package models
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // JoinRequest represents a user request to join a club (via invitation link)
@@ -206,4 +210,76 @@ func (c *Club) GetJoinRequestCount() (int64, error) {
 	var count int64
 	err := database.Db.Model(&JoinRequest{}).Where("club_id = ?", c.ID).Count(&count).Error
 	return count, err
+}
+
+// ODataBeforeReadCollection filters join requests - admins see requests for their clubs, users see their own
+func (jr JoinRequest) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can see their own requests OR requests for clubs they are admin/owner of
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id = ? OR club_id IN (SELECT club_id FROM members WHERE user_id = ? AND role IN ('admin', 'owner'))", userID, userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to a specific join request
+func (jr JoinRequest) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can see their own requests OR requests for clubs they are admin/owner of
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id = ? OR club_id IN (SELECT club_id FROM members WHERE user_id = ? AND role IN ('admin', 'owner'))", userID, userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeCreate validates join request creation permissions
+func (jr *JoinRequest) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only create their own join requests
+	if jr.UserID == "" {
+		jr.UserID = userID
+	} else if jr.UserID != userID {
+		return fmt.Errorf("unauthorized: cannot create join request for another user")
+	}
+
+	// Set CreatedAt and UpdatedAt
+	now := time.Now()
+	jr.CreatedAt = now
+	jr.UpdatedAt = now
+
+	return nil
+}
+
+// ODataBeforeDelete validates join request deletion permissions
+func (jr *JoinRequest) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can delete their own requests or requests for clubs they admin
+	if jr.UserID == userID {
+		return nil
+	}
+
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", jr.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: can only delete your own join requests or requests for clubs you admin")
+	}
+
+	return nil
 }

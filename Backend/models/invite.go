@@ -1,11 +1,15 @@
 package models
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // Invite represents an admin invitation to a user to join a club
@@ -120,4 +124,94 @@ func (u *User) CanUserEditInvite(inviteId string) (bool, error) {
 
 	// User can accept if it's their own invite (their email matches)
 	return user.Email == invite.Email, nil
+}
+
+// ODataBeforeReadCollection filters invites - users see invites for their email or clubs they admin
+func (i Invite) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Get user email to check for personal invites
+	var user User
+	if err := database.Db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	// User can see invites for their email OR invites for clubs they are admin/owner of
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("email = ? OR club_id IN (SELECT club_id FROM members WHERE user_id = ? AND role IN ('admin', 'owner'))", user.Email, userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to a specific invite
+func (i Invite) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Get user email to check for personal invites
+	var user User
+	if err := database.Db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	// User can see invites for their email OR invites for clubs they are admin/owner of
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("email = ? OR club_id IN (SELECT club_id FROM members WHERE user_id = ? AND role IN ('admin', 'owner'))", user.Email, userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeCreate validates invite creation permissions
+func (i *Invite) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if user is an admin/owner of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", i.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can create invites")
+	}
+
+	// Set CreatedBy
+	now := time.Now()
+	i.CreatedAt = now
+	i.UpdatedAt = now
+	i.CreatedBy = userID
+
+	return nil
+}
+
+// ODataBeforeDelete validates invite deletion permissions
+func (i *Invite) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Get user email
+	var user User
+	if err := database.Db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return fmt.Errorf("user not found")
+	}
+
+	// User can delete their own invites or invites for clubs they admin
+	if i.Email == user.Email {
+		return nil
+	}
+
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", i.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: can only delete your own invites or invites for clubs you admin")
+	}
+
+	return nil
 }
