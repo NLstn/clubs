@@ -165,8 +165,8 @@ func (c *Club) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 	return nil
 }
 
-// AfterCreate OData hook - creates the creator as an owner member of the club
-func (c *Club) AfterCreate(ctx context.Context, r *http.Request) error {
+// ODataAfterCreate OData hook - creates the creator as an owner member of the club
+func (c *Club) ODataAfterCreate(ctx context.Context, r *http.Request) error {
 	// Get transaction from context
 	tx, ok := odata.TransactionFromContext(ctx)
 	if !ok {
@@ -189,17 +189,73 @@ func (c *Club) AfterCreate(ctx context.Context, r *http.Request) error {
 	return nil
 }
 
-// BeforeUpdate OData hook - sets UpdatedBy from authenticated user context
-func (c *Club) BeforeUpdate(ctx context.Context, r *http.Request) error {
+// ODataBeforeUpdate OData hook - sets UpdatedBy from authenticated user context
+func (c *Club) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 	// Extract user ID from context
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// Set updated by and updated at
-	c.UpdatedAt = time.Now()
+	// Set updated by and updated at (these will always be updated)
+	now := time.Now()
+	c.UpdatedAt = now
 	c.UpdatedBy = userID
 
 	return nil
+}
+
+// ODataAfterUpdate OData hook - handles soft delete timestamp setting
+func (c *Club) ODataAfterUpdate(ctx context.Context, r *http.Request) error {
+	// If the club was just marked as deleted, set the soft delete fields
+	if c.Deleted && c.DeletedAt == nil {
+		// Get transaction from context
+		tx, ok := odata.TransactionFromContext(ctx)
+		if !ok {
+			return nil // Log but don't fail the update
+		}
+
+		// Get the user ID from context
+		userID, ok := ctx.Value(auth.UserIDKey).(string)
+		if !ok || userID == "" {
+			return nil // Log but don't fail
+		}
+
+		// Update the soft delete fields
+		now := time.Now()
+		if err := tx.Model(&Club{}).Where("id = ?", c.ID).Updates(map[string]interface{}{
+			"deleted_at": now,
+			"deleted_by": userID,
+		}).Error; err != nil {
+			return fmt.Errorf("failed to set soft delete timestamp: %w", err)
+		}
+
+		// Update the in-memory struct as well
+		c.DeletedAt = &now
+		c.DeletedBy = &userID
+	}
+
+	return nil
+}
+
+// ODataBeforeReadCollection OData read hook - filters out soft-deleted clubs
+func (c Club) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	// By default, filter out soft-deleted clubs
+	// TODO: Add support for includeDeleted=true parameter for owners
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("deleted = ?", false)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity OData read hook - prevents reading soft-deleted clubs
+func (c Club) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	// By default, filter out soft-deleted clubs
+	// TODO: Add support for includeDeleted=true parameter for owners
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("deleted = ?", false)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
 }

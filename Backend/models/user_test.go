@@ -111,7 +111,8 @@ func TestFindOrCreateUserWithKeycloakID(t *testing.T) {
 		user, err := models.FindOrCreateUserWithKeycloakID(keycloakID, email, fullName)
 		assert.NoError(t, err)
 		assert.Equal(t, email, user.Email)
-		assert.Equal(t, keycloakID, user.KeycloakID)
+		assert.NotNil(t, user.KeycloakID)
+		assert.Equal(t, keycloakID, *user.KeycloakID)
 		assert.Equal(t, "John", user.FirstName)
 		assert.Equal(t, "Doe", user.LastName)
 		// Note: ID may not be set properly in current implementation
@@ -130,7 +131,8 @@ func TestFindOrCreateUserWithKeycloakID(t *testing.T) {
 		foundUser, err := models.FindOrCreateUserWithKeycloakID(newKeycloakID, email, "Jane Updated")
 		assert.NoError(t, err)
 		assert.Equal(t, originalUser.Email, foundUser.Email)
-		assert.Equal(t, newKeycloakID, foundUser.KeycloakID)
+		assert.NotNil(t, foundUser.KeycloakID)
+		assert.Equal(t, newKeycloakID, *foundUser.KeycloakID)
 		// Name won't change as user already exists
 		assert.Equal(t, "Jane", foundUser.FirstName)
 		assert.Equal(t, "Smith", foundUser.LastName)
@@ -148,7 +150,8 @@ func TestFindOrCreateUserWithKeycloakID(t *testing.T) {
 		newEmail := "updated-keycloak@example.com"
 		foundUser, err := models.FindOrCreateUserWithKeycloakID(keycloakID, newEmail, "Bob Updated")
 		assert.NoError(t, err)
-		assert.Equal(t, keycloakID, foundUser.KeycloakID)
+		assert.NotNil(t, foundUser.KeycloakID)
+		assert.Equal(t, keycloakID, *foundUser.KeycloakID)
 		// Email should be updated
 		assert.Equal(t, newEmail, foundUser.Email)
 	})
@@ -160,7 +163,8 @@ func TestFindOrCreateUserWithKeycloakID(t *testing.T) {
 		user, err := models.FindOrCreateUserWithKeycloakID(keycloakID, email, "")
 		assert.NoError(t, err)
 		assert.Equal(t, email, user.Email)
-		assert.Equal(t, keycloakID, user.KeycloakID)
+		assert.NotNil(t, user.KeycloakID)
+		assert.Equal(t, keycloakID, *user.KeycloakID)
 		assert.Equal(t, "", user.FirstName)
 		assert.Equal(t, "", user.LastName)
 	})

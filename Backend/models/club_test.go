@@ -163,7 +163,8 @@ func TestCreateClub(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, club.ID)
 		assert.Equal(t, "New Test Club", club.Name)
-		assert.Equal(t, "Test Description", club.Description)
+		assert.NotNil(t, club.Description)
+		assert.Equal(t, "Test Description", *club.Description)
 		assert.Equal(t, user.ID, club.CreatedBy)
 		assert.NotZero(t, club.CreatedAt)
 
@@ -207,7 +208,8 @@ func TestClubUpdate(t *testing.T) {
 		err = database.Db.Where("id = ?", club.ID).First(&dbClub).Error
 		assert.NoError(t, err)
 		assert.Equal(t, "Updated Name", dbClub.Name)
-		assert.Equal(t, "Updated Description", dbClub.Description)
+		assert.NotNil(t, dbClub.Description)
+		assert.Equal(t, "Updated Description", *dbClub.Description)
 	})
 
 	t.Run("update non-existent club", func(t *testing.T) {
