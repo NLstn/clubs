@@ -220,9 +220,9 @@ const ClubDetails = () => {
                 <div className="club-content">
                     <ClubNews />
                     <UpcomingEvents />
-                    {clubSettings?.teamsEnabled && <MyTeams />}
-                    {clubSettings?.finesEnabled && <MyOpenClubFines />}
-                    {clubSettings?.membersListVisible && <ReadonlyMemberList />}
+                    {clubSettings?.TeamsEnabled && <MyTeams />}
+                    {clubSettings?.FinesEnabled && <MyOpenClubFines />}
+                    {clubSettings?.MembersListVisible && <ReadonlyMemberList />}
                 </div>
             </div>
             

@@ -7,12 +7,12 @@ import (
 )
 
 type UserPrivacySettings struct {
-	ID             string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
-	UserID         string    `gorm:"type:uuid;not null" odata:"required"`
-	ClubID         *string   `gorm:"type:uuid" odata:"nullable"` // NULL means global setting
-	ShareBirthDate bool      `gorm:"default:false"`
-	CreatedAt      time.Time `odata:"immutable"`
-	UpdatedAt      time.Time
+	ID             string    `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
+	UserID         string    `json:"UserID" gorm:"type:uuid;not null" odata:"required"`
+	ClubID         *string   `json:"ClubID,omitempty" gorm:"type:uuid" odata:"nullable"` // NULL means global setting
+	ShareBirthDate bool      `json:"ShareBirthDate" gorm:"default:false"`
+	CreatedAt      time.Time `json:"CreatedAt" odata:"immutable"`
+	UpdatedAt      time.Time `json:"UpdatedAt"`
 }
 
 // GetUserPrivacySettings returns privacy settings for a user and specific club

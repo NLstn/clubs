@@ -6,16 +6,16 @@ import { ToggleSwitch } from '@/components/ui';
 import './AdminClubSettings.css';
 
 interface ClubSettings {
-    id: string;
-    clubId: string;
-    finesEnabled: boolean;
-    shiftsEnabled: boolean;
-    teamsEnabled: boolean;
-    membersListVisible: boolean;
-    createdAt: string;
-    createdBy: string;
-    updatedAt: string;
-    updatedBy: string;
+    ID: string;
+    ClubID: string;
+    FinesEnabled: boolean;
+    ShiftsEnabled: boolean;
+    TeamsEnabled: boolean;
+    MembersListVisible: boolean;
+    CreatedAt: string;
+    CreatedBy: string;
+    UpdatedAt: string;
+    UpdatedBy: string;
 }
 
 interface AdminClubSettingsProps {
@@ -37,19 +37,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                 const response = await api.get(`/api/v2/ClubSettings?$filter=ClubID eq '${id}'`);
                 const settingsData = response.data.value?.[0];
                 if (settingsData) {
-                    // Map OData response to expected format
-                    setSettings({
-                        id: settingsData.ID,
-                        clubId: settingsData.ClubID,
-                        finesEnabled: settingsData.FinesEnabled,
-                        shiftsEnabled: settingsData.ShiftsEnabled,
-                        teamsEnabled: settingsData.TeamsEnabled,
-                        membersListVisible: settingsData.MembersListVisible,
-                        createdAt: settingsData.CreatedAt,
-                        createdBy: settingsData.CreatedBy,
-                        updatedAt: settingsData.UpdatedAt,
-                        updatedBy: settingsData.UpdatedBy
-                    });
+                    setSettings(settingsData);
                 }
                 setError(null);
             } catch (err: unknown) {
@@ -63,21 +51,21 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
         fetchSettings();
     }, [id, t]);
 
-    const updateSettings = async (newSettings: Partial<Pick<ClubSettings, 'finesEnabled' | 'shiftsEnabled' | 'teamsEnabled' | 'membersListVisible'>>) => {
+    const updateSettings = async (newSettings: Partial<Pick<ClubSettings, 'FinesEnabled' | 'ShiftsEnabled' | 'TeamsEnabled' | 'MembersListVisible'>>) => {
         if (!settings) return;
 
         try {
             setSaving(true);
             const completeSettings = {
-                FinesEnabled: newSettings.finesEnabled ?? settings.finesEnabled,
-                ShiftsEnabled: newSettings.shiftsEnabled ?? settings.shiftsEnabled,
-                TeamsEnabled: newSettings.teamsEnabled ?? settings.teamsEnabled,
-                MembersListVisible: newSettings.membersListVisible ?? settings.membersListVisible,
+                FinesEnabled: newSettings.FinesEnabled ?? settings.FinesEnabled,
+                ShiftsEnabled: newSettings.ShiftsEnabled ?? settings.ShiftsEnabled,
+                TeamsEnabled: newSettings.TeamsEnabled ?? settings.TeamsEnabled,
+                MembersListVisible: newSettings.MembersListVisible ?? settings.MembersListVisible,
             };
             
-            if (settings.id) {
+            if (settings.ID) {
                 // Update existing settings
-                await api.patch(`/api/v2/ClubSettings('${settings.id}')`, completeSettings);
+                await api.patch(`/api/v2/ClubSettings('${settings.ID}')`, completeSettings);
             } else {
                 // Create new settings
                 await api.post(`/api/v2/ClubSettings`, {
@@ -88,10 +76,10 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
             
             // Update local state
             const updatedSettings = {
-                finesEnabled: newSettings.finesEnabled ?? settings.finesEnabled,
-                shiftsEnabled: newSettings.shiftsEnabled ?? settings.shiftsEnabled,
-                teamsEnabled: newSettings.teamsEnabled ?? settings.teamsEnabled,
-                membersListVisible: newSettings.membersListVisible ?? settings.membersListVisible,
+                finesEnabled: newSettings.FinesEnabled ?? settings.FinesEnabled,
+                shiftsEnabled: newSettings.ShiftsEnabled ?? settings.ShiftsEnabled,
+                teamsEnabled: newSettings.TeamsEnabled ?? settings.TeamsEnabled,
+                membersListVisible: newSettings.MembersListVisible ?? settings.MembersListVisible,
             };
             setSettings({ ...settings, ...updatedSettings });
             setError(null);
@@ -107,22 +95,22 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
 
     const handleFinesToggle = async (checked: boolean) => {
         if (!settings) return;
-        await updateSettings({ finesEnabled: checked });
+        await updateSettings({ FinesEnabled: checked });
     };
 
     const handleShiftsToggle = async (checked: boolean) => {
         if (!settings) return;
-        await updateSettings({ shiftsEnabled: checked });
+        await updateSettings({ ShiftsEnabled: checked });
     };
 
     const handleTeamsToggle = async (checked: boolean) => {
         if (!settings) return;
-        await updateSettings({ teamsEnabled: checked });
+        await updateSettings({ TeamsEnabled: checked });
     };
 
     const handleMembersListToggle = async (checked: boolean) => {
         if (!settings) return;
-        await updateSettings({ membersListVisible: checked });
+        await updateSettings({ MembersListVisible: checked });
     };
 
     if (loading) return <div>{t('clubs.loading.settings')}</div>;
@@ -143,7 +131,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                         <p>{t('clubs.finesDescription')}</p>
                     </div>
                     <ToggleSwitch
-                        checked={settings.finesEnabled}
+                        checked={settings.FinesEnabled}
                         onChange={handleFinesToggle}
                         disabled={saving}
                     />
@@ -155,7 +143,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                         <p>{t('clubs.shiftsDescription')}</p>
                     </div>
                     <ToggleSwitch
-                        checked={settings.shiftsEnabled}
+                        checked={settings.ShiftsEnabled}
                         onChange={handleShiftsToggle}
                         disabled={saving}
                     />
@@ -167,7 +155,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                         <p>{t('clubs.teamsDescription')}</p>
                     </div>
                     <ToggleSwitch
-                        checked={settings.teamsEnabled}
+                        checked={settings.TeamsEnabled}
                         onChange={handleTeamsToggle}
                         disabled={saving}
                     />
@@ -179,7 +167,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                         <p>{t('clubs.membersListDescription')}</p>
                     </div>
                     <ToggleSwitch
-                        checked={settings.membersListVisible}
+                        checked={settings.MembersListVisible}
                         onChange={handleMembersListToggle}
                         disabled={saving}
                     />

@@ -12,24 +12,24 @@ import (
 )
 
 type User struct {
-	ID         string     `gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
-	FirstName  string     `odata:"required"`
-	LastName   string     `odata:"required"`
-	Email      string     `gorm:"uniqueIndex;not null" odata:"required"`
-	KeycloakID *string    `gorm:"uniqueIndex" odata:"nullable"`
-	BirthDate  *time.Time `gorm:"type:date" odata:"nullable"`
-	CreatedAt  time.Time  `odata:"immutable"`
-	UpdatedAt  time.Time
+	ID         string     `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
+	FirstName  string     `json:"FirstName" odata:"required"`
+	LastName   string     `json:"LastName" odata:"required"`
+	Email      string     `json:"Email" gorm:"uniqueIndex;not null" odata:"required"`
+	KeycloakID *string    `json:"KeycloakID,omitempty" gorm:"uniqueIndex" odata:"nullable"`
+	BirthDate  *time.Time `json:"BirthDate,omitempty" gorm:"type:date" odata:"nullable"`
+	CreatedAt  time.Time  `json:"CreatedAt" odata:"immutable"`
+	UpdatedAt  time.Time  `json:"UpdatedAt"`
 }
 
 type RefreshToken struct {
-	ID        string `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	UserID    string `gorm:"type:uuid;not null"`
-	Token     string `gorm:"uniqueIndex;not null"`
-	ExpiresAt time.Time
-	UserAgent string
-	IPAddress string
-	CreatedAt time.Time
+	ID        string    `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	UserID    string    `json:"UserID" gorm:"type:uuid;not null"`
+	Token     string    `json:"Token" gorm:"uniqueIndex;not null"`
+	ExpiresAt time.Time `json:"ExpiresAt"`
+	UserAgent string    `json:"UserAgent"`
+	IPAddress string    `json:"IPAddress"`
+	CreatedAt time.Time `json:"CreatedAt"`
 }
 
 // HashToken returns a sha256 hash of the provided token encoded as hex.

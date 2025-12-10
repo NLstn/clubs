@@ -7,25 +7,25 @@ import (
 )
 
 type Shift struct {
-	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id" odata:"key"`
-	ClubID    string    `gorm:"type:uuid;not null" odata:"required"`
-	EventID   string    `gorm:"type:uuid;not null" json:"eventId" odata:"required"`
-	StartTime time.Time `gorm:"not null" json:"startTime" odata:"required"`
-	EndTime   time.Time `gorm:"not null" json:"endTime" odata:"required"`
-	CreatedAt time.Time `json:"created_at" odata:"immutable"`
-	CreatedBy string    `json:"created_by" gorm:"type:uuid" odata:"required"`
-	UpdatedAt time.Time `json:"updated_at"`
-	UpdatedBy string    `json:"updated_by" gorm:"type:uuid" odata:"required"`
+	ID        string    `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
+	ClubID    string    `json:"ClubID" gorm:"type:uuid;not null" odata:"required"`
+	EventID   string    `json:"EventID" gorm:"type:uuid;not null" odata:"required"`
+	StartTime time.Time `json:"StartTime" gorm:"not null" odata:"required"`
+	EndTime   time.Time `json:"EndTime" gorm:"not null" odata:"required"`
+	CreatedAt time.Time `json:"CreatedAt" odata:"immutable"`
+	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
+	UpdatedAt time.Time `json:"UpdatedAt"`
+	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 }
 
 type ShiftMember struct {
-	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
-	ShiftID   string    `gorm:"type:uuid;not null" odata:"required"`
-	UserID    string    `gorm:"type:uuid;not null" odata:"required"`
-	CreatedAt time.Time `json:"created_at" odata:"immutable"`
-	CreatedBy string    `json:"created_by" gorm:"type:uuid" odata:"required"`
-	UpdatedAt time.Time `json:"updated_at"`
-	UpdatedBy string    `json:"updated_by" gorm:"type:uuid" odata:"required"`
+	ID        string    `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
+	ShiftID   string    `json:"ShiftID" gorm:"type:uuid;not null" odata:"required"`
+	UserID    string    `json:"UserID" gorm:"type:uuid;not null" odata:"required"`
+	CreatedAt time.Time `json:"CreatedAt" odata:"immutable"`
+	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
+	UpdatedAt time.Time `json:"UpdatedAt"`
+	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 }
 
 func (c *Club) CreateShift(startTime, endTime time.Time, createdBy string, eventID string) (string, error) {
@@ -92,15 +92,15 @@ func RemoveMemberFromShift(shiftID, userID string) error {
 }
 
 type UserShiftDetails struct {
-	ID        string    `json:"id"`
-	StartTime time.Time `json:"startTime"`
-	EndTime   time.Time `json:"endTime"`
-	EventID   string    `json:"eventId"`
-	EventName string    `json:"eventName"`
-	Location  string    `json:"location"`
-	ClubID    string    `json:"clubId"`
-	ClubName  string    `json:"clubName"`
-	Members   []string  `json:"members"` // Array of member names
+	ID        string    `json:"ID"`
+	StartTime time.Time `json:"StartTime"`
+	EndTime   time.Time `json:"EndTime"`
+	EventID   string    `json:"EventID"`
+	EventName string    `json:"EventName"`
+	Location  string    `json:"Location"`
+	ClubID    string    `json:"ClubID"`
+	ClubName  string    `json:"ClubName"`
+	Members   []string  `json:"Members"` // Array of member names
 }
 
 func GetUserFutureShifts(userID string) ([]UserShiftDetails, error) {

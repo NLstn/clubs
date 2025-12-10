@@ -16,31 +16,31 @@ vi.mock('../../utils/recentClubs', () => ({
 
 const mockNotifications = [
   {
-    id: '1',
-    type: 'info',
-    title: 'Welcome',
-    message: 'Welcome to the club!',
-    read: false,
-    createdAt: '2024-01-01T10:00:00Z',
-    clubId: 'club-1'
+    ID: '1',
+    Type: 'info',
+    Title: 'Welcome',
+    Message: 'Welcome to the club!',
+    Read: false,
+    CreatedAt: '2024-01-01T10:00:00Z',
+    ClubID: 'club-1'
   },
   {
-    id: '2',
-    type: 'warning',
-    title: 'Event Reminder',
-    message: 'Don\'t forget about the upcoming event!',
-    read: true,
-    createdAt: '2024-01-02T10:00:00Z',
-    eventId: 'event-1'
+    ID: '2',
+    Type: 'warning',
+    Title: 'Event Reminder',
+    Message: 'Don\'t forget about the upcoming event!',
+    Read: true,
+    CreatedAt: '2024-01-02T10:00:00Z',
+    EventID: 'event-1'
   },
   {
     id: '3',
-    type: 'error',
-    title: 'Fine Assigned',
-    message: 'You have been assigned a fine.',
-    read: false,
-    createdAt: '2024-01-03T10:00:00Z',
-    fineId: 'fine-1'
+    Type: 'error',
+    Title: 'Fine Assigned',
+    Message: 'You have been assigned a fine.',
+    Read: false,
+    CreatedAt: '2024-01-03T10:00:00Z',
+    FineID: 'fine-1'
   }
 ];
 
@@ -144,13 +144,13 @@ describe('NotificationDropdown', () => {
 
     it('navigates to club when notification with clubId is clicked', () => {
     const notificationWithClub = {
-      id: '1',
-      type: 'member_added',
-      title: 'Welcome to Test Club',
-      message: 'Welcome to the club!',
-      read: false,
-      createdAt: '2024-01-01T10:00:00Z',
-      clubId: 'club-1'
+      ID: '1',
+      Type: 'member_added',
+      Title: 'Welcome to Test Club',
+      Message: 'Welcome to the club!',
+      Read: false,
+      CreatedAt: '2024-01-01T10:00:00Z',
+      ClubID: 'club-1'
     };
     
     render(
@@ -220,11 +220,11 @@ describe('NotificationDropdown', () => {
   it('does not limit number of notifications displayed', () => {
     const manyNotifications = Array.from({ length: 15 }, (_, i) => ({
       id: `${i + 1}`,
-      type: 'info',
-      title: `Notification ${i + 1}`,
-      message: `Message ${i + 1}`,
-      read: false,
-      createdAt: '2024-01-01T10:00:00Z',
+      Type: 'info',
+      Title: `Notification ${i + 1}`,
+      Message: `Message ${i + 1}`,
+      Read: false,
+      CreatedAt: '2024-01-01T10:00:00Z',
     }));
     
     render(<NotificationDropdown {...defaultProps} notifications={manyNotifications} />);
@@ -256,12 +256,12 @@ describe('NotificationDropdown', () => {
 
   it('shows full text in title attribute for long notification texts', () => {
     const longTextNotification = {
-      id: '1',
-      type: 'info',
-      title: 'This is a very long notification title that might be truncated in the UI',
-      message: 'This is a very long notification message that will definitely be truncated because it exceeds the two line limit set by the CSS line-clamp property',
-      read: false,
-      createdAt: '2024-01-01T10:00:00Z',
+      ID: '1',
+      Type: 'info',
+      Title: 'This is a very long notification title that might be truncated in the UI',
+      Message: 'This is a very long notification message that will definitely be truncated because it exceeds the two line limit set by the CSS line-clamp property',
+      Read: false,
+      CreatedAt: '2024-01-01T10:00:00Z',
     };
 
     render(<NotificationDropdown {...defaultProps} notifications={[longTextNotification]} />);
@@ -270,9 +270,9 @@ describe('NotificationDropdown', () => {
     fireEvent.click(bellButton);
 
     // Check that title attribute is set for both title and message
-    const titleElement = screen.getByText(longTextNotification.title);
-    const messageElement = screen.getByText(longTextNotification.message);
+    const titleElement = screen.getByText(longTextNotification.Title);
+    const messageElement = screen.getByText(longTextNotification.Message);
     
-    expect(titleElement).toHaveAttribute('title', longTextNotification.title);
-    expect(messageElement).toHaveAttribute('title', longTextNotification.message);
+    expect(titleElement).toHaveAttribute('title', longTextNotification.Title);
+    expect(messageElement).toHaveAttribute('title', longTextNotification.Message);
   });

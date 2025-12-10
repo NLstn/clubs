@@ -14,28 +14,28 @@ var ErrNotClubAdminOrTeamAdmin = errors.New("user is not a club admin or team ad
 var ErrLastTeamAdminDemotion = errors.New("cannot demote the last admin of the team")
 
 type Team struct {
-	ID          string     `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
-	ClubID      string     `json:"clubId" gorm:"type:uuid;not null" odata:"required"`
-	Name        string     `json:"name" gorm:"not null" odata:"required"`
-	Description *string    `json:"description" odata:"nullable"`
-	CreatedAt   time.Time  `json:"createdAt" odata:"immutable"`
-	CreatedBy   string     `json:"createdBy" gorm:"type:uuid" odata:"required"`
-	UpdatedAt   time.Time  `json:"updatedAt"`
-	UpdatedBy   string     `json:"updatedBy" gorm:"type:uuid" odata:"required"`
-	Deleted     bool       `json:"deleted" gorm:"default:false"`
-	DeletedAt   *time.Time `json:"deletedAt,omitempty" odata:"nullable"`
-	DeletedBy   *string    `json:"deletedBy,omitempty" gorm:"type:uuid" odata:"nullable"`
+	ID          string     `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
+	ClubID      string     `json:"ClubID" gorm:"type:uuid;not null" odata:"required"`
+	Name        string     `json:"Name" gorm:"not null" odata:"required"`
+	Description *string    `json:"Description,omitempty" odata:"nullable"`
+	CreatedAt   time.Time  `json:"CreatedAt" odata:"immutable"`
+	CreatedBy   string     `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
+	UpdatedAt   time.Time  `json:"UpdatedAt"`
+	UpdatedBy   string     `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
+	Deleted     bool       `json:"Deleted" gorm:"default:false"`
+	DeletedAt   *time.Time `json:"DeletedAt,omitempty" odata:"nullable"`
+	DeletedBy   *string    `json:"DeletedBy,omitempty" gorm:"type:uuid" odata:"nullable"`
 }
 
 type TeamMember struct {
-	ID        string    `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
-	TeamID    string    `json:"teamId" gorm:"type:uuid;not null" odata:"required"`
-	UserID    string    `json:"userId" gorm:"type:uuid;not null" odata:"required"`
-	Role      string    `json:"role" gorm:"default:member" odata:"required"` // admin, member
-	CreatedAt time.Time `json:"createdAt" odata:"immutable"`
-	CreatedBy string    `json:"createdBy" gorm:"type:uuid" odata:"required"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	UpdatedBy string    `json:"updatedBy" gorm:"type:uuid" odata:"required"`
+	ID        string    `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
+	TeamID    string    `json:"TeamID" gorm:"type:uuid;not null" odata:"required"`
+	UserID    string    `json:"UserID" gorm:"type:uuid;not null" odata:"required"`
+	Role      string    `json:"Role" gorm:"default:member" odata:"required"` // admin, member
+	CreatedAt time.Time `json:"CreatedAt" odata:"immutable"`
+	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
+	UpdatedAt time.Time `json:"UpdatedAt"`
+	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 }
 
 // BeforeCreate generates UUID for new team
@@ -158,11 +158,11 @@ func (t *Team) GetTeamMembersWithUserInfo() ([]map[string]interface{}, error) {
 
 	for rows.Next() {
 		var memberInfo struct {
-			ID       string    `json:"id"`
-			UserID   string    `json:"userId"`
-			Role     string    `json:"role"`
-			JoinedAt time.Time `json:"joinedAt"`
-			Name     string    `json:"name"`
+			ID       string    `json:"ID"`
+			UserID   string    `json:"UserID"`
+			Role     string    `json:"Role"`
+			JoinedAt time.Time `json:"JoinedAt"`
+			Name     string    `json:"Name"`
 		}
 
 		err := database.Db.ScanRows(rows, &memberInfo)
@@ -171,11 +171,11 @@ func (t *Team) GetTeamMembersWithUserInfo() ([]map[string]interface{}, error) {
 		}
 
 		results = append(results, map[string]interface{}{
-			"id":       memberInfo.ID,
-			"userId":   memberInfo.UserID,
-			"role":     memberInfo.Role,
-			"joinedAt": memberInfo.JoinedAt.Format("2006-01-02T15:04:05Z"),
-			"name":     memberInfo.Name,
+			"ID":       memberInfo.ID,
+			"UserID":   memberInfo.UserID,
+			"Role":     memberInfo.Role,
+			"JoinedAt": memberInfo.JoinedAt.Format("2006-01-02T15:04:05Z"),
+			"Name":     memberInfo.Name,
 		})
 	}
 

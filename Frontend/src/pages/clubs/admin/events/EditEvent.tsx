@@ -60,7 +60,7 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
     ];
 
     const fetchEventShifts = useCallback(async () => {
-        if (!event || !clubId || !clubSettings?.shiftsEnabled) return;
+        if (!event || !clubId || !clubSettings?.ShiftsEnabled) return;
         
         try {
             // OData v2: Query Shifts for this event
@@ -69,7 +69,7 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
         } catch (error) {
             console.error("Error fetching event shifts:", error);
         }
-    }, [event, clubId, clubSettings?.shiftsEnabled]);
+    }, [event, clubId, clubSettings?.ShiftsEnabled]);
 
     useEffect(() => {
         if (event) {
@@ -121,7 +121,7 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
 
     // Reset to event tab if shifts become unavailable
     useEffect(() => {
-        if (clubSettings && activeTab === 'shifts' && !clubSettings.shiftsEnabled) {
+        if (clubSettings && activeTab === 'shifts' && !clubSettings.ShiftsEnabled) {
             setActiveTab('event');
         }
     }, [clubSettings, activeTab]);
@@ -226,7 +226,7 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                 <Tabs
                     tabs={[
                         { id: 'event', label: 'Event Details' },
-                        ...(clubSettings?.shiftsEnabled ? [{ id: 'shifts', label: 'Shifts' }] : [])
+                        ...(clubSettings?.ShiftsEnabled ? [{ id: 'shifts', label: 'Shifts' }] : [])
                     ]}
                     activeTab={activeTab}
                     onTabChange={(tabId) => setActiveTab(tabId as 'event' | 'shifts')}
@@ -283,7 +283,7 @@ const EditEvent: FC<EditEventProps> = ({ isOpen, onClose, event, clubId, onSucce
                         </div>
 
                         {/* Shifts Tab */}
-                        {clubSettings?.shiftsEnabled && (
+                        {clubSettings?.ShiftsEnabled && (
                             <div className={`tab-panel ${activeTab === 'shifts' ? 'active' : ''}`}>
                                 <h3>Event Shifts</h3>
                                 

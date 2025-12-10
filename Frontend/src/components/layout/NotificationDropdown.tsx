@@ -4,16 +4,16 @@ import { addRecentClub } from '../../utils/recentClubs';
 import './NotificationDropdown.css';
 
 interface Notification {
-  id: string;
-  type: string;
-  title: string;
-  message: string;
-  read: boolean;
-  createdAt: string;
-  clubId?: string;
-  eventId?: string;
-  fineId?: string;
-  inviteId?: string;
+  ID: string;
+  Type: string;
+  Title: string;
+  Message: string;
+  Read: boolean;
+  CreatedAt: string;
+  ClubID?: string;
+  EventID?: string;
+  FineID?: string;
+  InviteID?: string;
 }
 
 interface NotificationDropdownProps {
@@ -58,41 +58,41 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    if (!notification.read) {
-      onMarkAsRead(notification.id);
+    if (!notification.Read) {
+      onMarkAsRead(notification.ID);
     }
 
     // Navigate to appropriate page based on notification type
-    if (notification.type === 'invite_received') {
+    if (notification.Type === 'invite_received') {
       setIsOpen(false); // Close the dropdown
       navigate('/profile/invites');
-    } else if (notification.type === 'member_added' && notification.clubId) {
+    } else if (notification.Type === 'member_added' && notification.ClubID) {
       setIsOpen(false); // Close the dropdown
       // Add to recent clubs when navigating from notification
-      addRecentClub(notification.clubId, notification.title.replace('Welcome to ', ''));
-      navigate(`/clubs/${notification.clubId}`);
-    } else if (notification.type === 'fine_assigned' && notification.clubId) {
+      addRecentClub(notification.ClubID, notification.Title.replace('Welcome to ', ''));
+      navigate(`/clubs/${notification.ClubID}`);
+    } else if (notification.Type === 'fine_assigned' && notification.ClubID) {
       setIsOpen(false); // Close the dropdown
       // Extract club name from notification title/message if available
-      addRecentClub(notification.clubId, notification.title.split(' - ')[0] || 'Club');
-      navigate(`/clubs/${notification.clubId}`);
-    } else if (notification.type === 'event_created' && notification.clubId) {
+      addRecentClub(notification.ClubID, notification.Title.split(' - ')[0] || 'Club');
+      navigate(`/clubs/${notification.ClubID}`);
+    } else if (notification.Type === 'event_created' && notification.ClubID) {
       setIsOpen(false); // Close the dropdown
       // Extract club name from notification message if available
-      addRecentClub(notification.clubId, notification.title.split(' - ')[0] || 'Club');
-      navigate(`/clubs/${notification.clubId}`);
-    } else if (notification.type === 'news_created' && notification.clubId) {
+      addRecentClub(notification.ClubID, notification.Title.split(' - ')[0] || 'Club');
+      navigate(`/clubs/${notification.ClubID}`);
+    } else if (notification.Type === 'news_created' && notification.ClubID) {
       setIsOpen(false); // Close the dropdown
       // Extract club name from notification message if available
-      addRecentClub(notification.clubId, notification.title.split(' - ')[0] || 'Club');
-      navigate(`/clubs/${notification.clubId}`);
-    } else if (notification.type === 'join_request_received' && notification.clubId) {
+      addRecentClub(notification.ClubID, notification.Title.split(' - ')[0] || 'Club');
+      navigate(`/clubs/${notification.ClubID}`);
+    } else if (notification.Type === 'join_request_received' && notification.ClubID) {
       setIsOpen(false); // Close the dropdown
       // Extract club name from notification title/message if available
-      const clubName = notification.message.match(/join (.+)$/)?.[1] || 'Club';
-      addRecentClub(notification.clubId, clubName);
+      const clubName = notification.Message.match(/join (.+)$/)?.[1] || 'Club';
+      addRecentClub(notification.ClubID, clubName);
       // Navigate to admin members page with join requests modal open
-      navigate(`/clubs/${notification.clubId}/admin/members?openJoinRequests=true`);
+      navigate(`/clubs/${notification.ClubID}/admin/members?openJoinRequests=true`);
     }
   };
 
@@ -170,25 +170,25 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
             ) : (
               notifications.map((notification) => (
                 <div
-                  key={notification.id}
-                  className={`notification-item ${!notification.read ? 'unread' : ''}`}
+                  key={notification.ID}
+                  className={`notification-item ${!notification.Read ? 'unread' : ''}`}
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="notification-content">
                     <div className="notification-icon-wrapper">
                       <span className="notification-type-icon">
-                        {getNotificationIcon(notification.type)}
+                        {getNotificationIcon(notification.Type)}
                       </span>
-                      {!notification.read && <div className="unread-dot"></div>}
+                      {!notification.Read && <div className="unread-dot"></div>}
                     </div>
                     <div className="notification-text">
-                      <div className="notification-title" title={notification.title}>{notification.title}</div>
-                      <div className="notification-message" title={notification.message}>{notification.message}</div>
-                      <div className="notification-time">{formatDate(notification.createdAt)}</div>
+                      <div className="notification-title" title={notification.Title}>{notification.Title}</div>
+                      <div className="notification-message" title={notification.Message}>{notification.Message}</div>
+                      <div className="notification-time">{formatDate(notification.CreatedAt)}</div>
                     </div>
                     <button
                       className="notification-delete-btn"
-                      onClick={(e) => handleDeleteNotification(e, notification.id)}
+                      onClick={(e) => handleDeleteNotification(e, notification.ID)}
                       aria-label="Delete notification"
                       title="Delete notification"
                     >

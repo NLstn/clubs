@@ -8,37 +8,37 @@ import (
 )
 
 type Event struct {
-	ID          string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id" odata:"key"`
-	ClubID      string    `gorm:"type:uuid;not null" json:"club_id" odata:"required"`
-	TeamID      *string   `gorm:"type:uuid" json:"team_id,omitempty" odata:"nullable"` // Optional team association
-	Name        string    `gorm:"not null" json:"name" odata:"required"`
-	Description *string   `gorm:"type:text" json:"description" odata:"nullable"`
-	Location    *string   `gorm:"type:varchar(255)" json:"location" odata:"nullable"`
-	StartTime   time.Time `gorm:"not null" json:"start_time" odata:"required"`
-	EndTime     time.Time `gorm:"not null" json:"end_time" odata:"required"`
-	CreatedAt   time.Time `json:"created_at" odata:"immutable"`
-	CreatedBy   string    `json:"created_by" gorm:"type:uuid" odata:"required"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	UpdatedBy   string    `json:"updated_by" gorm:"type:uuid" odata:"required"`
+	ID          string    `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
+	ClubID      string    `json:"ClubID" gorm:"type:uuid;not null" odata:"required"`
+	TeamID      *string   `json:"TeamID,omitempty" gorm:"type:uuid" odata:"nullable"` // Optional team association
+	Name        string    `json:"Name" gorm:"not null" odata:"required"`
+	Description *string   `json:"Description,omitempty" gorm:"type:text" odata:"nullable"`
+	Location    *string   `json:"Location,omitempty" gorm:"type:varchar(255)" odata:"nullable"`
+	StartTime   time.Time `json:"StartTime" gorm:"not null" odata:"required"`
+	EndTime     time.Time `json:"EndTime" gorm:"not null" odata:"required"`
+	CreatedAt   time.Time `json:"CreatedAt" odata:"immutable"`
+	CreatedBy   string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
+	UpdatedAt   time.Time `json:"UpdatedAt"`
+	UpdatedBy   string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 	// Recurring event fields
-	IsRecurring        bool       `gorm:"default:false" json:"is_recurring"`
-	RecurrencePattern  *string    `gorm:"type:varchar(50)" json:"recurrence_pattern,omitempty" odata:"nullable"` // "weekly", "daily", "monthly"
-	RecurrenceInterval int        `gorm:"default:1" json:"recurrence_interval,omitempty"`                        // Every N weeks/days/months
-	RecurrenceEnd      *time.Time `json:"recurrence_end,omitempty" odata:"nullable"`                             // When recurrence stops
-	ParentEventID      *string    `gorm:"type:uuid" json:"parent_event_id,omitempty" odata:"nullable"`           // Links recurring event instances
+	IsRecurring        bool       `json:"IsRecurring" gorm:"default:false"`
+	RecurrencePattern  *string    `json:"RecurrencePattern,omitempty" gorm:"type:varchar(50)" odata:"nullable"` // "weekly", "daily", "monthly"
+	RecurrenceInterval int        `json:"RecurrenceInterval,omitempty" gorm:"default:1"`                        // Every N weeks/days/months
+	RecurrenceEnd      *time.Time `json:"RecurrenceEnd,omitempty" odata:"nullable"`                             // When recurrence stops
+	ParentEventID      *string    `json:"ParentEventID,omitempty" gorm:"type:uuid" odata:"nullable"`            // Links recurring event instances
 }
 
 type EventRSVP struct {
-	ID        string    `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id" odata:"key"`
-	EventID   string    `gorm:"type:uuid;not null" json:"event_id" odata:"required"`
-	UserID    string    `gorm:"type:uuid;not null" json:"user_id" odata:"required"`
-	Response  string    `gorm:"not null" json:"response" odata:"required"` // "yes" or "no"
-	CreatedAt time.Time `json:"created_at" odata:"immutable"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        string    `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
+	EventID   string    `json:"EventID" gorm:"type:uuid;not null" odata:"required"`
+	UserID    string    `json:"UserID" gorm:"type:uuid;not null" odata:"required"`
+	Response  string    `json:"Response" gorm:"not null" odata:"required"` // "yes" or "no"
+	CreatedAt time.Time `json:"CreatedAt" odata:"immutable"`
+	UpdatedAt time.Time `json:"UpdatedAt"`
 
 	// Relationships
-	Event Event `gorm:"foreignKey:EventID" json:"event,omitempty"`
-	User  User  `gorm:"foreignKey:UserID" json:"user,omitempty"`
+	Event Event `gorm:"foreignKey:EventID" json:"Event,omitempty"`
+	User  User  `gorm:"foreignKey:UserID" json:"User,omitempty"`
 }
 
 // CreateEvent creates a new event for the club
@@ -270,7 +270,7 @@ func (u *User) GetUserRSVP(eventID string) (*EventRSVP, error) {
 // EventWithClub represents an event with its associated club name
 type EventWithClub struct {
 	Event
-	ClubName string `json:"club_name"`
+	ClubName string `json:"ClubName"`
 }
 
 // SearchEventsForUser searches for events in clubs where the user is a member

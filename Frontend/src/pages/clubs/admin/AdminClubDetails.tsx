@@ -163,10 +163,10 @@ const AdminClubDetails = () => {
     // Redirect to valid tab if current tab becomes unavailable
     useEffect(() => {
         if (clubSettings && id) {
-            if (activeTab === 'fines' && !clubSettings.finesEnabled) {
+            if (activeTab === 'fines' && !clubSettings.FinesEnabled) {
                 navigate(`/clubs/${id}/admin`);
             }
-            if (activeTab === 'teams' && !clubSettings.teamsEnabled) {
+            if (activeTab === 'teams' && !clubSettings.TeamsEnabled) {
                 navigate(`/clubs/${id}/admin`);
             }
         }
@@ -327,7 +327,7 @@ const AdminClubDetails = () => {
                         >
                             {t('clubs.members')}
                         </Link>
-                        {clubSettings?.teamsEnabled && (
+                        {clubSettings?.TeamsEnabled && (
                             <Link 
                                 to={`/clubs/${id}/admin/teams`}
                                 className={`tab-button ${activeTab === 'teams' ? 'active' : ''}`}
@@ -335,7 +335,7 @@ const AdminClubDetails = () => {
                                 {t('clubs.teams')}
                             </Link>
                         )}
-                        {clubSettings?.finesEnabled && (
+                        {clubSettings?.FinesEnabled && (
                             <Link 
                                 to={`/clubs/${id}/admin/fines`}
                                 className={`tab-button ${activeTab === 'fines' ? 'active' : ''}`}
@@ -516,13 +516,13 @@ const AdminClubDetails = () => {
                             <AdminClubMemberList openJoinRequests={searchParams.get('openJoinRequests') === 'true'} />
                         </div>
 
-                        {clubSettings?.teamsEnabled && (
+                        {clubSettings?.TeamsEnabled && (
                             <div className={`tab-panel ${activeTab === 'teams' ? 'active' : ''}`}>
                                 <AdminClubTeamList />
                             </div>
                         )}
 
-                        {clubSettings?.finesEnabled && (
+                        {clubSettings?.FinesEnabled && (
                             <div className={`tab-panel ${activeTab === 'fines' ? 'active' : ''}`}>
                                 <AdminClubFineList />
                             </div>

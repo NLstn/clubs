@@ -9,17 +9,17 @@ import (
 )
 
 type Fine struct {
-	ID        string    `json:"id" gorm:"type:uuid;primary_key" odata:"key"`
-	ClubID    string    `json:"club_id" gorm:"type:uuid" odata:"required"`
-	TeamID    *string   `json:"team_id,omitempty" gorm:"type:uuid" odata:"nullable"` // Optional team association
-	UserID    string    `json:"userId" gorm:"type:uuid" odata:"required"`
-	Reason    string    `json:"reason" odata:"required"`
-	Amount    float64   `json:"amount" odata:"required"`
-	CreatedAt time.Time `json:"created_at" odata:"immutable"`
-	CreatedBy string    `json:"created_by" gorm:"type:uuid" odata:"required"`
-	UpdatedAt time.Time `json:"updated_at"`
-	UpdatedBy string    `json:"updated_by" gorm:"type:uuid" odata:"required"`
-	Paid      bool      `json:"paid"`
+	ID        string    `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
+	ClubID    string    `json:"ClubID" gorm:"type:uuid" odata:"required"`
+	TeamID    *string   `json:"TeamID,omitempty" gorm:"type:uuid" odata:"nullable"` // Optional team association
+	UserID    string    `json:"UserID" gorm:"type:uuid" odata:"required"`
+	Reason    string    `json:"Reason" odata:"required"`
+	Amount    float64   `json:"Amount" odata:"required"`
+	CreatedAt time.Time `json:"CreatedAt" odata:"immutable"`
+	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
+	UpdatedAt time.Time `json:"UpdatedAt"`
+	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
+	Paid      bool      `json:"Paid"`
 }
 
 func (c *Club) CreateFine(userID, reason, createdBy string, amount float64) (Fine, error) {
