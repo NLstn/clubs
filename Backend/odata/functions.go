@@ -205,57 +205,57 @@ func (s *Service) registerFunctions() error {
 // Helper types for dashboard functions
 type NewsWithClub struct {
 	models.News
-	ClubName string `json:"clubName"`
-	ClubID   string `json:"clubId"`
+	ClubName string `json:"ClubName"`
+	ClubID   string `json:"ClubID"`
 }
 
 type EventWithClub struct {
 	models.Event
-	ClubName string            `json:"clubName"`
-	ClubID   string            `json:"clubId"`
-	UserRSVP *models.EventRSVP `json:"userRsvp,omitempty"`
+	ClubName string            `json:"ClubName"`
+	ClubID   string            `json:"ClubID"`
+	UserRSVP *models.EventRSVP `json:"UserRSVP,omitempty"`
 }
 
 type ActivityItem struct {
-	ID        string                 `json:"id"`
-	Type      string                 `json:"type"`
-	Title     string                 `json:"title"`
-	Content   string                 `json:"content,omitempty"`
-	ClubName  string                 `json:"clubName"`
-	ClubID    string                 `json:"clubId"`
-	CreatedAt string                 `json:"createdAt"`
-	UpdatedAt string                 `json:"updatedAt"`
-	Actor     string                 `json:"actor,omitempty"`
-	ActorName string                 `json:"actorName,omitempty"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+	ID        string                 `json:"ID"`
+	Type      string                 `json:"Type"`
+	Title     string                 `json:"Title"`
+	Content   string                 `json:"Content,omitempty"`
+	ClubName  string                 `json:"ClubName"`
+	ClubID    string                 `json:"ClubID"`
+	CreatedAt string                 `json:"CreatedAt"`
+	UpdatedAt string                 `json:"UpdatedAt"`
+	Actor     string                 `json:"Actor,omitempty"`
+	ActorName string                 `json:"ActorName,omitempty"`
+	Metadata  map[string]interface{} `json:"Metadata,omitempty"`
 }
 
 type SearchResult struct {
-	Type        string `json:"type"`
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	ClubID      string `json:"clubId,omitempty"`
-	ClubName    string `json:"clubName,omitempty"`
-	StartTime   string `json:"startTime,omitempty"`
-	EndTime     string `json:"endTime,omitempty"`
+	Type        string `json:"Type"`
+	ID          string `json:"ID"`
+	Name        string `json:"Name"`
+	Description string `json:"Description,omitempty"`
+	ClubID      string `json:"ClubID,omitempty"`
+	ClubName    string `json:"ClubName,omitempty"`
+	StartTime   string `json:"StartTime,omitempty"`
+	EndTime     string `json:"EndTime,omitempty"`
 }
 
 type SearchResponse struct {
-	Clubs  []SearchResult `json:"clubs"`
-	Events []SearchResult `json:"events"`
+	Clubs  []SearchResult `json:"Clubs"`
+	Events []SearchResult `json:"Events"`
 }
 
 type TeamOverviewResponse struct {
-	Team     models.Team            `json:"team"`
-	Stats    map[string]interface{} `json:"stats"`
-	UserRole string                 `json:"userRole"`
-	IsAdmin  bool                   `json:"isAdmin"`
+	Team     models.Team            `json:"Team"`
+	Stats    map[string]interface{} `json:"Stats"`
+	UserRole string                 `json:"UserRole"`
+	IsAdmin  bool                   `json:"IsAdmin"`
 }
 
 type EventRSVPResponse struct {
-	Counts map[string]int     `json:"counts"`
-	RSVPs  []models.EventRSVP `json:"rsvps"`
+	Counts map[string]int     `json:"Counts"`
+	RSVPs  []models.EventRSVP `json:"RSVPs"`
 }
 
 // isAdminFunction checks if the current user is an admin of the club
@@ -274,7 +274,7 @@ func (s *Service) isAdminFunction(w http.ResponseWriter, r *http.Request, ctx in
 
 	isAdmin := club.IsAdmin(user) || club.IsOwner(user)
 
-	return map[string]bool{"isAdmin": isAdmin}, nil
+	return map[string]bool{"IsAdmin": isAdmin}, nil
 }
 
 // getOwnerCountFunction returns the number of owners in the club
@@ -287,7 +287,7 @@ func (s *Service) getOwnerCountFunction(w http.ResponseWriter, r *http.Request, 
 		return nil, fmt.Errorf("failed to count owners: %w", err)
 	}
 
-	return map[string]int64{"ownerCount": count}, nil
+	return map[string]int64{"OwnerCount": count}, nil
 }
 
 // getInviteLinkFunction returns the invite link for the club
@@ -312,7 +312,7 @@ func (s *Service) getInviteLinkFunction(w http.ResponseWriter, r *http.Request, 
 	// Return invite link
 	inviteLink := "/join/" + club.ID
 
-	return map[string]string{"inviteLink": inviteLink}, nil
+	return map[string]string{"InviteLink": inviteLink}, nil
 }
 
 // getUpcomingEventsFunction returns upcoming events for the club

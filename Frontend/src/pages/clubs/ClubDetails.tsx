@@ -55,7 +55,7 @@ const ClubDetails = () => {
                     logo_url: clubData.LogoURL,
                     deleted: clubData.Deleted
                 });
-                setIsAdmin(adminResponse.data.isAdmin);
+                setIsAdmin(adminResponse.data.IsAdmin);
 
                 // Get user's role by fetching club members and finding current user
                 try {

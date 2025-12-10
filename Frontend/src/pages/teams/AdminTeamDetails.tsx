@@ -6,27 +6,27 @@ import { Input, Modal, Button, Tabs } from '@/components/ui';
 import './AdminTeamDetails.css';
 
 interface Team {
-    id: string;
-    name: string;
-    description: string;
-    createdAt: string;
-    clubId: string;
+    ID: string;
+    Name: string;
+    Description: string;
+    CreatedAt: string;
+    ClubID: string;
 }
 
 interface TeamStats {
-    member_count: number;
-    admin_count: number;
-    upcoming_events: number;
-    total_events: number;
-    unpaid_fines: number;
-    total_fines: number;
+    MemberCount: number;
+    AdminCount: number;
+    UpcomingEvents: number;
+    TotalEvents: number;
+    UnpaidFines: number;
+    TotalFines: number;
 }
 
 interface TeamOverview {
-    team: Team;
-    stats: TeamStats;
-    user_role: string;
-    is_admin: boolean;
+    Team: Team;
+    Stats: TeamStats;
+    UserRole: string;
+    IsAdmin: boolean;
 }
 
 interface Event {
@@ -91,7 +91,7 @@ const AdminTeamDetails = () => {
                 const overviewResponse = await api.get(`/api/v2/Teams('${teamId}')/GetOverview()`);
                 setTeamOverview(overviewResponse.data);
                 
-                if (!overviewResponse.data.is_admin) {
+                if (!overviewResponse.data.IsAdmin) {
                     navigate(`/clubs/${clubId}/teams/${teamId}`);
                     return;
                 }
@@ -149,10 +149,10 @@ const AdminTeamDetails = () => {
     }, [activeTab, teamOverview, fetchEvents, fetchFines]);
 
     const handleEdit = () => {
-        if (teamOverview?.team) {
+        if (teamOverview?.Team) {
             setEditForm({ 
-                name: teamOverview.team.name, 
-                description: teamOverview.team.description 
+                name: teamOverview.Team.Name, 
+                description: teamOverview.Team.Description 
             });
             setIsEditing(true);
         }
@@ -256,10 +256,10 @@ const AdminTeamDetails = () => {
     if (error) return <div className="error">{error}</div>;
     if (!teamOverview) return <div>Team not found</div>;
 
-    const { team, stats } = teamOverview;
+    const { Team: team, Stats: stats } = teamOverview;
 
     return (
-        <Layout title={`${team.name} - Admin`}>
+        <Layout title={`${team.Name} - Admin`}>
             <div className="admin-team-container">
                 <Tabs
                     tabs={[
@@ -297,8 +297,8 @@ const AdminTeamDetails = () => {
                                 <>
                                     <div className="team-header">
                                         <div className="team-info">
-                                            <h2>{team.name}</h2>
-                                            <p>{team.description}</p>
+                                            <h2>{team.Name}</h2>
+                                            <p>{team.Description}</p>
                                         </div>
                                         <div className="team-actions">
                                             <Button onClick={handleEdit} variant="accept">Edit Team</Button>
@@ -316,27 +316,27 @@ const AdminTeamDetails = () => {
                                         <h3>Team Statistics</h3>
                                         <div className="stats-grid">
                                             <div className="stat-card">
-                                                <div className="stat-number">{stats.member_count}</div>
+                                                <div className="stat-number">{stats.MemberCount}</div>
                                                 <div className="stat-label">Members</div>
                                             </div>
                                             <div className="stat-card">
-                                                <div className="stat-number">{stats.admin_count}</div>
+                                                <div className="stat-number">{stats.AdminCount}</div>
                                                 <div className="stat-label">Admins</div>
                                             </div>
                                             <div className="stat-card">
-                                                <div className="stat-number">{stats.upcoming_events}</div>
+                                                <div className="stat-number">{stats.UpcomingEvents}</div>
                                                 <div className="stat-label">Upcoming Events</div>
                                             </div>
                                             <div className="stat-card">
-                                                <div className="stat-number">{stats.total_events}</div>
+                                                <div className="stat-number">{stats.TotalEvents}</div>
                                                 <div className="stat-label">Total Events</div>
                                             </div>
                                             <div className="stat-card">
-                                                <div className="stat-number">{stats.unpaid_fines}</div>
+                                                <div className="stat-number">{stats.UnpaidFines}</div>
                                                 <div className="stat-label">Unpaid Fines</div>
                                             </div>
                                             <div className="stat-card">
-                                                <div className="stat-number">{stats.total_fines}</div>
+                                                <div className="stat-number">{stats.TotalFines}</div>
                                                 <div className="stat-label">Total Fines</div>
                                             </div>
                                         </div>

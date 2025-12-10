@@ -95,7 +95,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
         try {
             // OData v2: Use GetInviteLink function on Club
             const response = await api.get(`/api/v2/Clubs('${id}')/GetInviteLink()`);
-            const fullLink = `${window.location.origin}${response.data.inviteLink}`;
+            const fullLink = `${window.location.origin}${response.data.InviteLink}`;
             setInviteLink(fullLink);
             setShowInviteLink(true);
         } catch (error) {

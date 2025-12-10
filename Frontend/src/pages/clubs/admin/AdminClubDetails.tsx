@@ -116,13 +116,13 @@ const AdminClubDetails = () => {
                 ]);
 
                 const adminData = adminResponse.data.value || adminResponse.data;
-                if (!adminData.isAdmin) {
+                if (!adminData.IsAdmin) {
                     navigate(`/clubs/${id}`);
                     return;
                 }
 
                 setClub(clubResponse.data);
-                setIsOwner(adminResponse.data.isOwner || false);
+                setIsOwner(adminResponse.data.IsOwner || false);
                 
                 // Fetch member statistics for overview tab
                 if (activeTab === 'overview') {
