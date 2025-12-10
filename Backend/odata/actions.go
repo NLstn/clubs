@@ -5,11 +5,53 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"regexp"
+	"strings"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
+	"github.com/google/uuid"
 	odata "github.com/nlstn/go-odata"
 )
+
+// Input validation helpers
+
+var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+
+// isValidEmail validates email format
+func isValidEmail(email string) bool {
+	email = strings.TrimSpace(email)
+	if len(email) < 3 || len(email) > 254 {
+		return false
+	}
+	return emailRegex.MatchString(email)
+}
+
+// isValidUUID validates UUID format
+func isValidUUID(id string) bool {
+	_, err := uuid.Parse(id)
+	return err == nil
+}
+
+// isValidRole validates member role values
+func isValidRole(role string) bool {
+	validRoles := map[string]bool{
+		"owner":  true,
+		"admin":  true,
+		"member": true,
+	}
+	return validRoles[role]
+}
+
+// isValidRSVPResponse validates RSVP response values
+func isValidRSVPResponse(response string) bool {
+	validResponses := map[string]bool{
+		"yes":   true,
+		"no":    true,
+		"maybe": true,
+	}
+	return validResponses[response]
+}
 
 // registerActions registers all OData bound and unbound actions
 // Actions are POST operations that can have side effects
@@ -467,8 +509,9 @@ func (s *Service) addRSVPAction(w http.ResponseWriter, r *http.Request, ctx inte
 	}
 
 	// Validate response value
-	if response != "yes" && response != "no" && response != "maybe" {
-		return fmt.Errorf("response must be 'yes', 'no', or 'maybe'")
+	response = strings.TrimSpace(strings.ToLower(response))
+	if !isValidRSVPResponse(response) {
+		return fmt.Errorf("invalid response: must be 'yes', 'no', or 'maybe', got '%s'", response)
 	}
 
 	// Check if user is member of the club
@@ -561,6 +604,12 @@ func (s *Service) createInviteAction(w http.ResponseWriter, r *http.Request, ctx
 		return fmt.Errorf("email parameter is required")
 	}
 
+	// Validate email format
+	email = strings.TrimSpace(email)
+	if !isValidEmail(email) {
+		return fmt.Errorf("invalid email format: %s", email)
+	}
+
 	// Get user for authorization
 	var user models.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
@@ -596,9 +645,10 @@ func (s *Service) updateMemberRoleAction(w http.ResponseWriter, r *http.Request,
 		return fmt.Errorf("newRole parameter is required")
 	}
 
-	// Validate role
-	if newRole != "owner" && newRole != "admin" && newRole != "member" {
-		return fmt.Errorf("newRole must be 'owner', 'admin', or 'member'")
+	// Validate role format
+	newRole = strings.TrimSpace(strings.ToLower(newRole))
+	if !isValidRole(newRole) {
+		return fmt.Errorf("invalid role: must be 'owner', 'admin', or 'member', got '%s'", newRole)
 	}
 
 	// Get club
@@ -668,6 +718,11 @@ func (s *Service) addShiftMemberAction(w http.ResponseWriter, r *http.Request, c
 		return fmt.Errorf("memberId parameter is required")
 	}
 
+	// Validate UUID format
+	if !isValidUUID(memberID) {
+		return fmt.Errorf("invalid memberId format: must be a valid UUID")
+	}
+
 	// Get the event to find the club
 	var event models.Event
 	if err := s.db.Where("id = ?", shift.EventID).First(&event).Error; err != nil {
@@ -733,6 +788,11 @@ func (s *Service) removeShiftMemberAction(w http.ResponseWriter, r *http.Request
 	memberID, ok := params["memberId"].(string)
 	if !ok || memberID == "" {
 		return fmt.Errorf("memberId parameter is required")
+	}
+
+	// Validate UUID format
+	if !isValidUUID(memberID) {
+		return fmt.Errorf("invalid memberId format: must be a valid UUID")
 	}
 
 	// Get the event to find the club

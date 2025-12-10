@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import { Button, Card } from '../../components/ui';
 import api from '../../utils/api';
 import { addRecentClub } from '../../utils/recentClubs';
 import { useT } from '../../hooks/useTranslation';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import './ClubList.css';
 
 interface Club {
@@ -51,6 +52,7 @@ interface ODataTeam {
 
 const ClubList = () => {
     const { t } = useT();
+    const { user: currentUser } = useCurrentUser();
     const [clubs, setClubs] = useState<Club[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -60,18 +62,16 @@ const ClubList = () => {
         return t(`clubs.roles.${role}`);
     };
 
-    useEffect(() => {
-        fetchClubs();
-    }, []);
-
-    const fetchClubs = async () => {
+    const fetchClubs = useCallback(async () => {
         try {
+            // Wait for current user to be loaded
+            if (!currentUser?.ID) {
+                return;
+            }
+
             // OData v2 API: Get clubs with expanded Members and Teams
             // The backend filters clubs by membership automatically via hooks
             const response = await api.get('/api/v2/Clubs?$expand=Members,Teams');
-            
-            // Get current user ID from local storage (set during auth)
-            const currentUserId = localStorage.getItem('user_id');
             
             // Transform OData response to match existing interface
             const odataClubs: ODataClub[] = response.data.value || [];
@@ -82,7 +82,7 @@ const ClubList = () => {
                 created_at: club.CreatedAt,
                 deleted: club.Deleted,
                 // Find current user's role from expanded Members
-                user_role: club.Members?.find((m) => m.UserID === currentUserId)?.Role || 'member',
+                user_role: club.Members?.find((m) => m.UserID === currentUser.ID)?.Role || 'member',
                 // Map expanded Teams
                 user_teams: club.Teams?.map((team) => ({
                     id: team.ID,
@@ -100,7 +100,11 @@ const ClubList = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentUser]);
+
+    useEffect(() => {
+        fetchClubs();
+    }, [fetchClubs]);
 
     const handleClubClick = (clubId: string, clubName: string) => {
         // Add to recent clubs when clicking
