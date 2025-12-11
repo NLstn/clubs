@@ -1,14 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
-import { renderWithProviders, screen, act } from '../../test/test-utils';
+import { renderWithProviders, screen, act, waitFor } from '../../test/test-utils';
 import Dashboard from '../Dashboard';
 import { useAuth } from '../../hooks/useAuth';
-import { useDashboardData } from '../../hooks/useDashboardData';
-import type { AuthContextType } from '../../context/AuthContext';
+import type { AxiosInstance } from 'axios';
 
 // Mock the hooks
 vi.mock('../../hooks/useAuth');
-vi.mock('../../hooks/useDashboardData');
 vi.mock('../../hooks/useCurrentUser', () => ({
   useCurrentUser: () => ({
     user: {
@@ -25,7 +23,6 @@ vi.mock('../../hooks/useCurrentUser', () => ({
 }));
 
 const mockUseAuth = vi.mocked(useAuth);
-const mockUseDashboardData = vi.mocked(useDashboardData);
 
 // Mock Layout component
 vi.mock('../../components/layout/Layout', () => ({
@@ -37,19 +34,25 @@ vi.mock('../../components/layout/Layout', () => ({
 }));
 
 describe('Dashboard', () => {
+  let mockApi: { get: ReturnType<typeof vi.fn> };
+
   beforeEach(() => {
+    mockApi = {
+      get: vi.fn(),
+    };
+
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       accessToken: 'mock-token',
       refreshToken: 'mock-refresh-token',
       login: vi.fn(),
       logout: vi.fn(),
-      api: {} as AuthContextType['api'],
+      api: mockApi as unknown as AxiosInstance,
     });
   });
 
   it('renders activity feed when activities are available', async () => {
-    const mockActivities = [
+    const mockTimelineData = [
       {
         ID: '1',
         Type: 'news',
@@ -57,6 +60,7 @@ describe('Dashboard', () => {
         Content: 'Test news content',
         ClubName: 'Test Club',
         ClubID: '1',
+        Timestamp: '2024-01-01T10:00:00Z',
         CreatedAt: '2024-01-01T10:00:00Z',
         UpdatedAt: '2024-01-01T10:00:00Z',
         Actor: 'user1',
@@ -69,32 +73,29 @@ describe('Dashboard', () => {
         Content: 'Test event content',
         ClubName: 'Test Club',
         ClubID: '1',
+        Timestamp: '2024-01-01T11:00:00Z',
         CreatedAt: '2024-01-01T11:00:00Z',
         UpdatedAt: '2024-01-01T11:00:00Z',
+        StartTime: '2024-01-01T15:00:00Z',
+        EndTime: '2024-01-01T17:00:00Z',
         Actor: 'user2',
         ActorName: 'Jane Smith',
-        Metadata: {
-          start_time: '2024-01-01T15:00:00Z',
-          end_time: '2024-01-01T17:00:00Z',
-        },
       },
     ];
 
-    mockUseDashboardData.mockReturnValue({
-      news: [],
-      events: [],
-      activities: mockActivities,
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
+    mockApi.get.mockResolvedValue({
+      data: { value: mockTimelineData },
     });
 
     await act(async () => {
       renderWithProviders(<Dashboard />);
     });
 
+    await waitFor(() => {
+      expect(screen.getByText('Activity Feed')).toBeInTheDocument();
+    });
+
     // Check if activity feed is rendered
-    expect(screen.getByText('Activity Feed')).toBeInTheDocument();
     expect(screen.getByText('Test News')).toBeInTheDocument();
     expect(screen.getByText('Test Event')).toBeInTheDocument();
     expect(screen.getByText('news')).toBeInTheDocument();
@@ -107,32 +108,23 @@ describe('Dashboard', () => {
   });
 
   it('renders empty state when no activities are available', async () => {
-    mockUseDashboardData.mockReturnValue({
-      news: [],
-      events: [],
-      activities: [],
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
+    mockApi.get.mockResolvedValue({
+      data: { value: [] },
     });
 
     await act(async () => {
       renderWithProviders(<Dashboard />);
     });
 
-    expect(screen.getByText('Activity Feed')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Activity Feed')).toBeInTheDocument();
+    });
+
     expect(screen.getByText('No recent activities from your clubs.')).toBeInTheDocument();
   });
 
   it('renders loading state', async () => {
-    mockUseDashboardData.mockReturnValue({
-      news: [],
-      events: [],
-      activities: [],
-      loading: true,
-      error: null,
-      refetch: vi.fn(),
-    });
+    mockApi.get.mockImplementation(() => new Promise(() => {})); // Never resolves
 
     await act(async () => {
       renderWithProviders(<Dashboard />);
@@ -142,19 +134,14 @@ describe('Dashboard', () => {
   });
 
   it('renders error state', async () => {
-    mockUseDashboardData.mockReturnValue({
-      news: [],
-      events: [],
-      activities: [],
-      loading: false,
-      error: 'Failed to load dashboard data',
-      refetch: vi.fn(),
-    });
+    mockApi.get.mockRejectedValue(new Error('API Error'));
 
     await act(async () => {
       renderWithProviders(<Dashboard />);
     });
 
-    expect(screen.getByText('Failed to load dashboard data')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Failed to load dashboard data')).toBeInTheDocument();
+    });
   });
 });
