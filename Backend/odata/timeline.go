@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
 	odata "github.com/nlstn/go-odata"
+	"gorm.io/gorm"
 )
 
 // registerTimelineHandlers sets up the virtual entity handlers for Timeline
@@ -20,6 +22,40 @@ func (s *Service) registerTimelineHandlers() error {
 	})
 }
 
+// getUserClubs fetches all clubs the user is a member of in a single query
+func (s *Service) getUserClubs(userID string) ([]string, map[string]string, error) {
+	var members []models.Member
+	if err := s.db.Where("user_id = ?", userID).Find(&members).Error; err != nil {
+		return nil, nil, fmt.Errorf("failed to get user memberships: %w", err)
+	}
+
+	if len(members) == 0 {
+		return []string{}, make(map[string]string), nil
+	}
+
+	// Extract club IDs
+	clubIDs := make([]string, len(members))
+	for i, member := range members {
+		clubIDs[i] = member.ClubID
+	}
+
+	// Fetch clubs in a single query
+	var clubs []models.Club
+	if err := s.db.Where("id IN ? AND deleted = false", clubIDs).Find(&clubs).Error; err != nil {
+		return nil, nil, fmt.Errorf("failed to get clubs: %w", err)
+	}
+
+	// Build club name map
+	clubNameMap := make(map[string]string)
+	validClubIDs := make([]string, 0, len(clubs))
+	for _, club := range clubs {
+		clubNameMap[club.ID] = club.Name
+		validClubIDs = append(validClubIDs, club.ID)
+	}
+
+	return validClubIDs, clubNameMap, nil
+}
+
 // getTimelineCollection retrieves all timeline items (activities, events, news) for the user
 func (s *Service) getTimelineCollection(ctx *odata.OverwriteContext) (*odata.CollectionResult, error) {
 	// Get user ID from request context
@@ -28,25 +64,10 @@ func (s *Service) getTimelineCollection(ctx *odata.OverwriteContext) (*odata.Col
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// Get user
-	var user models.User
-	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
-
-	// Get all clubs the user is a member of
-	clubs, err := models.GetAllClubs()
+	// Get all clubs the user is a member of (single query)
+	userClubIDs, clubNameMap, err := s.getUserClubs(userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get clubs: %w", err)
-	}
-
-	var userClubIDs []string
-	clubNameMap := make(map[string]string)
-	for _, club := range clubs {
-		if club.IsMember(user) {
-			userClubIDs = append(userClubIDs, club.ID)
-			clubNameMap[club.ID] = club.Name
-		}
+		return nil, fmt.Errorf("failed to get user clubs: %w", err)
 	}
 
 	if len(userClubIDs) == 0 {
@@ -88,9 +109,10 @@ func (s *Service) getTimelineCollection(ctx *odata.OverwriteContext) (*odata.Col
 		return timelineItems[i].Timestamp.After(timelineItems[j].Timestamp)
 	})
 
-	// Apply query options if needed
-	// Note: For a full implementation, we would need to apply $filter, $top, $skip here
-	// For now, we'll return all items and let the OData library handle basic filtering
+	// Note: Query options like $filter, $top, and $skip are not currently implemented.
+	// The OData library cannot apply these filters to in-memory data for virtual entities.
+	// For production use, manual implementation of filtering and pagination would be required.
+	// TODO: Implement $filter, $top, and $skip for timelineItems in-memory.
 
 	return &odata.CollectionResult{Items: timelineItems}, nil
 }
@@ -107,25 +129,151 @@ func (s *Service) getTimelineEntity(ctx *odata.OverwriteContext) (interface{}, e
 	// Format: "activity-{id}", "event-{id}", or "news-{id}"
 	timelineID := ctx.EntityKey
 
-	// Fetch all items and find the matching one
-	// This is not the most efficient approach, but works for virtual entities
-	result, err := s.getTimelineCollection(ctx)
+	// Parse ID to extract type and entity ID
+	// Split on first hyphen only since UUIDs contain hyphens
+	parts := strings.SplitN(timelineID, "-", 2)
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("invalid timeline item ID format")
+	}
+	itemType := parts[0]
+	itemID := parts[1]
+
+	// Get user's clubs for authorization and club name mapping
+	userClubIDs, clubNameMap, err := s.getUserClubs(userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get user clubs: %w", err)
 	}
 
-	items, ok := result.Items.([]models.TimelineItem)
-	if !ok {
-		return nil, fmt.Errorf("unexpected timeline items type")
+	// Convert to map for quick lookup
+	clubIDSet := make(map[string]bool)
+	for _, clubID := range userClubIDs {
+		clubIDSet[clubID] = true
 	}
 
-	for _, item := range items {
-		if item.ID == timelineID {
-			return item, nil
+	// Fetch specific item based on type
+	switch itemType {
+	case "activity":
+		var activity models.Activity
+		if err := s.db.Where("id = ?", itemID).First(&activity).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return nil, fmt.Errorf("activity not found")
+			}
+			return nil, fmt.Errorf("failed to fetch activity: %w", err)
 		}
-	}
 
-	return nil, fmt.Errorf("timeline item not found")
+		// Check authorization
+		if !clubIDSet[activity.ClubID] {
+			return nil, fmt.Errorf("access denied: user is not a member of this club")
+		}
+
+		// Parse metadata if it exists
+		var metadata map[string]interface{}
+		if activity.Metadata != "" {
+			if err := json.Unmarshal([]byte(activity.Metadata), &metadata); err != nil {
+				s.logger.Warn("Failed to parse activity metadata", "activityID", activity.ID, "error", err)
+				metadata = make(map[string]interface{})
+			}
+		} else {
+			metadata = make(map[string]interface{})
+		}
+
+		var actor *string
+		var actorName *string
+		if activity.ActorID != nil && *activity.ActorID != "" {
+			actor = activity.ActorID
+		}
+
+		return models.TimelineItem{
+			ID:        timelineID,
+			ClubID:    activity.ClubID,
+			ClubName:  clubNameMap[activity.ClubID],
+			Type:      "activity",
+			Title:     activity.Title,
+			Content:   activity.Content,
+			Timestamp: activity.CreatedAt,
+			CreatedAt: activity.CreatedAt,
+			UpdatedAt: activity.UpdatedAt,
+			Actor:     actor,
+			ActorName: actorName,
+			Metadata:  metadata,
+		}, nil
+
+	case "event":
+		var event models.Event
+		if err := s.db.Where("id = ?", itemID).First(&event).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return nil, fmt.Errorf("event not found")
+			}
+			return nil, fmt.Errorf("failed to fetch event: %w", err)
+		}
+
+		// Check authorization
+		if !clubIDSet[event.ClubID] {
+			return nil, fmt.Errorf("access denied: user is not a member of this club")
+		}
+
+		// Get user's RSVP if available
+		var userRSVP *models.EventRSVP
+		var rsvp models.EventRSVP
+		if err := s.db.Where("event_id = ? AND user_id = ?", event.ID, userID).First(&rsvp).Error; err == nil {
+			userRSVP = &rsvp
+		}
+
+		metadata := make(map[string]interface{})
+		if event.Description != nil {
+			metadata["description"] = *event.Description
+		}
+		if event.Location != nil {
+			metadata["location"] = *event.Location
+		}
+
+		return models.TimelineItem{
+			ID:        timelineID,
+			ClubID:    event.ClubID,
+			ClubName:  clubNameMap[event.ClubID],
+			Type:      "event",
+			Title:     event.Name,
+			Content:   "",
+			Timestamp: event.StartTime,
+			CreatedAt: event.CreatedAt,
+			UpdatedAt: event.UpdatedAt,
+			StartTime: &event.StartTime,
+			EndTime:   &event.EndTime,
+			Location:  event.Location,
+			UserRSVP:  userRSVP,
+			Metadata:  metadata,
+		}, nil
+
+	case "news":
+		var news models.News
+		if err := s.db.Where("id = ?", itemID).First(&news).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return nil, fmt.Errorf("news not found")
+			}
+			return nil, fmt.Errorf("failed to fetch news: %w", err)
+		}
+
+		// Check authorization
+		if !clubIDSet[news.ClubID] {
+			return nil, fmt.Errorf("access denied: user is not a member of this club")
+		}
+
+		return models.TimelineItem{
+			ID:        timelineID,
+			ClubID:    news.ClubID,
+			ClubName:  clubNameMap[news.ClubID],
+			Type:      "news",
+			Title:     news.Title,
+			Content:   news.Content,
+			Timestamp: news.CreatedAt,
+			CreatedAt: news.CreatedAt,
+			UpdatedAt: news.UpdatedAt,
+			Metadata:  make(map[string]interface{}),
+		}, nil
+
+	default:
+		return nil, fmt.Errorf("unknown timeline item type: %s", itemType)
+	}
 }
 
 // fetchActivities fetches activities from the database and converts them to timeline items
@@ -198,13 +346,32 @@ func (s *Service) fetchEvents(clubIDs []string, clubNameMap map[string]string, u
 		return nil, err
 	}
 
+	// Batch fetch RSVPs for these events to avoid N+1 query
+	eventIDs := make([]string, len(events))
+	for i, event := range events {
+		eventIDs[i] = event.ID
+	}
+
+	var rsvps []models.EventRSVP
+	if len(eventIDs) > 0 {
+		if err := s.db.Where("event_id IN ? AND user_id = ?", eventIDs, userID).Find(&rsvps).Error; err != nil {
+			s.logger.Warn("Failed to fetch RSVPs", "error", err)
+		}
+	}
+
+	// Build a map from event_id to RSVP for quick lookup
+	rsvpMap := make(map[string]*models.EventRSVP)
+	for i := range rsvps {
+		r := rsvps[i]
+		rsvpMap[r.EventID] = &r
+	}
+
 	var items []models.TimelineItem
 	for _, event := range events {
-		// Get user's RSVP if available
+		// Lookup user's RSVP if available
 		var userRSVP *models.EventRSVP
-		var rsvp models.EventRSVP
-		if err := s.db.Where("event_id = ? AND user_id = ?", event.ID, userID).First(&rsvp).Error; err == nil {
-			userRSVP = &rsvp
+		if rsvp, ok := rsvpMap[event.ID]; ok {
+			userRSVP = rsvp
 		}
 
 		metadata := make(map[string]interface{})
