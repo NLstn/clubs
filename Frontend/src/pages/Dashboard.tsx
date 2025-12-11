@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { useDashboardData, ActivityItem } from '../hooks/useDashboardData';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useT } from '../hooks/useTranslation';
 import Layout from '../components/layout/Layout';
@@ -8,11 +9,115 @@ import { addRecentClub } from '../utils/recentClubs';
 import './Dashboard.css';
 import '../styles/events.css';
 
+// ActivityItem represents timeline entries from the backend
+export interface ActivityItem {
+    ID: string;
+    Type: string; // "news", "event", "role_changed", "member_promoted", "member_demoted"
+    Title: string;
+    Content?: string;
+    ClubName: string;
+    ClubID: string;
+    CreatedAt: string;
+    UpdatedAt: string;
+    Actor?: string;        // User ID who created/initiated the activity
+    ActorName?: string;   // Name of the user who created/initiated the activity
+    Metadata?: {
+        start_time?: string;
+        end_time?: string;
+        user_rsvp?: {
+            response: string;
+        };
+        old_role?: string;
+        new_role?: string;
+        club_name?: string;
+        affected_user_id?: string; // User ID of the person whose role was changed
+        [key: string]: unknown;
+    }; // For extensibility
+}
+
+// TimelineItem represents the OData response format
+interface TimelineItem {
+    ID: string;
+    ClubID: string;
+    ClubName: string;
+    Type: string;
+    Title: string;
+    Content?: string;
+    Timestamp: string;
+    CreatedAt: string;
+    UpdatedAt: string;
+    StartTime?: string;
+    EndTime?: string;
+    Location?: string;
+    Actor?: string;
+    ActorName?: string;
+    Metadata?: {
+        [key: string]: unknown;
+    };
+    UserRSVP?: {
+        ID: string;
+        EventID: string;
+        UserID: string;
+        Response: string;
+        CreatedAt: string;
+        UpdatedAt: string;
+    };
+}
+
+// Convert TimelineItem to ActivityItem
+function convertToActivity(item: TimelineItem): ActivityItem {
+    return {
+        ID: item.ID,
+        Type: item.Type,
+        Title: item.Title,
+        Content: item.Content,
+        ClubName: item.ClubName,
+        ClubID: item.ClubID,
+        CreatedAt: item.CreatedAt,
+        UpdatedAt: item.UpdatedAt,
+        Actor: item.Actor,
+        ActorName: item.ActorName,
+        Metadata: {
+            ...item.Metadata,
+            start_time: item.StartTime,
+            end_time: item.EndTime,
+            user_rsvp: item.UserRSVP ? {
+                response: item.UserRSVP.Response
+            } : undefined,
+        }
+    };
+}
+
 const Dashboard = () => {
     const { t } = useT();
     const navigate = useNavigate();
-    const { activities, loading: dashboardLoading, error: dashboardError } = useDashboardData();
+    const { api } = useAuth();
     const { user: currentUser } = useCurrentUser();
+    const [activities, setActivities] = useState<ActivityItem[]>([]);
+    const [dashboardLoading, setDashboardLoading] = useState(true);
+    const [dashboardError, setDashboardError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            setDashboardLoading(true);
+            setDashboardError(null);
+            
+            try {
+                const response = await api.get('/api/v2/TimelineItems');
+                const timelineData = response.data.value || [];
+                const activitiesData = timelineData.map((item: TimelineItem) => convertToActivity(item));
+                setActivities(activitiesData);
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+                setDashboardError('Failed to load dashboard data');
+                setActivities([]);
+            } finally {
+                setDashboardLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, [api]);
 
     const translateRole = (role: string | undefined): string => {
         if (!role) return t('common.unknownRole');

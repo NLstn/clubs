@@ -134,15 +134,6 @@ export const mockUseAuth = () => ({
   },
 });
 
-export const mockUseDashboardData = () => ({
-  news: [],
-  events: [],
-  activities: [],
-  loading: false,
-  error: null,
-  refetch: vi.fn(),
-});
-
 export const mockUseCurrentUser = () => ({
   user: {
     ID: 'user-123',
