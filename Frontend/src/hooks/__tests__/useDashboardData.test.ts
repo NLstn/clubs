@@ -5,12 +5,15 @@ import { useDashboardData } from '../useDashboardData';
 // Create a mock API object with mocked methods
 const mockApiGet = vi.fn();
 
+// Create a stable mock API object that won't change between renders
+const mockApi = {
+  get: mockApiGet
+};
+
 // Mock useAuth to return our mocked API instance
 vi.mock('../useAuth', () => ({
   useAuth: () => ({
-    api: {
-      get: mockApiGet
-    },
+    api: mockApi,
     isAuthenticated: true,
     user: { id: 'user1' }
   })
