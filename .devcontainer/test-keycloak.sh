@@ -56,13 +56,21 @@ echo ""
 # Test 4: Check PostgreSQL databases
 echo "4️⃣  Checking PostgreSQL databases..."
 if command -v psql &> /dev/null; then
-    CLUBS_DB=$(psql -U clubs_dev -h localhost -d clubs_dev -c '\q' 2>&1)
-    KEYCLOAK_DB=$(PGPASSWORD=keycloak_dev_password psql -U keycloak_dev -h localhost -d keycloak_dev -c '\q' 2>&1)
+    CLUBS_DB_SUCCESS=false
+    KEYCLOAK_DB_SUCCESS=false
     
-    if [[ $? -eq 0 ]]; then
+    if PGPASSWORD=clubs_dev_password psql -U clubs_dev -h localhost -d clubs_dev -c '\q' 2>&1 > /dev/null; then
+        CLUBS_DB_SUCCESS=true
+    fi
+    
+    if PGPASSWORD=keycloak_dev_password psql -U keycloak_dev -h localhost -d keycloak_dev -c '\q' 2>&1 > /dev/null; then
+        KEYCLOAK_DB_SUCCESS=true
+    fi
+    
+    if [[ "$CLUBS_DB_SUCCESS" == "true" ]] && [[ "$KEYCLOAK_DB_SUCCESS" == "true" ]]; then
         echo -e "${GREEN}✓${NC} Both databases (clubs_dev and keycloak_dev) are accessible"
     else
-        echo -e "${YELLOW}⚠${NC}  Could not verify database access (this is okay if psql is not installed)"
+        echo -e "${YELLOW}⚠${NC}  Could not verify database access (this is okay if psql is not installed or running outside devcontainer)"
     fi
 else
     echo -e "${YELLOW}⚠${NC}  psql not installed, skipping database check"
