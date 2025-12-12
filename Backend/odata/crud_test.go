@@ -440,10 +440,7 @@ func TestClubCRUD(t *testing.T) {
 		newClub := map[string]interface{}{
 			"Name":        "New Test Club",
 			"Description": "A newly created club",
-			// These fields will be set automatically by hooks in Phase 4
-			// For now, we pass them explicitly for testing
-			"CreatedBy": ctx.testUser.ID,
-			"UpdatedBy": ctx.testUser.ID,
+			// CreatedBy and UpdatedBy are auto-generated server-side from the authenticated user
 		}
 
 		resp := ctx.makeAuthenticatedRequest(t, "POST", "/Clubs", newClub)
