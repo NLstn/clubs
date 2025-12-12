@@ -73,7 +73,7 @@ Alternatively, you can:
 To test the authentication flow:
 
 1. Start the dev container
-2. Wait for Keycloak to fully initialize (check logs with `docker-compose logs keycloak`)
+2. Wait for Keycloak to fully initialize (check logs with `docker compose logs keycloak`)
 3. Start the backend (`cd Backend && go run main.go`)
 4. Start the frontend (`cd Frontend && npm run dev`)
 5. Navigate to `http://localhost:5173/login`

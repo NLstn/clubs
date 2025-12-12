@@ -100,8 +100,8 @@ The PostgreSQL data (including both the clubs and keycloak databases) is stored 
 ### Keycloak not starting
 
 If Keycloak fails to start or shows connection errors:
-1. Check that PostgreSQL is healthy: `docker-compose ps`
-2. View Keycloak logs: `docker-compose logs keycloak`
+1. Check that PostgreSQL is healthy: `docker compose ps`
+2. View Keycloak logs: `docker compose logs keycloak`
 3. Ensure the Keycloak database was created: Connect to PostgreSQL and run `\l` to list databases
 
 ### Keycloak realm not imported
