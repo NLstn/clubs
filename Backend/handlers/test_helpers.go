@@ -293,7 +293,8 @@ func SetupTestDB(t *testing.T) {
 		CREATE TABLE IF NOT EXISTS team_members (
 			id TEXT PRIMARY KEY,
 			team_id TEXT NOT NULL,
-			member_id TEXT NOT NULL,
+			user_id TEXT NOT NULL,
+			role TEXT DEFAULT 'member',
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			created_by TEXT,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
