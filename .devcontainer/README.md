@@ -68,6 +68,21 @@ Two test users are automatically created:
    - Keycloak: `http://localhost:8081`
    - PostgreSQL: `localhost:5432`
 
+### Testing the Setup
+
+To verify that Keycloak is properly configured, run the test script:
+
+```bash
+.devcontainer/test-keycloak.sh
+```
+
+This will check:
+- Keycloak accessibility
+- Realm configuration
+- OIDC endpoints
+- Database connections
+- Test user authentication
+
 ## Included VS Code Extensions
 
 - Go language support
