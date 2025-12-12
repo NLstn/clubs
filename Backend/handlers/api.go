@@ -13,23 +13,7 @@ func Handler_v1() http.Handler {
 
 	registerAuthRoutes(mux)
 	registerKeycloakAuthRoutes(mux)
-	registerClubRoutes(mux)
-	registerClubSettingsRoutes(mux)
-	registerMemberRoutes(mux)
-	registerTeamRoutes(mux)
-	registerShiftRoutes(mux)
-	registerEventRoutes(mux)
-	registerNewsRoutes(mux)
-	registerJoinRequestRoutes(mux)
-	registerInviteRoutes(mux)
-	registerFineRoutes(mux)
-	registerFineTemplateRoutes(mux)
-	registerDashboardRoutes(mux)
-	registerNotificationRoutes(mux)
-	registerSearchRoutes(mux)
-
 	registerUserRoutes(mux)
-	registerPrivacyRoutes(mux)
 
 	return LoggingMiddleware(CorsMiddleware(mux))
 }
