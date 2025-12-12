@@ -29,10 +29,20 @@
       }
     }
   },
-  "forwardPorts": [8080, 5173],
+  "forwardPorts": [8080, 5173, 8081],
   "portsAttributes": {
-    "8080": { "onAutoForward": "silent" },
-    "5173": { "onAutoForward": "silent" }
+    "8080": { 
+      "label": "Backend API",
+      "onAutoForward": "silent" 
+    },
+    "5173": { 
+      "label": "Frontend Dev Server",
+      "onAutoForward": "silent" 
+    },
+    "8081": { 
+      "label": "Keycloak",
+      "onAutoForward": "notify"
+    }
   },
   "postCreateCommand": "cd Backend && go mod download",
   "remoteUser": "vscode"
