@@ -105,6 +105,57 @@ The API uses JWT-based authentication with magic link email authentication. Most
 
 ---
 
+### Development Login (Development Only)
+**Endpoint:** `POST /api/v1/auth/dev-login`  
+**Authentication:** None required  
+**Rate Limit:** Auth limiter (5/min)
+
+**⚠️ WARNING:** This endpoint is for **DEVELOPMENT AND TESTING ONLY**. It bypasses all email verification and should **NEVER** be enabled in production environments.
+
+**Description:** Authenticate directly with an email address without requiring email verification. This endpoint is only available when the `ENABLE_DEV_AUTH` environment variable is set to `true`. It's designed to facilitate testing and development by AI agents and developers without requiring a full email infrastructure setup.
+
+**Security:**
+- Only available when `ENABLE_DEV_AUTH=true` is set
+- Returns 404 if the environment variable is not set
+- Should NEVER be enabled in production
+- Logs all authentication attempts
+
+**Request Body:**
+```json
+{
+  "email": "dev@example.com"
+}
+```
+
+**Response:**
+```json
+{
+  "access": "jwt_access_token",
+  "refresh": "jwt_refresh_token",
+  "profileComplete": false
+}
+```
+
+**Responses:**
+- `200 OK` - Authentication successful, returns access and refresh tokens
+- `400 Bad Request` - Email required or invalid request body
+- `404 Not Found` - Endpoint not enabled (ENABLE_DEV_AUTH not set to 'true')
+- `500 Internal Server Error` - User error, JWT error, or database error
+
+**Example Usage:**
+```bash
+# Login as a development user
+curl -X POST http://localhost:8080/api/v1/auth/dev-login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "developer@example.com"}'
+
+# Use the returned access token in subsequent requests
+curl -X GET http://localhost:8080/api/v1/me \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+---
+
 ## Club Management Endpoints
 
 ### Get All Clubs

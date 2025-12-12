@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
@@ -42,6 +43,17 @@ func registerAuthRoutes(mux *http.ServeMux) {
 		switch r.Method {
 		case http.MethodPost:
 			handleLogout(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
+	// Development-only authentication endpoint
+	// WARNING: This endpoint bypasses email verification and should NEVER be enabled in production
+	mux.Handle("/api/v1/auth/dev-login", RateLimitMiddleware(authLimiter)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			handleDevLogin(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -245,4 +257,70 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// endpoint: POST /api/v1/auth/dev-login
+// Development-only endpoint for testing authentication without email verification
+// WARNING: This endpoint should ONLY be enabled in development/test environments
+// It bypasses all email verification and should NEVER be available in production
+func handleDevLogin(w http.ResponseWriter, r *http.Request) {
+	// Check if development authentication is enabled
+	if os.Getenv("ENABLE_DEV_AUTH") != "true" {
+		log.Println("Development authentication endpoint called but ENABLE_DEV_AUTH is not set to 'true'")
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if req.Email == "" {
+		http.Error(w, "Email required", http.StatusBadRequest)
+		return
+	}
+
+	// Find or create user (same as magic link flow)
+	user, err := models.FindOrCreateUser(req.Email)
+	if err != nil {
+		log.Printf("Failed to find or create user for email %s: %v", req.Email, err)
+		http.Error(w, "User error", http.StatusInternalServerError)
+		return
+	}
+
+	// Generate tokens
+	accessToken, err := auth.GenerateAccessToken(user.ID)
+	if err != nil {
+		log.Printf("Failed to generate access token for user %s: %v", user.ID, err)
+		http.Error(w, "JWT error", http.StatusInternalServerError)
+		return
+	}
+
+	refreshToken, err := auth.GenerateRefreshToken(user.ID)
+	if err != nil {
+		log.Printf("Failed to generate refresh token for user %s: %v", user.ID, err)
+		http.Error(w, "Refresh token error", http.StatusInternalServerError)
+		return
+	}
+
+	// Store refresh token in the database
+	userAgent, ipAddress := models.GetDeviceInfo(r)
+	if err := user.StoreRefreshToken(refreshToken, userAgent, ipAddress); err != nil {
+		log.Printf("Failed to store refresh token for user %s: %v", user.ID, err)
+		http.Error(w, "Failed to store refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Development login successful for email: %s (user ID: %s)", req.Email, user.ID)
+
+	// Return tokens and profile completion status
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"access":          accessToken,
+		"refresh":         refreshToken,
+		"profileComplete": user.IsProfileComplete(),
+	})
 }

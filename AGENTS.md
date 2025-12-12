@@ -298,8 +298,92 @@ The application supports multiple authentication methods:
 1. **Magic Link:** Email-based passwordless authentication
 2. **OAuth/OIDC:** Integration with Keycloak for SSO
 3. **JWT Tokens:** Access and refresh token mechanism
+4. **Development Login:** Direct authentication for testing (development only)
 
 See `Documentation/Backend/API.md` for detailed authentication endpoint documentation.
+
+### Authenticating as an AI Agent (Development Only)
+
+When working on the codebase during development ("vibe coding"), you can use the development login endpoint to authenticate and test the application without requiring email verification.
+
+**⚠️ IMPORTANT:** This method only works in development environments and is intentionally disabled in production for security.
+
+#### Prerequisites
+
+1. The backend must be running with the `ENABLE_DEV_AUTH=true` environment variable set
+2. You need a valid `JWT_SECRET` configured in the backend environment
+
+#### How to Sign In
+
+**Step 1: Use the development login endpoint**
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/dev-login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "agent@example.com"}'
+```
+
+**Step 2: Extract the tokens from the response**
+
+The response will contain:
+```json
+{
+  "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "profileComplete": false
+}
+```
+
+**Step 3: Use the access token for authenticated requests**
+
+Add the access token to the Authorization header:
+```bash
+curl -X GET http://localhost:8080/api/v1/me \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+#### Common Use Cases
+
+**Testing Club Management:**
+```bash
+# Login
+TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/dev-login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com"}' | jq -r '.access')
+
+# Create a club
+curl -X POST http://localhost:8080/api/v1/clubs \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Test Club", "description": "A test club"}'
+
+# Get user profile
+curl -X GET http://localhost:8080/api/v1/me \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Testing with Multiple Users:**
+
+Create multiple test users by using different email addresses:
+```bash
+# User 1 - Admin
+TOKEN_ADMIN=$(curl -s -X POST http://localhost:8080/api/v1/auth/dev-login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@example.com"}' | jq -r '.access')
+
+# User 2 - Member
+TOKEN_MEMBER=$(curl -s -X POST http://localhost:8080/api/v1/auth/dev-login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "member@example.com"}' | jq -r '.access')
+```
+
+#### Security Notes
+
+- **Production Safety:** The dev-login endpoint returns 404 if `ENABLE_DEV_AUTH` is not set to `true`, preventing accidental use in production
+- **Never commit credentials:** Don't commit tokens or the `.env` file with actual credentials
+- **Testing only:** This authentication method is for development and testing purposes only
+- **No email required:** Unlike magic link authentication, this doesn't send emails, making it perfect for automated testing
+- **Access tokens expire:** Access tokens expire after 15 minutes. Use the refresh token to get a new access token if needed
 
 ## Azure Integration
 

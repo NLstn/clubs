@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/database"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -30,6 +32,14 @@ type RefreshToken struct {
 	UserAgent string    `json:"UserAgent"`
 	IPAddress string    `json:"IPAddress"`
 	CreatedAt time.Time `json:"CreatedAt"`
+}
+
+// BeforeCreate GORM hook - generates UUID for the user if not provided
+func (u *User) BeforeCreate(tx *gorm.DB) error {
+	if u.ID == "" {
+		u.ID = uuid.New().String()
+	}
+	return nil
 }
 
 // HashToken returns a sha256 hash of the provided token encoded as hex.
