@@ -42,3 +42,37 @@ The frontend will also work out of the box if the backend is up and running, but
 ```bash
 npm run dev
 ```
+
+## Development Authentication
+
+For testing and development purposes (including AI agent workflows), the application provides a development-only authentication endpoint that bypasses email verification.
+
+### Setup
+
+1. Ensure `ENABLE_DEV_AUTH=true` is set in your Backend/.env file
+2. Set a `JWT_SECRET` in your Backend/.env file (any string will work for development)
+3. Start the backend server
+
+### Usage
+
+Authenticate with any email address without verification:
+
+```bash
+# Login and get tokens
+curl -X POST http://localhost:8080/api/v1/auth/dev-login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "dev@example.com"}'
+
+# Response will include access and refresh tokens:
+# {
+#   "access": "eyJhbGc...",
+#   "refresh": "eyJhbGc...",
+#   "profileComplete": false
+# }
+
+# Use the access token for authenticated requests:
+curl -X GET http://localhost:8080/api/v1/me \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+**⚠️ Security Note:** This endpoint is for development only and will return 404 in production environments where `ENABLE_DEV_AUTH` is not set to `true`.
