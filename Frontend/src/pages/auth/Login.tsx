@@ -36,6 +36,11 @@ const Login: React.FC = () => {
       
       const data = await response.json();
       
+      // Store PKCE code verifier for the callback
+      if (data.codeVerifier) {
+        sessionStorage.setItem('keycloak_code_verifier', data.codeVerifier);
+      }
+      
       // Redirect to Keycloak
       window.location.href = data.authURL;
     } catch {

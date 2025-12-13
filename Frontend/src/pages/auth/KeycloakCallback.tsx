@@ -44,6 +44,12 @@ const KeycloakCallback: React.FC = () => {
 
         if (!isMounted) return;
 
+        // Retrieve the PKCE code verifier
+        const codeVerifier = sessionStorage.getItem('keycloak_code_verifier');
+        if (!codeVerifier) {
+          throw new Error('Missing PKCE code verifier - authentication flow may have been interrupted');
+        }
+
         // Create a timeout for the entire fetch operation
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
@@ -55,7 +61,7 @@ const KeycloakCallback: React.FC = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ code, state }),
+          body: JSON.stringify({ code, state, codeVerifier }),
           signal: controller.signal,
         });
 
@@ -82,9 +88,10 @@ const KeycloakCallback: React.FC = () => {
           localStorage.setItem('keycloak_id_token', data.keycloakTokens.idToken);
         }
 
-        // Clear the processing flag and redirect
+        // Clear the processing flag and PKCE verifier, then redirect
         const redirectPath = sessionStorage.getItem('auth_redirect_after_login') || '/';
         sessionStorage.removeItem('auth_redirect_after_login');
+        sessionStorage.removeItem('keycloak_code_verifier');
         
         if (isMounted) {
           navigate(redirectPath, { replace: true });

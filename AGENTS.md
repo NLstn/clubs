@@ -102,9 +102,23 @@ This project uses a **Dev Container** for a consistent development environment. 
 - Go toolchain and dependencies
 - Node.js and npm
 - PostgreSQL database
+- Keycloak authentication server
 - All required development tools
 
 Simply open the project in VS Code and select "Reopen in Container" when prompted.
+
+### Default Credentials
+
+**Keycloak Admin Console** (http://localhost:8081/admin):
+- Username: `admin`
+- Password: `admin`
+
+**PostgreSQL Database**:
+- Host: `db` (use this in devcontainer)
+- Port: `5432`
+- Database: `clubs_dev`
+- User: `clubs_dev`
+- Password: `clubs_dev_password`
 
 ### VS Code Tasks
 
