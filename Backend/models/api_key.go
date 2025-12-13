@@ -1,9 +1,13 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/NLstn/clubs/auth"
 	"gorm.io/gorm"
 )
 
@@ -33,6 +37,40 @@ func (a *APIKey) BeforeCreate(tx *gorm.DB) error {
 	if a.UserID == "" {
 		return gorm.ErrRecordNotFound
 	}
+	return nil
+}
+
+// ODataBeforeUpdate validates API key update permissions
+func (a *APIKey) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+	// Get authenticated user from context
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user not authenticated")
+	}
+
+	// Users can only update their own API keys
+	if a.UserID != userID {
+		return fmt.Errorf("forbidden: cannot update API keys of other users")
+	}
+
+	// KeyPrefix, UserID, and CreatedAt are immutable
+	// Check what fields are being updated - this is handled by gorm tags
+	return nil
+}
+
+// ODataBeforeDelete validates API key deletion permissions
+func (a *APIKey) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	// Get authenticated user from context
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user not authenticated")
+	}
+
+	// Users can only delete their own API keys
+	if a.UserID != userID {
+		return fmt.Errorf("forbidden: cannot delete API keys of other users")
+	}
+
 	return nil
 }
 
