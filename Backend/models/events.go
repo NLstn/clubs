@@ -30,6 +30,9 @@ type Event struct {
 	RecurrenceInterval int        `json:"RecurrenceInterval,omitempty" gorm:"column:recurrence_interval;default:1"`                       // Every N weeks/days/months
 	RecurrenceEnd      *time.Time `json:"RecurrenceEnd,omitempty" gorm:"column:recurrence_end" odata:"nullable"`                          // When recurrence stops
 	ParentEventID      *string    `json:"ParentEventID,omitempty" gorm:"column:parent_event_id;type:uuid" odata:"nullable"`               // Links recurring event instances
+
+	// Navigation properties
+	EventRSVPs []EventRSVP `gorm:"foreignKey:EventID" json:"EventRSVPs,omitempty" odata:"nav"`
 }
 
 type EventRSVP struct {
@@ -40,9 +43,9 @@ type EventRSVP struct {
 	CreatedAt time.Time `json:"CreatedAt" odata:"immutable"`
 	UpdatedAt time.Time `json:"UpdatedAt"`
 
-	// Relationships
-	Event Event `gorm:"foreignKey:EventID" json:"Event,omitempty"`
-	User  User  `gorm:"foreignKey:UserID" json:"User,omitempty"`
+	// Navigation properties
+	Event Event `gorm:"foreignKey:EventID" json:"Event,omitempty" odata:"nav"`
+	User  User  `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
 }
 
 // CreateEvent creates a new event for the club

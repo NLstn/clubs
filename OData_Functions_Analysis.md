@@ -4,10 +4,10 @@ This document analyzes all OData functions currently in use and evaluates whethe
 
 ## Summary
 
-**Total Functions:** 8 (reduced from 12)
-- **Should Remain Functions:** 4 (50%)
-- **Could Use Navigation:** 4 (50%)
-- **Completed Replacements:** 2 (GetEvents, GetMembers)
+**Total Functions:** 7 (reduced from 12)
+- **Should Remain Functions:** 5 (71%)
+- **Could Use Navigation:** 2 (29%)
+- **Completed Replacements:** 3 (GetEvents, GetMembers, GetRSVPs)
 
 ---
 
@@ -182,7 +182,7 @@ type TeamMember struct {
 
 ---
 
-### 15. ~~`GetRSVPs()` - Event~~ ⚠️ **PARTIAL - Counts Should Stay**
+### 15. ~~`GetRSVPs()` - Event~~ ✅ **REPLACE WITH NAVIGATION**
 **Current:** `GET /api/v2/Events('{eventId}')/GetRSVPs()`
 **Returns:** 
 ```json
@@ -193,21 +193,28 @@ type TeamMember struct {
 ```
 
 **Replacement Strategy:**
-- **RSVPs list:** Can use `GET /api/v2/Events('{eventId}')/EventRSVPs?$expand=User`
-- **Counts:** Aggregation - should stay as function or use `$count` with filters
+Use standard navigation: `GET /api/v2/Events('{eventId}')/EventRSVPs?$expand=User`
 
-**Recommendation:**
-- Split into navigation for RSVPs list: `Events('{id}')/EventRSVPs`
-- Keep function for counts or provide separate endpoint
+**Computing Counts:**
+Client-side grouping is simple and efficient:
+```typescript
+const rsvps = response.data.value;
+const counts = rsvps.reduce((acc, rsvp) => {
+  acc[rsvp.Response] = (acc[rsvp.Response] || 0) + 1;
+  return acc;
+}, {});
+```
 
-**Alternative:** Use multiple queries:
-```
-GET /api/v2/Events('{id}')/EventRSVPs?$filter=Response eq 'yes'&$count=true
-GET /api/v2/Events('{id}')/EventRSVPs?$filter=Response eq 'no'&$count=true
-```
+**Why This Works:**
+- RSVP lists are typically small (10-50 items)
+- Client-side grouping is trivial and instant
+- Avoids server-side aggregation overhead
+- Maintains single source of truth (the RSVP list)
+- More flexible for frontend (can group by any field)
 
 **Impact:**
 - Used in: `EventRSVPList.tsx`, `AdminEventDetails.tsx`, `AdminClubEventList.tsx` (3 files)
+- Simple refactor to compute counts from response
 
 ---
 
@@ -308,9 +315,11 @@ type EventRSVP struct {
 
 ### Phase 2: Deprecate Simple Functions (Low Risk)
 **These can be replaced immediately:**
-- ~~`GetEvents()` - Team~~ → Use `Teams('{id}')/Events`
-- ~~`GetFines()` - Team~~ → Use `Teams('{id}')/Fines?$expand=User`
-- ~~`GetInviteLink()` - Club~~ → Use computed property
+- ~~`GetEvents()` - Team~~ ✅ Completed → Use `Teams('{id}')/Events`
+- ~~`GetMembers()` - Team~~ ✅ Completed → Use `Teams('{id}')/TeamMembers?$expand=User`
+- ~~`GetRSVPs()` - Event~~ ✅ Completed → Use `Events('{id}')/EventRSVPs?$expand=User`
+- `GetFines()` - Team → Use `Teams('{id}')/Fines?$expand=User`
+- `GetInviteLink()` - Club → Use computed property
 
 ### Phase 3: Replace with Filters (Medium Risk)
 **These need client-side changes to add filters:**
@@ -320,8 +329,6 @@ type EventRSVP struct {
 ### Phase 4: Evaluate Complex Cases (High Risk)
 **These need careful consideration:**
 - `GetOverview()` - Split into entity + stats function
-- `GetRSVPs()` - Split into navigation + counts function
-- ~~`GetMembers()` - Replace with TeamMembers navigation~~ ✅ Completed
 - `GetMyTeams()` - Keep function for convenience
 
 ### Phase 5: Keep as Functions
@@ -369,11 +376,11 @@ type EventRSVP struct {
 - TeamUpcomingEvents.tsx - Add date filter
 - UpcomingEvents.tsx - Add date filter
 - AdminTeamDetails.tsx - Multiple changes
+- EventRSVPList.tsx - Compute counts from RSVPs list
+- AdminEventDetails.tsx - Compute counts from RSVPs list
+- AdminClubEventList.tsx - Compute counts from RSVPs list
 
 **High Impact (Restructure):**
-- TeamMembers.tsx - Change response structure
-- EventRSVPList.tsx - Split counts from list
-- AdminEventDetails.tsx - Split counts from list
 - MyTeams.tsx - Complex filter or keep function
 
 **Keep As-Is:**
@@ -385,11 +392,17 @@ type EventRSVP struct {
 
 ## Conclusion
 
-Out of 10 OData functions:
-- **4 should remain** as they provide value through computation, aggregation, or parameters
-- **4 can be easily replaced** with standard navigation and filters
-- **2 need careful analysis** and may benefit from partial replacement or restructuring
+Out of 7 OData functions (reduced from 12):
+- **5 should remain** as they provide value through computation, aggregation, or parameters
+- **2 can be replaced** with standard navigation
+- **3 completed replacements:** GetEvents, GetMembers, GetRSVPs
 
-The analysis shows that ~60% of current functions could potentially use navigation, but the effort and risk varies significantly. Prioritize replacing simple functions first (Phase 1-2), then evaluate the complex cases based on real-world usage patterns and performance.
+**Remaining work:**
+- ✅ **Completed:** GetEvents, GetMembers, GetRSVPs (replaced with navigation)
+- 🔄 **Easy wins:** GetFines, GetInviteLink (simple replacements)
+- ⚠️ **Complex:** GetOverview (needs restructuring)
+- ✅ **Keep:** IsAdmin, GetOwnerCount, ExpandRecurrence, SearchGlobal, GetMyTeams
+
+The analysis shows that we've successfully migrated 3 functions to standard navigation. The remaining 2 easy wins (GetFines, GetInviteLink) can be completed next, followed by the more complex GetOverview restructuring.
 
 **Update:** `GetDashboardActivities()`, `GetDashboardNews()`, and `GetDashboardEvents()` have been removed as they were replaced by the `TimelineItems` virtual entity (`/api/v2/TimelineItems`), which provides a more flexible and standard OData interface for dashboard activities, news, and events.

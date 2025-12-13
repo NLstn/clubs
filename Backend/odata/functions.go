@@ -89,17 +89,6 @@ func (s *Service) registerFunctions() error {
 		return fmt.Errorf("failed to register GetOverview function for Team: %w", err)
 	}
 
-	// More bound functions for Event entity
-	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
-		Name:       "GetRSVPs",
-		IsBound:    true,
-		EntitySet:  "Events",
-		Parameters: []odata.ParameterDefinition{},
-		ReturnType: reflect.TypeOf(EventRSVPResponse{}),
-		Handler:    s.getEventRSVPsFunction,
-	}); err != nil {
-		return fmt.Errorf("failed to register GetRSVPs function for Event: %w", err)
-	}
 
 	// More bound functions for Club entity
 	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
@@ -138,11 +127,6 @@ type TeamOverviewResponse struct {
 	Stats    map[string]interface{} `json:"Stats"`
 	UserRole string                 `json:"UserRole"`
 	IsAdmin  bool                   `json:"IsAdmin"`
-}
-
-type EventRSVPResponse struct {
-	Counts map[string]int     `json:"Counts"`
-	RSVPs  []models.EventRSVP `json:"RSVPs"`
 }
 
 type EventWithRSVP struct {
@@ -534,51 +518,6 @@ func (s *Service) getTeamOverviewFunction(w http.ResponseWriter, r *http.Request
 		Stats:    stats,
 		UserRole: userRole,
 		IsAdmin:  team.IsAdmin(user),
-	}, nil
-}
-
-// getEventRSVPsFunction returns all RSVPs for an event with counts
-// GET /api/v2/Events('{eventId}')/GetRSVPs()
-func (s *Service) getEventRSVPsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	event := ctx.(*models.Event)
-
-	// Get user ID from request context
-	userID, ok := r.Context().Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, fmt.Errorf("unauthorized: missing user id")
-	}
-
-	// Get user from database
-	var user models.User
-	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
-
-	// Verify user is an admin of the club
-	club, err := models.GetClubByID(event.ClubID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find club: %w", err)
-	}
-
-	if !club.IsOwner(user) && !club.IsAdmin(user) {
-		return nil, fmt.Errorf("forbidden: only club admins can view RSVPs")
-	}
-
-	// Get RSVP counts
-	counts, err := models.GetEventRSVPCounts(event.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get RSVP counts: %w", err)
-	}
-
-	// Get RSVPs with user details
-	rsvps, err := models.GetEventRSVPs(event.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get RSVPs: %w", err)
-	}
-
-	return EventRSVPResponse{
-		Counts: counts,
-		RSVPs:  rsvps,
 	}, nil
 }
 

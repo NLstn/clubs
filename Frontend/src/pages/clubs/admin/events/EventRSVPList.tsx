@@ -4,14 +4,14 @@ import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
 
 interface EventRSVP {
-    id: string;
-    event_id: string;
-    user_id: string;
-    response: string;
-    created_at: string;
-    updated_at: string;
-    user: {
-        id: string;
+    ID: string;
+    EventID: string;
+    UserID: string;
+    Response: string;
+    CreatedAt: string;
+    UpdatedAt: string;
+    User: {
+        ID: string;
         FirstName: string;
         LastName: string;
         Email: string;
@@ -45,10 +45,18 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
         setError(null);
         
         try {
-            // OData v2: Use GetRSVPs function on Event entity
-            const response = await api.get(`/api/v2/Events('${eventId}')/GetRSVPs()`);
-            setRsvps(response.data.RSVPs || []);
-            setCounts(response.data.Counts || {});
+            // OData v2: Use EventRSVPs navigation property with User expansion
+            const response = await api.get(`/api/v2/Events('${eventId}')/EventRSVPs?$expand=User`);
+            const rsvpList = response.data.value || [];
+            setRsvps(rsvpList);
+            
+            // Compute counts by grouping RSVPs by Response field
+            const computedCounts = rsvpList.reduce((acc: RSVPCounts, rsvp: EventRSVP) => {
+                const responseKey = rsvp.Response.toLowerCase() as keyof RSVPCounts;
+                acc[responseKey] = (acc[responseKey] || 0) + 1;
+                return acc;
+            }, {});
+            setCounts(computedCounts);
         } catch (error) {
             console.error("Error fetching RSVPs:", error);
             setError("Failed to load RSVPs");
@@ -75,25 +83,25 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
         {
             key: 'member',
             header: 'Member',
-            render: (rsvp) => rsvp.user ? `${rsvp.user.FirstName} ${rsvp.user.LastName}`.trim() || 'Unknown' : 'Unknown'
+            render: (rsvp) => rsvp.User ? `${rsvp.User.FirstName} ${rsvp.User.LastName}`.trim() || 'Unknown' : 'Unknown'
         },
         {
             key: 'response',
             header: 'Response',
             render: (rsvp) => (
                 <span style={{ 
-                    color: rsvp.response === 'yes' ? 'var(--color-primary)' : 
-                           rsvp.response === 'no' ? 'var(--color-cancel)' : 'orange',
+                    color: rsvp.Response === 'yes' ? 'var(--color-primary)' : 
+                           rsvp.Response === 'no' ? 'var(--color-cancel)' : 'orange',
                     fontWeight: 'bold'
                 }}>
-                    {rsvp.response === 'yes' ? 'Yes' : rsvp.response === 'no' ? 'No' : 'Maybe'}
+                    {rsvp.Response === 'yes' ? 'Yes' : rsvp.Response === 'no' ? 'No' : 'Maybe'}
                 </span>
             )
         },
         {
             key: 'date_responded',
             header: 'Date Responded',
-            render: (rsvp) => formatDateTime(rsvp.updated_at)
+            render: (rsvp) => formatDateTime(rsvp.UpdatedAt)
         }
     ];
 
@@ -134,7 +142,7 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
                         <Table
                             columns={rsvpColumns}
                             data={rsvps}
-                            keyExtractor={(rsvp) => rsvp.id}
+                            keyExtractor={(rsvp) => rsvp.ID}
                             emptyMessage="No RSVPs yet for this event."
                         />
                     </div>
