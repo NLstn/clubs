@@ -6,11 +6,11 @@ import { Table, TableColumn, Button } from '@/components/ui';
 import './Profile.css';
 
 interface Session {
-  id: string;
-  userAgent: string;
-  ipAddress: string;
-  createdAt: string;
-  isCurrent: boolean;
+  ID: string;
+  UserAgent: string;
+  IPAddress: string;
+  CreatedAt: string;
+  IsCurrent: boolean;
 }
 
 const ProfileSessions = () => {
@@ -27,10 +27,10 @@ const ProfileSessions = () => {
       if (refreshToken) {
         headers['X-Refresh-Token'] = refreshToken;
       }
-      // Note: Sessions API may need to remain on v1 if not yet migrated to OData
-      const response = await api.get('/api/v1/me/sessions', { headers });
+      // Use OData v2 API - filter and ordering handled by backend
+      const response = await api.get('/api/v2/UserSessions?$orderby=CreatedAt desc', { headers });
       if (response.status === 200) {
-        setSessions(response.data || []);
+        setSessions(response.data?.value || []);
       }
     } catch (error) {
       console.error('Error fetching sessions:', error);
@@ -46,8 +46,9 @@ const ProfileSessions = () => {
 
   const handleDeleteSession = async (sessionId: string) => {
     try {
-      await api.delete(`/api/v1/me/sessions/${sessionId}`);
-      setSessions(sessions.filter(session => session.id !== sessionId));
+      // Use OData v2 DELETE with entity key
+      await api.delete(`/api/v2/UserSessions('${sessionId}')`);
+      setSessions(sessions.filter(session => session.ID !== sessionId));
       setMessage('Session deleted successfully');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
@@ -73,23 +74,23 @@ const ProfileSessions = () => {
     {
       key: 'browser',
       header: 'Browser',
-      render: (session) => formatUserAgent(session.userAgent)
+      render: (session) => formatUserAgent(session.UserAgent)
     },
     {
       key: 'ipAddress',
       header: 'IP Address',
-      render: (session) => session.ipAddress
+      render: (session) => session.IPAddress
     },
     {
       key: 'created',
       header: 'Created',
-      render: (session) => formatDate(session.createdAt)
+      render: (session) => formatDate(session.CreatedAt)
     },
     {
       key: 'status',
       header: 'Status',
       render: (session) => (
-        session.isCurrent ? (
+        session.IsCurrent ? (
           <span style={{ 
             color: 'var(--color-success-text)',
             fontWeight: 'bold'
@@ -107,7 +108,7 @@ const ProfileSessions = () => {
       key: 'actions',
       header: 'Actions',
       render: (session) => (
-        session.isCurrent ? (
+        session.IsCurrent ? (
           <span style={{ color: 'var(--color-text-secondary)' }}>
             Cannot delete current session
           </span>
@@ -115,7 +116,7 @@ const ProfileSessions = () => {
           <Button
             variant="cancel"
             size="sm"
-            onClick={() => handleDeleteSession(session.id)}
+            onClick={() => handleDeleteSession(session.ID)}
           >
             Delete
           </Button>
@@ -143,7 +144,7 @@ const ProfileSessions = () => {
         <Table
           columns={tableColumns}
           data={sessions}
-          keyExtractor={(session) => session.id}
+          keyExtractor={(session) => session.ID}
           emptyMessage="No active sessions found."
           loading={isLoading}
           loadingMessage="Loading sessions..."
