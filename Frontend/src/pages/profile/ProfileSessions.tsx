@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { useAuth } from '../../hooks/useAuth';
-import { Table, TableColumn, Button } from '@/components/ui';
+import { ODataTable, ODataTableColumn, Button, ConfirmDialog } from '@/components/ui';
 import './Profile.css';
 
 interface Session {
@@ -15,54 +15,42 @@ interface Session {
 
 const ProfileSessions = () => {
   const { api } = useAuth();
-  const [sessions, setSessions] = useState<Session[]>([]);
   const [message, setMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const fetchSessions = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const refreshToken = localStorage.getItem('refresh_token');
-      const headers: Record<string, string> = {};
-      if (refreshToken) {
-        headers['X-Refresh-Token'] = refreshToken;
-      }
-      // Use OData v2 API - filter and ordering handled by backend
-      const response = await api.get('/api/v2/UserSessions?$orderby=CreatedAt desc', { headers });
-      if (response.status === 200) {
-        setSessions(response.data?.value || []);
-      }
-    } catch (error) {
-      console.error('Error fetching sessions:', error);
-      setMessage('Failed to load sessions');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [api]);
+  const refreshSessions = useCallback(() => {
+    setRefreshKey(prev => prev + 1);
+  }, []);
 
-  useEffect(() => {
-    fetchSessions();
-  }, [fetchSessions]);
+  const handleDeleteSession = async () => {
+    if (!sessionToDelete) return;
 
-  const handleDeleteSession = async (sessionId: string) => {
+    setIsDeleting(true);
     try {
       // Use OData v2 DELETE with entity key
-      await api.delete(`/api/v2/UserSessions('${sessionId}')`);
-      setSessions(sessions.filter(session => session.ID !== sessionId));
+      await api.delete(`/api/v2/UserSessions('${sessionToDelete}')`);
       setMessage('Session deleted successfully');
       setTimeout(() => setMessage(''), 3000);
+      refreshSessions(); // Refresh the list
     } catch (error) {
       console.error('Error deleting session:', error);
       setMessage('Failed to delete session');
+      setTimeout(() => setMessage(''), 3000);
+    } finally {
+      setIsDeleting(false);
+      setSessionToDelete(null); // Close modal regardless of success or failure
     }
   };
 
   const formatUserAgent = (userAgent: string) => {
     // Simple user agent parsing to make it more readable
+    // Check Edge first since it contains "Chrome" in its user agent
+    if (userAgent.includes('Edg/')) return 'Edge';
     if (userAgent.includes('Chrome')) return 'Chrome';
     if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Safari')) return 'Safari';
-    if (userAgent.includes('Edge')) return 'Edge';
+    if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari';
     return userAgent.length > 50 ? userAgent.substring(0, 50) + '...' : userAgent;
   };
 
@@ -70,21 +58,25 @@ const ProfileSessions = () => {
     return new Date(dateString).toLocaleString();
   };
 
-  const tableColumns: TableColumn<Session>[] = [
+  const tableColumns: ODataTableColumn<Session>[] = [
     {
       key: 'browser',
       header: 'Browser',
       render: (session) => formatUserAgent(session.UserAgent)
     },
     {
-      key: 'ipAddress',
+      key: 'IPAddress',
       header: 'IP Address',
-      render: (session) => session.IPAddress
+      render: (session) => session.IPAddress,
+      sortable: true,
+      sortField: 'IPAddress'
     },
     {
-      key: 'created',
+      key: 'CreatedAt',
       header: 'Created',
-      render: (session) => formatDate(session.CreatedAt)
+      render: (session) => formatDate(session.CreatedAt),
+      sortable: true,
+      sortField: 'CreatedAt'
     },
     {
       key: 'status',
@@ -116,7 +108,7 @@ const ProfileSessions = () => {
           <Button
             variant="cancel"
             size="sm"
-            onClick={() => handleDeleteSession(session.ID)}
+            onClick={() => setSessionToDelete(session.ID)}
           >
             Delete
           </Button>
@@ -141,13 +133,28 @@ const ProfileSessions = () => {
           </div>
         )}
 
-        <Table
+        <ODataTable
+          key={refreshKey}
+          endpoint="/api/v2/UserSessions"
           columns={tableColumns}
-          data={sessions}
           keyExtractor={(session) => session.ID}
+          pageSize={10}
+          initialSortField="CreatedAt"
+          initialSortDirection="desc"
           emptyMessage="No active sessions found."
-          loading={isLoading}
           loadingMessage="Loading sessions..."
+        />
+
+        <ConfirmDialog
+          isOpen={sessionToDelete !== null}
+          onClose={() => setSessionToDelete(null)}
+          onConfirm={handleDeleteSession}
+          title="Delete Session"
+          message="Are you sure you want to delete this session? You will be logged out from that device."
+          confirmText="Delete"
+          cancelText="Cancel"
+          variant="danger"
+          isLoading={isDeleting}
         />
       </ProfileContentLayout>
     </Layout>

@@ -1,12 +1,10 @@
 services:
   app:
-    image: mcr.microsoft.com/devcontainers/base:ubuntu
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
       - ..:/workspace:cached
-    command: >
-      sh -c "apt-get update && apt-get install -y socat &&
-             socat TCP-LISTEN:8081,fork,reuseaddr TCP:keycloak:8080 &
-             sleep infinity"
     networks:
       - clubs-network
     extra_hosts:

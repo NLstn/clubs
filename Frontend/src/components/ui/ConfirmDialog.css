@@ -1,0 +1,32 @@
+.confirm-dialog__message {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  margin: 0;
+  padding: 0;
+}
+
+/* Variant-specific styling */
+.confirm-dialog--danger .modal-header {
+  background: linear-gradient(135deg, var(--color-error-bg) 0%, var(--color-error-hover) 100%);
+}
+
+.confirm-dialog--danger .modal-header h2 {
+  color: var(--color-error-text);
+}
+
+.confirm-dialog--warning .modal-header {
+  background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+}
+
+.confirm-dialog--warning .modal-header h2 {
+  color: white;
+}
+
+.confirm-dialog--info .modal-header {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+}
+
+.confirm-dialog--info .modal-header h2 {
+  color: white;
+}

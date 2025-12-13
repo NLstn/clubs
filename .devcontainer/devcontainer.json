@@ -14,7 +14,8 @@
     "ghcr.io/devcontainers/features/azure-cli:1": {
       "version": "latest"
     },
-    "ghcr.io/nlstn/devcontainer-features/go-air:latest": {}
+    "ghcr.io/nlstn/devcontainer-features/go-air:latest": {},
+    "ghcr.io/nlstn/devcontainer-features/psql:latest": {}
   },
   "customizations": {
     "vscode": {

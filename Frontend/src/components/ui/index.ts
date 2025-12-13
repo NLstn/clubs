@@ -3,6 +3,7 @@ export { default as Table, type TableColumn } from './Table';
 export { default as ODataTable, type ODataTableColumn } from './ODataTable';
 export { TypeAheadDropdown } from './TypeAheadDropdown';
 export { default as Modal, type ModalProps } from './Modal';
+export { default as ConfirmDialog, type ConfirmDialogProps } from './ConfirmDialog';
 export { Button, type ButtonProps } from './Button';
 export { Tabs, type TabsProps, type Tab } from './Tabs';
 export { FormGroup } from './FormGroup';
