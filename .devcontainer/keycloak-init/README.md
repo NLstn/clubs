@@ -4,13 +4,6 @@ This directory contains the initialization files for the Keycloak authentication
 
 ## Files
 
-### `init-keycloak-db.sql`
-SQL script that runs during PostgreSQL initialization to create:
-- A separate database `keycloak_dev` for Keycloak's data
-- A dedicated user `keycloak_dev` with access to that database
-
-This ensures Keycloak and the Clubs application use separate databases within the same PostgreSQL instance.
-
 ### `clubs-realm.json`
 Keycloak realm configuration that is automatically imported on first startup. This includes:
 
