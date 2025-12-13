@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/database"
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -30,6 +32,146 @@ type RefreshToken struct {
 	UserAgent string    `json:"UserAgent"`
 	IPAddress string    `json:"IPAddress"`
 	CreatedAt time.Time `json:"CreatedAt"`
+}
+
+// UserSession represents an active user session exposed via OData API
+// This maps to RefreshToken internally but provides a cleaner API
+type UserSession struct {
+	ID        string    `json:"ID" gorm:"column:id;type:uuid;primaryKey" odata:"key"`
+	UserID    string    `json:"UserID" gorm:"column:user_id;type:uuid;not null" odata:"immutable"`
+	UserAgent string    `json:"UserAgent" gorm:"column:user_agent" odata:"immutable"`
+	IPAddress string    `json:"IPAddress" gorm:"column:ip_address" odata:"immutable"`
+	CreatedAt time.Time `json:"CreatedAt" gorm:"column:created_at" odata:"immutable"`
+	ExpiresAt time.Time `json:"ExpiresAt" gorm:"column:expires_at" odata:"immutable"`
+	IsCurrent bool      `json:"IsCurrent" gorm:"-" odata:"-"` // Computed field
+}
+
+// TableName specifies that UserSession uses the refresh_tokens table
+func (UserSession) TableName() string {
+	return "refresh_tokens"
+}
+
+// BeforeReadCollection filters sessions to only show current user's active sessions
+// This implements the ReadHook interface from go-odata
+func (UserSession) BeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value("user_id").(string)
+	if !ok || userID == "" {
+		return []func(*gorm.DB) *gorm.DB{
+			func(db *gorm.DB) *gorm.DB {
+				return db.Where("1 = 0") // Return no results if no user context
+			},
+		}, nil
+	}
+
+	return []func(*gorm.DB) *gorm.DB{
+		func(db *gorm.DB) *gorm.DB {
+			return db.Where("user_id = ? AND expires_at > NOW()", userID)
+		},
+	}, nil
+}
+
+// BeforeReadEntity filters to only allow current user to read their own sessions
+// This implements the ReadHook interface from go-odata
+func (UserSession) BeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value("user_id").(string)
+	if !ok || userID == "" {
+		return []func(*gorm.DB) *gorm.DB{
+			func(db *gorm.DB) *gorm.DB {
+				return db.Where("1 = 0") // Return no results if no user context
+			},
+		}, nil
+	}
+
+	return []func(*gorm.DB) *gorm.DB{
+		func(db *gorm.DB) *gorm.DB {
+			return db.Where("user_id = ? AND expires_at > NOW()", userID)
+		},
+	}, nil
+}
+
+// AfterReadCollection adds the IsCurrent computed field to each session
+// This implements the ReadHook interface from go-odata
+func (UserSession) AfterReadCollection(ctx context.Context, r *http.Request, opts interface{}, results interface{}) (interface{}, error) {
+	sessions, ok := results.(*[]UserSession)
+	if !ok {
+		return results, nil
+	}
+
+	// Get current refresh token to identify current session
+	currentRefreshToken := r.Header.Get("X-Refresh-Token")
+	if currentRefreshToken == "" {
+		return results, nil // No current token, all sessions have IsCurrent = false
+	}
+
+	hashedToken := HashToken(currentRefreshToken)
+
+	// Get tokens for all sessions to compare
+	if len(*sessions) > 0 {
+		ids := make([]string, len(*sessions))
+		for i, session := range *sessions {
+			ids[i] = session.ID
+		}
+
+		var tokens []struct {
+			ID    string
+			Token string
+		}
+		if err := database.Db.Raw("SELECT id, token FROM refresh_tokens WHERE id IN ?", ids).Scan(&tokens).Error; err == nil {
+			tokenMap := make(map[string]string)
+			for _, t := range tokens {
+				tokenMap[t.ID] = t.Token
+			}
+
+			for i := range *sessions {
+				if token, ok := tokenMap[(*sessions)[i].ID]; ok {
+					(*sessions)[i].IsCurrent = token == hashedToken
+				}
+			}
+		}
+	}
+
+	return results, nil
+}
+
+// AfterReadEntity adds the IsCurrent computed field to the session
+// This implements the ReadHook interface from go-odata
+func (UserSession) AfterReadEntity(ctx context.Context, r *http.Request, opts interface{}, entity interface{}) (interface{}, error) {
+	session, ok := entity.(*UserSession)
+	if !ok {
+		return entity, nil
+	}
+
+	// Get current refresh token to identify current session
+	currentRefreshToken := r.Header.Get("X-Refresh-Token")
+	if currentRefreshToken == "" {
+		return entity, nil // No current token, IsCurrent = false
+	}
+
+	hashedToken := HashToken(currentRefreshToken)
+
+	// Check if this session matches the current token
+	var tokenCheck struct{ Token string }
+	if err := database.Db.Raw("SELECT token FROM refresh_tokens WHERE id = ?", session.ID).Scan(&tokenCheck).Error; err == nil {
+		session.IsCurrent = tokenCheck.Token == hashedToken
+	}
+
+	return entity, nil
+}
+
+// ODataBeforeDelete ensures users can only delete their own sessions
+// This implements the EntityHook interface from go-odata
+func (s *UserSession) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value("user_id").(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized")
+	}
+
+	// Verify the session belongs to the current user
+	if s.UserID != userID {
+		return fmt.Errorf("cannot delete another user's session")
+	}
+
+	return nil
 }
 
 // HashToken returns a sha256 hash of the provided token encoded as hex.

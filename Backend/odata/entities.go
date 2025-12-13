@@ -11,6 +11,7 @@ func (s *Service) registerEntities() error {
 	entities := []interface{}{
 		// Core entities
 		&models.User{},
+		&models.UserSession{},
 		&models.Club{},
 		&models.Member{},
 
