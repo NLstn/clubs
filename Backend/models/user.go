@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"gorm.io/gorm"
 )
@@ -51,10 +52,10 @@ func (UserSession) TableName() string {
 	return "refresh_tokens"
 }
 
-// BeforeReadCollection filters sessions to only show current user's active sessions
+// ODataBeforeReadCollection filters sessions to only show current user's active sessions
 // This implements the ReadHook interface from go-odata
-func (UserSession) BeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
-	userID, ok := ctx.Value("user_id").(string)
+func (UserSession) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return []func(*gorm.DB) *gorm.DB{
 			func(db *gorm.DB) *gorm.DB {
@@ -70,14 +71,24 @@ func (UserSession) BeforeReadCollection(ctx context.Context, r *http.Request, op
 	}, nil
 }
 
-// BeforeReadEntity filters to only allow current user to read their own sessions
+// ODataBeforeReadEntity filters to only allow current user to read their own sessions
 // This implements the ReadHook interface from go-odata
-func (UserSession) BeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
-	userID, ok := ctx.Value("user_id").(string)
+func (UserSession) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return []func(*gorm.DB) *gorm.DB{
 			func(db *gorm.DB) *gorm.DB {
 				return db.Where("1 = 0") // Return no results if no user context
+			},
+		}, nil
+	}
+
+	// For DELETE operations, allow reading expired sessions to enable deletion
+	// The OData framework loads the entity before calling BeforeDelete
+	if r.Method == "DELETE" {
+		return []func(*gorm.DB) *gorm.DB{
+			func(db *gorm.DB) *gorm.DB {
+				return db.Where("user_id = ?", userID)
 			},
 		}, nil
 	}
@@ -89,9 +100,9 @@ func (UserSession) BeforeReadEntity(ctx context.Context, r *http.Request, opts i
 	}, nil
 }
 
-// AfterReadCollection adds the IsCurrent computed field to each session
+// ODataAfterReadCollection adds the IsCurrent computed field to each session
 // This implements the ReadHook interface from go-odata
-func (UserSession) AfterReadCollection(ctx context.Context, r *http.Request, opts interface{}, results interface{}) (interface{}, error) {
+func (UserSession) ODataAfterReadCollection(ctx context.Context, r *http.Request, opts interface{}, results interface{}) (interface{}, error) {
 	// Try both pointer to slice and slice directly
 	var sessions []UserSession
 	if sessionsPtr, ok := results.(*[]UserSession); ok {
@@ -144,9 +155,9 @@ func (UserSession) AfterReadCollection(ctx context.Context, r *http.Request, opt
 	return sessions, nil
 }
 
-// AfterReadEntity adds the IsCurrent computed field to the session
+// ODataAfterReadEntity adds the IsCurrent computed field to the session
 // This implements the ReadHook interface from go-odata
-func (UserSession) AfterReadEntity(ctx context.Context, r *http.Request, opts interface{}, entity interface{}) (interface{}, error) {
+func (UserSession) ODataAfterReadEntity(ctx context.Context, r *http.Request, opts interface{}, entity interface{}) (interface{}, error) {
 	session, ok := entity.(*UserSession)
 	if !ok {
 		return entity, nil
@@ -172,10 +183,13 @@ func (UserSession) AfterReadEntity(ctx context.Context, r *http.Request, opts in
 // ODataBeforeDelete ensures users can only delete their own sessions
 // This implements the EntityHook interface from go-odata
 func (s *UserSession) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
-	userID, ok := ctx.Value("user_id").(string)
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
+		fmt.Printf("DEBUG: BeforeDelete - userID not found in context, ok=%v, userID=%v\n", ok, userID)
 		return fmt.Errorf("unauthorized")
 	}
+
+	fmt.Printf("DEBUG: BeforeDelete - userID from context: %s, session.ID: %s, session.UserID: %s\n", userID, s.ID, s.UserID)
 
 	// The ID field is already populated by OData framework
 	// We just need to verify it belongs to the current user by checking UserID
@@ -185,16 +199,20 @@ func (s *UserSession) ODataBeforeDelete(ctx context.Context, r *http.Request) er
 		// If UserID is not populated, query it from database
 		var session UserSession
 		if err := database.Db.Where("id = ?", s.ID).First(&session).Error; err != nil {
+			fmt.Printf("DEBUG: BeforeDelete - session not found in DB for ID: %s, error: %v\n", s.ID, err)
 			return fmt.Errorf("session not found")
 		}
 		s.UserID = session.UserID
+		fmt.Printf("DEBUG: BeforeDelete - loaded UserID from DB: %s\n", s.UserID)
 	}
 
 	// Verify the session belongs to the current user
 	if s.UserID != userID {
+		fmt.Printf("DEBUG: BeforeDelete - user mismatch: session.UserID=%s, contextUserID=%s\n", s.UserID, userID)
 		return fmt.Errorf("cannot delete another user's session")
 	}
 
+	fmt.Printf("DEBUG: BeforeDelete - authorization successful for session %s\n", s.ID)
 	return nil
 }
 
