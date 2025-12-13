@@ -11,7 +11,7 @@ This directory contains the configuration for the VS Code Development Container 
 
 ## Database Configuration
 
-The devcontainer includes a PostgreSQL database with the following default credentials:
+The devcontainer includes a PostgreSQL database with the following default credentials. Both databases are automatically created by the initialization script in the `postgres-init/` folder.
 
 ### Clubs Application Database
 - **Host**: `db` (Docker service name - use this in devcontainer)
