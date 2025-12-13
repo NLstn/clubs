@@ -114,9 +114,12 @@ func GetKeycloakAuth() *KeycloakAuth {
 	return keycloakAuth
 }
 
-func (k *KeycloakAuth) GetAuthURLWithPKCE(state string) (string, string) {
+func (k *KeycloakAuth) GetAuthURLWithPKCE(state string) (string, string, error) {
 	// Generate PKCE code verifier and challenge
-	codeVerifier := generateCodeVerifier()
+	codeVerifier, err := generateCodeVerifier()
+	if err != nil {
+		return "", "", err
+	}
 	codeChallenge := generateCodeChallenge(codeVerifier)
 
 	authURL := k.oauth2.AuthCodeURL(state,
@@ -124,20 +127,22 @@ func (k *KeycloakAuth) GetAuthURLWithPKCE(state string) (string, string) {
 		oauth2.SetAuthURLParam("code_challenge_method", "S256"),
 	)
 
-	return authURL, codeVerifier
+	return authURL, codeVerifier, nil
 }
 
 // Kept for backward compatibility, but now includes PKCE
 func (k *KeycloakAuth) GetAuthURL(state string) string {
-	authURL, _ := k.GetAuthURLWithPKCE(state)
+	authURL, _, _ := k.GetAuthURLWithPKCE(state)
 	return authURL
 }
 
 // generateCodeVerifier creates a cryptographically random code verifier
-func generateCodeVerifier() string {
+func generateCodeVerifier() (string, error) {
 	b := make([]byte, 32)
-	rand.Read(b)
-	return base64.RawURLEncoding.EncodeToString(b)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("failed to generate secure random bytes: %w", err)
+	}
+	return base64.RawURLEncoding.EncodeToString(b), nil
 }
 
 // generateCodeChallenge creates the code challenge from the verifier

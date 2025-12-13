@@ -54,7 +54,11 @@ func handleKeycloakLogin(w http.ResponseWriter, r *http.Request) {
 	state := generateRandomState()
 
 	// Get the auth URL with PKCE parameters
-	authURL, codeVerifier := keycloakAuth.GetAuthURLWithPKCE(state)
+	authURL, codeVerifier, err := keycloakAuth.GetAuthURLWithPKCE(state)
+	if err != nil {
+		http.Error(w, "Failed to generate authentication URL", http.StatusInternalServerError)
+		return
+	}
 
 	json.NewEncoder(w).Encode(map[string]string{
 		"authURL":      authURL,
@@ -85,6 +89,15 @@ func handleKeycloakCallback(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Code verifier required", http.StatusBadRequest)
 		return
 	}
+
+	if req.State == "" {
+		http.Error(w, "State parameter required", http.StatusBadRequest)
+		return
+	}
+
+	// TODO: Validate state parameter against stored state to prevent CSRF attacks
+	// For now, we just ensure it's present. In production, implement proper state validation
+	// using a secure session store or signed/encrypted state tokens.
 
 	keycloakAuth := auth.GetKeycloakAuth()
 	if keycloakAuth == nil {
