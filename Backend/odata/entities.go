@@ -43,6 +43,9 @@ func (s *Service) registerEntities() error {
 		// Settings and privacy entities
 		&models.ClubSettings{},
 		&models.UserPrivacySettings{},
+
+		// API Key entities
+		&models.APIKey{},
 	}
 
 	for _, entity := range entities {

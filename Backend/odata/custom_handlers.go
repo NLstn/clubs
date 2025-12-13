@@ -6,10 +6,12 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/azure"
 	"github.com/NLstn/clubs/models"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -17,7 +19,11 @@ import (
 // These handlers are mounted alongside the OData service
 func (s *Service) RegisterCustomHandlers(mux *http.ServeMux) {
 	// Club logo upload - requires multipart/form-data which OData doesn't support natively
-	mux.HandleFunc("/api/v2/Clubs(", s.handleClubCustomRoutes)
+	mux.HandleFunc("/Clubs(", s.handleClubCustomRoutes)
+
+	// API key creation - returns plaintext key once (non-standard OData response)
+	// Only intercept POST, let OData handle GET/PATCH/DELETE
+	mux.HandleFunc("POST /APIKeys", s.handleCreateAPIKey)
 }
 
 // handleClubCustomRoutes handles custom routes for Club entity
@@ -67,7 +73,7 @@ func parseClubCustomRoute(path string) (clubID, action string) {
 }
 
 // handleUploadClubLogo handles multipart file upload for club logos
-// POST /api/v2/Clubs('{clubId}')/UploadLogo
+// POST /api/v2/Clubs('{clubID}')/UploadLogo
 //
 // This is a custom endpoint because OData v4 doesn't natively support multipart/form-data.
 // For proper OData media entities, see: https://www.odata.org/getting-started/advanced-tutorial/#media
@@ -177,6 +183,117 @@ func (s *Service) handleUploadClubLogo(w http.ResponseWriter, r *http.Request, c
 		"@odata.context": "/api/v2/$metadata#Clubs/$entity",
 		"logo_url":       logoURL,
 		"message":        "Logo uploaded successfully",
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("ERROR: Failed to encode response: %v", err)
+	}
+}
+
+// handleCreateAPIKey handles creation of new API keys with custom response
+// POST /api/v2/APIKeys
+//
+// This is a custom endpoint because we need to return the plaintext API key only once.
+// Standard OData CREATE doesn't support returning additional computed fields.
+//
+// Request: JSON with Name, ExpiresAt (optional), Permissions (optional)
+// Response: 201 Created with JSON containing APIKey (plaintext, shown once), ID, KeyPrefix, etc.
+//
+// Authorization: Authenticated user (creates key for themselves)
+func (s *Service) handleCreateAPIKey(w http.ResponseWriter, r *http.Request) {
+	// Extract user from context
+	userID, ok := r.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	// Parse request body
+	var request struct {
+		Name        string     `json:"Name"`
+		ExpiresAt   *time.Time `json:"ExpiresAt,omitempty"`
+		Permissions []string   `json:"Permissions,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		log.Printf("ERROR: Failed to decode request: %v", err)
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Validate required fields
+	if request.Name == "" {
+		http.Error(w, "Name is required", http.StatusBadRequest)
+		return
+	}
+
+	// Check rate limit: max 10 active keys per user
+	var keyCount int64
+	if err := s.db.Model(&models.APIKey{}).
+		Where("user_id = ? AND is_active = ?", userID, true).
+		Count(&keyCount).Error; err != nil {
+		log.Printf("ERROR: Failed to count user's API keys: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if keyCount >= 10 {
+		http.Error(w, "Maximum number of active API keys (10) reached", http.StatusTooManyRequests)
+		return
+	}
+
+	// Generate API key
+	plainKey, keyHash, keyPrefix, err := auth.GenerateAPIKey("sk_live")
+	if err != nil {
+		log.Printf("ERROR: Failed to generate API key: %v", err)
+		http.Error(w, "Failed to generate API key", http.StatusInternalServerError)
+		return
+	}
+
+	// Create API key model with explicit ID (for database compatibility)
+	apiKey := &models.APIKey{
+		ID:         fmt.Sprintf("%s", uuid.New().String()),
+		UserID:     userID,
+		Name:       request.Name,
+		KeyHash:    keyHash,
+		KeyPrefix:  keyPrefix,
+		ExpiresAt:  request.ExpiresAt,
+		IsActive:   true,
+	}
+
+	// Set permissions if provided
+	if len(request.Permissions) > 0 {
+		if err := apiKey.SetPermissions(request.Permissions); err != nil {
+			log.Printf("ERROR: Failed to set permissions: %v", err)
+			http.Error(w, "Invalid permissions", http.StatusBadRequest)
+			return
+		}
+	}
+
+	// Save to database
+	if err := s.db.Create(apiKey).Error; err != nil {
+		log.Printf("ERROR: Failed to save API key: %v", err)
+		http.Error(w, "Failed to create API key", http.StatusInternalServerError)
+		return
+	}
+
+	// Return response with plaintext key (ONLY TIME IT'S SHOWN)
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("OData-Version", "4.0")
+	w.WriteHeader(http.StatusCreated)
+
+	response := map[string]interface{}{
+		"@odata.context": "/api/v2/$metadata#APIKeys/$entity",
+		"APIKey":         plainKey, // Plaintext key - shown only once!
+		"ID":             apiKey.ID,
+		"UserID":         apiKey.UserID,
+		"Name":           apiKey.Name,
+		"KeyPrefix":      apiKey.KeyPrefix,
+		"Permissions":    apiKey.GetPermissions(),
+		"ExpiresAt":      apiKey.ExpiresAt,
+		"IsActive":       apiKey.IsActive,
+		"CreatedAt":      apiKey.CreatedAt,
+		"UpdatedAt":      apiKey.UpdatedAt,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
