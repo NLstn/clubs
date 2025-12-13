@@ -26,11 +26,11 @@ type Fine struct {
 	Paid      bool      `json:"Paid"`
 
 	// Navigation properties for OData expansions
-	User          User  `gorm:"foreignKey:UserID" json:"User,omitempty"`
-	CreatedByUser User  `gorm:"foreignKey:CreatedBy" json:"CreatedByUser,omitempty"`
-	UpdatedByUser User  `gorm:"foreignKey:UpdatedBy" json:"UpdatedByUser,omitempty"`
-	Club          Club  `gorm:"foreignKey:ClubID" json:"Club,omitempty"`
-	Team          *Team `gorm:"foreignKey:TeamID" json:"Team,omitempty"`
+	User          User  `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
+	CreatedByUser User  `gorm:"foreignKey:CreatedBy" json:"CreatedByUser,omitempty" odata:"nav"`
+	UpdatedByUser User  `gorm:"foreignKey:UpdatedBy" json:"UpdatedByUser,omitempty" odata:"nav"`
+	Club          Club  `gorm:"foreignKey:ClubID" json:"Club,omitempty" odata:"nav"`
+	Team          *Team `gorm:"foreignKey:TeamID" json:"Team,omitempty" odata:"nav"`
 }
 
 func (c *Club) CreateFine(userID, reason, createdBy string, amount float64) (Fine, error) {
