@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
@@ -51,6 +52,26 @@ func isValidRSVPResponse(response string) bool {
 		"maybe": true,
 	}
 	return validResponses[response]
+}
+
+// parseISO8601 parses an ISO 8601 timestamp string
+func parseISO8601(timeStr string) (time.Time, error) {
+	// Try common ISO 8601 formats
+	formats := []string{
+		time.RFC3339,
+		time.RFC3339Nano,
+		"2006-01-02T15:04:05Z",
+		"2006-01-02T15:04:05",
+		"2006-01-02",
+	}
+
+	for _, format := range formats {
+		if t, err := time.Parse(format, timeStr); err == nil {
+			return t, nil
+		}
+	}
+
+	return time.Time{}, fmt.Errorf("unable to parse timestamp: %s", timeStr)
 }
 
 // registerActions registers all OData bound and unbound actions
@@ -157,6 +178,21 @@ func (s *Service) registerActions() error {
 		Handler:    s.markAllNotificationsReadAction,
 	}); err != nil {
 		return fmt.Errorf("failed to register MarkAllNotificationsRead action: %w", err)
+	}
+
+	// Unbound action for creating API keys
+	if err := s.Service.RegisterAction(odata.ActionDefinition{
+		Name:    "CreateAPIKey",
+		IsBound: false,
+		Parameters: []odata.ParameterDefinition{
+			{Name: "name", Type: reflect.TypeOf(""), Required: true},
+			{Name: "expiresAt", Type: reflect.TypeOf(""), Required: false},
+			{Name: "permissions", Type: reflect.TypeOf([]string{}), Required: false},
+		},
+		ReturnType: reflect.TypeOf(map[string]interface{}{}),
+		Handler:    s.createAPIKeyAction,
+	}); err != nil {
+		return fmt.Errorf("failed to register CreateAPIKey action: %w", err)
 	}
 
 	// Bound actions for Event entity - RSVP management
@@ -837,4 +873,114 @@ func (s *Service) removeShiftMemberAction(w http.ResponseWriter, r *http.Request
 	w.Header().Set("OData-Version", "4.0")
 	w.WriteHeader(http.StatusNoContent)
 	return nil
+}
+
+// createAPIKeyAction handles the CreateAPIKey unbound action
+// POST /api/v2/CreateAPIKey
+//
+// This action creates a new API key and returns the plaintext key (shown only once)
+// Standard OData CREATE doesn't support returning computed fields, so we use an action
+//
+// Parameters:
+//   - name (required): Descriptive name for the key
+//   - expiresAt (optional): Expiration date in ISO 8601 format
+//   - permissions (optional): Array of permission strings
+//
+// Returns: Object with APIKey (plaintext), ID, KeyPrefix, and other metadata
+func (s *Service) createAPIKeyAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
+	// Get user ID from request context
+	userID, err := getUserIDFromContext(r.Context())
+	if err != nil {
+		return fmt.Errorf("unauthorized: %w", err)
+	}
+
+	// Extract and validate parameters
+	name, ok := params["name"].(string)
+	if !ok || name == "" {
+		return fmt.Errorf("name is required")
+	}
+
+	// Check rate limit: max 10 active keys per user
+	var keyCount int64
+	if err := s.db.Model(&models.APIKey{}).
+		Where("user_id = ? AND is_active = ?", userID, true).
+		Count(&keyCount).Error; err != nil {
+		return fmt.Errorf("failed to count user's API keys: %w", err)
+	}
+
+	if keyCount >= 10 {
+		http.Error(w, "Maximum number of active API keys (10) reached", http.StatusTooManyRequests)
+		return nil // Return nil to prevent double error response
+	}
+
+	// Generate API key
+	plainKey, keyHash, keyPrefix, err := auth.GenerateAPIKey("sk_live")
+	if err != nil {
+		return fmt.Errorf("failed to generate API key: %w", err)
+	}
+
+	// Create API key model with explicit ID (for database compatibility)
+	apiKey := &models.APIKey{
+		ID:        uuid.New().String(),
+		UserID:    userID,
+		Name:      name,
+		KeyHash:   keyHash,
+		KeyPrefix: keyPrefix,
+		IsActive:  true,
+	}
+
+	// Handle optional expiresAt parameter
+	if expiresAtStr, ok := params["expiresAt"].(string); ok && expiresAtStr != "" {
+		// Parse ISO 8601 timestamp
+		expiresAt, err := parseISO8601(expiresAtStr)
+		if err != nil {
+			return fmt.Errorf("invalid expiresAt format: %w", err)
+		}
+		apiKey.ExpiresAt = &expiresAt
+	}
+
+	// Handle optional permissions parameter
+	if permsInterface, ok := params["permissions"]; ok && permsInterface != nil {
+		// Convert interface{} to []string
+		if permsSlice, ok := permsInterface.([]interface{}); ok {
+			permissions := make([]string, len(permsSlice))
+			for i, p := range permsSlice {
+				if perm, ok := p.(string); ok {
+					permissions[i] = perm
+				}
+			}
+			if err := apiKey.SetPermissions(permissions); err != nil {
+				return fmt.Errorf("invalid permissions: %w", err)
+			}
+		} else if permsStrSlice, ok := permsInterface.([]string); ok {
+			if err := apiKey.SetPermissions(permsStrSlice); err != nil {
+				return fmt.Errorf("invalid permissions: %w", err)
+			}
+		}
+	}
+
+	// Save to database
+	if err := s.db.Create(apiKey).Error; err != nil {
+		return fmt.Errorf("failed to create API key: %w", err)
+	}
+
+	// Return response with plaintext key (ONLY TIME IT'S SHOWN)
+	response := map[string]interface{}{
+		"@odata.context": "/api/v2/$metadata#Edm.Object",
+		"APIKey":         plainKey, // Plaintext key - shown only once!
+		"ID":             apiKey.ID,
+		"UserID":         apiKey.UserID,
+		"Name":           apiKey.Name,
+		"KeyPrefix":      apiKey.KeyPrefix,
+		"Permissions":    apiKey.GetPermissions(),
+		"ExpiresAt":      apiKey.ExpiresAt,
+		"IsActive":       apiKey.IsActive,
+		"CreatedAt":      apiKey.CreatedAt,
+		"UpdatedAt":      apiKey.UpdatedAt,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("OData-Version", "4.0")
+	w.WriteHeader(http.StatusOK)
+	return json.NewEncoder(w).Encode(response)
 }
