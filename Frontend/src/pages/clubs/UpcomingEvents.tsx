@@ -26,9 +26,10 @@ const UpcomingEvents = () => {
         if (!id) return;
         
         try {
-            // OData v2: Use GetUpcomingEvents function on Club
-            const response = await api.get(`/api/v2/Clubs('${id}')/GetUpcomingEvents()`);
-            interface ODataEvent { ID: string; Name: string; Description: string; Location: string; StartTime: string; EndTime: string; UserRSVP?: { Response: string; }; }
+            // OData v2: Use navigation property with filter for upcoming events
+            const now = new Date().toISOString();
+            const response = await api.get(`/api/v2/Clubs('${id}')/Events?$filter=StartTime ge ${now}&$orderby=StartTime&$expand=EventRSVPs($filter=UserID eq @me)`);
+            interface ODataEvent { ID: string; Name: string; Description: string; Location: string; StartTime: string; EndTime: string; EventRSVPs?: Array<{ Response: string; }>; }
             const eventsData = response.data.value || response.data || [];
             // Map OData response to match expected format
             const mappedEvents = eventsData.map((event: ODataEvent) => ({
@@ -38,7 +39,7 @@ const UpcomingEvents = () => {
                 location: event.Location,
                 start_time: event.StartTime,
                 end_time: event.EndTime,
-                user_rsvp: event.UserRSVP ? { response: event.UserRSVP.Response } : undefined
+                user_rsvp: event.EventRSVPs && event.EventRSVPs.length > 0 ? { response: event.EventRSVPs[0].Response } : undefined
             }));
             setEvents(mappedEvents);
         } catch (error) {
