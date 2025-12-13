@@ -28,8 +28,9 @@ type Team struct {
 	UpdatedBy   string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 
 	// Navigation properties for OData
-	Events []Event `gorm:"foreignKey:TeamID" json:"Events,omitempty" odata:"nav"`
-	Fines  []Fine  `gorm:"foreignKey:TeamID" json:"Fines,omitempty" odata:"nav"`
+	Events      []Event      `gorm:"foreignKey:TeamID" json:"Events,omitempty" odata:"nav"`
+	Fines       []Fine       `gorm:"foreignKey:TeamID" json:"Fines,omitempty" odata:"nav"`
+	TeamMembers []TeamMember `gorm:"foreignKey:TeamID" json:"TeamMembers,omitempty" odata:"nav"`
 }
 
 type TeamMember struct {
@@ -41,6 +42,9 @@ type TeamMember struct {
 	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
 	UpdatedAt time.Time `json:"UpdatedAt"`
 	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
+
+	// Navigation properties for OData
+	User User `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
 }
 
 // BeforeCreate generates UUID for new team

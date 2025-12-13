@@ -13,6 +13,17 @@ interface Member {
     birthDate?: string;
 }
 
+interface TeamMemberResponse {
+    ID: string;
+    UserID: string;
+    Role: string;
+    CreatedAt: string;
+    User?: {
+        FirstName: string;
+        LastName: string;
+    };
+}
+
 const TeamMembers = () => {
     const { t, i18n } = useT();
     const { clubId, teamId } = useParams();
@@ -50,9 +61,19 @@ const TeamMembers = () => {
             }
 
             try {
-                // OData v2: Use GetMembers function on Team entity
-                const response = await api.get(`/api/v2/Teams('${teamId}')/GetMembers()`);
-                const membersData = response.data.value || response.data;
+                // OData v2: Use TeamMembers navigation with User expansion
+                const response = await api.get(`/api/v2/Teams('${teamId}')/TeamMembers?$expand=User&$orderby=Role,User/FirstName`);
+                const teamMembers = response.data.value || response.data;
+                
+                // Transform TeamMember entities with nested User to flat structure
+                const membersData = teamMembers.map((tm: TeamMemberResponse) => ({
+                    id: tm.ID,
+                    userId: tm.UserID,
+                    role: tm.Role,
+                    joinedAt: tm.CreatedAt,
+                    name: tm.User ? `${tm.User.FirstName} ${tm.User.LastName}` : 'Unknown'
+                }));
+                
                 const sortedMembers = sortMembersByRole(membersData);
                 setMembers(sortedMembers);
                 setError(null);

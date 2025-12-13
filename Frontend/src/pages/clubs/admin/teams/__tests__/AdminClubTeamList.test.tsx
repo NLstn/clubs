@@ -93,11 +93,14 @@ const mockClubMembers = [
 
 const mockTeamMembers = [
   {
-    id: 'team-member-1',
-    userId: 'user-1',
-    name: 'John Doe',
-    role: 'member' as const,
-    joinedAt: '2024-01-01T00:00:00Z'
+    ID: 'team-member-1',
+    UserID: 'user-1',
+    Role: 'member',
+    CreatedAt: '2024-01-01T00:00:00Z',
+    User: {
+      FirstName: 'John',
+      LastName: 'Doe'
+    }
   }
 ]
 

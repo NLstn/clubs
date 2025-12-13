@@ -4,10 +4,10 @@ This document analyzes all OData functions currently in use and evaluates whethe
 
 ## Summary
 
-**Total Functions:** 9 (reduced from 12)
-- **Should Remain Functions:** 4 (44%)
-- **Could Use Navigation:** 5 (56%)
-- **Completed Replacements:** 1 (GetEvents)
+**Total Functions:** 8 (reduced from 12)
+- **Should Remain Functions:** 4 (50%)
+- **Could Use Navigation:** 4 (50%)
+- **Completed Replacements:** 2 (GetEvents, GetMembers)
 
 ---
 
@@ -152,31 +152,33 @@ type Fine struct {
 
 ---
 
-### 14. ~~`GetMembers()` - Team~~ ⚠️ **COMPLEX - Needs Analysis**
-**Current:** `GET /api/v2/Teams('{teamId}')/GetMembers()`
-**Returns:** `map[string]interface{}[]` with user details
+### 14. ~~`GetMembers()` - Team~~ ✅ **COMPLETED - REPLACED WITH NAVIGATION**
+**Previous:** `GET /api/v2/Teams('{teamId}')/GetMembers()`
+**Now:** `GET /api/v2/Teams('{teamId}')/TeamMembers?$expand=User`
 
-**Current Implementation:**
-Uses `team.GetTeamMembersWithUserInfo()` which likely joins TeamMember with User data.
+**Implementation:**
+TeamMember entity registered with User navigation property:
+```go
+type Team struct {
+    // ... existing fields
+    TeamMembers []TeamMember `gorm:"foreignKey:TeamID" json:"TeamMembers,omitempty" odata:"nav"`
+}
 
-**Replacement Strategy:**
-If TeamMember entity exists with navigation:
+type TeamMember struct {
+    // ... existing fields
+    User User `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
+}
 ```
-GET /api/v2/Teams('{teamId}')/TeamMembers?$expand=User
-```
 
-**Issues:**
-- Return type is `map[string]interface{}` - not strongly typed
-- Need to verify TeamMember entity and relationships
-- May return composite data not in any single entity
-
-**Recommendation:** 
-- Add TeamMembers navigation property to Team
-- Ensure TeamMember has User navigation
-- Replace function with standard navigation
-
-**Impact:**
-- Used in: `TeamMembers.tsx`, `AdminClubTeamList.tsx` (2 files)
+**Changes Made:**
+- ✅ Added TeamMembers navigation property to Team model
+- ✅ Added User navigation property to TeamMember model
+- ✅ Registered TeamMember as OData entity
+- ✅ Removed function registration from `Backend/odata/functions.go`
+- ✅ Removed `getTeamMembersFunction` implementation
+- ✅ Updated `Frontend/src/pages/teams/TeamMembers.tsx` to use `/TeamMembers?$expand=User` navigation
+- ✅ Updated `Frontend/src/pages/clubs/admin/teams/AdminClubTeamList.tsx` to use navigation
+- ✅ All quality checks pass (backend tests, frontend lint/build/test)
 
 ---
 
@@ -319,7 +321,7 @@ type EventRSVP struct {
 **These need careful consideration:**
 - `GetOverview()` - Split into entity + stats function
 - `GetRSVPs()` - Split into navigation + counts function
-- `GetMembers()` - Replace with TeamMembers navigation
+- ~~`GetMembers()` - Replace with TeamMembers navigation~~ ✅ Completed
 - `GetMyTeams()` - Keep function for convenience
 
 ### Phase 5: Keep as Functions
