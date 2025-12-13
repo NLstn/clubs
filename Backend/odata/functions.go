@@ -66,28 +66,6 @@ func (s *Service) registerFunctions() error {
 
 	// Unbound functions
 	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
-		Name:       "GetDashboardNews",
-		IsBound:    false,
-		Parameters: []odata.ParameterDefinition{},
-		ReturnType: reflect.TypeOf([]NewsWithClub{}),
-		Handler:    s.getDashboardNewsFunction,
-	}); err != nil {
-		return fmt.Errorf("failed to register GetDashboardNews function: %w", err)
-	}
-
-	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
-		Name:       "GetDashboardEvents",
-		IsBound:    false,
-		Parameters: []odata.ParameterDefinition{},
-		ReturnType: reflect.TypeOf([]EventWithClub{}),
-		Handler:    s.getDashboardEventsFunction,
-	}); err != nil {
-		return fmt.Errorf("failed to register GetDashboardEvents function: %w", err)
-	}
-
-
-
-	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
 		Name:    "SearchGlobal",
 		IsBound: false,
 		Parameters: []odata.ParameterDefinition{
@@ -171,22 +149,7 @@ func (s *Service) registerFunctions() error {
 	return nil
 }
 
-// Helper types for dashboard functions
-type NewsWithClub struct {
-	models.News
-	ClubName string `json:"ClubName"`
-	ClubID   string `json:"ClubID"`
-}
-
-type EventWithClub struct {
-	models.Event
-	ClubName string            `json:"ClubName"`
-	ClubID   string            `json:"ClubID"`
-	UserRSVP *models.EventRSVP `json:"UserRSVP,omitempty"`
-}
-
-
-
+// Helper types for search functions
 type SearchResult struct {
 	Type        string `json:"Type"`
 	ID          string `json:"ID"`
@@ -275,93 +238,6 @@ func (s *Service) getInviteLinkFunction(w http.ResponseWriter, r *http.Request, 
 	inviteLink := "/join/" + club.ID
 
 	return map[string]string{"InviteLink": inviteLink}, nil
-}
-
-// getDashboardNewsFunction returns news from all clubs the user is a member of
-// GET /api/v2/GetDashboardNews()
-func (s *Service) getDashboardNewsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	// Get user ID from request context
-	userID := r.Context().Value(auth.UserIDKey).(string)
-
-	// Get user
-	var user models.User
-	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
-
-	// Get all clubs
-	clubs, err := models.GetAllClubs()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get clubs: %w", err)
-	}
-
-	var allNews []NewsWithClub
-	for _, club := range clubs {
-		if club.IsMember(user) {
-			clubNews, err := club.GetNews()
-			if err != nil {
-				continue // Skip clubs where we can't fetch news
-			}
-
-			for _, news := range clubNews {
-				newsWithClub := NewsWithClub{
-					News:     news,
-					ClubName: club.Name,
-					ClubID:   club.ID,
-				}
-				allNews = append(allNews, newsWithClub)
-			}
-		}
-	}
-
-	return allNews, nil
-}
-
-// getDashboardEventsFunction returns upcoming events from all clubs the user is a member of
-// GET /api/v2/GetDashboardEvents()
-func (s *Service) getDashboardEventsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	// Get user ID from request context
-	userID := r.Context().Value(auth.UserIDKey).(string)
-
-	// Get user
-	var user models.User
-	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
-
-	// Get all clubs
-	clubs, err := models.GetAllClubs()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get clubs: %w", err)
-	}
-
-	var allEvents []EventWithClub
-	for _, club := range clubs {
-		if club.IsMember(user) {
-			clubEvents, err := club.GetUpcomingEvents()
-			if err != nil {
-				continue // Skip clubs where we can't fetch events
-			}
-
-			for _, event := range clubEvents {
-				eventWithClub := EventWithClub{
-					Event:    event,
-					ClubName: club.Name,
-					ClubID:   club.ID,
-				}
-
-				// Add user's RSVP status if available
-				userRSVP, err := user.GetUserRSVP(event.ID)
-				if err == nil {
-					eventWithClub.UserRSVP = userRSVP
-				}
-
-				allEvents = append(allEvents, eventWithClub)
-			}
-		}
-	}
-
-	return allEvents, nil
 }
 
 

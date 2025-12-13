@@ -4,9 +4,9 @@ This document analyzes all OData functions currently in use and evaluates whethe
 
 ## Summary
 
-**Total Functions:** 14
-- **Should Remain Functions:** 4 (29%)
-- **Could Use Navigation:** 10 (71%)
+**Total Functions:** 12
+- **Should Remain Functions:** 4 (33%)
+- **Could Use Navigation:** 8 (67%)
 
 ---
 
@@ -96,42 +96,6 @@ GET /api/v2/Clubs('{clubId}')/Events?$filter=StartTime ge {now}&$orderby=StartTi
 
 **Impact:**
 - Used in: `Frontend/src/pages/clubs/UpcomingEvents.tsx`
-
----
-
-### 8. ~~`GetDashboardNews()` - Unbound~~ ⚠️ **COULD USE NAVIGATION**
-**Current:** `GET /api/v2/GetDashboardNews()`
-**Returns:** `NewsWithClub[]` (news + club name/ID)
-
-**Replacement Strategy:**
-```
-GET /api/v2/News?$filter=ClubID in ({userClubIds})&$expand=Club($select=Name,ID)&$orderby=CreatedAt desc
-```
-
-**Challenges:**
-- Requires client to first fetch user's clubs
-- Needs News entity to have Club navigation property
-- Multi-step query vs single function call
-
-**Recommendation:** Keep as function for convenience, BUT add Club navigation to News entity anyway for other use cases.
-
----
-
-### 9. ~~`GetDashboardEvents()` - Unbound~~ ⚠️ **COULD USE NAVIGATION**
-**Current:** `GET /api/v2/GetDashboardEvents()`
-**Returns:** `EventWithClub[]` (events + club name + user RSVP)
-
-**Replacement Strategy:**
-```
-GET /api/v2/Events?$filter=ClubID in ({userClubIds}) and StartTime ge {now}&$expand=Club($select=Name,ID),EventRSVPs($filter=UserID eq '{userId}')&$orderby=StartTime
-```
-
-**Challenges:**
-- Same as GetDashboardNews
-- Requires multi-step query
-- Complex $expand with filters
-
-**Recommendation:** Keep as function for dashboard convenience.
 
 ---
 
@@ -391,8 +355,6 @@ type EventRSVP struct {
 - `GetRSVPs()` - Split into navigation + counts function
 - `GetMembers()` - Replace with TeamMembers navigation
 - `GetMyTeams()` - Keep function for convenience
-- `GetDashboardNews()` - Keep function for convenience
-- `GetDashboardEvents()` - Keep function for convenience
 
 ### Phase 5: Keep as Functions
 **These should NOT be replaced:**
@@ -401,7 +363,7 @@ type EventRSVP struct {
 - `ExpandRecurrence()` - Complex computation with parameters
 - `SearchGlobal()` - Full-text search with parameters
 
-**Note:** `GetDashboardActivities()` has been removed - it was replaced by the `TimelineItems` virtual entity.
+**Note:** `GetDashboardActivities()`, `GetDashboardNews()`, and `GetDashboardEvents()` have been removed - they were replaced by the `TimelineItems` virtual entity (`/api/v2/TimelineItems`), which provides a more flexible and standard OData interface for dashboard activities, news, and events.
 
 ---
 
@@ -455,11 +417,11 @@ type EventRSVP struct {
 
 ## Conclusion
 
-Out of 14 OData functions:
+Out of 12 OData functions:
 - **4 should remain** as they provide value through computation, aggregation, or parameters
 - **6 can be easily replaced** with standard navigation and filters
-- **4 need careful analysis** and may benefit from partial replacement or restructuring
+- **2 need careful analysis** and may benefit from partial replacement or restructuring
 
-The analysis shows that ~71% of current functions could potentially use navigation, but the effort and risk varies significantly. Prioritize replacing simple functions first (Phase 1-2), then evaluate the complex cases based on real-world usage patterns and performance.
+The analysis shows that ~67% of current functions could potentially use navigation, but the effort and risk varies significantly. Prioritize replacing simple functions first (Phase 1-2), then evaluate the complex cases based on real-world usage patterns and performance.
 
-**Update:** `GetDashboardActivities()` has been removed as it was replaced by the `TimelineItems` virtual entity (`/api/v2/TimelineItems`), which provides a more flexible and standard OData interface for dashboard activities.
+**Update:** `GetDashboardActivities()`, `GetDashboardNews()`, and `GetDashboardEvents()` have been removed as they were replaced by the `TimelineItems` virtual entity (`/api/v2/TimelineItems`), which provides a more flexible and standard OData interface for dashboard activities, news, and events.
