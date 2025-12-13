@@ -23,6 +23,12 @@ type News struct {
 	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 }
 
+// EntitySetName returns the custom entity set name for the News entity.
+// By default, "News" would be pluralized to "Newses", but we want to keep it as "News".
+func (News) EntitySetName() string {
+	return "News"
+}
+
 // CreateNews creates a new news post for the club
 func (c *Club) CreateNews(title, content, createdBy string) (*News, error) {
 	news := News{
