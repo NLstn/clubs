@@ -49,8 +49,8 @@ github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/mattn/go-sqlite3 v1.14.32 h1:JD12Ag3oLy1zQA+BNn74xRgaBbdhbNIDYvQUEuuErjs=
 github.com/mattn/go-sqlite3 v1.14.32/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
-github.com/nlstn/go-odata v0.7.0 h1:XHbnzQ8BMW7j80oiJ8Gav3i7/ZToqsmOW93qLwkiMJg=
-github.com/nlstn/go-odata v0.7.0/go.mod h1:UKFJ1aM7X4WlCcZl2acyvIzeCHxIgspxmtp1zd5DZ30=
+github.com/nlstn/go-odata v0.7.1 h1:mWDF5woOPREbd31FTD1lUzZ62ZELOboDfaT9qHemRh4=
+github.com/nlstn/go-odata v0.7.1/go.mod h1:ojkcnf3XZxEqbmqam5F8bcuWCmVKfwpFkEFSLck2Clc=
 github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c h1:+mdjkGKdHQG3305AYmdv1U2eRNDiU2ErMBj1gwrq8eQ=
 github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c/go.mod h1:7rwL4CYBLnjLxUqIJNnCWiEdr3bn6IUYi15bNlnbCCU=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
