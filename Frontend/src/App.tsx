@@ -22,6 +22,7 @@ const ProfileFines = lazy(() => import('./pages/profile/ProfileFines'));
 const ProfileShifts = lazy(() => import('./pages/profile/ProfileShifts'));
 const ProfileSessions = lazy(() => import('./pages/profile/ProfileSessions'));
 const ProfilePrivacy = lazy(() => import('./pages/profile/ProfilePrivacy'));
+const ProfileAPIKeys = lazy(() => import('./pages/profile/ProfileAPIKeys'));
 const ProfileNotificationSettings = lazy(() => import('./pages/profile/ProfileNotificationSettings'));
 const EventDetails = lazy(() => import('./pages/clubs/events/EventDetails'));
 const AdminEventDetails = lazy(() => import('./pages/clubs/admin/events/AdminEventDetails'));
@@ -213,6 +214,11 @@ function App() {
                         <Route path="/profile/sessions" element={
                             <ProtectedRoute>
                                 <ProfileSessions />
+                            </ProtectedRoute>
+                        } />
+                        <Route path="/profile/api-keys" element={
+                            <ProtectedRoute>
+                                <ProfileAPIKeys />
                             </ProtectedRoute>
                         } />
                         <Route path="/profile/notifications" element={

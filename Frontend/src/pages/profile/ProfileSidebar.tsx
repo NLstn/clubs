@@ -15,6 +15,7 @@ const navItems: ProfileNavItem[] = [
   { label: 'Fines', path: '/profile/fines' },
   { label: 'Shifts', path: '/profile/shifts' },
   { label: 'Sessions', path: '/profile/sessions' },
+  { label: 'API Keys', path: '/profile/api-keys' },
   { label: 'Notifications', path: '/profile/notifications' }
 ];
 
