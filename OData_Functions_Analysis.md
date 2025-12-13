@@ -4,10 +4,10 @@ This document analyzes all OData functions currently in use and evaluates whethe
 
 ## Summary
 
-**Total Functions:** 7 (reduced from 12)
-- **Should Remain Functions:** 5 (71%)
-- **Could Use Navigation:** 2 (29%)
-- **Completed Replacements:** 3 (GetEvents, GetMembers, GetRSVPs)
+**Total Functions:** 6 (reduced from 12)
+- **Should Remain Functions:** 4 (67%)
+- **Could Use Navigation:** 2 (33%)
+- **Completed Replacements:** 4 (GetEvents, GetMembers, GetRSVPs, GetMyTeams)
 
 ---
 
@@ -218,27 +218,6 @@ const counts = rsvps.reduce((acc, rsvp) => {
 
 ---
 
-### 16. ~~`GetMyTeams()` - Club~~ ✅ **COULD USE BETTER QUERY**
-**Current:** `GET /api/v2/Clubs('{clubId}')/GetMyTeams()`
-**Returns:** `Team[]` where current user is a team member
-
-**Replacement Strategy:**
-```
-GET /api/v2/Clubs('{clubId}')/Teams?$filter=TeamMembers/any(tm: tm/UserID eq '{currentUserId}')
-```
-
-**Challenges:**
-- Requires OData lambda operators (`any`)
-- More complex query syntax
-- Current function is simpler for common use case
-
-**Recommendation:** Keep as function for convenience, but standard query is possible.
-
-**Impact:**
-- Used in: `Frontend/src/pages/clubs/MyTeams.tsx`
-
----
-
 ## Missing Navigation Properties
 
 Based on this analysis, the following navigation properties should be added to entities:
@@ -329,7 +308,6 @@ type EventRSVP struct {
 ### Phase 4: Evaluate Complex Cases (High Risk)
 **These need careful consideration:**
 - `GetOverview()` - Split into entity + stats function
-- `GetMyTeams()` - Keep function for convenience
 
 ### Phase 5: Keep as Functions
 **These should NOT be replaced:**
@@ -392,17 +370,17 @@ type EventRSVP struct {
 
 ## Conclusion
 
-Out of 7 OData functions (reduced from 12):
-- **5 should remain** as they provide value through computation, aggregation, or parameters
+Out of 6 OData functions (reduced from 12):
+- **4 should remain** as they provide value through computation, aggregation, or parameters
 - **2 can be replaced** with standard navigation
-- **3 completed replacements:** GetEvents, GetMembers, GetRSVPs
+- **4 completed replacements:** GetEvents, GetMembers, GetRSVPs, GetMyTeams
 
 **Remaining work:**
-- ✅ **Completed:** GetEvents, GetMembers, GetRSVPs (replaced with navigation)
+- ✅ **Completed:** GetEvents, GetMembers, GetRSVPs, GetMyTeams (replaced with navigation/filters)
 - 🔄 **Easy wins:** GetFines, GetInviteLink (simple replacements)
 - ⚠️ **Complex:** GetOverview (needs restructuring)
-- ✅ **Keep:** IsAdmin, GetOwnerCount, ExpandRecurrence, SearchGlobal, GetMyTeams
+- ✅ **Keep:** IsAdmin, GetOwnerCount, ExpandRecurrence, SearchGlobal
 
-The analysis shows that we've successfully migrated 3 functions to standard navigation. The remaining 2 easy wins (GetFines, GetInviteLink) can be completed next, followed by the more complex GetOverview restructuring.
+The analysis shows that we've successfully migrated 4 functions to standard navigation/filters. The remaining 2 easy wins (GetFines, GetInviteLink) can be completed next, followed by the more complex GetOverview restructuring.
 
 **Update:** `GetDashboardActivities()`, `GetDashboardNews()`, and `GetDashboardEvents()` have been removed as they were replaced by the `TimelineItems` virtual entity (`/api/v2/TimelineItems`), which provides a more flexible and standard OData interface for dashboard activities, news, and events.

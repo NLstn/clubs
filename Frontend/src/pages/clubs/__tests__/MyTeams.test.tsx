@@ -86,7 +86,7 @@ describe('MyTeams Component', () => {
       }
     ];
 
-    mockGet.mockResolvedValueOnce({ data: mockTeams });
+    mockGet.mockResolvedValueOnce({ data: { value: mockTeams } });
 
     renderWithRouter(<MyTeams />);
 
@@ -100,11 +100,11 @@ describe('MyTeams Component', () => {
     expect(screen.getByText('Marketing Team')).toBeInTheDocument();
     expect(screen.getByText('Team for marketing')).toBeInTheDocument();
 
-    expect(mockGet).toHaveBeenCalledWith("/api/v2/Clubs('test-club-id')/GetMyTeams()");
+    expect(mockGet).toHaveBeenCalledWith("/api/v2/Teams?$filter=ClubID eq 'test-club-id' and TeamMembers/any(tm: tm/UserID eq 'test-user-id')");
   });
 
   it('does not render anything when user has no teams', async () => {
-    mockGet.mockResolvedValueOnce({ data: [] });
+    mockGet.mockResolvedValueOnce({ data: { value: [] } });
 
     const { container } = renderWithRouter(<MyTeams />);
 

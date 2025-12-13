@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import { useT } from '../../hooks/useTranslation';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 
 interface Team {
     id: string;
@@ -15,21 +16,25 @@ const MyTeams = () => {
     const { t } = useT();
     const { id: clubId } = useParams();
     const navigate = useNavigate();
+    const { user: currentUser } = useCurrentUser();
     const [teams, setTeams] = useState<Team[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchUserTeams = async () => {
-            if (!clubId) {
+            if (!clubId || !currentUser?.ID) {
                 setLoading(false);
                 return;
             }
 
             try {
-                // OData v2: Use GetMyTeams function on Club entity
-                const response = await api.get(`/api/v2/Clubs('${clubId}')/GetMyTeams()`);
-                const teamsData = response.data.value || response.data || [];
+                // OData v2: Query Teams with filter for current user membership
+                // Using lambda 'any' operator to filter teams where user is a member
+                const response = await api.get(
+                    `/api/v2/Teams?$filter=ClubID eq '${clubId}' and TeamMembers/any(tm: tm/UserID eq '${currentUser.ID}')`
+                );
+                const teamsData = response.data.value || [];
                 
                 // Map OData response to match expected format
                 interface ODataTeam { ID: string; Name: string; Description: string; CreatedAt: string; ClubID: string; }
@@ -62,7 +67,7 @@ const MyTeams = () => {
         };
 
         fetchUserTeams();
-    }, [clubId]);
+    }, [clubId, currentUser?.ID]);
 
     const handleTeamClick = (teamId: string) => {
         navigate(`/clubs/${clubId}/teams/${teamId}`);
