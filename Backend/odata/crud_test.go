@@ -255,7 +255,22 @@ func setupTestContext(t *testing.T) *testContext {
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	)`)
 
+	testDB.Exec(`CREATE TABLE IF NOT EXISTS api_keys (
+		id TEXT PRIMARY KEY,
+		user_id TEXT NOT NULL,
+		name TEXT NOT NULL,
+		key_hash TEXT NOT NULL UNIQUE,
+		key_prefix TEXT NOT NULL,
+		permissions TEXT,
+		last_used_at DATETIME,
+		expires_at DATETIME,
+		is_active BOOLEAN DEFAULT TRUE,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	)`)
+
 	// Clean up any existing data from previous tests (shared SQLite database)
+	testDB.Exec("DELETE FROM api_keys")
 	testDB.Exec("DELETE FROM shift_members")
 	testDB.Exec("DELETE FROM shifts")
 	testDB.Exec("DELETE FROM event_rsvps")
@@ -288,8 +303,17 @@ func setupTestContext(t *testing.T) *testContext {
 	service, err := NewService(database.Db)
 	require.NoError(t, err, "Failed to create OData service")
 
+	// Create a submux to handle both OData and custom routes (like in main.go)
+	odataV2Mux := http.NewServeMux()
+
+	// Register custom handlers first
+	service.RegisterCustomHandlers(odataV2Mux)
+
+	// Register the OData service as the default handler
+	odataV2Mux.Handle("/", service)
+
 	// Wrap service with auth middleware
-	handler := http.StripPrefix("/api/v2", AuthMiddleware(auth.GetJWTSecret())(service))
+	handler := http.StripPrefix("/api/v2", AuthMiddleware(auth.GetJWTSecret())(odataV2Mux))
 
 	// Create test users
 	testUser := &models.User{
