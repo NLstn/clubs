@@ -2,6 +2,9 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,10 +15,11 @@ import (
 )
 
 type KeycloakConfig struct {
-	ServerURL   string
-	Realm       string
-	ClientID    string
-	RedirectURL string
+	ServerURL      string // Frontend-facing Keycloak URL
+	BackchannelURL string // Backend-to-Keycloak URL (for OIDC provider), defaults to ServerURL if not set
+	Realm          string
+	ClientID       string
+	RedirectURL    string
 }
 
 type KeycloakAuth struct {
@@ -61,14 +65,23 @@ func InitKeycloak() error {
 
 	redirectURL := frontendURL + "/auth/callback"
 
-	config := KeycloakConfig{
-		ServerURL:   serverURL,
-		Realm:       realm,
-		ClientID:    clientID,
-		RedirectURL: redirectURL,
+	// Use backchannel URL if set, otherwise fall back to serverURL
+	// This allows backend to use internal Docker network while frontend uses localhost
+	backchannelURL := os.Getenv("KEYCLOAK_BACKCHANNEL_URL")
+	if backchannelURL == "" {
+		backchannelURL = serverURL
 	}
 
-	issuerURL := fmt.Sprintf("%s/realms/%s", config.ServerURL, config.Realm)
+	config := KeycloakConfig{
+		ServerURL:      serverURL,
+		BackchannelURL: backchannelURL,
+		Realm:          realm,
+		ClientID:       clientID,
+		RedirectURL:    redirectURL,
+	}
+
+	// Use backchannel URL for OIDC provider (backend-to-Keycloak communication)
+	issuerURL := fmt.Sprintf("%s/realms/%s", config.BackchannelURL, config.Realm)
 
 	provider, err := oidc.NewProvider(context.Background(), issuerURL)
 	if err != nil {
@@ -101,8 +114,62 @@ func GetKeycloakAuth() *KeycloakAuth {
 	return keycloakAuth
 }
 
+func (k *KeycloakAuth) GetAuthURLWithPKCE(state string) (string, string) {
+	// Generate PKCE code verifier and challenge
+	codeVerifier := generateCodeVerifier()
+	codeChallenge := generateCodeChallenge(codeVerifier)
+
+	authURL := k.oauth2.AuthCodeURL(state,
+		oauth2.SetAuthURLParam("code_challenge", codeChallenge),
+		oauth2.SetAuthURLParam("code_challenge_method", "S256"),
+	)
+
+	return authURL, codeVerifier
+}
+
+// Kept for backward compatibility, but now includes PKCE
 func (k *KeycloakAuth) GetAuthURL(state string) string {
-	return k.oauth2.AuthCodeURL(state)
+	authURL, _ := k.GetAuthURLWithPKCE(state)
+	return authURL
+}
+
+// generateCodeVerifier creates a cryptographically random code verifier
+func generateCodeVerifier() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return base64.RawURLEncoding.EncodeToString(b)
+}
+
+// generateCodeChallenge creates the code challenge from the verifier
+func generateCodeChallenge(verifier string) string {
+	h := sha256.New()
+	h.Write([]byte(verifier))
+	return base64.RawURLEncoding.EncodeToString(h.Sum(nil))
+}
+
+func (k *KeycloakAuth) ExchangeCodeForTokensWithPKCE(ctx context.Context, code string, codeVerifier string) (*oauth2.Token, *KeycloakUser, string, error) {
+	// Exchange code for token with PKCE verifier
+	token, err := k.oauth2.Exchange(ctx, code, oauth2.SetAuthURLParam("code_verifier", codeVerifier))
+	if err != nil {
+		return nil, nil, "", fmt.Errorf("failed to exchange code for token: %w", err)
+	}
+
+	rawIDToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		return nil, nil, "", fmt.Errorf("no id_token in token response")
+	}
+
+	idToken, err := k.verifier.Verify(ctx, rawIDToken)
+	if err != nil {
+		return nil, nil, "", fmt.Errorf("failed to verify ID token: %w", err)
+	}
+
+	var user KeycloakUser
+	if err := idToken.Claims(&user); err != nil {
+		return nil, nil, "", fmt.Errorf("failed to parse claims: %w", err)
+	}
+
+	return token, &user, rawIDToken, nil
 }
 
 func (k *KeycloakAuth) ExchangeCodeForTokens(ctx context.Context, code string) (*oauth2.Token, *KeycloakUser, string, error) {

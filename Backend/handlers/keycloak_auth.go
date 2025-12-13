@@ -53,21 +53,22 @@ func handleKeycloakLogin(w http.ResponseWriter, r *http.Request) {
 	// Generate a random state for CSRF protection
 	state := generateRandomState()
 
-	// Store state in a secure way (you might want to use a session store)
-	// For now, we'll return it to the frontend to include in the callback
-	authURL := keycloakAuth.GetAuthURL(state)
+	// Get the auth URL with PKCE parameters
+	authURL, codeVerifier := keycloakAuth.GetAuthURLWithPKCE(state)
 
 	json.NewEncoder(w).Encode(map[string]string{
-		"authURL": authURL,
-		"state":   state,
+		"authURL":      authURL,
+		"state":        state,
+		"codeVerifier": codeVerifier,
 	})
 }
 
 // endpoint: POST /api/v1/auth/keycloak/callback
 func handleKeycloakCallback(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		Code  string `json:"code"`
-		State string `json:"state"`
+		Code         string `json:"code"`
+		State        string `json:"state"`
+		CodeVerifier string `json:"codeVerifier"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -80,14 +81,19 @@ func handleKeycloakCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.CodeVerifier == "" {
+		http.Error(w, "Code verifier required", http.StatusBadRequest)
+		return
+	}
+
 	keycloakAuth := auth.GetKeycloakAuth()
 	if keycloakAuth == nil {
 		http.Error(w, "Keycloak not initialized", http.StatusInternalServerError)
 		return
 	}
 
-	// Exchange code for tokens
-	token, keycloakUser, idToken, err := keycloakAuth.ExchangeCodeForTokens(context.Background(), req.Code)
+	// Exchange code for tokens with PKCE
+	token, keycloakUser, idToken, err := keycloakAuth.ExchangeCodeForTokensWithPKCE(context.Background(), req.Code, req.CodeVerifier)
 	if err != nil {
 		http.Error(w, "Failed to authenticate with Keycloak", http.StatusUnauthorized)
 		return

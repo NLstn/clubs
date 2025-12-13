@@ -3,6 +3,7 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
+  "runServices": ["app", "db", "keycloak"],
   "features": {
     "ghcr.io/devcontainers/features/go:1": {
       "version": "1.25"

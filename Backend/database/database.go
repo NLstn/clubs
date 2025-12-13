@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 
@@ -29,6 +30,8 @@ func NewConnection(config *Config) error {
 	if err != nil {
 		return err
 	}
+
+	log.Printf("Successfully connected to database at %s:%d (database: %s)", config.Host, config.Port, config.DBName)
 
 	Db.Exec("CREATE EXTENSION IF NOT EXISTS \"pgcrypto\"")
 
