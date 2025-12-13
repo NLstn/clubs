@@ -4,10 +4,10 @@ This document analyzes all OData functions currently in use and evaluates whethe
 
 ## Summary
 
-**Total Functions:** 6 (reduced from 12)
-- **Should Remain Functions:** 4 (67%)
-- **Could Use Navigation:** 2 (33%)
-- **Completed Replacements:** 4 (GetEvents, GetMembers, GetRSVPs, GetMyTeams)
+**Total Functions:** 5 (reduced from 12)
+- **Should Remain Functions:** 4 (80%)
+- **Could Use Navigation:** 1 (20%)
+- **Completed Replacements:** 5 (GetEvents, GetMembers, GetRSVPs, GetMyTeams, GetFines)
 
 ---
 
@@ -125,21 +125,20 @@ type Team struct {
 
 ---
 
-### 13. ~~`GetFines()` - Team~~ ✅ **REPLACE WITH NAVIGATION**
-**Current:** `GET /api/v2/Teams('{teamId}')/GetFines()`
-**Returns:** `Fine[]` with User preloaded
+### 13. ~~`GetFines()` - Team~~ ✅ **COMPLETED - REPLACED WITH NAVIGATION**
+**Previous:** `GET /api/v2/Teams('{teamId}')/GetFines()`
+**Now:** `GET /api/v2/Teams('{teamId}')/Fines?$expand=User`
 
-**Replacement Strategy:**
-Add navigation property to Team:
+**Implementation:**
+Team model already had Fines navigation property:
 ```go
 type Team struct {
     // ... existing fields
     Fines []Fine `gorm:"foreignKey:TeamID" json:"Fines,omitempty" odata:"nav"`
 }
 ```
-Then access via: `GET /api/v2/Teams('{teamId}')/Fines?$expand=User`
 
-**Note:** Fine entity needs User navigation property:
+Fine entity has User navigation property:
 ```go
 type Fine struct {
     // ... existing fields
@@ -147,8 +146,16 @@ type Fine struct {
 }
 ```
 
-**Impact:**
-- Used in: `TeamFines.tsx`, `AdminTeamDetails.tsx` (2 files)
+**Changes Made:**
+- ✅ Navigation properties already present in models
+- ✅ Fine entity already registered with OData service
+- ✅ Frontend already using `/Fines?$expand=User` navigation in both files
+- ✅ No function registration existed in `Backend/odata/functions.go`
+- ✅ Model methods `Team.GetFines()` remain for internal use
+
+**Frontend Usage:**
+- `TeamFines.tsx`: Uses `GET /api/v2/Teams('${teamId}')/Fines?$expand=User`
+- `AdminTeamDetails.tsx`: Uses `GET /api/v2/Teams('${teamId}')/Fines?$expand=User`
 
 ---
 
@@ -297,7 +304,7 @@ type EventRSVP struct {
 - ~~`GetEvents()` - Team~~ ✅ Completed → Use `Teams('{id}')/Events`
 - ~~`GetMembers()` - Team~~ ✅ Completed → Use `Teams('{id}')/TeamMembers?$expand=User`
 - ~~`GetRSVPs()` - Event~~ ✅ Completed → Use `Events('{id}')/EventRSVPs?$expand=User`
-- `GetFines()` - Team → Use `Teams('{id}')/Fines?$expand=User`
+- ~~`GetFines()` - Team~~ ✅ Completed → Use `Teams('{id}')/Fines?$expand=User`
 - `GetInviteLink()` - Club → Use computed property
 
 ### Phase 3: Replace with Filters (Medium Risk)
@@ -370,17 +377,17 @@ type EventRSVP struct {
 
 ## Conclusion
 
-Out of 6 OData functions (reduced from 12):
+Out of 5 OData functions (reduced from 12):
 - **4 should remain** as they provide value through computation, aggregation, or parameters
-- **2 can be replaced** with standard navigation
-- **4 completed replacements:** GetEvents, GetMembers, GetRSVPs, GetMyTeams
+- **1 can be replaced** with standard navigation
+- **5 completed replacements:** GetEvents, GetMembers, GetRSVPs, GetMyTeams, GetFines
 
 **Remaining work:**
-- ✅ **Completed:** GetEvents, GetMembers, GetRSVPs, GetMyTeams (replaced with navigation/filters)
-- 🔄 **Easy wins:** GetFines, GetInviteLink (simple replacements)
+- ✅ **Completed:** GetEvents, GetMembers, GetRSVPs, GetMyTeams, GetFines (replaced with navigation/filters)
+- 🔄 **Easy win:** GetInviteLink (simple computed property)
 - ⚠️ **Complex:** GetOverview (needs restructuring)
 - ✅ **Keep:** IsAdmin, GetOwnerCount, ExpandRecurrence, SearchGlobal
 
-The analysis shows that we've successfully migrated 4 functions to standard navigation/filters. The remaining 2 easy wins (GetFines, GetInviteLink) can be completed next, followed by the more complex GetOverview restructuring.
+The analysis shows that we've successfully migrated 5 functions to standard navigation/filters. The remaining 1 easy win (GetInviteLink) can be completed next, followed by the more complex GetOverview restructuring.
 
 **Update:** `GetDashboardActivities()`, `GetDashboardNews()`, and `GetDashboardEvents()` have been removed as they were replaced by the `TimelineItems` virtual entity (`/api/v2/TimelineItems`), which provides a more flexible and standard OData interface for dashboard activities, news, and events.
