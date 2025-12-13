@@ -86,21 +86,21 @@ const GlobalSearch: React.FC = () => {
         EndTime?: string;
         end_time?: string;
       }
-      const mappedClubs = (data.clubs || []).map((c: ODataClub) => ({
+      const mappedClubs = (data.Clubs || data.clubs || []).map((c: ODataClub) => ({
         type: 'club' as const,
-        id: c.id || c.ID || '',
-        name: c.name || c.Name || '',
-        description: c.description || c.Description
+        id: c.ID || c.id || '',
+        name: c.Name || c.name || '',
+        description: c.Description || c.description
       }));
-      const mappedEvents = (data.events || []).map((e: ODataEvent) => ({
+      const mappedEvents = (data.Events || data.events || []).map((e: ODataEvent) => ({
         type: 'event' as const,
-        id: e.id || e.ID,
-        name: e.name || e.Name,
-        description: e.description || e.Description,
-        club_id: e.clubId || e.ClubID || e.club_id,
-        club_name: e.clubName || e.ClubName || e.club_name,
-        start_time: e.startTime || e.StartTime || e.start_time,
-        end_time: e.endTime || e.EndTime || e.end_time
+        id: e.ID || e.id,
+        name: e.Name || e.name,
+        description: e.Description || e.description,
+        club_id: e.ClubID || e.clubId || e.club_id,
+        club_name: e.ClubName || e.clubName || e.club_name,
+        start_time: e.StartTime || e.startTime || e.start_time,
+        end_time: e.EndTime || e.endTime || e.end_time
       }));
       setResults({ clubs: mappedClubs, events: mappedEvents });
       setIsOpen(true);
