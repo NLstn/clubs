@@ -46,6 +46,7 @@ func main() {
 		&models.UserNotificationPreferences{},
 		&models.UserPrivacySettings{},
 		&models.Activity{},
+		&models.APIKey{},
 	)
 	if err != nil {
 		log.Fatal("Could not migrate database:", err)
