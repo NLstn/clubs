@@ -6,6 +6,8 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -186,4 +188,92 @@ func ValidateRefreshToken(tokenStr string) (string, error) {
 	}
 
 	return userID, nil
+}
+
+// GenerateAPIKey creates a new API key with the specified prefix
+// Returns: plainKey (shown once), keyHash (for storage), keyPrefix (for identification), error
+func GenerateAPIKey(prefix string) (string, string, string, error) {
+	// Generate 32 bytes of cryptographically secure random data
+	randomBytes := make([]byte, 32)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		return "", "", "", fmt.Errorf("failed to generate random bytes: %w", err)
+	}
+
+	// Encode to base64 for URL-safe string
+	randomString := base64.URLEncoding.EncodeToString(randomBytes)
+	// Remove padding characters for cleaner key
+	randomString = strings.TrimRight(randomString, "=")
+
+	// Construct full key with prefix
+	plainKey := fmt.Sprintf("%s_%s", prefix, randomString)
+
+	// Generate SHA-256 hash for storage
+	hash := sha256.Sum256([]byte(plainKey))
+	keyHash := hex.EncodeToString(hash[:])
+
+	// Extract prefix for identification (first 8-12 chars including prefix)
+	keyPrefix := plainKey
+	if len(plainKey) > 20 {
+		keyPrefix = plainKey[:20]
+	}
+
+	return plainKey, keyHash, keyPrefix, nil
+}
+
+// ValidateAPIKey validates an API key and returns the associated user ID and permissions
+func ValidateAPIKey(keyStr string) (string, []string, error) {
+	if keyStr == "" {
+		return "", nil, errors.New("API key is empty")
+	}
+
+	// Hash the provided key
+	hash := sha256.Sum256([]byte(keyStr))
+	keyHash := hex.EncodeToString(hash[:])
+
+	// Query the database directly to avoid import cycle
+	var result struct {
+		ID          string
+		UserID      string
+		IsActive    bool
+		ExpiresAt   *time.Time
+		Permissions string
+	}
+
+	err := database.Db.Table("api_keys").
+		Select("id, user_id, is_active, expires_at, permissions").
+		Where("key_hash = ?", keyHash).
+		First(&result).Error
+
+	if err != nil {
+		log.Printf("API key validation failed: %v", err)
+		return "", nil, errors.New("API key is invalid")
+	}
+
+	// Check if the key is active
+	if !result.IsActive {
+		return "", nil, errors.New("API key is inactive")
+	}
+
+	// Check if the key has expired
+	if result.ExpiresAt != nil && time.Now().After(*result.ExpiresAt) {
+		return "", nil, errors.New("API key has expired")
+	}
+
+	// Parse permissions from JSON
+	var permissions []string
+	if result.Permissions != "" {
+		// Ignore unmarshal errors, just return empty array
+		_ = json.Unmarshal([]byte(result.Permissions), &permissions)
+	}
+
+	// Update last used timestamp asynchronously
+	go func() {
+		now := time.Now()
+		database.Db.Table("api_keys").
+			Where("id = ?", result.ID).
+			Update("last_used_at", now)
+	}()
+
+	return result.UserID, permissions, nil
 }

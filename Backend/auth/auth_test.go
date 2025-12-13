@@ -89,3 +89,46 @@ func TestAuth(t *testing.T) {
 		assert.Contains(t, err.Error(), "cannot generate JWT with empty userID")
 	})
 }
+
+func TestGenerateAPIKey(t *testing.T) {
+	t.Run("Valid key generation with sk_live prefix", func(t *testing.T) {
+		plainKey, keyHash, keyPrefix, err := GenerateAPIKey("sk_live")
+
+		assert.NoError(t, err)
+		assert.NotEmpty(t, plainKey)
+		assert.NotEmpty(t, keyHash)
+		assert.NotEmpty(t, keyPrefix)
+
+		// Verify key format
+		assert.Contains(t, plainKey, "sk_live_")
+		assert.Greater(t, len(plainKey), 20, "Key should be sufficiently long")
+
+		// Verify hash is SHA-256 (64 hex characters)
+		assert.Equal(t, 64, len(keyHash))
+
+		// Verify prefix is extracted correctly
+		assert.Contains(t, keyPrefix, "sk_live")
+		assert.LessOrEqual(t, len(keyPrefix), 20)
+	})
+
+	t.Run("Valid key generation with sk_test prefix", func(t *testing.T) {
+		plainKey, keyHash, keyPrefix, err := GenerateAPIKey("sk_test")
+
+		assert.NoError(t, err)
+		assert.Contains(t, plainKey, "sk_test_")
+		assert.NotEmpty(t, keyHash)
+		assert.NotEmpty(t, keyPrefix)
+	})
+
+	t.Run("Keys should be unique", func(t *testing.T) {
+		key1, hash1, _, err := GenerateAPIKey("sk_live")
+		assert.NoError(t, err)
+
+		key2, hash2, _, err := GenerateAPIKey("sk_live")
+		assert.NoError(t, err)
+
+		// Keys should be different
+		assert.NotEqual(t, key1, key2)
+		assert.NotEqual(t, hash1, hash2)
+	})
+}
