@@ -27,34 +27,20 @@ const MyTeams = () => {
             }
 
             try {
-                // OData v2: Query Teams through Members relationship
-                // Get current user's team memberships for this club
-                const response = await api.get(
-                    `/api/v2/Members?$filter=ClubID eq '${clubId}'&$expand=Teams($expand=Team)&$select=Teams`
-                );
-                const members = response.data.value || [];
-                // Extract unique teams from the member's team relationships
+                // OData v2: Use GetMyTeams function on Club entity
+                const response = await api.get(`/api/v2/Clubs('${clubId}')/GetMyTeams()`);
+                const teamsData = response.data.value || response.data || [];
+                
+                // Map OData response to match expected format
                 interface ODataTeam { ID: string; Name: string; Description: string; CreatedAt: string; ClubID: string; }
-                interface ODataTeamMember { Team: ODataTeam; }
-                interface ODataMember { Teams?: ODataTeamMember[]; }
-                const teamsSet = new Set<string>();
-                const teamsMap = new Map<string, Team>();
-                members.forEach((member: ODataMember) => {
-                    member.Teams?.forEach((teamMember: ODataTeamMember) => {
-                        const team = teamMember.Team;
-                        if (team && !teamsSet.has(team.ID)) {
-                            teamsSet.add(team.ID);
-                            teamsMap.set(team.ID, {
-                                id: team.ID,
-                                name: team.Name,
-                                description: team.Description,
-                                createdAt: team.CreatedAt,
-                                clubId: team.ClubID
-                            });
-                        }
-                    });
-                });
-                setTeams(Array.from(teamsMap.values()));
+                const mappedTeams = teamsData.map((team: ODataTeam) => ({
+                    id: team.ID,
+                    name: team.Name,
+                    description: team.Description,
+                    createdAt: team.CreatedAt,
+                    clubId: team.ClubID
+                }));
+                setTeams(mappedTeams);
                 setError(null);
             } catch (err) {
                 console.error('Error fetching user teams:', err);

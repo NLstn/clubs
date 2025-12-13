@@ -24,6 +24,13 @@ type Fine struct {
 	UpdatedAt time.Time `json:"UpdatedAt"`
 	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 	Paid      bool      `json:"Paid"`
+
+	// Navigation properties for OData expansions
+	User          User  `gorm:"foreignKey:UserID" json:"User,omitempty"`
+	CreatedByUser User  `gorm:"foreignKey:CreatedBy" json:"CreatedByUser,omitempty"`
+	UpdatedByUser User  `gorm:"foreignKey:UpdatedBy" json:"UpdatedByUser,omitempty"`
+	Club          Club  `gorm:"foreignKey:ClubID" json:"Club,omitempty"`
+	Team          *Team `gorm:"foreignKey:TeamID" json:"Team,omitempty"`
 }
 
 func (c *Club) CreateFine(userID, reason, createdBy string, amount float64) (Fine, error) {

@@ -55,7 +55,7 @@ func (s *Service) registerFunctions() error {
 		IsBound:    true,
 		EntitySet:  "Clubs",
 		Parameters: []odata.ParameterDefinition{},
-		ReturnType: reflect.TypeOf([]models.Event{}),
+		ReturnType: reflect.TypeOf([]EventWithRSVP{}),
 		Handler:    s.getUpcomingEventsFunction,
 	}); err != nil {
 		return fmt.Errorf("failed to register GetUpcomingEvents function for Club: %w", err)
@@ -258,6 +258,11 @@ type EventRSVPResponse struct {
 	RSVPs  []models.EventRSVP `json:"RSVPs"`
 }
 
+type EventWithRSVP struct {
+	models.Event
+	UserRSVP *models.EventRSVP `json:"UserRSVP,omitempty"`
+}
+
 // isAdminFunction checks if the current user is an admin of the club
 // GET /api/v2/Clubs('{clubId}')/IsAdmin()
 func (s *Service) isAdminFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
@@ -315,17 +320,42 @@ func (s *Service) getInviteLinkFunction(w http.ResponseWriter, r *http.Request, 
 	return map[string]string{"InviteLink": inviteLink}, nil
 }
 
-// getUpcomingEventsFunction returns upcoming events for the club
+// getUpcomingEventsFunction returns upcoming events for the club with user RSVP status
 // GET /api/v2/Clubs('{clubId}')/GetUpcomingEvents()
 func (s *Service) getUpcomingEventsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
 	club := ctx.(*models.Club)
+
+	// Get user ID from request context
+	userID := r.Context().Value(auth.UserIDKey).(string)
+
+	// Get user
+	var user models.User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
 
 	events, err := club.GetUpcomingEvents()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get upcoming events: %w", err)
 	}
 
-	return events, nil
+	// Wrap events with RSVP information
+	var eventsWithRSVP []EventWithRSVP
+	for _, event := range events {
+		eventWithRSVP := EventWithRSVP{
+			Event: event,
+		}
+
+		// Add user's RSVP status if available
+		userRSVP, err := user.GetUserRSVP(event.ID)
+		if err == nil {
+			eventWithRSVP.UserRSVP = userRSVP
+		}
+
+		eventsWithRSVP = append(eventsWithRSVP, eventWithRSVP)
+	}
+
+	return eventsWithRSVP, nil
 }
 
 // getDashboardNewsFunction returns news from all clubs the user is a member of
