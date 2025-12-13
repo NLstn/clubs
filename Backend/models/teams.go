@@ -26,6 +26,9 @@ type Team struct {
 	CreatedBy   string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
 	UpdatedAt   time.Time `json:"UpdatedAt"`
 	UpdatedBy   string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
+
+	// Navigation properties for OData
+	Events []Event `gorm:"foreignKey:TeamID" json:"Events,omitempty" odata:"nav"`
 }
 
 type TeamMember struct {

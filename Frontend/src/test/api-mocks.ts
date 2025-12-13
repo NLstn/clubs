@@ -125,7 +125,7 @@ export const setupDefaultApiMocks = () => {
   mockApi.onDelete(/\/api\/v2\/Clubs\('[\w-]+'\)/).reply(200);
 
   // Dashboard endpoints (v2 OData functions)
-  mockApi.onGet(/\/api\/v2\/GetDashboardActivities/).reply(200, mockActivities);
+
 
   // Members endpoints (v2 OData)
   mockApi.onGet(/\/api\/v2\/Members/).reply(200, { value: mockUsers });

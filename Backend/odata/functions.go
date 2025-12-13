@@ -1,7 +1,6 @@
 package odata
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -50,17 +49,6 @@ func (s *Service) registerFunctions() error {
 		return fmt.Errorf("failed to register GetInviteLink function for Club: %w", err)
 	}
 
-	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
-		Name:       "GetUpcomingEvents",
-		IsBound:    true,
-		EntitySet:  "Clubs",
-		Parameters: []odata.ParameterDefinition{},
-		ReturnType: reflect.TypeOf([]EventWithRSVP{}),
-		Handler:    s.getUpcomingEventsFunction,
-	}); err != nil {
-		return fmt.Errorf("failed to register GetUpcomingEvents function for Club: %w", err)
-	}
-
 	// Bound functions for Event entity
 	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
 		Name:      "ExpandRecurrence",
@@ -97,15 +85,7 @@ func (s *Service) registerFunctions() error {
 		return fmt.Errorf("failed to register GetDashboardEvents function: %w", err)
 	}
 
-	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
-		Name:       "GetDashboardActivities",
-		IsBound:    false,
-		Parameters: []odata.ParameterDefinition{},
-		ReturnType: reflect.TypeOf([]ActivityItem{}),
-		Handler:    s.getDashboardActivitiesFunction,
-	}); err != nil {
-		return fmt.Errorf("failed to register GetDashboardActivities function: %w", err)
-	}
+
 
 	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
 		Name:    "SearchGlobal",
@@ -140,17 +120,6 @@ func (s *Service) registerFunctions() error {
 		Handler:    s.getTeamEventsFunction,
 	}); err != nil {
 		return fmt.Errorf("failed to register GetEvents function for Team: %w", err)
-	}
-
-	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
-		Name:       "GetUpcomingEvents",
-		IsBound:    true,
-		EntitySet:  "Teams",
-		Parameters: []odata.ParameterDefinition{},
-		ReturnType: reflect.TypeOf([]models.Event{}),
-		Handler:    s.getTeamUpcomingEventsFunction,
-	}); err != nil {
-		return fmt.Errorf("failed to register GetUpcomingEvents function for Team: %w", err)
 	}
 
 	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
@@ -216,19 +185,7 @@ type EventWithClub struct {
 	UserRSVP *models.EventRSVP `json:"UserRSVP,omitempty"`
 }
 
-type ActivityItem struct {
-	ID        string                 `json:"ID"`
-	Type      string                 `json:"Type"`
-	Title     string                 `json:"Title"`
-	Content   string                 `json:"Content,omitempty"`
-	ClubName  string                 `json:"ClubName"`
-	ClubID    string                 `json:"ClubID"`
-	CreatedAt string                 `json:"CreatedAt"`
-	UpdatedAt string                 `json:"UpdatedAt"`
-	Actor     string                 `json:"Actor,omitempty"`
-	ActorName string                 `json:"ActorName,omitempty"`
-	Metadata  map[string]interface{} `json:"Metadata,omitempty"`
-}
+
 
 type SearchResult struct {
 	Type        string `json:"Type"`
@@ -320,62 +277,6 @@ func (s *Service) getInviteLinkFunction(w http.ResponseWriter, r *http.Request, 
 	return map[string]string{"InviteLink": inviteLink}, nil
 }
 
-// getUpcomingEventsFunction returns upcoming events for the club with user RSVP status
-// GET /api/v2/Clubs('{clubId}')/GetUpcomingEvents()
-func (s *Service) getUpcomingEventsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	club := ctx.(*models.Club)
-
-	// Get user ID from request context with safe type assertion
-	userID, ok := r.Context().Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, fmt.Errorf("unauthorized: user ID missing from context")
-	}
-
-	// Get user
-	var user models.User
-	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
-
-	// Verify user is a member of the club
-	if !club.IsMember(user) {
-		return nil, fmt.Errorf("forbidden: user is not a member of this club")
-	}
-
-	events, err := club.GetUpcomingEvents()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get upcoming events: %w", err)
-	}
-
-	// Batch-load all RSVPs for the events to avoid N+1 queries
-	eventIDs := make([]string, len(events))
-	for i, event := range events {
-		eventIDs[i] = event.ID
-	}
-
-	rsvpMap, err := user.GetUserRSVPsByEventIDs(eventIDs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get user RSVPs: %w", err)
-	}
-
-	// Wrap events with RSVP information
-	var eventsWithRSVP []EventWithRSVP
-	for _, event := range events {
-		eventWithRSVP := EventWithRSVP{
-			Event: event,
-		}
-
-		// Add user's RSVP status if available
-		if rsvp, exists := rsvpMap[event.ID]; exists {
-			eventWithRSVP.UserRSVP = rsvp
-		}
-
-		eventsWithRSVP = append(eventsWithRSVP, eventWithRSVP)
-	}
-
-	return eventsWithRSVP, nil
-}
-
 // getDashboardNewsFunction returns news from all clubs the user is a member of
 // GET /api/v2/GetDashboardNews()
 func (s *Service) getDashboardNewsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
@@ -463,80 +364,7 @@ func (s *Service) getDashboardEventsFunction(w http.ResponseWriter, r *http.Requ
 	return allEvents, nil
 }
 
-// getDashboardActivitiesFunction returns recent activities from all clubs the user is a member of
-// GET /api/v2/GetDashboardActivities()
-func (s *Service) getDashboardActivitiesFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	// Get user ID from request context
-	userID := r.Context().Value(auth.UserIDKey).(string)
 
-	// Get user
-	var user models.User
-	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
-
-	// Get all clubs
-	clubs, err := models.GetAllClubs()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get clubs: %w", err)
-	}
-
-	var userClubIDs []string
-	clubNameMap := make(map[string]string)
-
-	// Collect club IDs for clubs the user is a member of
-	for _, club := range clubs {
-		if club.IsMember(user) {
-			userClubIDs = append(userClubIDs, club.ID)
-			clubNameMap[club.ID] = club.Name
-		}
-	}
-
-	var activities []ActivityItem
-
-	// Get activities from the activity store
-	if len(userClubIDs) > 0 {
-		storedActivities, err := models.GetRecentActivities(userClubIDs, 30, 50)
-		if err == nil {
-			for _, activity := range storedActivities {
-				// Parse metadata if it exists
-				var metadata map[string]interface{}
-				if activity.Metadata != "" {
-					json.Unmarshal([]byte(activity.Metadata), &metadata)
-				}
-
-				// Determine actor
-				var createdBy string
-				if (activity.Type == "member_promoted" || activity.Type == "member_demoted" || activity.Type == "role_changed") && activity.ActorID != nil {
-					createdBy = *activity.ActorID
-				} else {
-					createdBy = activity.UserID
-				}
-
-				activityItem := ActivityItem{
-					ID:        activity.ID,
-					Type:      activity.Type,
-					Title:     activity.Title,
-					Content:   activity.Content,
-					ClubName:  clubNameMap[activity.ClubID],
-					ClubID:    activity.ClubID,
-					CreatedAt: activity.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-					UpdatedAt: activity.UpdatedAt.Format("2006-01-02T15:04:05Z07:00"),
-					Actor:     createdBy,
-					Metadata:  metadata,
-				}
-
-				activities = append(activities, activityItem)
-			}
-		}
-	}
-
-	if activities == nil {
-		activities = []ActivityItem{}
-	}
-
-	return activities, nil
-}
 
 // searchGlobalFunction performs a global search across clubs and events
 // GET /api/v2/SearchGlobal(query='search term')
@@ -898,41 +726,6 @@ func (s *Service) getTeamEventsFunction(w http.ResponseWriter, r *http.Request, 
 	events, err := team.GetEvents()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get events: %w", err)
-	}
-
-	return events, nil
-}
-
-// getTeamUpcomingEventsFunction returns upcoming events for the team
-// GET /api/v2/Teams('{teamId}')/GetUpcomingEvents()
-func (s *Service) getTeamUpcomingEventsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	team := ctx.(*models.Team)
-
-	// Get user ID from request context
-	userID, ok := r.Context().Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, fmt.Errorf("unauthorized: missing user id")
-	}
-
-	// Get user from database
-	var user models.User
-	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
-
-	// Verify user has access (team member or club admin)
-	club, err := models.GetClubByID(team.ClubID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find club: %w", err)
-	}
-
-	if !team.IsMember(user) && !club.IsAdmin(user) {
-		return nil, fmt.Errorf("forbidden: user is not a member of this team")
-	}
-
-	events, err := team.GetUpcomingEvents()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get upcoming events: %w", err)
 	}
 
 	return events, nil
