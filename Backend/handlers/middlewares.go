@@ -1,11 +1,14 @@
 package handlers
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/NLstn/clubs/auth"
 	"golang.org/x/time/rate"
 )
 
@@ -145,4 +148,78 @@ func RateLimitMiddleware(limiter *IPRateLimiter) func(next http.Handler) http.Ha
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+// APIKeyAuthMiddleware validates API keys from X-API-Key or Authorization: ApiKey headers
+func APIKeyAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Check for API key in X-API-Key header (preferred)
+		apiKey := r.Header.Get("X-API-Key")
+		
+		// If not found, check Authorization header for "ApiKey" scheme
+		if apiKey == "" {
+			authHeader := r.Header.Get("Authorization")
+			if strings.HasPrefix(authHeader, "ApiKey ") {
+				apiKey = strings.TrimPrefix(authHeader, "ApiKey ")
+			}
+		}
+
+		// If no API key found, return unauthorized
+		if apiKey == "" {
+			log.Println("API key authentication failed: no API key provided")
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Validate the API key
+		userID, _, err := auth.ValidateAPIKey(apiKey)
+		if err != nil {
+			log.Printf("API key authentication failed: %v", err)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		// Set user ID in context
+		ctx := context.WithValue(r.Context(), auth.UserIDKey, userID)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// CompositeAuthMiddleware tries JWT Bearer token first, then API key authentication
+func CompositeAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		
+		// Try JWT Bearer token authentication first
+		if strings.HasPrefix(authHeader, "Bearer ") {
+			// Use the existing JWT auth logic
+			auth.AuthMiddleware(next).ServeHTTP(w, r)
+			return
+		}
+
+		// Try API key authentication
+		apiKey := r.Header.Get("X-API-Key")
+		if apiKey == "" && strings.HasPrefix(authHeader, "ApiKey ") {
+			apiKey = strings.TrimPrefix(authHeader, "ApiKey ")
+		}
+
+		if apiKey != "" {
+			// Validate the API key
+			userID, _, err := auth.ValidateAPIKey(apiKey)
+			if err != nil {
+				log.Printf("Authentication failed: %v", err)
+				http.Error(w, "Unauthorized", http.StatusUnauthorized)
+				return
+			}
+
+			// Set user ID in context
+			ctx := context.WithValue(r.Context(), auth.UserIDKey, userID)
+			next.ServeHTTP(w, r.WithContext(ctx))
+			return
+		}
+
+		// No valid authentication found
+		log.Println("Authentication failed: no valid credentials provided")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	})
 }

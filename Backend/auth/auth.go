@@ -268,9 +268,11 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 	}
 
 	// Update last used timestamp asynchronously
+	// Capture database reference to avoid race conditions in tests
+	db := database.Db
 	go func() {
 		now := time.Now()
-		database.Db.Table("api_keys").
+		db.Table("api_keys").
 			Where("id = ?", result.ID).
 			Update("last_used_at", now)
 	}()
