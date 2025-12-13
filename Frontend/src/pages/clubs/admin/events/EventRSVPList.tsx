@@ -2,6 +2,7 @@ import { FC, useState, useEffect } from "react";
 import { Table, TableColumn, Button, Card } from '@/components/ui';
 import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
+import { calculateRSVPCounts, RSVPCounts } from "../../../../utils/eventUtils";
 
 interface EventRSVP {
     ID: string;
@@ -16,12 +17,6 @@ interface EventRSVP {
         LastName: string;
         Email: string;
     };
-}
-
-interface RSVPCounts {
-    yes?: number;
-    no?: number;
-    maybe?: number;
 }
 
 interface EventRSVPListProps {
@@ -51,11 +46,7 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
             setRsvps(rsvpList);
             
             // Compute counts by grouping RSVPs by Response field
-            const computedCounts = rsvpList.reduce((acc: RSVPCounts, rsvp: EventRSVP) => {
-                const responseKey = rsvp.Response.toLowerCase() as keyof RSVPCounts;
-                acc[responseKey] = (acc[responseKey] || 0) + 1;
-                return acc;
-            }, {});
+            const computedCounts = calculateRSVPCounts(rsvpList);
             setCounts(computedCounts);
         } catch (error) {
             console.error("Error fetching RSVPs:", error);

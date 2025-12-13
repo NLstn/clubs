@@ -86,7 +86,17 @@ describe('MyTeams Component', () => {
       }
     ];
 
-    mockGet.mockResolvedValueOnce({ data: { value: mockTeams } });
+    // Mock two-step query: first TeamMembers, then Teams
+    mockGet
+      .mockResolvedValueOnce({ 
+        data: { 
+          value: [
+            { TeamID: 'team-1' },
+            { TeamID: 'team-2' }
+          ] 
+        } 
+      })
+      .mockResolvedValueOnce({ data: { value: mockTeams } });
 
     renderWithRouter(<MyTeams />);
 
@@ -100,10 +110,12 @@ describe('MyTeams Component', () => {
     expect(screen.getByText('Marketing Team')).toBeInTheDocument();
     expect(screen.getByText('Team for marketing')).toBeInTheDocument();
 
-    expect(mockGet).toHaveBeenCalledWith("/api/v2/Teams?$filter=ClubID eq 'test-club-id' and TeamMembers/any(tm: tm/UserID eq 'test-user-id')");
+    expect(mockGet).toHaveBeenNthCalledWith(1, "/api/v2/TeamMembers?$filter=UserID eq 'test-user-id'");
+    expect(mockGet).toHaveBeenNthCalledWith(2, "/api/v2/Teams?$filter=ClubID eq 'test-club-id' and (ID eq 'team-1' or ID eq 'team-2')");
   });
 
   it('does not render anything when user has no teams', async () => {
+    // Mock empty TeamMembers response
     mockGet.mockResolvedValueOnce({ data: { value: [] } });
 
     const { container } = renderWithRouter(<MyTeams />);

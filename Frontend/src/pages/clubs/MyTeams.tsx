@@ -29,12 +29,37 @@ const MyTeams = () => {
             }
 
             try {
-                // OData v2: Query Teams with filter for current user membership
-                // Using lambda 'any' operator to filter teams where user is a member
-                const response = await api.get(
-                    `/api/v2/Teams?$filter=ClubID eq '${clubId}' and TeamMembers/any(tm: tm/UserID eq '${currentUser.ID}')`
+                // OData v2: Two-step query to avoid lambda operators
+                // Step 1: Get TeamMembers for this user and club
+                const encodedClubId = encodeURIComponent(clubId);
+                const encodedUserId = encodeURIComponent(currentUser.ID);
+                
+                const teamMembersResponse = await api.get(
+                    `/api/v2/TeamMembers?$filter=UserID eq '${encodedUserId}'`
                 );
-                const teamsData = response.data.value || [];
+                const teamMembersData = teamMembersResponse.data.value || [];
+                
+                // Extract unique TeamIDs and filter by ClubID
+                const teamIds = [...new Set(
+                    teamMembersData
+                        .map((tm: { TeamID: string }) => tm.TeamID)
+                        .filter((id: string) => id)
+                )] as string[];
+                
+                if (teamIds.length === 0) {
+                    setTeams([]);
+                    setError(null);
+                    setLoading(false);
+                    return;
+                }
+                
+                // Step 2: Get Teams by IDs and filter by ClubID
+                // Build filter with 'or' conditions for each team ID
+                const teamIdFilter = teamIds.map((id: string) => `ID eq '${encodeURIComponent(id)}'`).join(' or ');
+                const teamsResponse = await api.get(
+                    `/api/v2/Teams?$filter=ClubID eq '${encodedClubId}' and (${teamIdFilter})`
+                );
+                const teamsData = teamsResponse.data.value || [];
                 
                 // Map OData response to match expected format
                 interface ODataTeam { ID: string; Name: string; Description: string; CreatedAt: string; ClubID: string; }

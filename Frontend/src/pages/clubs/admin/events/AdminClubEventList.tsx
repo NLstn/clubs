@@ -5,6 +5,7 @@ import AddEvent from "./AddEvent";
 import EventRSVPList from "./EventRSVPList";
 import { Table, TableColumn, Button } from '@/components/ui';
 import api from "../../../../utils/api";
+import { calculateRSVPCounts, RSVPCounts } from "../../../../utils/eventUtils";
 
 interface Event {
     id: string;
@@ -13,12 +14,6 @@ interface Event {
     location: string;
     start_time: string;
     end_time: string;
-}
-
-interface RSVPCounts {
-    yes?: number;
-    no?: number;
-    maybe?: number;
 }
 
 interface Shift {
@@ -49,6 +44,8 @@ const AdminClubEventList = () => {
             setEvents(response.data || []);
 
             // Fetch RSVP counts and shifts for each event
+            // TODO: Optimize to avoid N+1 query pattern - see issue #472
+            // Consider using $expand=EventRSVPs in initial query or batch endpoint
             const counts: Record<string, RSVPCounts> = {};
             const shifts: Record<string, Shift[]> = {};
             for (const event of response.data || []) {
@@ -58,11 +55,7 @@ const AdminClubEventList = () => {
                     const rsvpResponse = await api.get(`/api/v2/Events('${event.id}')/EventRSVPs`);
                     const rsvpList = rsvpResponse.data.value || [];
                     // Compute counts by grouping RSVPs by Response field
-                    const computedCounts = rsvpList.reduce((acc: RSVPCounts, rsvp: { Response: string }) => {
-                        const responseKey = rsvp.Response.toLowerCase() as keyof RSVPCounts;
-                        acc[responseKey] = (acc[responseKey] || 0) + 1;
-                        return acc;
-                    }, {});
+                    const computedCounts = calculateRSVPCounts(rsvpList);
                     counts[event.id] = computedCounts;
                     
                     // Fetch event shifts

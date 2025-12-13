@@ -91,18 +91,20 @@ const mockClubMembers = [
   }
 ]
 
-const mockTeamMembers = [
-  {
-    ID: 'team-member-1',
-    UserID: 'user-1',
-    Role: 'member',
-    CreatedAt: '2024-01-01T00:00:00Z',
-    User: {
-      FirstName: 'John',
-      LastName: 'Doe'
+const mockTeamMembers = {
+  value: [
+    {
+      ID: 'team-member-1',
+      UserID: 'user-1',
+      Role: 'member',
+      CreatedAt: '2024-01-01T00:00:00Z',
+      User: {
+        FirstName: 'John',
+        LastName: 'Doe'
+      }
     }
-  }
-]
+  ]
+}
 
 describe('AdminClubTeamList', () => {
   beforeEach(() => {
