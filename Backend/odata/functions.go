@@ -257,6 +257,11 @@ func (s *Service) searchClubs(user models.User, query string) ([]SearchResult, e
 	return results, nil
 }
 
+// SearchClubsForTest exposes searchClubs for testing
+func (s *Service) SearchClubsForTest(user models.User, query string) ([]SearchResult, error) {
+	return s.searchClubs(user, query)
+}
+
 func (s *Service) searchEvents(user models.User, query string) ([]SearchResult, error) {
 	// Get events from clubs the user is a member of
 	clubs, err := models.GetAllClubs()
@@ -307,6 +312,11 @@ func (s *Service) searchEvents(user models.User, query string) ([]SearchResult, 
 	}
 
 	return results, nil
+}
+
+// SearchEventsForTest exposes searchEvents for testing
+func (s *Service) SearchEventsForTest(user models.User, query string) ([]SearchResult, error) {
+	return s.searchEvents(user, query)
 }
 
 // expandRecurrenceFunction generates recurring event instances for a given date range
