@@ -4,9 +4,10 @@ This document analyzes all OData functions currently in use and evaluates whethe
 
 ## Summary
 
-**Total Functions:** 12
-- **Should Remain Functions:** 4 (33%)
-- **Could Use Navigation:** 8 (67%)
+**Total Functions:** 9 (reduced from 12)
+- **Should Remain Functions:** 4 (44%)
+- **Could Use Navigation:** 5 (56%)
+- **Completed Replacements:** 1 (GetEvents)
 
 ---
 
@@ -76,29 +77,6 @@ Then access via: `GET /api/v2/Clubs('{clubId}')?$select=InviteLink`
 
 ---
 
-### 7. ~~`GetUpcomingEvents()` - Club~~ ✅ **REPLACE WITH NAVIGATION + FILTER**
-**Current:** `GET /api/v2/Clubs('{clubId}')/GetUpcomingEvents()`
-**Returns:** `EventWithRSVP[]` (events + user RSVP status)
-
-**Replacement Strategy:**
-```
-GET /api/v2/Clubs('{clubId}')/Events?$filter=StartTime ge {now}&$orderby=StartTime&$expand=EventRSVPs($filter=UserID eq '{currentUserId}')
-```
-
-**Benefits:**
-- Standard OData filtering and expansion
-- More flexible (client can adjust filters)
-- Removes custom response type
-
-**Challenges:**
-- Need to expose EventRSVPs as navigation on Event
-- Client needs to handle embedded RSVP data differently
-
-**Impact:**
-- Used in: `Frontend/src/pages/clubs/UpcomingEvents.tsx`
-
----
-
 ### 10. ~~`GetOverview()` - Team~~ ⚠️ **PARTIAL - Stats Should Stay**
 **Current:** `GET /api/v2/Teams('{teamId}')/GetOverview()`
 **Returns:** 
@@ -126,36 +104,24 @@ GET /api/v2/Clubs('{clubId}')/Events?$filter=StartTime ge {now}&$orderby=StartTi
 
 ---
 
-### 11. ~~`GetEvents()` - Team~~ ✅ **REPLACE WITH NAVIGATION**
-**Current:** `GET /api/v2/Teams('{teamId}')/GetEvents()`
-**Returns:** `Event[]`
+### 11. ~~`GetEvents()` - Team~~ ✅ **COMPLETED - REPLACED WITH NAVIGATION**
+**Previous:** `GET /api/v2/Teams('{teamId}')/GetEvents()`
+**Now:** `GET /api/v2/Teams('{teamId}')/Events` or `GET /api/v2/Teams('{teamId}')?$expand=Events`
 
-**Replacement Strategy:**
-Add navigation property to Team:
+**Implementation:**
+Team model already had Events navigation property:
 ```go
 type Team struct {
     // ... existing fields
     Events []Event `gorm:"foreignKey:TeamID" json:"Events,omitempty" odata:"nav"`
 }
 ```
-Then access via: `GET /api/v2/Teams('{teamId}')/Events` or `GET /api/v2/Teams('{teamId}')?$expand=Events`
 
-**Impact:**
-- Used in: `Frontend/src/pages/teams/AdminTeamDetails.tsx`
-
----
-
-### 12. ~~`GetUpcomingEvents()` - Team~~ ✅ **REPLACE WITH NAVIGATION + FILTER**
-**Current:** `GET /api/v2/Teams('{teamId}')/GetUpcomingEvents()`
-**Returns:** `Event[]`
-
-**Replacement Strategy:**
-```
-GET /api/v2/Teams('{teamId}')/Events?$filter=StartTime ge {now}&$orderby=StartTime
-```
-
-**Impact:**
-- Used in: `Frontend/src/pages/teams/TeamUpcomingEvents.tsx`
+**Changes Made:**
+- ✅ Removed function registration from `Backend/odata/functions.go`
+- ✅ Removed `getTeamEventsFunction` implementation
+- ✅ Updated `Frontend/src/pages/teams/AdminTeamDetails.tsx` to use `/Events` navigation
+- ✅ All quality checks pass (backend tests, frontend lint/build/test)
 
 ---
 
@@ -417,11 +383,11 @@ type EventRSVP struct {
 
 ## Conclusion
 
-Out of 12 OData functions:
+Out of 10 OData functions:
 - **4 should remain** as they provide value through computation, aggregation, or parameters
-- **6 can be easily replaced** with standard navigation and filters
+- **4 can be easily replaced** with standard navigation and filters
 - **2 need careful analysis** and may benefit from partial replacement or restructuring
 
-The analysis shows that ~67% of current functions could potentially use navigation, but the effort and risk varies significantly. Prioritize replacing simple functions first (Phase 1-2), then evaluate the complex cases based on real-world usage patterns and performance.
+The analysis shows that ~60% of current functions could potentially use navigation, but the effort and risk varies significantly. Prioritize replacing simple functions first (Phase 1-2), then evaluate the complex cases based on real-world usage patterns and performance.
 
 **Update:** `GetDashboardActivities()`, `GetDashboardNews()`, and `GetDashboardEvents()` have been removed as they were replaced by the `TimelineItems` virtual entity (`/api/v2/TimelineItems`), which provides a more flexible and standard OData interface for dashboard activities, news, and events.

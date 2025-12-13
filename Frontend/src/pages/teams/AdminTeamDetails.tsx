@@ -121,9 +121,9 @@ const AdminTeamDetails = () => {
 
     const fetchEvents = useCallback(async () => {
         try {
-            // OData v2: Use GetEvents function on Team entity
-            const response = await api.get(`/api/v2/Teams('${teamId}')/GetEvents()`);
-            setEvents(response.data || []);
+            // OData v2: Use standard navigation to access Events
+            const response = await api.get(`/api/v2/Teams('${teamId}')/Events`);
+            setEvents(response.data?.value || []);
         } catch (err) {
             console.error('Error fetching events:', err);
         }
