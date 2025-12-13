@@ -90,17 +90,6 @@ func (s *Service) registerFunctions() error {
 	}
 
 	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
-		Name:       "GetFines",
-		IsBound:    true,
-		EntitySet:  "Teams",
-		Parameters: []odata.ParameterDefinition{},
-		ReturnType: reflect.TypeOf([]models.Fine{}),
-		Handler:    s.getTeamFinesFunction,
-	}); err != nil {
-		return fmt.Errorf("failed to register GetFines function for Team: %w", err)
-	}
-
-	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
 		Name:       "GetMembers",
 		IsBound:    true,
 		EntitySet:  "Teams",
@@ -228,8 +217,6 @@ func (s *Service) getInviteLinkFunction(w http.ResponseWriter, r *http.Request, 
 
 	return map[string]string{"InviteLink": inviteLink}, nil
 }
-
-
 
 // searchGlobalFunction performs a global search across clubs and events
 // GET /api/v2/SearchGlobal(query='search term')
@@ -559,42 +546,6 @@ func (s *Service) getTeamOverviewFunction(w http.ResponseWriter, r *http.Request
 		UserRole: userRole,
 		IsAdmin:  team.IsAdmin(user),
 	}, nil
-}
-
-// getTeamFinesFunction returns all fines for the team
-// GET /api/v2/Teams('{teamId}')/GetFines()
-func (s *Service) getTeamFinesFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	team := ctx.(*models.Team)
-
-	// Get user ID from request context
-	userID, ok := r.Context().Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, fmt.Errorf("unauthorized: missing user id")
-	}
-
-	// Get user from database
-	var user models.User
-	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
-
-	// Verify user has access (team member or club admin)
-	club, err := models.GetClubByID(team.ClubID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find club: %w", err)
-	}
-
-	if !team.IsMember(user) && !club.IsAdmin(user) {
-		return nil, fmt.Errorf("forbidden: user is not a member of this team")
-	}
-
-	// Get fines for this team
-	var fines []models.Fine
-	if err := s.db.Where("team_id = ?", team.ID).Preload("User").Find(&fines).Error; err != nil {
-		return nil, fmt.Errorf("failed to get fines: %w", err)
-	}
-
-	return fines, nil
 }
 
 // getTeamMembersFunction returns all team members with user details

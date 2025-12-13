@@ -29,6 +29,7 @@ type Team struct {
 
 	// Navigation properties for OData
 	Events []Event `gorm:"foreignKey:TeamID" json:"Events,omitempty" odata:"nav"`
+	Fines  []Fine  `gorm:"foreignKey:TeamID" json:"Fines,omitempty" odata:"nav"`
 }
 
 type TeamMember struct {

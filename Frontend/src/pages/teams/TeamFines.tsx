@@ -23,8 +23,8 @@ const TeamFines = () => {
     const fetchFines = useCallback(async () => {
         setLoading(true);
         try {
-            // OData v2: Use GetFines function on Team entity
-            const response = await api.get(`/api/v2/Teams('${teamId}')/GetFines()`);
+            // OData v2: Use Fines navigation property with User expansion
+            const response = await api.get(`/api/v2/Teams('${teamId}')/Fines?$expand=User`);
             const finesData = response.data.value || response.data || [];
             // Map OData response to expected format
             interface ODataFine { ID: string; TeamID: string; Amount: number; Reason: string; CreatedAt: string; UpdatedAt: string; Paid: boolean; createdByName?: string; CreatedByName?: string; }

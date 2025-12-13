@@ -131,8 +131,8 @@ const AdminTeamDetails = () => {
 
     const fetchFines = useCallback(async () => {
         try {
-            // OData v2: Use GetFines function on Team entity
-            const response = await api.get(`/api/v2/Teams('${teamId}')/GetFines()`);
+            // OData v2: Use Fines navigation property with User expansion
+            const response = await api.get(`/api/v2/Teams('${teamId}')/Fines?$expand=User`);
             setFines(response.data || []);
         } catch (err) {
             console.error('Error fetching fines:', err);
