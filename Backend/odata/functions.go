@@ -89,17 +89,6 @@ func (s *Service) registerFunctions() error {
 		return fmt.Errorf("failed to register GetOverview function for Team: %w", err)
 	}
 
-	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
-		Name:       "GetMembers",
-		IsBound:    true,
-		EntitySet:  "Teams",
-		Parameters: []odata.ParameterDefinition{},
-		ReturnType: reflect.TypeOf([]map[string]interface{}{}),
-		Handler:    s.getTeamMembersFunction,
-	}); err != nil {
-		return fmt.Errorf("failed to register GetMembers function for Team: %w", err)
-	}
-
 	// More bound functions for Event entity
 	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
 		Name:       "GetRSVPs",
@@ -546,42 +535,6 @@ func (s *Service) getTeamOverviewFunction(w http.ResponseWriter, r *http.Request
 		UserRole: userRole,
 		IsAdmin:  team.IsAdmin(user),
 	}, nil
-}
-
-// getTeamMembersFunction returns all team members with user details
-// GET /api/v2/Teams('{teamId}')/GetMembers()
-func (s *Service) getTeamMembersFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	team := ctx.(*models.Team)
-
-	// Get user ID from request context
-	userID, ok := r.Context().Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, fmt.Errorf("unauthorized: missing user id")
-	}
-
-	// Get user from database
-	var user models.User
-	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
-
-	// Verify user is a member of the club
-	club, err := models.GetClubByID(team.ClubID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find club: %w", err)
-	}
-
-	if !club.IsMember(user) {
-		return nil, fmt.Errorf("forbidden: user is not a member of this club")
-	}
-
-	// Get team members with user details using the existing method
-	members, err := team.GetTeamMembersWithUserInfo()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get team members: %w", err)
-	}
-
-	return members, nil
 }
 
 // getEventRSVPsFunction returns all RSVPs for an event with counts

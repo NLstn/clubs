@@ -28,6 +28,17 @@ interface ClubMember {
     role: string;
 }
 
+interface TeamMemberResponse {
+    ID: string;
+    UserID: string;
+    Role: string;
+    CreatedAt: string;
+    User?: {
+        FirstName: string;
+        LastName: string;
+    };
+}
+
 const AdminClubTeamList = () => {
     const { t } = useT();
     const { id: clubId } = useParams();
@@ -67,10 +78,21 @@ const AdminClubTeamList = () => {
 
     const fetchTeamMembers = useCallback(async (teamId: string) => {
         try {
-            // OData v2: Use GetMembers function on Team entity
-            const response = await api.get(`/api/v2/Teams('${teamId}')/GetMembers()`);
+            // OData v2: Use TeamMembers navigation with User expansion
+            const response = await api.get(`/api/v2/Teams('${teamId}')/TeamMembers?$expand=User&$orderby=Role,User/FirstName`);
+            const teamMembers = response.data.value || response.data;
+            
+            // Transform TeamMember entities with nested User to flat structure expected by UI
+            const transformedMembers = teamMembers.map((tm: TeamMemberResponse) => ({
+                id: tm.ID,
+                userId: tm.UserID,
+                role: tm.Role,
+                joinedAt: tm.CreatedAt,
+                name: tm.User ? `${tm.User.FirstName} ${tm.User.LastName}` : 'Unknown'
+            }));
+            
             // Ensure we always set an array, even if API returns null (prevents .map() crashes)
-            setTeamMembers(response.data || []);
+            setTeamMembers(transformedMembers || []);
         } catch {
             setError('Failed to fetch team members');
             setTeamMembers([]); // Reset to empty array on error to prevent crashes

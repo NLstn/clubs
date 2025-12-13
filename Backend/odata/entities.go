@@ -17,6 +17,7 @@ func (s *Service) registerEntities() error {
 
 		// Team entities
 		&models.Team{},
+		&models.TeamMember{},
 
 		// Event entities
 		&models.Event{},
