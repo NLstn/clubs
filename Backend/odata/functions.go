@@ -90,17 +90,6 @@ func (s *Service) registerFunctions() error {
 	}
 
 	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
-		Name:       "GetEvents",
-		IsBound:    true,
-		EntitySet:  "Teams",
-		Parameters: []odata.ParameterDefinition{},
-		ReturnType: reflect.TypeOf([]models.Event{}),
-		Handler:    s.getTeamEventsFunction,
-	}); err != nil {
-		return fmt.Errorf("failed to register GetEvents function for Team: %w", err)
-	}
-
-	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
 		Name:       "GetFines",
 		IsBound:    true,
 		EntitySet:  "Teams",
@@ -570,41 +559,6 @@ func (s *Service) getTeamOverviewFunction(w http.ResponseWriter, r *http.Request
 		UserRole: userRole,
 		IsAdmin:  team.IsAdmin(user),
 	}, nil
-}
-
-// getTeamEventsFunction returns all events for the team
-// GET /api/v2/Teams('{teamId}')/GetEvents()
-func (s *Service) getTeamEventsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	team := ctx.(*models.Team)
-
-	// Get user ID from request context
-	userID, ok := r.Context().Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, fmt.Errorf("unauthorized: missing user id")
-	}
-
-	// Get user from database
-	var user models.User
-	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
-
-	// Verify user has access (team member or club admin)
-	club, err := models.GetClubByID(team.ClubID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find club: %w", err)
-	}
-
-	if !team.IsMember(user) && !club.IsAdmin(user) {
-		return nil, fmt.Errorf("forbidden: user is not a member of this team")
-	}
-
-	events, err := team.GetEvents()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get events: %w", err)
-	}
-
-	return events, nil
 }
 
 // getTeamFinesFunction returns all fines for the team
