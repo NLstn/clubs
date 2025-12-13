@@ -109,6 +109,10 @@ Simply open the project in VS Code and select "Reopen in Container" when prompte
 
 ### Default Credentials
 
+**Keycloak Test User** (for application login):
+- Username: `testuser`
+- Password: `testpass`
+
 **Keycloak Admin Console** (http://localhost:8081/admin):
 - Username: `admin`
 - Password: `admin`
