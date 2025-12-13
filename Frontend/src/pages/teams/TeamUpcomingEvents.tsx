@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '../../components/ui';
 import api from '../../utils/api';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import '../../styles/events.css';
 
 interface Event {
@@ -18,17 +19,20 @@ interface Event {
 
 const TeamUpcomingEvents = () => {
     const { clubId, teamId } = useParams();
+    const { user: currentUser } = useCurrentUser();
     const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchUpcomingEvents = async () => {
-        if (!clubId || !teamId) return;
+        if (!clubId || !teamId || !currentUser?.ID) return;
         
         try {
             // OData v2: Use navigation property with filter for upcoming events
             const now = new Date().toISOString();
-            const response = await api.get(`/api/v2/Teams('${teamId}')/Events?$filter=StartTime ge ${now}&$orderby=StartTime&$expand=EventRSVPs($filter=UserID eq @me)`);
+            const encodedTeamId = encodeURIComponent(teamId);
+            const encodedUserId = encodeURIComponent(currentUser.ID);
+            const response = await api.get(`/api/v2/Teams('${encodedTeamId}')/Events?$filter=StartTime ge ${now}&$orderby=StartTime&$expand=EventRSVPs($filter=UserID eq '${encodedUserId}')`);
             const eventsData = response.data.value || response.data || [];
             // Map OData response to expected format
             interface ODataEvent { ID: string; Name: string; Description: string; Location: string; StartTime: string; EndTime: string; EventRSVPs?: Array<{ Response: string; }>; }
@@ -52,7 +56,7 @@ const TeamUpcomingEvents = () => {
 
     useEffect(() => {
         fetchUpcomingEvents();
-    }, [clubId, teamId]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [clubId, teamId, currentUser?.ID]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleRSVP = async (eventId: string, response: string) => {
         try {

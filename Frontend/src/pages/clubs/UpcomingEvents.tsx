@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '../../components/ui';
 import api from '../../utils/api';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import '../../styles/events.css';
 
 interface Event {
@@ -18,17 +19,20 @@ interface Event {
 
 const UpcomingEvents = () => {
     const { id } = useParams();
+    const { user: currentUser } = useCurrentUser();
     const [events, setEvents] = useState<Event[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const fetchUpcomingEvents = async () => {
-        if (!id) return;
+        if (!id || !currentUser?.ID) return;
         
         try {
             // OData v2: Use navigation property with filter for upcoming events
             const now = new Date().toISOString();
-            const response = await api.get(`/api/v2/Clubs('${id}')/Events?$filter=StartTime ge ${now}&$orderby=StartTime&$expand=EventRSVPs($filter=UserID eq @me)`);
+            const encodedId = encodeURIComponent(id);
+            const encodedUserId = encodeURIComponent(currentUser.ID);
+            const response = await api.get(`/api/v2/Clubs('${encodedId}')/Events?$filter=StartTime ge ${now}&$orderby=StartTime&$expand=EventRSVPs($filter=UserID eq '${encodedUserId}')`);
             interface ODataEvent { ID: string; Name: string; Description: string; Location: string; StartTime: string; EndTime: string; EventRSVPs?: Array<{ Response: string; }>; }
             const eventsData = response.data.value || response.data || [];
             // Map OData response to match expected format
@@ -52,7 +56,7 @@ const UpcomingEvents = () => {
 
     useEffect(() => {
         fetchUpcomingEvents();
-    }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [id, currentUser?.ID]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleRSVP = async (eventId: string, response: string) => {
         try {

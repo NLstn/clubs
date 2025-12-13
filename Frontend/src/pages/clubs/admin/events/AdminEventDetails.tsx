@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "../../../../components/ui";
 import PageHeader from "../../../../components/layout/PageHeader";
 import api from "../../../../utils/api";
+import { calculateRSVPCounts } from "../../../../utils/eventUtils";
 import EventRSVPList from "./EventRSVPList";
 import EditEvent from "./EditEvent";
 import "./AdminEventDetails.css";
@@ -80,11 +81,7 @@ const AdminEventDetails: FC = () => {
                 if (!abortSignal?.aborted) {
                     const rsvpList = rsvpResponse.data.value || [];
                     // Compute counts by grouping RSVPs by Response field
-                    const computedCounts = rsvpList.reduce((acc: Record<string, number>, rsvp: { Response: string }) => {
-                        const responseKey = rsvp.Response.toLowerCase();
-                        acc[responseKey] = (acc[responseKey] || 0) + 1;
-                        return acc;
-                    }, {});
+                    const computedCounts = calculateRSVPCounts(rsvpList);
                     setRsvpCounts(computedCounts);
                 }
             } catch (rsvpError) {
