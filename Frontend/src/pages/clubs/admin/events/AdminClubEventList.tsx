@@ -54,9 +54,16 @@ const AdminClubEventList = () => {
             for (const event of response.data || []) {
                 try {
                     // Fetch RSVP counts
-                    // OData v2: Use GetRSVPs function on Event entity
-                    const rsvpResponse = await api.get(`/api/v2/Events('${event.id}')/GetRSVPs()`);
-                    counts[event.id] = rsvpResponse.data.Counts || {};
+                    // OData v2: Use EventRSVPs navigation and compute counts client-side
+                    const rsvpResponse = await api.get(`/api/v2/Events('${event.id}')/EventRSVPs`);
+                    const rsvpList = rsvpResponse.data.value || [];
+                    // Compute counts by grouping RSVPs by Response field
+                    const computedCounts = rsvpList.reduce((acc: RSVPCounts, rsvp: { Response: string }) => {
+                        const responseKey = rsvp.Response.toLowerCase() as keyof RSVPCounts;
+                        acc[responseKey] = (acc[responseKey] || 0) + 1;
+                        return acc;
+                    }, {});
+                    counts[event.id] = computedCounts;
                     
                     // Fetch event shifts
                     // OData v2: Query Shifts for this event

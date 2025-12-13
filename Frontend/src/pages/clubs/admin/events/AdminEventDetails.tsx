@@ -73,12 +73,19 @@ const AdminEventDetails: FC = () => {
 
             // Fetch RSVP counts
             try {
-                // OData v2: Use GetRSVPs function
-                const rsvpResponse = await api.get(`/api/v2/Events('${eventId}')/GetRSVPs()`, {
+                // OData v2: Use EventRSVPs navigation and compute counts client-side
+                const rsvpResponse = await api.get(`/api/v2/Events('${eventId}')/EventRSVPs`, {
                     signal: abortSignal
                 });
                 if (!abortSignal?.aborted) {
-                    setRsvpCounts(rsvpResponse.data.Counts || {});
+                    const rsvpList = rsvpResponse.data.value || [];
+                    // Compute counts by grouping RSVPs by Response field
+                    const computedCounts = rsvpList.reduce((acc: Record<string, number>, rsvp: { Response: string }) => {
+                        const responseKey = rsvp.Response.toLowerCase();
+                        acc[responseKey] = (acc[responseKey] || 0) + 1;
+                        return acc;
+                    }, {});
+                    setRsvpCounts(computedCounts);
                 }
             } catch (rsvpError) {
                 if (!abortSignal?.aborted) {
