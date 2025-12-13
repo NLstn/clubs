@@ -2,7 +2,6 @@ package models
 
 import (
 	"reflect"
-	"strings"
 	"testing"
 )
 
@@ -173,9 +172,6 @@ func TestODataHookSignatures(t *testing.T) {
 			// Verify parameter types
 			for i, expectedParam := range expectedParams {
 				actualParam := methodType.In(i + 1).String()
-				// Normalize the type string for comparison
-				actualParam = strings.ReplaceAll(actualParam, "context.Context", "context.Context")
-				actualParam = strings.ReplaceAll(actualParam, "*http.Request", "*http.Request")
 
 				if actualParam != expectedParam {
 					t.Errorf("Entity %s method %s parameter %d: expected %s, got %s",
