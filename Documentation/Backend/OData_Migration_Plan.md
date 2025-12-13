@@ -411,18 +411,17 @@ service.RegisterFunction("Club", "IsAdmin", func(ctx context.Context, entityKey 
 2. **GetOwnerCount** - Bound to Club entity
 3. **GetInviteLink** - Bound to Club entity
 4. **GetUpcomingEvents** - Bound to Club entity
-5. **GetDashboardNews** - Unbound function
-6. **GetDashboardEvents** - Unbound function
-7. **GetDashboardActivities** - Unbound function
-8. **SearchGlobal** - Unbound function
+5. **GetDashboardActivities** - Unbound function (REMOVED - replaced by TimelineItems virtual entity)
+6. **SearchGlobal** - Unbound function
 
 **Example:**
 ```go
-// Unbound function: GetDashboardNews
-service.RegisterFunction("", "GetDashboardNews", func(ctx context.Context, entityKey interface{}, params map[string]interface{}) (interface{}, error) {
+// Unbound function: SearchGlobal
+service.RegisterFunction("", "SearchGlobal", func(ctx context.Context, entityKey interface{}, params map[string]interface{}) (interface{}, error) {
     userID := ctx.Value("userID").(string)
+    query := params["query"].(string)
     
-    return getDashboardNews(userID)
+    return searchGlobal(userID, query)
 })
 ```
 
@@ -913,9 +912,9 @@ go test -v ./compliance/...
 | `GET /api/v1/clubs/{clubid}/settings` | `GET /api/v2/ClubSettings?$filter=clubId eq '{clubid}'` | |
 | `POST /api/v1/clubs/{clubid}/settings` | `POST /api/v2/ClubSettings` or `PATCH` | |
 | **Dashboard** | | |
-| `GET /api/v1/dashboard/news` | `GET /api/v2/GetDashboardNews()` | Unbound function |
-| `GET /api/v1/dashboard/events` | `GET /api/v2/GetDashboardEvents()` | Unbound function |
-| `GET /api/v1/dashboard/activities` | `GET /api/v2/GetDashboardActivities()` | Unbound function |
+| `GET /api/v1/dashboard/news` | `GET /api/v2/TimelineItems?$filter=Type eq 'news'` | Virtual entity |
+| `GET /api/v1/dashboard/events` | `GET /api/v2/TimelineItems?$filter=Type eq 'event'` | Virtual entity |
+| `GET /api/v1/dashboard/activities` | `GET /api/v2/TimelineItems` | Virtual entity |
 | **Search** | | |
 | `GET /api/v1/search?q={query}` | `GET /api/v2/SearchGlobal(query='{query}')` | Unbound function |
 | **Health** | | |

@@ -197,11 +197,6 @@ describe('OData Utilities', () => {
       expect(url).toBe("Events('event-1')/ExpandRecurrence(startDate='2024-01-01',endDate='2024-12-31')");
     });
 
-    it('should create unbound function URL', () => {
-      const url = odataFunction(null, null, 'GetDashboardNews');
-      expect(url).toBe('GetDashboardNews');
-    });
-
     it('should create unbound function URL with params', () => {
       const url = odataFunction(null, null, 'SearchGlobal', { query: 'test' });
       expect(url).toBe("SearchGlobal(query='test')");
