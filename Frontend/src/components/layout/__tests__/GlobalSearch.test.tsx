@@ -52,7 +52,7 @@ describe('GlobalSearch', () => {
     // Mock a delayed API response
     mockApi.get.mockImplementation(() => 
       new Promise(resolve => 
-        setTimeout(() => resolve({ data: { clubs: [], events: [] } }), 100)
+        setTimeout(() => resolve({ data: { Clubs: [], Events: [] } }), 100)
       )
     );
 
@@ -70,23 +70,23 @@ describe('GlobalSearch', () => {
 
   it('performs search and displays results', async () => {
     const mockResults = {
-      clubs: [
+      Clubs: [
         {
-          type: 'club',
-          id: '1',
-          name: 'Test Club',
-          description: 'A test club',
+          Type: 'club',
+          ID: '1',
+          Name: 'Test Club',
+          Description: 'A test club',
         },
       ],
-      events: [
+      Events: [
         {
-          type: 'event',
-          id: '2',
-          name: 'Test Event',
-          club_id: '1',
-          club_name: 'Test Club',
-          start_time: '2024-06-01T10:00:00Z',
-          end_time: '2024-06-01T12:00:00Z',
+          Type: 'event',
+          ID: '2',
+          Name: 'Test Event',
+          ClubID: '1',
+          ClubName: 'Test Club',
+          StartTime: '2024-06-01T10:00:00Z',
+          EndTime: '2024-06-01T12:00:00Z',
         },
       ],
     };
@@ -113,7 +113,7 @@ describe('GlobalSearch', () => {
   });
 
   it('shows no results message when no results found', async () => {
-    mockApi.get.mockResolvedValue({ data: { clubs: [], events: [] } });
+    mockApi.get.mockResolvedValue({ data: { Clubs: [], Events: [] } });
 
     renderWithRouter(<GlobalSearch />);
     
@@ -127,15 +127,15 @@ describe('GlobalSearch', () => {
 
   it('navigates to club when club result is clicked', async () => {
     const mockResults = {
-      clubs: [
+      Clubs: [
         {
-          type: 'club',
-          id: 'club-1',
-          name: 'Test Club',
-          description: 'A test club',
+          Type: 'club',
+          ID: 'club-1',
+          Name: 'Test Club',
+          Description: 'A test club',
         },
       ],
-      events: [],
+      Events: [],
     };
 
     mockApi.get.mockResolvedValue({ data: mockResults });
@@ -157,16 +157,16 @@ describe('GlobalSearch', () => {
 
   it('navigates to club when event result is clicked', async () => {
     const mockResults = {
-      clubs: [],
-      events: [
+      Clubs: [],
+      Events: [
         {
-          type: 'event',
-          id: 'event-1',
-          name: 'Test Event',
-          club_id: 'club-1',
-          club_name: 'Test Club',
-          start_time: '2024-06-01T10:00:00Z',
-          end_time: '2024-06-01T12:00:00Z',
+          Type: 'event',
+          ID: 'event-1',
+          Name: 'Test Event',
+          ClubID: 'club-1',
+          ClubName: 'Test Club',
+          StartTime: '2024-06-01T10:00:00Z',
+          EndTime: '2024-06-01T12:00:00Z',
         },
       ],
     };
@@ -190,8 +190,8 @@ describe('GlobalSearch', () => {
 
   it('closes dropdown when clicking outside', async () => {
     const mockResults = {
-      clubs: [{ type: 'club', id: '1', name: 'Test Club', description: '' }],
-      events: [],
+      Clubs: [{ Type: 'club', ID: '1', Name: 'Test Club', Description: '' }],
+      Events: [],
     };
 
     mockApi.get.mockResolvedValue({ data: mockResults });
@@ -217,8 +217,8 @@ describe('GlobalSearch', () => {
 
   it('clears results when search input is cleared', async () => {
     const mockResults = {
-      clubs: [{ type: 'club', id: '1', name: 'Test Club', description: '' }],
-      events: [],
+      Clubs: [{ Type: 'club', ID: '1', Name: 'Test Club', Description: '' }],
+      Events: [],
     };
 
     mockApi.get.mockResolvedValue({ data: mockResults });
@@ -244,7 +244,7 @@ describe('GlobalSearch', () => {
   });
 
   it('debounces search requests', async () => {
-    mockApi.get.mockResolvedValue({ data: { clubs: [], events: [] } });
+    mockApi.get.mockResolvedValue({ data: { Clubs: [], Events: [] } });
 
     renderWithRouter(<GlobalSearch />);
     
@@ -281,16 +281,16 @@ describe('GlobalSearch', () => {
 
   it('formats dates correctly', async () => {
     const mockResults = {
-      clubs: [],
-      events: [
+      Clubs: [],
+      Events: [
         {
-          type: 'event',
-          id: '1',
-          name: 'Test Event',
-          club_id: 'club-1',
-          club_name: 'Test Club',
-          start_time: '2024-06-01T14:30:00Z',
-          end_time: '2024-06-01T16:30:00Z',
+          Type: 'event',
+          ID: '1',
+          Name: 'Test Event',
+          ClubID: 'club-1',
+          ClubName: 'Test Club',
+          StartTime: '2024-06-01T14:30:00Z',
+          EndTime: '2024-06-01T16:30:00Z',
         },
       ],
     };
@@ -313,15 +313,15 @@ describe('GlobalSearch', () => {
     const longDescription = 'This is a very long description that should be truncated because it exceeds the maximum length allowed in the search results dropdown component';
     
     const mockResults = {
-      clubs: [
+      Clubs: [
         {
-          type: 'club',
-          id: '1',
-          name: 'Test Club',
-          description: longDescription,
+          Type: 'club',
+          ID: '1',
+          Name: 'Test Club',
+          Description: longDescription,
         },
       ],
-      events: [],
+      Events: [],
     };
 
     mockApi.get.mockResolvedValue({ data: mockResults });
