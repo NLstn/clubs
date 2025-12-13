@@ -271,6 +271,27 @@ func (u *User) GetUserRSVP(eventID string) (*EventRSVP, error) {
 	return &rsvp, nil
 }
 
+// GetUserRSVPsByEventIDs returns a map of event IDs to RSVPs for the user
+func (u *User) GetUserRSVPsByEventIDs(eventIDs []string) (map[string]*EventRSVP, error) {
+	if len(eventIDs) == 0 {
+		return make(map[string]*EventRSVP), nil
+	}
+
+	var rsvps []EventRSVP
+	err := database.Db.Where("event_id IN ? AND user_id = ?", eventIDs, u.ID).Find(&rsvps).Error
+	if err != nil {
+		return nil, err
+	}
+
+	// Build map for efficient lookup
+	rsvpMap := make(map[string]*EventRSVP)
+	for i := range rsvps {
+		rsvpMap[rsvps[i].EventID] = &rsvps[i]
+	}
+
+	return rsvpMap, nil
+}
+
 // EventWithClub represents an event with its associated club name
 type EventWithClub struct {
 	Event

@@ -325,8 +325,11 @@ func (s *Service) getInviteLinkFunction(w http.ResponseWriter, r *http.Request, 
 func (s *Service) getUpcomingEventsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
 	club := ctx.(*models.Club)
 
-	// Get user ID from request context
-	userID := r.Context().Value(auth.UserIDKey).(string)
+	// Get user ID from request context with safe type assertion
+	userID, ok := r.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID missing from context")
+	}
 
 	// Get user
 	var user models.User
@@ -334,9 +337,25 @@ func (s *Service) getUpcomingEventsFunction(w http.ResponseWriter, r *http.Reque
 		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
 
+	// Verify user is a member of the club
+	if !club.IsMember(user) {
+		return nil, fmt.Errorf("forbidden: user is not a member of this club")
+	}
+
 	events, err := club.GetUpcomingEvents()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get upcoming events: %w", err)
+	}
+
+	// Batch-load all RSVPs for the events to avoid N+1 queries
+	eventIDs := make([]string, len(events))
+	for i, event := range events {
+		eventIDs[i] = event.ID
+	}
+
+	rsvpMap, err := user.GetUserRSVPsByEventIDs(eventIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user RSVPs: %w", err)
 	}
 
 	// Wrap events with RSVP information
@@ -347,9 +366,8 @@ func (s *Service) getUpcomingEventsFunction(w http.ResponseWriter, r *http.Reque
 		}
 
 		// Add user's RSVP status if available
-		userRSVP, err := user.GetUserRSVP(event.ID)
-		if err == nil {
-			eventWithRSVP.UserRSVP = userRSVP
+		if rsvp, exists := rsvpMap[event.ID]; exists {
+			eventWithRSVP.UserRSVP = rsvp
 		}
 
 		eventsWithRSVP = append(eventsWithRSVP, eventWithRSVP)
