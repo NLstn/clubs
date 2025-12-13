@@ -92,8 +92,17 @@ func (UserSession) BeforeReadEntity(ctx context.Context, r *http.Request, opts i
 // AfterReadCollection adds the IsCurrent computed field to each session
 // This implements the ReadHook interface from go-odata
 func (UserSession) AfterReadCollection(ctx context.Context, r *http.Request, opts interface{}, results interface{}) (interface{}, error) {
-	sessions, ok := results.(*[]UserSession)
-	if !ok {
+	// Try both pointer to slice and slice directly
+	var sessions []UserSession
+	if sessionsPtr, ok := results.(*[]UserSession); ok {
+		sessions = *sessionsPtr
+	} else if sessionsSlice, ok := results.([]UserSession); ok {
+		sessions = sessionsSlice
+	} else {
+		return results, nil // Unknown type, return as-is
+	}
+
+	if len(sessions) == 0 {
 		return results, nil
 	}
 
@@ -106,31 +115,33 @@ func (UserSession) AfterReadCollection(ctx context.Context, r *http.Request, opt
 	hashedToken := HashToken(currentRefreshToken)
 
 	// Get tokens for all sessions to compare
-	if len(*sessions) > 0 {
-		ids := make([]string, len(*sessions))
-		for i, session := range *sessions {
-			ids[i] = session.ID
+	ids := make([]string, len(sessions))
+	for i, session := range sessions {
+		ids[i] = session.ID
+	}
+
+	var tokens []struct {
+		ID    string
+		Token string
+	}
+	if err := database.Db.Raw("SELECT id, token FROM refresh_tokens WHERE id IN ?", ids).Scan(&tokens).Error; err == nil {
+		tokenMap := make(map[string]string)
+		for _, t := range tokens {
+			tokenMap[t.ID] = t.Token
 		}
 
-		var tokens []struct {
-			ID    string
-			Token string
-		}
-		if err := database.Db.Raw("SELECT id, token FROM refresh_tokens WHERE id IN ?", ids).Scan(&tokens).Error; err == nil {
-			tokenMap := make(map[string]string)
-			for _, t := range tokens {
-				tokenMap[t.ID] = t.Token
-			}
-
-			for i := range *sessions {
-				if token, ok := tokenMap[(*sessions)[i].ID]; ok {
-					(*sessions)[i].IsCurrent = token == hashedToken
-				}
+		for i := range sessions {
+			if token, ok := tokenMap[sessions[i].ID]; ok {
+				sessions[i].IsCurrent = token == hashedToken
 			}
 		}
 	}
 
-	return results, nil
+	// Return the modified sessions in the same format we received
+	if _, ok := results.(*[]UserSession); ok {
+		return &sessions, nil
+	}
+	return sessions, nil
 }
 
 // AfterReadEntity adds the IsCurrent computed field to the session
@@ -164,6 +175,19 @@ func (s *UserSession) ODataBeforeDelete(ctx context.Context, r *http.Request) er
 	userID, ok := ctx.Value("user_id").(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized")
+	}
+
+	// The ID field is already populated by OData framework
+	// We just need to verify it belongs to the current user by checking UserID
+	// Note: The OData framework loads the entity before calling this hook,
+	// so s.UserID should be populated if BeforeRead hooks filtered correctly
+	if s.UserID == "" {
+		// If UserID is not populated, query it from database
+		var session UserSession
+		if err := database.Db.Where("id = ?", s.ID).First(&session).Error; err != nil {
+			return fmt.Errorf("session not found")
+		}
+		s.UserID = session.UserID
 	}
 
 	// Verify the session belongs to the current user
