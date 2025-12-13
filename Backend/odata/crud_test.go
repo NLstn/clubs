@@ -14,6 +14,7 @@ import (
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/clubs/handlers"
 	"github.com/NLstn/clubs/models"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -312,8 +313,8 @@ func setupTestContext(t *testing.T) *testContext {
 	// Register the OData service as the default handler
 	odataV2Mux.Handle("/", service)
 
-	// Wrap service with auth middleware
-	handler := http.StripPrefix("/api/v2", AuthMiddleware(auth.GetJWTSecret())(odataV2Mux))
+	// Wrap service with composite auth middleware (JWT + API Key)
+	handler := http.StripPrefix("/api/v2", handlers.CompositeAuthMiddleware(odataV2Mux))
 
 	// Create test users
 	testUser := &models.User{
