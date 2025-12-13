@@ -12,8 +12,6 @@ const keycloakConfig: UserManagerSettings = {
   filterProtocolClaims: true,
   loadUserInfo: false,
   monitorSession: false,
-  // PKCE configuration (required by Keycloak)
-  code_challenge_method: 'S256',
   // Add state validation
   stateStore: new WebStorageStateStore({ store: window.localStorage }),
 };
