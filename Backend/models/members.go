@@ -254,11 +254,21 @@ func (c *Club) canChangeRole(changingUser User, targetMember Member, newRole str
 	return false, nil
 }
 
-// BeforeCreate GORM hook - sets UUID if not provided
+// BeforeCreate GORM hook - sets UUID and timestamps if not provided
 func (m *Member) BeforeCreate(tx *gorm.DB) error {
 	if m.ID == "" {
 		m.ID = uuid.New().String()
 	}
+	
+	// Set timestamps if not already set
+	now := time.Now()
+	if m.CreatedAt.IsZero() {
+		m.CreatedAt = now
+	}
+	if m.UpdatedAt.IsZero() {
+		m.UpdatedAt = now
+	}
+	
 	return nil
 }
 
