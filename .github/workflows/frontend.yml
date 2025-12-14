@@ -86,6 +86,5 @@ jobs:
         az staticwebapp deploy \
           --name my-react-app-staging \
           --resource-group clubs-staging-rg \
-          --app-location Frontend \
-          --output-location dist \
+          --app-location ./Frontend/dist \
           --no-wait
