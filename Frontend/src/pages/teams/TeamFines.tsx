@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { ODataTable, ODataTableColumn } from '@/components/ui';
+import { ODataFilter } from '../../utils/odata';
 
 interface Fine {
     ID: string;
@@ -55,7 +56,11 @@ const TeamFines = () => {
     ];
 
     const filter = useMemo(() => {
-        return `TeamID eq '${teamId}' and Paid eq false`;
+        // Use ODataFilter helpers to safely escape values and prevent filter injection
+        return ODataFilter.and(
+            ODataFilter.eq('TeamID', teamId || ''),
+            ODataFilter.eq('Paid', false)
+        );
     }, [teamId]);
 
     return (

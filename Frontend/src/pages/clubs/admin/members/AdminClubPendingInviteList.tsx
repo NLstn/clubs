@@ -1,5 +1,7 @@
+import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { ODataTable, ODataTableColumn } from '@/components/ui';
+import { ODataFilter } from '../../../../utils/odata';
 
 interface Invite {
     ID: string;
@@ -20,11 +22,14 @@ const AdminClubPendingInviteList = () => {
         }
     ];
 
+    // Use ODataFilter helpers to safely escape values and prevent filter injection
+    const filter = useMemo(() => ODataFilter.eq('ClubID', id || ''), [id]);
+
     return (
         <div>
             <ODataTable
                 endpoint="/api/v2/Invites"
-                filter={`ClubID eq '${id}'`}
+                filter={filter}
                 columns={columns}
                 keyExtractor={(invite) => invite.ID}
                 pageSize={10}

@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
 import { Input, ODataTable, ODataTableColumn, Button } from '@/components/ui';
+import { ODataFilter } from '../../../../utils/odata';
 
 interface FineTemplate {
     ID: string;
@@ -176,7 +177,7 @@ const AdminClubFineTemplateList = () => {
             <ODataTable
                 key={refreshKey}
                 endpoint="/api/v2/FineTemplates"
-                filter={`ClubID eq '${clubId}'`}
+                filter={useMemo(() => ODataFilter.eq('ClubID', clubId || ''), [clubId])}
                 columns={columns}
                 keyExtractor={(template) => template.ID}
                 pageSize={10}
