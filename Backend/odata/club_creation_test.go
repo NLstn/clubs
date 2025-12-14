@@ -132,8 +132,7 @@ func TestCreateClubForNewUser(t *testing.T) {
 		t.Logf("POST failed with status %d: %+v", resp.StatusCode, errResp)
 	}
 
-	// This should succeed, but currently fails with:
-	// "unauthorized: only admins and owners can add members"
+	// Test validates that club creation succeeds and creator is automatically added as owner
 	assert.Equal(t, http.StatusCreated, resp.StatusCode, "Creating a club should succeed")
 
 	// Verify the club was created
@@ -153,6 +152,9 @@ func TestCreateClubForNewUser(t *testing.T) {
 		assert.NoError(t, err, "Owner member should be created")
 		assert.Equal(t, "owner", member.Role, "Creator should be owner")
 		assert.NotEmpty(t, member.ID, "Member ID should not be empty")
-		t.Logf("Created member: ID=%s, UserID=%s, ClubID=%s, Role=%s", member.ID, member.UserID, member.ClubID, member.Role)
+		assert.NotZero(t, member.CreatedAt, "Member CreatedAt should be set")
+		assert.NotZero(t, member.UpdatedAt, "Member UpdatedAt should be set")
+		t.Logf("Created member: ID=%s, UserID=%s, ClubID=%s, Role=%s, CreatedAt=%v, UpdatedAt=%v", 
+			member.ID, member.UserID, member.ClubID, member.Role, member.CreatedAt, member.UpdatedAt)
 	}
 }
