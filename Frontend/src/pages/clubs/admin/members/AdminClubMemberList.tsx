@@ -84,7 +84,10 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
         try {
             // OData v2: Use $count to get join requests count
             const response = await api.get(`/api/v2/JoinRequests/$count?$filter=ClubID eq '${id}'`);
-            setJoinRequestCount(response.data.count || 0);
+            const rawCount = response.data?.value ?? response.data;
+            const parsedCount = Number(rawCount);
+
+            setJoinRequestCount(Number.isFinite(parsedCount) ? parsedCount : 0);
         } catch (error) {
             console.error("Error fetching join request count:", error);
             setJoinRequestCount(0);
