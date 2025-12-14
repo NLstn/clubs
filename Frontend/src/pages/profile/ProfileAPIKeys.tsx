@@ -94,7 +94,7 @@ const ProfileAPIKeys = () => {
       setExpirationDays('');
       setShowCreateModal(false);
       setMessage('API Key created successfully');
-      refreshAPIKeys(); // Refresh the list
+      // Don't refresh immediately - let user see and copy the key
     } catch (error) {
       console.error('Error creating API key:', error);
       const err = error as { response?: { data?: { error?: { message?: string } } } };
@@ -230,7 +230,7 @@ const ProfileAPIKeys = () => {
             }}
             title="Create New API Key"
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <FormGroup>
                 <label>Key Name</label>
                 <Input
@@ -253,7 +253,7 @@ const ProfileAPIKeys = () => {
                 />
               </FormGroup>
 
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                 <Button
                   onClick={() => {
                     setShowCreateModal(false);
@@ -295,7 +295,7 @@ const ProfileAPIKeys = () => {
             onClose={() => setShowCreatedKeyModal(false)}
             title="API Key Created Successfully"
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div
                 style={{
                   padding: '1rem',
@@ -335,7 +335,7 @@ const ProfileAPIKeys = () => {
                 </>
               )}
 
-              <div style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
                 <Button
                   onClick={handleCopyToClipboard}
                   style={{
@@ -350,7 +350,10 @@ const ProfileAPIKeys = () => {
                   {copiedToClipboard ? '✓ Copied!' : 'Copy to Clipboard'}
                 </Button>
                 <Button
-                  onClick={() => setShowCreatedKeyModal(false)}
+                  onClick={() => {
+                    setShowCreatedKeyModal(false);
+                    refreshAPIKeys(); // Refresh after closing
+                  }}
                   style={{
                     padding: '0.5rem 1rem',
                     backgroundColor: '#6c757d',
