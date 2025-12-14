@@ -81,10 +81,14 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+    - name: Install SWA CLI
+      run: npm install -g @azure/static-web-apps-cli
+
     - name: Deploy to Azure Static Web App
       run: |
-        az staticwebapp deploy \
-          --name my-react-app-staging \
+        swa deploy ./Frontend/dist \
+          --app-name my-react-app-staging \
           --resource-group clubs-staging-rg \
-          --app-location ./Frontend/dist \
-          --no-wait
+          --tenant-id ${{ secrets.AZURE_TENANT_ID }} \
+          --subscription-id ${{ secrets.AZURE_SUBSCRIPTION_ID }} \
+          --no-use-keychain
