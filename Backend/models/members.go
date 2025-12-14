@@ -254,6 +254,14 @@ func (c *Club) canChangeRole(changingUser User, targetMember Member, newRole str
 	return false, nil
 }
 
+// BeforeCreate GORM hook - sets UUID if not provided
+func (m *Member) BeforeCreate(tx *gorm.DB) error {
+	if m.ID == "" {
+		m.ID = uuid.New().String()
+	}
+	return nil
+}
+
 // ODataBeforeReadCollection filters members to only those in clubs the user belongs to
 func (m Member) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
