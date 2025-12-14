@@ -1,22 +1,12 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../../../utils/api";
 import AddFine from "./AddFine";
 import AdminClubFineTemplateList from "./AdminClubFineTemplateList";
-import { Table, TableColumn, Modal, Button } from '@/components/ui';
+import { ODataTable, ODataTableColumn, Modal, Button } from '@/components/ui';
 import './AdminClubFineList.css';
 
 interface Fine {
-    id: string;
-    userName: string;
-    amount: number;
-    reason: string;
-    createdAt: string;
-    updatedAt: string;
-    paid: boolean;
-}
-
-interface ODataFine {
     ID: string;
     Amount: number;
     Reason: string;
@@ -24,7 +14,8 @@ interface ODataFine {
     UpdatedAt: string;
     Paid: boolean;
     User?: {
-        Name: string;
+        FirstName: string;
+        LastName: string;
     };
 }
 
@@ -32,39 +23,14 @@ const AdminClubFineList = () => {
 
     const { id } = useParams();
 
-    const [fines, setFines] = useState<Fine[]>([]);
     const [showAllFines, setShowAllFines] = useState(false);
     const [showFineTemplates, setShowFineTemplates] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
-    const fetchFines = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const response = await api.get(`/api/v2/Fines?$filter=ClubID eq '${id}'&$expand=User`);
-            // Ensure we always have an array, even if API returns null/undefined
-            const finesData = (response.data.value || []) as ODataFine[];
-            // Map OData response to expected format
-            const mappedFines = finesData.map((fine) => ({
-                id: fine.ID,
-                userName: fine.User?.Name || 'Unknown',
-                amount: fine.Amount,
-                reason: fine.Reason,
-                createdAt: fine.CreatedAt,
-                updatedAt: fine.UpdatedAt,
-                paid: fine.Paid
-            }));
-            setFines(Array.isArray(mappedFines) ? mappedFines : []);
-        } catch (err) {
-            setError("Failed to fetch fines: " + err);
-            // Reset fines to empty array on error to prevent stale data issues
-            setFines([]);
-        } finally {
-            setLoading(false);
-        }
-    }, [id]);
+    const refreshFines = useCallback(() => {
+        setRefreshKey(prev => prev + 1);
+    }, []);
 
     const handleDeleteFine = async (fineId: string) => {
         if (!confirm("Are you sure you want to delete this fine?")) {
@@ -73,53 +39,57 @@ const AdminClubFineList = () => {
 
         try {
             await api.delete(`/api/v2/Fines('${fineId}')`);
-            fetchFines(); // Refresh the list
+            refreshFines(); // Refresh the list
         } catch (err) {
-            setError("Failed to delete fine: " + err);
+            alert("Failed to delete fine: " + err);
         }
     };
 
-    useEffect(() => {
-        fetchFines();
-    }, [fetchFines]);
+    const filter = useMemo(() => {
+        const clubFilter = `ClubID eq '${id}'`;
+        if (showAllFines) {
+            return clubFilter;
+        }
+        return `${clubFilter} and Paid eq false`;
+    }, [id, showAllFines]);
 
-    const displayedFines = showAllFines ? fines : (fines || []).filter(fine => !fine.paid);
-    
-    // Calculate open fines statistics
-    const openFines = fines.filter(fine => !fine.paid);
-    const totalOpenFinesCount = openFines.length;
-    const totalOpenFinesAmount = openFines.reduce((sum, fine) => sum + fine.amount, 0);
-
-    const columns: TableColumn<Fine>[] = [
+    const columns: ODataTableColumn<Fine>[] = [
         {
             key: 'userName',
             header: 'User',
-            render: (fine) => fine.userName
+            render: (fine) => fine.User ? `${fine.User.FirstName} ${fine.User.LastName}` : 'Unknown',
+            sortable: true,
+            sortField: 'User/FirstName',
         },
         {
-            key: 'amount',
+            key: 'Amount',
             header: 'Amount',
-            render: (fine) => fine.amount
+            render: (fine) => fine.Amount,
+            sortable: true,
         },
         {
-            key: 'reason',
+            key: 'Reason',
             header: 'Reason',
-            render: (fine) => fine.reason
+            render: (fine) => fine.Reason,
+            sortable: true,
         },
         {
-            key: 'createdAt',
+            key: 'CreatedAt',
             header: 'Created At',
-            render: (fine) => new Date(fine.createdAt).toLocaleString()
+            render: (fine) => new Date(fine.CreatedAt).toLocaleString(),
+            sortable: true,
         },
         {
-            key: 'updatedAt',
+            key: 'UpdatedAt',
             header: 'Updated At',
-            render: (fine) => new Date(fine.updatedAt).toLocaleString()
+            render: (fine) => new Date(fine.UpdatedAt).toLocaleString(),
+            sortable: true,
         },
         {
-            key: 'paid',
+            key: 'Paid',
             header: 'Paid',
-            render: (fine) => fine.paid ? "Yes" : "No"
+            render: (fine) => fine.Paid ? "Yes" : "No",
+            sortable: true,
         },
         {
             key: 'actions',
@@ -128,7 +98,7 @@ const AdminClubFineList = () => {
                 <Button 
                     variant="cancel"
                     size="sm"
-                    onClick={() => handleDeleteFine(fine.id)}
+                    onClick={() => handleDeleteFine(fine.ID)}
                 >
                     Delete
                 </Button>
@@ -152,21 +122,18 @@ const AdminClubFineList = () => {
                     <Button variant="secondary" onClick={() => setShowFineTemplates(true)}>Manage Templates</Button>
                 </div>
             </div>
-            <Table
+            <ODataTable
+                key={`${refreshKey}-${showAllFines}`}
+                endpoint="/api/v2/Fines"
+                filter={filter}
+                expand="User"
                 columns={columns}
-                data={displayedFines}
-                keyExtractor={(fine) => fine.id}
-                loading={loading}
-                error={error}
+                keyExtractor={(fine) => fine.ID}
+                pageSize={10}
+                initialSortField="CreatedAt"
+                initialSortDirection="desc"
                 emptyMessage="No fines available"
                 loadingMessage="Loading fines..."
-                errorMessage="Failed to load fines"
-                footer={
-                    <div>
-                        <span>Open Fines: {totalOpenFinesCount}<br/></span>
-                        <span>Total Amount: {totalOpenFinesAmount.toFixed(2)}</span>
-                    </div>
-                }
             />
             <div style={{ marginTop: '20px' }}>
                 <Button variant="accept" onClick={() => setIsModalOpen(true)}>
@@ -177,7 +144,7 @@ const AdminClubFineList = () => {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 clubId={id || ''}
-                onSuccess={fetchFines}
+                onSuccess={refreshFines}
             />
             
             <Modal 

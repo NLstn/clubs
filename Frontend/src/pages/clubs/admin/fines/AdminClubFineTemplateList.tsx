@@ -1,21 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
-import { Input, Table, TableColumn, Button } from '@/components/ui';
+import { Input, ODataTable, ODataTableColumn, Button } from '@/components/ui';
 
 interface FineTemplate {
-    id: string;
-    club_id: string;
-    description: string;
-    amount: number;
-    created_at: string;
-    created_by: string;
-    updated_at: string;
-    updated_by: string;
-}
-
-interface ODataFineTemplate {
     ID: string;
     ClubID: string;
     Description: string;
@@ -29,42 +18,15 @@ interface ODataFineTemplate {
 const AdminClubFineTemplateList = () => {
     const { t } = useT();
     const { id: clubId } = useParams();
-    const [templates, setTemplates] = useState<FineTemplate[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [refreshKey, setRefreshKey] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState({ description: '', amount: 0 });
 
-    const fetchTemplates = useCallback(async () => {
-        try {
-            const response = await api.get(`/api/v2/FineTemplates?$filter=ClubID eq '${clubId}'`);
-            const templatesData = (response.data.value || []) as ODataFineTemplate[];
-            // Map OData response to expected format
-            const mappedTemplates = templatesData.map((template) => ({
-                id: template.ID,
-                club_id: template.ClubID,
-                description: template.Description,
-                amount: template.Amount,
-                created_at: template.CreatedAt,
-                created_by: template.CreatedBy,
-                updated_at: template.UpdatedAt,
-                updated_by: template.UpdatedBy
-            }));
-            setTemplates(mappedTemplates);
-            setLoading(false);
-        } catch (err: Error | unknown) {
-            console.error('Error fetching fine templates:', err instanceof Error ? err.message : 'Unknown error');
-            setError(t('fines.errors.fetchingTemplates'));
-            setLoading(false);
-        }
-    }, [clubId, t]);
-
-    useEffect(() => {
-        // Calling fetchTemplates here is the correct pattern for data fetching
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchTemplates();
-    }, [fetchTemplates]);
+    const refreshTemplates = useCallback(() => {
+        setRefreshKey(prev => prev + 1);
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -92,7 +54,7 @@ const AdminClubFineTemplateList = () => {
             setIsAdding(false);
             setEditingId(null);
             setError(null);
-            await fetchTemplates();
+            refreshTemplates();
         } catch (err: Error | unknown) {
             console.error('Error saving fine template:', err instanceof Error ? err.message : 'Unknown error');
             setError(t('fines.errors.savingTemplate'));
@@ -100,8 +62,8 @@ const AdminClubFineTemplateList = () => {
     };
 
     const handleEdit = (template: FineTemplate) => {
-        setFormData({ description: template.description, amount: template.amount });
-        setEditingId(template.id);
+        setFormData({ description: template.Description, amount: template.Amount });
+        setEditingId(template.ID);
         setIsAdding(true);
     };
 
@@ -110,7 +72,7 @@ const AdminClubFineTemplateList = () => {
 
         try {
             await api.delete(`/api/v2/FineTemplates('${templateId}')`);
-            await fetchTemplates();
+            refreshTemplates();
         } catch (err: Error | unknown) {
             console.error('Error deleting fine template:', err instanceof Error ? err.message : 'Unknown error');
             setError(t('fines.errors.deletingTemplate'));
@@ -124,16 +86,18 @@ const AdminClubFineTemplateList = () => {
         setError(null);
     };
 
-    const columns: TableColumn<FineTemplate>[] = [
+    const columns: ODataTableColumn<FineTemplate>[] = [
         {
-            key: 'description',
+            key: 'Description',
             header: t('fines.description'),
-            render: (template) => template.description
+            render: (template) => template.Description,
+            sortable: true,
         },
         {
-            key: 'amount',
+            key: 'Amount',
             header: t('fines.amount'),
-            render: (template) => `$${template.amount.toFixed(2)}`
+            render: (template) => `$${template.Amount.toFixed(2)}`,
+            sortable: true,
         },
         {
             key: 'actions',
@@ -150,7 +114,7 @@ const AdminClubFineTemplateList = () => {
                     <Button
                         size="sm"
                         variant="cancel"
-                        onClick={() => handleDelete(template.id)}
+                        onClick={() => handleDelete(template.ID)}
                     >
                         {t('common.delete')}
                     </Button>
@@ -207,15 +171,19 @@ const AdminClubFineTemplateList = () => {
                 </form>
             )}
 
-            <Table
+            {error && <div className="error" style={{ marginBottom: '1rem', color: 'var(--color-cancel)' }}>{error}</div>}
+
+            <ODataTable
+                key={refreshKey}
+                endpoint="/api/v2/FineTemplates"
+                filter={`ClubID eq '${clubId}'`}
                 columns={columns}
-                data={templates}
-                keyExtractor={(template) => template.id}
-                loading={loading}
-                error={error}
+                keyExtractor={(template) => template.ID}
+                pageSize={10}
                 emptyMessage={t('fines.noTemplates')}
                 loadingMessage={t('clubs.loading.fineTemplates')}
-                errorMessage={error || undefined}
+                initialSortField="Description"
+                initialSortDirection="asc"
             />
         </div>
     );

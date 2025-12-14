@@ -48,8 +48,8 @@ describe('AdminClubFineList', () => {
     const { default: api } = await import('../../../../../utils/api')
     const mockGet = vi.mocked(api.get)
     
-    // Mock API to return empty OData response
-    mockGet.mockResolvedValue({ data: { value: [] } })
+    // Mock API to return empty OData response with count
+    mockGet.mockResolvedValue({ data: { value: [], '@odata.count': 0 } })
 
     renderWithRouter(<AdminClubFineList />)
 
@@ -59,9 +59,13 @@ describe('AdminClubFineList', () => {
     expect(screen.getByText('Manage Templates')).toBeInTheDocument()
     expect(screen.getByText('Add Fine')).toBeInTheDocument()
 
-    // Wait for API call to complete
+    // Wait for API call to complete - ODataTable now makes calls with pagination params
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$filter=ClubID eq \'test-club-id\'&$expand=User')
+      expect(mockGet).toHaveBeenCalled()
+      const callArg = mockGet.mock.calls[0][0] as string
+      expect(callArg).toContain('/api/v2/Fines')
+      expect(callArg).toContain('$filter=ClubID eq \'test-club-id\' and Paid eq false')
+      expect(callArg).toContain('$expand=User')
     })
 
     // After loading is complete, check that table headers are rendered
@@ -74,8 +78,6 @@ describe('AdminClubFineList', () => {
       expect(screen.getByText('Paid')).toBeInTheDocument()
     })
 
-    // Verify no error is displayed
-    expect(screen.queryByText(/Failed to load fines/)).not.toBeInTheDocument()
     // Verify empty message is shown
     expect(screen.getByText('No fines available')).toBeInTheDocument()
   })
@@ -91,7 +93,7 @@ describe('AdminClubFineList', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$filter=ClubID eq \'test-club-id\'&$expand=User')
+      expect(mockGet).toHaveBeenCalled()
     })
 
     // Component should still render basic UI elements
@@ -110,7 +112,7 @@ describe('AdminClubFineList', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$filter=ClubID eq \'test-club-id\'&$expand=User')
+      expect(mockGet).toHaveBeenCalled()
     })
 
     // Component should still render basic UI elements
@@ -129,8 +131,9 @@ describe('AdminClubFineList', () => {
     renderWithRouter(<AdminClubFineList />)
 
     // Wait for API call to complete and error to be displayed
+    // ODataTable shows "Error loading data" by default
     await waitFor(() => {
-      expect(screen.getByText('Failed to load fines')).toBeInTheDocument()
+      expect(screen.getByText('Error loading data')).toBeInTheDocument()
     })
 
     // Component should still render basic UI elements
@@ -151,45 +154,37 @@ describe('AdminClubFineList', () => {
           CreatedAt: '2024-01-01T10:00:00Z',
           UpdatedAt: '2024-01-01T10:00:00Z',
           Paid: false,
-          User: { Name: 'John Doe' }
-        },
-        {
-          ID: '2',
-          Amount: 10.00,
-          Reason: 'Missed meeting',
-          CreatedAt: '2024-01-02T10:00:00Z',
-          UpdatedAt: '2024-01-02T10:00:00Z',
-          Paid: true,
-          User: { Name: 'Jane Smith' }
+          User: { FirstName: 'John', LastName: 'Doe' }
         }
-      ]
+      ],
+      '@odata.count': 1
     }
 
     mockGet.mockResolvedValue({ data: mockFines })
 
     renderWithRouter(<AdminClubFineList />)
 
-    // Wait for API call to complete
+    // Wait for API call to complete - ODataTable filters to Paid eq false by default
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$filter=ClubID eq \'test-club-id\'&$expand=User')
+      expect(mockGet).toHaveBeenCalled()
+      const callArg = mockGet.mock.calls[0][0] as string
+      expect(callArg).toContain('/api/v2/Fines')
+      expect(callArg).toContain('$filter=ClubID eq \'test-club-id\' and Paid eq false')
     })
 
-    // Check that fines are rendered (by default only unpaid fines)
+    // Check that fines are rendered (only unpaid fines by default)
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument()
       expect(screen.getByText('25.5')).toBeInTheDocument()
       expect(screen.getByText('Late arrival')).toBeInTheDocument()
     })
-
-    // Jane Smith's paid fine should not be visible by default
-    expect(screen.queryByText('Jane Smith')).not.toBeInTheDocument()
   })
 
   it('shows all fines when "Show all fines" is checked', async () => {
     const { default: api } = await import('../../../../../utils/api')
     const mockGet = vi.mocked(api.get)
     
-    const mockFines = {
+    const mockUnpaidFines = {
       value: [
         {
           ID: '1',
@@ -198,7 +193,22 @@ describe('AdminClubFineList', () => {
           CreatedAt: '2024-01-01T10:00:00Z',
           UpdatedAt: '2024-01-01T10:00:00Z',
           Paid: false,
-          User: { Name: 'John Doe' }
+          User: { FirstName: 'John', LastName: 'Doe' }
+        }
+      ],
+      '@odata.count': 1
+    }
+
+    const mockAllFines = {
+      value: [
+        {
+          ID: '1',
+          Amount: 25.50,
+          Reason: 'Late arrival',
+          CreatedAt: '2024-01-01T10:00:00Z',
+          UpdatedAt: '2024-01-01T10:00:00Z',
+          Paid: false,
+          User: { FirstName: 'John', LastName: 'Doe' }
         },
         {
           ID: '2',
@@ -207,25 +217,29 @@ describe('AdminClubFineList', () => {
           CreatedAt: '2024-01-02T10:00:00Z',
           UpdatedAt: '2024-01-02T10:00:00Z',
           Paid: true,
-          User: { Name: 'Jane Smith' }
+          User: { FirstName: 'Jane', LastName: 'Smith' }
         }
-      ]
+      ],
+      '@odata.count': 2
     }
 
-    mockGet.mockResolvedValue({ data: mockFines })
+    // First call returns unpaid fines
+    mockGet.mockResolvedValueOnce({ data: mockUnpaidFines })
 
     renderWithRouter(<AdminClubFineList />)
 
-    // Wait for API call to complete
+    // Wait for initial API call (unpaid fines only)
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$filter=ClubID eq \'test-club-id\'&$expand=User')
+      expect(mockGet).toHaveBeenCalled()
     })
 
     // Initially only unpaid fine should be visible
     await waitFor(() => {
       expect(screen.getByText('John Doe')).toBeInTheDocument()
     })
-    expect(screen.queryByText('Jane Smith')).not.toBeInTheDocument()
+
+    // Second call after checkbox returns all fines
+    mockGet.mockResolvedValueOnce({ data: mockAllFines })
 
     // Check the "Show all fines" checkbox
     const showAllCheckbox = screen.getByRole('checkbox', { name: /show all fines/i })
