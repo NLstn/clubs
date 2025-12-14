@@ -1,108 +1,77 @@
-import { useCallback, useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useParams } from "react-router-dom";
-import api from "../../utils/api";
-import { Table, TableColumn } from '@/components/ui';
+import { ODataTable, ODataTableColumn } from '@/components/ui';
 
 interface Fine {
-    id: string;
-    clubId: string;
-    amount: number;
-    reason: string;
-    createdAt: string;
-    updatedAt: string;
-    paid: boolean;
-    createdByName: string;
+    ID: string;
+    ClubID: string;
+    Amount: number;
+    Reason: string;
+    CreatedAt: string;
+    UpdatedAt: string;
+    Paid: boolean;
+    CreatedByUser?: {
+        FirstName: string;
+        LastName: string;
+    };
 }
 
 const MyOpenClubFines = () => {
     const { id } = useParams();
-    const [fines, setFines] = useState<Fine[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    const fetchFines = useCallback(async () => {
-        setLoading(true);
-        try {
-            // OData v2: Query Fines filtered by club ID, expand creator for name
-            const response = await api.get(
-                `/api/v2/Fines?$filter=ClubID eq '${id}'&$expand=CreatedByUser`
-            );
-            interface ODataFine { ID: string; ClubID: string; Amount: number; Reason: string; CreatedAt: string; UpdatedAt: string; Paid: boolean; CreatedByUser?: { FirstName: string; LastName: string; }; }
-            const finesData = response.data.value || [];
-            // Map OData response to match expected format
-            const mappedFines = finesData.map((fine: ODataFine) => ({
-                id: fine.ID,
-                clubId: fine.ClubID,
-                amount: fine.Amount,
-                reason: fine.Reason,
-                createdAt: fine.CreatedAt,
-                updatedAt: fine.UpdatedAt,
-                paid: fine.Paid,
-                createdByName: fine.CreatedByUser ? 
-                    `${fine.CreatedByUser.FirstName} ${fine.CreatedByUser.LastName}`.trim() : 
-                    'Unknown'
-            }));
-            setFines(mappedFines);
-            setError(null);
-        } catch (err) {
-            setError("Failed to fetch fines: " + err);
-            setFines([]);
-        } finally {
-            setLoading(false);
-        }
-    }, [id]);
-
-    useEffect(() => {
-        fetchFines();
-    }, [fetchFines]);
 
     // Define table columns
-    const columns: TableColumn<Fine>[] = [
+    const columns: ODataTableColumn<Fine>[] = [
         {
-            key: 'reason',
+            key: 'Reason',
             header: 'Reason',
-            render: (fine) => <span>{fine.reason}</span>
+            render: (fine) => <span>{fine.Reason}</span>,
+            sortable: true,
         },
         {
-            key: 'amount',
+            key: 'Amount',
             header: 'Amount',
-            render: (fine) => <span>${fine.amount.toFixed(2)}</span>
+            render: (fine) => <span>${fine.Amount.toFixed(2)}</span>,
+            sortable: true,
         },
         {
-            key: 'createdAt',
+            key: 'CreatedAt',
             header: 'Created At',
-            render: (fine) => <span>{new Date(fine.createdAt).toLocaleString()}</span>,
-            className: 'hide-mobile'
+            render: (fine) => <span>{new Date(fine.CreatedAt).toLocaleString()}</span>,
+            className: 'hide-mobile',
+            sortable: true,
         },
         {
             key: 'createdBy',
             header: 'Created By',
-            render: (fine) => <span>{fine.createdByName}</span>,
-            className: 'hide-small'
+            render: (fine) => <span>
+                {fine.CreatedByUser 
+                    ? `${fine.CreatedByUser.FirstName} ${fine.CreatedByUser.LastName}`.trim() 
+                    : 'Unknown'}
+            </span>,
+            className: 'hide-small',
+            sortable: true,
+            sortField: 'CreatedByUser/FirstName',
         }
     ];
 
-    // Filter open fines and calculate total
-    const openFines = fines.filter(fine => !fine.paid);
-    const totalAmount = openFines.reduce((sum, fine) => sum + fine.amount, 0);
+    const filter = useMemo(() => {
+        return `ClubID eq '${id}' and Paid eq false`;
+    }, [id]);
 
     return (
         <div className="content-section">
             <h3>My Open Fines</h3>
-            <Table
+            <ODataTable
+                endpoint="/api/v2/Fines"
+                filter={filter}
+                expand="CreatedByUser"
                 columns={columns}
-                data={openFines}
-                keyExtractor={(fine) => fine.id}
-                loading={loading}
-                error={error}
+                keyExtractor={(fine) => fine.ID}
+                pageSize={10}
+                initialSortField="CreatedAt"
+                initialSortDirection="desc"
                 emptyMessage="No open fines"
                 loadingMessage="Loading fines..."
-                errorMessage="Failed to load fines"
-                footer={
-                    openFines.length > 0 ? (
-                        <div>Total: ${totalAmount.toFixed(2)} across {openFines.length} fine{openFines.length !== 1 ? 's' : ''}</div>
-                    ) : null
-                }
             />
         </div>
     );

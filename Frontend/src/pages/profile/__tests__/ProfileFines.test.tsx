@@ -47,27 +47,27 @@ describe('ProfileFines', () => {
     const { default: api } = await import('../../../utils/api')
     const mockGet = vi.mocked(api.get)
     
-    // Mock API to return empty OData response
-    mockGet.mockResolvedValue({ status: 200, data: { value: [] } })
+    // Mock API to return empty OData response with count
+    mockGet.mockResolvedValue({ status: 200, data: { value: [], '@odata.count': 0 } })
 
     renderWithRouter(<ProfileFines />)
 
     // Check that basic UI elements are rendered
     expect(screen.getByText('Fines')).toBeInTheDocument()
 
-    // Wait for API call to complete
+    // Wait for API call to complete - ODataTable now makes calls with pagination params
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$expand=Club&$filter=Paid eq false or Paid eq true')
+      expect(mockGet).toHaveBeenCalled()
+      const callArg = mockGet.mock.calls[0][0] as string
+      expect(callArg).toContain('/api/v2/Fines')
+      expect(callArg).toContain('$expand=Club')
     })
 
     // Verify empty message is shown
     expect(screen.getByText('No fines found')).toBeInTheDocument()
-    
-    // Should not display footer with empty fines
-    expect(screen.queryByText(/Total:/)).not.toBeInTheDocument()
   })
 
-  it('renders fines and displays total amount in footer', async () => {
+  it('renders fines correctly', async () => {
     const { default: api } = await import('../../../utils/api')
     const mockGet = vi.mocked(api.get)
     
@@ -100,7 +100,8 @@ describe('ProfileFines', () => {
           Paid: false,
           Club: { Name: 'Test Club C' }
         }
-      ]
+      ],
+      '@odata.count': 3
     }
 
     mockGet.mockResolvedValue({ status: 200, data: mockFines })
@@ -109,7 +110,7 @@ describe('ProfileFines', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$expand=Club&$filter=Paid eq false or Paid eq true')
+      expect(mockGet).toHaveBeenCalled()
     })
 
     // Check that fines are rendered
@@ -121,15 +122,9 @@ describe('ProfileFines', () => {
       expect(screen.getByText('€10.00')).toBeInTheDocument()
       expect(screen.getByText('€15.75')).toBeInTheDocument()
     })
-
-    // Check that total amount is displayed in footer
-    // Total should be 25.50 + 10.00 + 15.75 = 51.25
-    await waitFor(() => {
-      expect(screen.getByText('Total: €51.25')).toBeInTheDocument()
-    })
   })
 
-  it('calculates total correctly with decimal amounts', async () => {
+  it('renders fines with decimal amounts correctly', async () => {
     const { default: api } = await import('../../../utils/api')
     const mockGet = vi.mocked(api.get)
     
@@ -153,7 +148,8 @@ describe('ProfileFines', () => {
           Paid: true,
           Club: { Name: 'Test Club' }
         }
-      ]
+      ],
+      '@odata.count': 2
     }
 
     mockGet.mockResolvedValue({ status: 200, data: mockFines })
@@ -162,13 +158,13 @@ describe('ProfileFines', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$expand=Club&$filter=Paid eq false or Paid eq true')
+      expect(mockGet).toHaveBeenCalled()
     })
 
-    // Check that total amount is calculated correctly
-    // Total should be 12.33 + 7.67 = 20.00
+    // Check that amounts are displayed correctly
     await waitFor(() => {
-      expect(screen.getByText('Total: €20.00')).toBeInTheDocument()
+      expect(screen.getByText('€12.33')).toBeInTheDocument()
+      expect(screen.getByText('€7.67')).toBeInTheDocument()
     })
   })
 
@@ -183,12 +179,10 @@ describe('ProfileFines', () => {
     renderWithRouter(<ProfileFines />)
 
     // Wait for API call to complete and error to be displayed
+    // ODataTable shows "Error loading data" by default
     await waitFor(() => {
-      expect(screen.getByText('Failed to load fines')).toBeInTheDocument()
+      expect(screen.getByText('Error loading data')).toBeInTheDocument()
     })
-
-    // Should not display footer when there's an error
-    expect(screen.queryByText(/Total:/)).not.toBeInTheDocument()
   })
 
   it('handles single fine correctly', async () => {
@@ -206,7 +200,8 @@ describe('ProfileFines', () => {
           Paid: false,
           Club: { Name: 'Test Club' }
         }
-      ]
+      ],
+      '@odata.count': 1
     }
 
     mockGet.mockResolvedValue({ status: 200, data: mockFines })
@@ -215,18 +210,13 @@ describe('ProfileFines', () => {
 
     // Wait for API call to complete
     await waitFor(() => {
-      expect(mockGet).toHaveBeenCalledWith('/api/v2/Fines?$expand=Club&$filter=Paid eq false or Paid eq true')
+      expect(mockGet).toHaveBeenCalled()
     })
 
     // Check that fine is rendered
     await waitFor(() => {
       expect(screen.getByText('Test Club')).toBeInTheDocument()
       expect(screen.getByText('€42.99')).toBeInTheDocument()
-    })
-
-    // Check that total matches the single fine amount
-    await waitFor(() => {
-      expect(screen.getByText('Total: €42.99')).toBeInTheDocument()
     })
   })
 })
