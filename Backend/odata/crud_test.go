@@ -604,7 +604,6 @@ func TestMemberCRUD(t *testing.T) {
 	})
 
 	t.Run("GET members with expanded user", func(t *testing.T) {
-		t.Skip("Navigation properties (expand) not yet implemented for Member entity - requires adding User and Club fields to Member model")
 		path := fmt.Sprintf("/Members?$filter=ClubID eq '%s'&$expand=User", ctx.testClub.ID)
 		resp := ctx.makeAuthenticatedRequest(t, "GET", path, nil)
 
