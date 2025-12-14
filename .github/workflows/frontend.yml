@@ -74,6 +74,11 @@ jobs:
         name: frontend-build
         path: ./Frontend/dist
 
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: '20'
+
     - name: Login to Azure
       uses: azure/login@v2
       with:
@@ -91,4 +96,5 @@ jobs:
           --resource-group clubs-staging-rg \
           --tenant-id ${{ secrets.AZURE_TENANT_ID }} \
           --subscription-id ${{ secrets.AZURE_SUBSCRIPTION_ID }} \
+          --env staging \
           --no-use-keychain
