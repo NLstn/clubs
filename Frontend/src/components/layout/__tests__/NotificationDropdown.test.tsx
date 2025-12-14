@@ -34,7 +34,7 @@ const mockNotifications = [
     EventID: 'event-1'
   },
   {
-    id: '3',
+    ID: '3',
     Type: 'error',
     Title: 'Fine Assigned',
     Message: 'You have been assigned a fine.',
@@ -219,7 +219,7 @@ describe('NotificationDropdown', () => {
 
   it('does not limit number of notifications displayed', () => {
     const manyNotifications = Array.from({ length: 15 }, (_, i) => ({
-      id: `${i + 1}`,
+      ID: `${i + 1}`,
       Type: 'info',
       Title: `Notification ${i + 1}`,
       Message: `Message ${i + 1}`,

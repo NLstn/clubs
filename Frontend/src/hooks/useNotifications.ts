@@ -9,10 +9,10 @@ export interface Notification {
   Message: string;
   Read: boolean;
   CreatedAt: string;
-  clubId?: string;
-  eventId?: string;
-  fineId?: string;
-  inviteId?: string;
+  ClubID?: string;
+  EventID?: string;
+  FineID?: string;
+  InviteID?: string;
 }
 
 export interface NotificationPreferences {
@@ -43,21 +43,34 @@ export const useNotifications = () => {
       // OData v2: Query Notifications with optional top limit, ordered by creation date
       const topParam = limit ? `&$top=${limit}` : '';
       const response = await api.get(`/api/v2/Notifications?$orderby=CreatedAt desc${topParam}`);
-      interface ODataNotification { ID: string; UserID: string; Type: string; Title: string; Message: string; Read?: boolean; IsRead?: boolean; CreatedAt: string; ClubID?: string; EventID?: string; FineID?: string; InviteID?: string; }
+      interface ODataNotification {
+        ID: string;
+        UserID: string;
+        Type: string;
+        Title: string;
+        Message: string;
+        Read?: boolean;
+        IsRead?: boolean;
+        CreatedAt: string;
+        ClubID?: string;
+        EventID?: string;
+        FineID?: string;
+        InviteID?: string;
+      }
       const notificationsData = response.data.value || [];
       // Map OData response to match expected format
       const mappedNotifications = notificationsData.map((n: ODataNotification) => ({
-        id: n.ID,
-        userId: n.UserID,
-        type: n.Type,
-        title: n.Title,
-        message: n.Message,
-        read: n.Read || n.IsRead,
-        createdAt: n.CreatedAt,
-        clubId: n.ClubID,
-        eventId: n.EventID,
-        fineId: n.FineID,
-        inviteId: n.InviteID
+        ID: n.ID,
+        UserID: n.UserID,
+        Type: n.Type,
+        Title: n.Title,
+        Message: n.Message,
+        Read: n.Read ?? n.IsRead ?? false,
+        CreatedAt: n.CreatedAt,
+        ClubID: n.ClubID,
+        EventID: n.EventID,
+        FineID: n.FineID,
+        InviteID: n.InviteID
       }));
       setNotifications(mappedNotifications);
     } catch (err) {
@@ -86,11 +99,9 @@ export const useNotifications = () => {
       await api.post(`/api/v2/Notifications('${notificationId}')/MarkAsRead`);
       
       // Update local state
-      setNotifications(prev => 
-        prev.map(notification => 
-          notification.ID === notificationId 
-            ? { ...notification, read: true }
-            : notification
+      setNotifications(prev =>
+        prev.map(notification =>
+          notification.ID === notificationId ? { ...notification, Read: true } : notification
         )
       );
       
@@ -107,8 +118,8 @@ export const useNotifications = () => {
       await api.post('/api/v2/MarkAllNotificationsRead');
       
       // Update local state
-      setNotifications(prev => 
-        prev.map(notification => ({ ...notification, read: true }))
+      setNotifications(prev =>
+        prev.map(notification => ({ ...notification, Read: true }))
       );
       
       // Reset unread count
@@ -125,7 +136,7 @@ export const useNotifications = () => {
       
       // Update local state
       setNotifications(prev => prev.filter(n => n.ID !== notificationId));
-      
+
       // Update unread count if notification was unread
       const notification = notifications.find(n => n.ID === notificationId);
       if (notification && !notification.Read) {
