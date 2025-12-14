@@ -29,6 +29,9 @@ const AdminClubFineTemplateList = () => {
         setRefreshKey(prev => prev + 1);
     }, []);
 
+    // Use ODataFilter helpers to safely escape values and prevent filter injection
+    const filter = useMemo(() => ODataFilter.eq('ClubID', clubId || ''), [clubId]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.description || formData.amount <= 0) {
@@ -177,7 +180,7 @@ const AdminClubFineTemplateList = () => {
             <ODataTable
                 key={refreshKey}
                 endpoint="/api/v2/FineTemplates"
-                filter={useMemo(() => ODataFilter.eq('ClubID', clubId || ''), [clubId])}
+                filter={filter}
                 columns={columns}
                 keyExtractor={(template) => template.ID}
                 pageSize={10}
