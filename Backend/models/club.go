@@ -174,11 +174,15 @@ func (c *Club) ODataAfterCreate(ctx context.Context, r *http.Request) error {
 	}
 
 	// Create member record with owner role
+	now := time.Now()
 	member := Member{
+		ID:        uuid.New().String(),
 		ClubID:    c.ID,
 		UserID:    c.CreatedBy,
 		Role:      "owner",
+		CreatedAt: now,
 		CreatedBy: c.CreatedBy,
+		UpdatedAt: now,
 		UpdatedBy: c.CreatedBy,
 	}
 
