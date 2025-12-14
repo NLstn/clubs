@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/NLstn/clubs/auth"
@@ -22,9 +21,9 @@ import (
 // TestCreateClubForNewUser tests creating a club for a user who has no existing club memberships
 // This is the scenario that was failing in production
 func TestCreateClubForNewUser(t *testing.T) {
-	// Set test environment
-	os.Setenv("GO_ENV", "test")
-	os.Setenv("JWT_SECRET", "test-secret-key-for-testing")
+	// Set test environment - t.Setenv automatically restores after test
+	t.Setenv("GO_ENV", "test")
+	t.Setenv("JWT_SECRET", "test-secret-key-for-testing")
 
 	// Initialize auth with test secret
 	err := auth.Init()
@@ -77,10 +76,10 @@ func TestCreateClubForNewUser(t *testing.T) {
 		updated_by TEXT
 	)`)
 
-	// Clean up
-	testDB.Exec("DELETE FROM users")
-	testDB.Exec("DELETE FROM clubs")
-	testDB.Exec("DELETE FROM members")
+	// Clean up - ensure cleanup succeeds
+	require.NoError(t, testDB.Exec("DELETE FROM users").Error, "Failed to clean users")
+	require.NoError(t, testDB.Exec("DELETE FROM clubs").Error, "Failed to clean clubs")
+	require.NoError(t, testDB.Exec("DELETE FROM members").Error, "Failed to clean members")
 
 	// Create OData service
 	service, err := NewService(database.Db)
