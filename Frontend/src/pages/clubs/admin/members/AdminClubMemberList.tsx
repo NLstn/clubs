@@ -19,6 +19,19 @@ interface Member {
     birthDate?: string; // Add birth date field
 }
 
+interface MemberResponse {
+    ID: string;
+    ClubID: string;
+    UserID: string;
+    Role: string;
+    CreatedAt: string;
+    User?: {
+        FirstName: string;
+        LastName: string;
+        BirthDate?: string;
+    };
+}
+
 interface AdminClubMemberListProps {
     openJoinRequests?: boolean;
 }
@@ -65,11 +78,23 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             setError(null);
             // OData v2: Query Members with expanded User data
             const response = await api.get(`/api/v2/Members?$filter=ClubID eq '${id}'&$expand=User`);
-            const sortedMembers = sortMembersByRole(response.data);
+            const odataMembers = response.data.value || [];
+            
+            // Transform OData response (PascalCase) to frontend interface (camelCase)
+            const transformedMembers = odataMembers.map((m: MemberResponse) => ({
+                id: m.ID,
+                userId: m.UserID,
+                role: m.Role,
+                joinedAt: m.CreatedAt,
+                name: m.User ? `${m.User.FirstName} ${m.User.LastName}` : 'Unknown',
+                birthDate: m.User?.BirthDate
+            }));
+            
+            const sortedMembers = sortMembersByRole(transformedMembers);
             setMembers(sortedMembers);
 
             // Set the current user's role if available
-            const currentUserMember = response.data.find((member: Member) => member.userId === currentUser?.ID);
+            const currentUserMember = transformedMembers.find((member: Member) => member.userId === currentUser?.ID);
             if (currentUserMember) {
                 setCurrentUserRole(currentUserMember.role);
             }

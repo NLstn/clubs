@@ -25,6 +25,9 @@ type Member struct {
 	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
 	UpdatedAt time.Time `json:"UpdatedAt"`
 	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
+
+	// Navigation properties for OData
+	User User `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
 }
 
 func (c *Club) IsOwner(user User) bool {
