@@ -4,6 +4,7 @@ import api from "../../../../utils/api";
 import AddFine from "./AddFine";
 import AdminClubFineTemplateList from "./AdminClubFineTemplateList";
 import { ODataTable, ODataTableColumn, Modal, Button } from '@/components/ui';
+import { ODataFilter } from '../../../../utils/odata';
 import './AdminClubFineList.css';
 
 interface Fine {
@@ -46,11 +47,12 @@ const AdminClubFineList = () => {
     };
 
     const filter = useMemo(() => {
-        const clubFilter = `ClubID eq '${id}'`;
+        // Use ODataFilter helpers to safely escape values and prevent filter injection
+        const clubFilter = ODataFilter.eq('ClubID', id || '');
         if (showAllFines) {
             return clubFilter;
         }
-        return `${clubFilter} and Paid eq false`;
+        return ODataFilter.and(clubFilter, ODataFilter.eq('Paid', false));
     }, [id, showAllFines]);
 
     const columns: ODataTableColumn<Fine>[] = [

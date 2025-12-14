@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { ODataTable, ODataTableColumn, Button } from '@/components/ui';
 import api from "../../../../utils/api";
+import { ODataFilter } from '../../../../utils/odata';
 
 interface JoinRequest {
     ID: string;
@@ -24,6 +25,7 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
             onRequestsChange?.(); // Notify parent component about the change
         } catch (error) {
             console.error("Error approving join request:", error);
+            alert("Failed to approve join request. Please try again.");
         }
     };
 
@@ -35,6 +37,7 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
             onRequestsChange?.(); // Notify parent component about the change
         } catch (error) {
             console.error("Error rejecting join request:", error);
+            alert("Failed to reject join request. Please try again.");
         }
     };
 
@@ -71,13 +74,16 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
         }
     ];
 
+    // Use ODataFilter helpers to safely escape values and prevent filter injection
+    const filter = useMemo(() => ODataFilter.eq('ClubID', id || ''), [id]);
+
     return (
         <div>
             <p>People who want to join your club via invitation link:</p>
             <ODataTable
                 key={refreshKey}
                 endpoint="/api/v2/JoinRequests"
-                filter={`ClubID eq '${id}'`}
+                filter={filter}
                 expand="User"
                 columns={columns}
                 keyExtractor={(request) => request.ID}

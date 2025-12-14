@@ -64,7 +64,8 @@ describe('AdminClubFineList', () => {
       expect(mockGet).toHaveBeenCalled()
       const callArg = mockGet.mock.calls[0][0] as string
       expect(callArg).toContain('/api/v2/Fines')
-      expect(callArg).toContain('$filter=ClubID eq \'test-club-id\' and Paid eq false')
+      // ODataFilter.and wraps expressions in parentheses
+      expect(callArg).toContain('$filter=(ClubID eq \'test-club-id\') and (Paid eq false)')
       expect(callArg).toContain('$expand=User')
     })
 
@@ -169,7 +170,8 @@ describe('AdminClubFineList', () => {
       expect(mockGet).toHaveBeenCalled()
       const callArg = mockGet.mock.calls[0][0] as string
       expect(callArg).toContain('/api/v2/Fines')
-      expect(callArg).toContain('$filter=ClubID eq \'test-club-id\' and Paid eq false')
+      // ODataFilter.and wraps expressions in parentheses
+      expect(callArg).toContain('$filter=(ClubID eq \'test-club-id\') and (Paid eq false)')
     })
 
     // Check that fines are rendered (only unpaid fines by default)
