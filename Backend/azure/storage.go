@@ -18,15 +18,15 @@ import (
 var blobClient *azblob.Client
 var storageAccountName string
 var containerName string
-var cdnEndpoint string
+var storageBaseURL string
 
 func InitStorage() error {
 	storageAccountName = os.Getenv("AZURE_STORAGE_ACCOUNT_NAME")
 	containerName = os.Getenv("AZURE_STORAGE_CONTAINER_NAME")
-	cdnEndpoint = os.Getenv("AZURE_CDN_ENDPOINT")
+	storageBaseURL = os.Getenv("AZURE_STORAGE_BASE_URL")
 
-	if storageAccountName == "" || containerName == "" || cdnEndpoint == "" {
-		return fmt.Errorf("AZURE_STORAGE_ACCOUNT_NAME, AZURE_STORAGE_CONTAINER_NAME, and AZURE_CDN_ENDPOINT must be set")
+	if storageAccountName == "" || containerName == "" || storageBaseURL == "" {
+		return fmt.Errorf("AZURE_STORAGE_ACCOUNT_NAME, AZURE_STORAGE_CONTAINER_NAME, and AZURE_STORAGE_BASE_URL must be set")
 	}
 
 	serviceURL := fmt.Sprintf("https://%s.blob.core.windows.net/", storageAccountName)
@@ -40,7 +40,7 @@ func InitStorage() error {
 	return nil
 }
 
-// UploadClubLogo uploads a club logo to Azure Blob Storage and returns the CDN URL
+// UploadClubLogo uploads a club logo to Azure Blob Storage and returns the storage URL
 func UploadClubLogo(clubID string, file multipart.File, header *multipart.FileHeader) (string, error) {
 	if blobClient == nil {
 		return "", fmt.Errorf("blob client not initialized")
@@ -86,9 +86,9 @@ func UploadClubLogo(clubID string, file multipart.File, header *multipart.FileHe
 		return "", fmt.Errorf("failed to upload file: %v", err)
 	}
 
-	// Return CDN URL
-	cdnURL := fmt.Sprintf("%s/club-assets/%s", strings.TrimSuffix(cdnEndpoint, "/"), blobName)
-	return cdnURL, nil
+	// Return storage URL
+	storageURL := fmt.Sprintf("%s/club-assets/%s", strings.TrimSuffix(storageBaseURL, "/"), blobName)
+	return storageURL, nil
 }
 
 // DeleteClubLogo deletes a club logo from Azure Blob Storage
@@ -97,7 +97,7 @@ func DeleteClubLogo(logoURL string) error {
 		return fmt.Errorf("blob client not initialized")
 	}
 
-	// Extract blob name from CDN URL
+	// Extract blob name from storage URL
 	blobName := extractBlobNameFromURL(logoURL)
 	if blobName == "" {
 		return fmt.Errorf("invalid logo URL")
@@ -145,8 +145,8 @@ func getExtensionFromContentType(contentType string) string {
 }
 
 func extractBlobNameFromURL(url string) string {
-	// Extract blob name from CDN URL
-	// Assuming CDN URL format: https://cdn-endpoint.com/club-assets/blob-name
+	// Extract blob name from storage URL
+	// Assuming storage URL format: https://storage-account.blob.core.windows.net/club-assets/blob-name
 	parts := strings.Split(url, "/")
 	if len(parts) < 2 {
 		return ""

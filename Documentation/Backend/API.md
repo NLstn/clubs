@@ -121,7 +121,7 @@ The API uses JWT-based authentication with magic link email authentication. Most
     "id": "club-uuid",
     "name": "Club Name",
     "description": "Club Description",
-    "logo_url": "https://your-cdn-endpoint.azureedge.net/club-logos/club-id-uuid.jpg",
+    "logo_url": "https://storage-account.blob.core.windows.net/club-assets/club-id-uuid.jpg",
     "user_role": "owner"
   }
 ]
@@ -150,7 +150,7 @@ The API uses JWT-based authentication with magic link email authentication. Most
   "id": "club-uuid",
   "name": "Club Name",
   "description": "Club Description",
-  "logo_url": "https://your-cdn-endpoint.azureedge.net/club-logos/club-id-uuid.jpg"
+  "logo_url": "https://storage-account.blob.core.windows.net/club-assets/club-id-uuid.jpg"
 }
 ```
 
@@ -268,7 +268,7 @@ The API uses JWT-based authentication with magic link email authentication. Most
 - `200 OK` - Logo uploaded successfully
 ```json
 {
-  "logo_url": "https://your-cdn-endpoint.azureedge.net/club-logos/club-id-uuid.jpg",
+  "logo_url": "https://storage-account.blob.core.windows.net/club-assets/club-id-uuid.jpg",
   "message": "Logo uploaded successfully"
 }
 ```
