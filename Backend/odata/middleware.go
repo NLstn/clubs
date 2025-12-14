@@ -3,6 +3,7 @@ package odata
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -10,7 +11,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// AuthMiddleware wraps the OData service with JWT authentication
+// AuthMiddleware wraps the OData service with JWT and API Key authentication
+// Supports both Bearer tokens (JWT) and ApiKey scheme
 func AuthMiddleware(jwtSecret []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -22,44 +24,62 @@ func AuthMiddleware(jwtSecret []byte) func(http.Handler) http.Handler {
 				return
 			}
 
-			// Extract and validate JWT token
 			authHeader := r.Header.Get("Authorization")
-			if authHeader == "" {
-				http.Error(w, "Authorization header required", http.StatusUnauthorized)
-				return
-			}
+			var userID string
+			var err error
 
-			// Expected format: "Bearer <token>"
-			parts := strings.SplitN(authHeader, " ", 2)
-			if len(parts) != 2 || parts[0] != "Bearer" {
+			// Try Bearer token (JWT) first if Authorization header exists
+			if authHeader != "" && strings.HasPrefix(authHeader, "Bearer ") {
+				tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+
+				// Parse and validate JWT token
+				token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+					if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+						return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+					}
+					return jwtSecret, nil
+				})
+
+				if err != nil || !token.Valid {
+					http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
+					return
+				}
+
+				claims, ok := token.Claims.(jwt.MapClaims)
+				if !ok || claims["user_id"] == nil {
+					http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+					return
+				}
+
+				userID, ok = claims["user_id"].(string)
+				if !ok || userID == "" {
+					http.Error(w, "Invalid user ID in token", http.StatusUnauthorized)
+					return
+				}
+			} else if authHeader != "" && strings.HasPrefix(authHeader, "ApiKey ") {
+				// Try API key authentication if ApiKey scheme is used
+				apiKey := strings.TrimPrefix(authHeader, "ApiKey ")
+				userID, _, err = auth.ValidateAPIKey(apiKey)
+				if err != nil {
+					log.Printf("API key validation failed: %v", err)
+					http.Error(w, "Invalid API key", http.StatusUnauthorized)
+					return
+				}
+			} else if apiKey := r.Header.Get("X-API-Key"); apiKey != "" {
+				// Also support X-API-Key header as convenience
+				userID, _, err = auth.ValidateAPIKey(apiKey)
+				if err != nil {
+					log.Printf("API key validation failed: %v", err)
+					http.Error(w, "Invalid API key", http.StatusUnauthorized)
+					return
+				}
+			} else if authHeader != "" {
+				// If Authorization header exists but doesn't match any known format
 				http.Error(w, "Invalid authorization header format", http.StatusUnauthorized)
 				return
-			}
-
-			tokenStr := parts[1]
-
-			// Parse and validate JWT token
-			token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-				}
-				return jwtSecret, nil
-			})
-
-			if err != nil || !token.Valid {
-				http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
-				return
-			}
-
-			claims, ok := token.Claims.(jwt.MapClaims)
-			if !ok || claims["user_id"] == nil {
-				http.Error(w, "Invalid token claims", http.StatusUnauthorized)
-				return
-			}
-
-			userID, ok := claims["user_id"].(string)
-			if !ok || userID == "" {
-				http.Error(w, "Invalid user ID in token", http.StatusUnauthorized)
+			} else {
+				// No authorization provided at all
+				http.Error(w, "Authorization header required", http.StatusUnauthorized)
 				return
 			}
 
