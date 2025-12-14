@@ -85,10 +85,11 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     - name: Deploy to Azure Static Web App
+      working-directory: /home/runner/work/clubs/clubs
       run: |
         az staticwebapp deploy \
           --name my-react-app-staging \
           --resource-group clubs-staging-rg \
-          --app-location ./ \
+          --app-location Frontend \
           --output-location dist \
           --no-wait
