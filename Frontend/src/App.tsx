@@ -3,6 +3,8 @@ import { lazy, Suspense } from 'react';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthProvider';
 import { ThemeProvider } from './context/ThemeProvider';
+import { ToastProvider } from './context/ToastProvider';
+import ToastContainer from './components/ui/ToastContainer';
 
 // Lazy load page components for code splitting
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -46,8 +48,10 @@ function App() {
     return (
         <ThemeProvider>
             <AuthProvider>
-                <BrowserRouter>
-                    <Suspense fallback={<PageLoader />}>
+                <ToastProvider>
+                    <BrowserRouter>
+                        <ToastContainer />
+                        <Suspense fallback={<PageLoader />}>
                         <Routes data-testid="routes">
                         <Route path="/" element={
                             <ProtectedRoute>
@@ -240,6 +244,7 @@ function App() {
                     </Routes>
                 </Suspense>
             </BrowserRouter>
+        </ToastProvider>
         </AuthProvider>
         </ThemeProvider>
     );

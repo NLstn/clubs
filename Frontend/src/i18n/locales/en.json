@@ -232,5 +232,30 @@
       "saving": "Saving..."
     },
     "note": "In-app notifications appear in the notification bell icon. Email notifications are sent to your registered email address."
+  },
+  "toast": {
+    "success": {
+      "saved": "Saved successfully!",
+      "created": "Created successfully!",
+      "updated": "Updated successfully!",
+      "deleted": "Deleted successfully!",
+      "copied": "Copied to clipboard!"
+    },
+    "error": {
+      "generic": "An error occurred. Please try again.",
+      "network": "Network error. Please check your connection.",
+      "save": "Failed to save. Please try again.",
+      "load": "Failed to load data. Please try again.",
+      "delete": "Failed to delete. Please try again.",
+      "permission": "You don't have permission to perform this action."
+    },
+    "info": {
+      "loading": "Loading...",
+      "processing": "Processing..."
+    },
+    "warning": {
+      "unsavedChanges": "You have unsaved changes.",
+      "confirmAction": "Please confirm this action."
+    }
   }
 }

@@ -220,5 +220,30 @@
       "saving": "Speichern..."
     },
     "note": "In-App-Benachrichtigungen erscheinen im Benachrichtigungsglocken-Symbol. E-Mail-Benachrichtigungen werden an Ihre registrierte E-Mail-Adresse gesendet."
+  },
+  "toast": {
+    "success": {
+      "saved": "Erfolgreich gespeichert!",
+      "created": "Erfolgreich erstellt!",
+      "updated": "Erfolgreich aktualisiert!",
+      "deleted": "Erfolgreich gelöscht!",
+      "copied": "In die Zwischenablage kopiert!"
+    },
+    "error": {
+      "generic": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
+      "network": "Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung.",
+      "save": "Speichern fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "load": "Laden der Daten fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "delete": "Löschen fehlgeschlagen. Bitte versuchen Sie es erneut.",
+      "permission": "Sie haben keine Berechtigung, diese Aktion auszuführen."
+    },
+    "info": {
+      "loading": "Lädt...",
+      "processing": "Wird verarbeitet..."
+    },
+    "warning": {
+      "unsavedChanges": "Sie haben nicht gespeicherte Änderungen.",
+      "confirmAction": "Bitte bestätigen Sie diese Aktion."
+    }
   }
 }
