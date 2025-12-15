@@ -27,6 +27,12 @@ const PublicClubDetails = () => {
 
     useEffect(() => {
         const fetchData = async () => {
+            if (!id) {
+                setError('No club ID provided');
+                setLoading(false);
+                return;
+            }
+
             try {
                 // OData v2: Fetch public club details
                 const response = await api.get(`/api/v2/Clubs('${id}')/GetPublicDetails()`);
@@ -59,12 +65,7 @@ const PublicClubDetails = () => {
             }
         };
 
-        if (id) {
-            fetchData();
-        } else {
-            setError('No club ID provided');
-            setLoading(false);
-        }
+        fetchData();
     }, [id, t, navigate]);
 
     if (loading) return <div>Loading...</div>;
