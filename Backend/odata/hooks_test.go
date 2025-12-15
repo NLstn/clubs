@@ -48,29 +48,28 @@ func TestAuthorizationQueryFiltering(t *testing.T) {
 	handlers.CreateTestMember(t, user1, club2, "member")
 
 	t.Run("club_filtering_rule", func(t *testing.T) {
-		// User1 should see:
-		// - Club1 (member via ownership)
-		// - Club2 (member via membership)
+		// After removing membership filter from Club entity:
+		// All non-deleted clubs are visible
+		// Users should access their clubs via User -> Members -> Club navigation
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1.ID)
 
 		var clubs []models.Club
-		// Simulate authorization query:
-		// (deleted = false AND id IN (SELECT club_id FROM members WHERE user_id = ?)) OR created_by = ?
+		// Clubs are now filtered only by soft-delete status
 		query := database.Db.WithContext(ctx).Where(
-			"(deleted = false AND id IN (SELECT club_id FROM members WHERE user_id = ?)) OR created_by = ?",
-			user1.ID, user1.ID,
+			"deleted = false",
 		).Find(&clubs)
 
 		assert.NoError(t, query.Error)
-		assert.Len(t, clubs, 2)
+		// Should see both clubs (not filtered by membership)
+		assert.True(t, len(clubs) >= 2)
 
 		// Verify both clubs are present
 		clubIDs := map[string]bool{club1.ID: false, club2.ID: false}
 		for _, club := range clubs {
 			clubIDs[club.ID] = true
 		}
-		assert.True(t, clubIDs[club1.ID], "User1 should see Club1")
-		assert.True(t, clubIDs[club2.ID], "User1 should see Club2")
+		assert.True(t, clubIDs[club1.ID], "Club1 should be visible")
+		assert.True(t, clubIDs[club2.ID], "Club2 should be visible")
 	})
 
 	t.Run("member_filtering_rule", func(t *testing.T) {
@@ -108,9 +107,9 @@ func TestAuthorizationQueryFiltering(t *testing.T) {
 	})
 
 	t.Run("deleted_club_visibility_rule", func(t *testing.T) {
-		// Authorization rule for deleted clubs:
-		// Only creators can see deleted clubs they created
-		// Formula: (deleted = false AND id IN (SELECT club_id FROM members WHERE user_id = ?)) OR created_by = ?
+		// After removing membership filter from Club entity:
+		// Soft-deleted clubs are filtered out for all users
+		// Formula: WHERE deleted = false
 		// This test documents the rule rather than testing state changes
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1.ID)
 
@@ -176,11 +175,12 @@ func TestAuthorizationDocumentation(t *testing.T) {
 	})
 
 	t.Run("clubs_filtered_by_membership", func(t *testing.T) {
-		// Rule: User can read clubs where they are members OR created
-		// Implementation: (deleted = false AND id IN (SELECT club_id FROM members WHERE user_id = ?)) OR created_by = ?
-		// Non-deleted clubs where user is member, or any club user created
-		t.Log("Clubs filtered by: (deleted = false AND in member) OR created_by")
-		t.Log("Owners can see their deleted clubs")
+		// After removing membership filter from Club entity:
+		// Clubs are only filtered by soft-delete status
+		// Users should access their clubs via User -> Members -> Club navigation
+		// Implementation: WHERE deleted = false
+		t.Log("Clubs filtered by: deleted = false only")
+		t.Log("Use User -> Members -> Club navigation to get user's clubs")
 	})
 
 	t.Run("team_members_and_events_follow_club_membership", func(t *testing.T) {
