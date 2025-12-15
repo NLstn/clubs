@@ -35,12 +35,13 @@ const ProfilePrivacy = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                setIsLoading(true);
+                
                 // Wait for current user to be loaded
                 if (!currentUser?.ID) {
+                    setIsLoading(false);
                     return;
                 }
-
-                setIsLoading(true);
                 
                 // OData v2: Fetch privacy settings
                 const privacyResponse = await api.get('/api/v2/UserPrivacySettings');
