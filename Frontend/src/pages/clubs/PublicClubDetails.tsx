@@ -106,21 +106,21 @@ const PublicClubDetails = () => {
                 {/* Content - Limited view for non-members */}
                 <div className="club-content">
                     <Card variant="light" padding="lg">
-                        <h3>Interested in joining?</h3>
-                        <p>This is a public preview of {clubDetails.Name}. To see more details and join this club, please request access.</p>
+                        <h3>{t('clubs.interestedInJoining')}</h3>
+                        <p>{t('clubs.publicPreview', { clubName: clubDetails.Name })}</p>
                         <Button 
                             variant="primary"
                             onClick={() => navigate(`/join/${id}`)}
                             style={{ marginTop: 'var(--space-md)' }}
                         >
-                            Request to Join
+                            {t('clubs.requestToJoin')}
                         </Button>
                         <Button 
                             variant="secondary"
                             onClick={() => navigate('/clubs')}
                             style={{ marginTop: 'var(--space-md)', marginLeft: 'var(--space-sm)' }}
                         >
-                            Back to My Clubs
+                            {t('clubs.backToMyClubs')}
                         </Button>
                     </Card>
                 </div>
