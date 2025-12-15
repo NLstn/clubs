@@ -23,6 +23,9 @@ type User struct {
 	BirthDate  *time.Time `json:"BirthDate,omitempty" gorm:"type:date" odata:"nullable"`
 	CreatedAt  time.Time  `json:"CreatedAt" odata:"immutable"`
 	UpdatedAt  time.Time  `json:"UpdatedAt"`
+
+	// Navigation properties for OData
+	Members []Member `gorm:"foreignKey:UserID" json:"Members,omitempty" odata:"nav"`
 }
 
 type RefreshToken struct {

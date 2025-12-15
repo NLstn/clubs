@@ -28,6 +28,7 @@ type Member struct {
 
 	// Navigation properties for OData
 	User User `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
+	Club Club `gorm:"foreignKey:ClubID" json:"Club,omitempty" odata:"nav"`
 }
 
 func (c *Club) IsOwner(user User) bool {

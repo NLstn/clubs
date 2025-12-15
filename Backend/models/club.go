@@ -242,33 +242,31 @@ func (c *Club) ODataAfterUpdate(ctx context.Context, r *http.Request) error {
 	return nil
 }
 
-// ODataBeforeReadCollection OData read hook - filters clubs by membership and excludes soft-deleted clubs
+// ODataBeforeReadCollection OData read hook - filters out soft-deleted clubs
 func (c Club) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see clubs they are a member of
-	// Also filter out soft-deleted clubs
+	// Filter out soft-deleted clubs
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("id IN (SELECT club_id FROM members WHERE user_id = ?) AND deleted = ?", userID, false)
+		return db.Where("deleted = ?", false)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
 }
 
-// ODataBeforeReadEntity OData read hook - validates membership and prevents reading soft-deleted clubs
+// ODataBeforeReadEntity OData read hook - prevents reading soft-deleted clubs
 func (c Club) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see clubs they are a member of
-	// Also filter out soft-deleted clubs
+	// Filter out soft-deleted clubs
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("id IN (SELECT club_id FROM members WHERE user_id = ?) AND deleted = ?", userID, false)
+		return db.Where("deleted = ?", false)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
