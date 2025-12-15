@@ -55,7 +55,10 @@ const ClubDetails = () => {
                     logo_url: clubData.LogoURL,
                     deleted: clubData.Deleted
                 });
-                setIsAdmin(adminResponse.data.IsAdmin);
+                
+                // Handle OData function response - might be wrapped in 'value' property
+                const adminData = adminResponse.data.value || adminResponse.data;
+                setIsAdmin(adminData.IsAdmin);
 
                 // Get user's role by fetching club members and finding current user
                 try {
@@ -193,14 +196,6 @@ const ClubDetails = () => {
                         <h1 className="club-title">{club.name}</h1>
                         {club.description && (
                             <p className="club-description">{club.description}</p>
-                        )}
-                        {userRole && (
-                            <div className="user-role-container">
-                                <span className="role-label">Your role</span>
-                                <div className={`role-badge role-${userRole}`}>
-                                    <span className="role-text">{userRole}</span>
-                                </div>
-                            </div>
                         )}
                     </div>
                 </PageHeader>
