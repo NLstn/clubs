@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { useAuth } from "../../hooks/useAuth";
+import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { FormGroup, Card } from '@/components/ui';
 import './Profile.css';
 
@@ -22,6 +23,7 @@ interface PrivacySettings {
 
 const ProfilePrivacy = () => {
     const { api } = useAuth();
+    const { user: currentUser } = useCurrentUser();
     const [privacySettings, setPrivacySettings] = useState<PrivacySettings>({
         global: { shareBirthDate: false },
         clubs: []
@@ -33,6 +35,11 @@ const ProfilePrivacy = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Wait for current user to be loaded
+                if (!currentUser?.ID) {
+                    return;
+                }
+
                 setIsLoading(true);
                 
                 // OData v2: Fetch privacy settings
@@ -54,14 +61,18 @@ const ProfilePrivacy = () => {
                     clubs: clubSettings
                 });
                 
-                // OData v2: Fetch user's clubs
-                const clubsResponse = await api.get('/api/v2/Clubs');
-                const clubsData = clubsResponse.data.value || [];
-                interface ODataClub { ID: string; Name: string; }
-                const mappedClubs = clubsData.map((c: ODataClub) => ({
-                    id: c.ID,
-                    name: c.Name
-                }));
+                // OData v2: Fetch user's clubs via Members navigation
+                const userResponse = await api.get(`/api/v2/Users('${currentUser.ID}')?$expand=Members($expand=Club)`);
+                const members = userResponse.data.Members || [];
+                
+                // Extract clubs from members
+                interface ODataMember { Club?: { ID: string; Name: string; }; }
+                const mappedClubs = members
+                    .filter((m: ODataMember) => m.Club) // Only include members with a club
+                    .map((m: ODataMember) => ({
+                        id: m.Club!.ID,
+                        name: m.Club!.Name
+                    }));
                 setClubs(mappedClubs);
                 
             } catch (error) {
@@ -73,7 +84,7 @@ const ProfilePrivacy = () => {
         };
 
         fetchData();
-    }, [api]);
+    }, [api, currentUser]);
 
     const updateGlobalSetting = async (shareBirthDate: boolean) => {
         try {
