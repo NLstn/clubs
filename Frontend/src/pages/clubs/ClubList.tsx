@@ -69,29 +69,32 @@ const ClubList = () => {
                 return;
             }
 
-            // OData v2 API: Get clubs with expanded Members and Teams
-            // The backend filters clubs by membership automatically via hooks
-            const response = await api.get('/api/v2/Clubs?$expand=Members,Teams');
+            // OData v2 API: Get user's clubs via Members navigation
+            // This uses the new User -> Members -> Club navigation pattern
+            const response = await api.get(`/api/v2/Users('${currentUser.ID}')?$expand=Members($expand=Club($expand=Teams))`);
             
-            // Transform OData response to match existing interface
-            const odataClubs: ODataClub[] = response.data.value || [];
-            const transformedClubs = odataClubs.map((club) => ({
-                id: club.ID,
-                name: club.Name,
-                description: club.Description,
-                created_at: club.CreatedAt,
-                deleted: club.Deleted,
-                // Find current user's role from expanded Members
-                user_role: club.Members?.find((m) => m.UserID === currentUser.ID)?.Role || 'member',
-                // Map expanded Teams
-                user_teams: club.Teams?.map((team) => ({
-                    id: team.ID,
-                    name: team.Name,
-                    description: team.Description,
-                    createdAt: team.CreatedAt,
-                    clubId: team.ClubID
-                })) || []
-            }));
+            // Extract members with their clubs from the response
+            const members = response.data.Members || [];
+            
+            // Transform to Club array with role information
+            const transformedClubs = members
+                .filter((m: any) => m.Club) // Only include members with a club
+                .map((m: any) => ({
+                    id: m.Club.ID,
+                    name: m.Club.Name,
+                    description: m.Club.Description,
+                    created_at: m.Club.CreatedAt,
+                    deleted: m.Club.Deleted,
+                    user_role: m.Role, // Role comes from the Member entity
+                    // Map expanded Teams
+                    user_teams: m.Club.Teams?.map((team: any) => ({
+                        id: team.ID,
+                        name: team.Name,
+                        description: team.Description,
+                        createdAt: team.CreatedAt,
+                        clubId: team.ClubID
+                    })) || []
+                }));
             
             setClubs(transformedClubs);
         } catch (err: Error | unknown) {
