@@ -250,8 +250,7 @@ func setupTestContext(t *testing.T) *testContext {
 		id TEXT PRIMARY KEY,
 		user_id TEXT NOT NULL,
 		club_id TEXT,
-		hide_email BOOLEAN DEFAULT FALSE,
-		hide_phone BOOLEAN DEFAULT FALSE,
+		share_birth_date BOOLEAN DEFAULT FALSE,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	)`)
