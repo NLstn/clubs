@@ -26,20 +26,19 @@ interface Team {
     clubId: string;
 }
 
-// OData response types
-interface ODataClub {
+// OData response types for User -> Members -> Club navigation
+interface ODataMemberWithClub {
+    Role: string;
+    Club?: ODataClubWithTeams;
+}
+
+interface ODataClubWithTeams {
     ID: string;
     Name: string;
     Description: string;
     CreatedAt: string;
     Deleted?: boolean;
-    Members?: ODataMember[];
     Teams?: ODataTeam[];
-}
-
-interface ODataMember {
-    UserID: string;
-    Role: string;
 }
 
 interface ODataTeam {
@@ -74,20 +73,20 @@ const ClubList = () => {
             const response = await api.get(`/api/v2/Users('${currentUser.ID}')?$expand=Members($expand=Club($expand=Teams))`);
             
             // Extract members with their clubs from the response
-            const members = response.data.Members || [];
+            const members: ODataMemberWithClub[] = response.data.Members || [];
             
             // Transform to Club array with role information
             const transformedClubs = members
-                .filter((m: any) => m.Club) // Only include members with a club
-                .map((m: any) => ({
-                    id: m.Club.ID,
-                    name: m.Club.Name,
-                    description: m.Club.Description,
-                    created_at: m.Club.CreatedAt,
-                    deleted: m.Club.Deleted,
+                .filter((m) => m.Club) // Only include members with a club
+                .map((m) => ({
+                    id: m.Club!.ID,
+                    name: m.Club!.Name,
+                    description: m.Club!.Description,
+                    created_at: m.Club!.CreatedAt,
+                    deleted: m.Club!.Deleted,
                     user_role: m.Role, // Role comes from the Member entity
                     // Map expanded Teams
-                    user_teams: m.Club.Teams?.map((team: any) => ({
+                    user_teams: m.Club!.Teams?.map((team) => ({
                         id: team.ID,
                         name: team.Name,
                         description: team.Description,
