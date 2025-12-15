@@ -71,6 +71,8 @@
     "teamsDescription": "Allow club admins to create and manage teams with their members.",
     "membersList": "Member List",
     "membersListDescription": "Allow regular members to view the club member list",
+    "discoverable": "Discoverable by Non-Members",
+    "discoverableDescription": "Allow users who are not members to find and view basic information about this club",
     "events": "Events",
     "news": "News",
     "latestNews": "Latest News",

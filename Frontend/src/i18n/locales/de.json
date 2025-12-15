@@ -70,6 +70,8 @@
     "teamsDescription": "Erlauben Sie Vereinsadministratoren, Teams mit ihren Mitgliedern zu erstellen und zu verwalten.",
     "membersList": "Mitgliederliste",
     "membersListDescription": "Erlauben Sie regulären Mitgliedern, die Vereinsmitgliederliste einzusehen",
+    "discoverable": "Für Nicht-Mitglieder auffindbar",
+    "discoverableDescription": "Erlauben Sie Nutzern, die keine Mitglieder sind, diesen Club zu finden und grundlegende Informationen einzusehen",
     "events": "Ereignisse",
     "news": "Nachrichten",
     "latestNews": "Aktuelle Nachrichten",

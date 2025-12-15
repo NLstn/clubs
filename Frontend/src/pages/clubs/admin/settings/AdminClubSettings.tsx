@@ -12,6 +12,7 @@ interface ClubSettings {
     ShiftsEnabled: boolean;
     TeamsEnabled: boolean;
     MembersListVisible: boolean;
+    DiscoverableByNonMembers: boolean;
     CreatedAt: string;
     CreatedBy: string;
     UpdatedAt: string;
@@ -51,7 +52,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
         fetchSettings();
     }, [id, t]);
 
-    const updateSettings = async (newSettings: Partial<Pick<ClubSettings, 'FinesEnabled' | 'ShiftsEnabled' | 'TeamsEnabled' | 'MembersListVisible'>>) => {
+    const updateSettings = async (newSettings: Partial<Pick<ClubSettings, 'FinesEnabled' | 'ShiftsEnabled' | 'TeamsEnabled' | 'MembersListVisible' | 'DiscoverableByNonMembers'>>) => {
         if (!settings) return;
 
         try {
@@ -61,6 +62,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                 ShiftsEnabled: newSettings.ShiftsEnabled ?? settings.ShiftsEnabled,
                 TeamsEnabled: newSettings.TeamsEnabled ?? settings.TeamsEnabled,
                 MembersListVisible: newSettings.MembersListVisible ?? settings.MembersListVisible,
+                DiscoverableByNonMembers: newSettings.DiscoverableByNonMembers ?? settings.DiscoverableByNonMembers,
             };
             
             if (settings.ID) {
@@ -80,6 +82,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                 shiftsEnabled: newSettings.ShiftsEnabled ?? settings.ShiftsEnabled,
                 teamsEnabled: newSettings.TeamsEnabled ?? settings.TeamsEnabled,
                 membersListVisible: newSettings.MembersListVisible ?? settings.MembersListVisible,
+                discoverableByNonMembers: newSettings.DiscoverableByNonMembers ?? settings.DiscoverableByNonMembers,
             };
             setSettings({ ...settings, ...updatedSettings });
             setError(null);
@@ -111,6 +114,11 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
     const handleMembersListToggle = async (checked: boolean) => {
         if (!settings) return;
         await updateSettings({ MembersListVisible: checked });
+    };
+
+    const handleDiscoverableToggle = async (checked: boolean) => {
+        if (!settings) return;
+        await updateSettings({ DiscoverableByNonMembers: checked });
     };
 
     if (loading) return <div>{t('clubs.loading.settings')}</div>;
@@ -169,6 +177,18 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                     <ToggleSwitch
                         checked={settings.MembersListVisible}
                         onChange={handleMembersListToggle}
+                        disabled={saving}
+                    />
+                </div>
+
+                <div className="setting-item">
+                    <div className="setting-info">
+                        <h4>{t('clubs.discoverable')}</h4>
+                        <p>{t('clubs.discoverableDescription')}</p>
+                    </div>
+                    <ToggleSwitch
+                        checked={settings.DiscoverableByNonMembers}
+                        onChange={handleDiscoverableToggle}
                         disabled={saving}
                     />
                 </div>
