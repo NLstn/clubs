@@ -194,7 +194,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                 </div>
             </div>
 
-            {saving && <div className="saving-indicator">Saving...</div>}
+            {saving && <div className="saving-indicator">{t('clubs.saving')}</div>}
         </div>
     );
 };

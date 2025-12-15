@@ -270,7 +270,7 @@ const ClubList = () => {
 
                 {discoverableClubs.length > 0 && (
                     <div className="clubs-section">
-                        <h2>Discover Clubs</h2>
+                        <h2>{t('clubs.discoverClubs')}</h2>
                         <div className="clubs-grid">
                             {discoverableClubs.map(club => (
                                 <Card
