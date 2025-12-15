@@ -51,14 +51,14 @@ const ReadonlyMemberList = () => {
                 const response = await api.get(
                     `/api/v2/Members?$filter=ClubID eq '${clubId}'&$expand=User`
                 );
-                interface ODataMember { ID: string; Role: string; JoinedAt: string; UserID: string; User?: { FirstName: string; LastName: string; BirthDate?: string; }; }
+                interface ODataMember { ID: string; Role: string; CreatedAt: string; UserID: string; User?: { FirstName: string; LastName: string; BirthDate?: string; }; }
                 const membersData = response.data.value || [];
                 // Map OData response to match expected format
                 const mappedMembers = membersData.map((member: ODataMember) => ({
                     id: member.ID,
                     name: `${member.User?.FirstName || ''} ${member.User?.LastName || ''}`.trim() || 'Unknown',
                     role: member.Role,
-                    joinedAt: member.JoinedAt,
+                    joinedAt: member.CreatedAt,
                     userId: member.UserID,
                     birthDate: member.User?.BirthDate
                 }));

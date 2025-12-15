@@ -88,8 +88,8 @@ const AdminClubDetails = () => {
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-            const newMembers = members.filter((member: { JoinedAt: string }) => {
-                const joinedDate = new Date(member.JoinedAt);
+            const newMembers = members.filter((member: { CreatedAt: string }) => {
+                const joinedDate = new Date(member.CreatedAt);
                 return joinedDate >= thirtyDaysAgo;
             });
 
