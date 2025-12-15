@@ -66,59 +66,54 @@ const renderWithRouter = (component: React.ReactElement) => {
     );
 };
 
-// OData v2 response format for User -> Members -> Club navigation
-const mockUserWithMembers = {
-    ID: mockUserId,
-    Email: 'test@example.com',
-    FirstName: 'Test',
-    LastName: 'User',
-    Members: [
-        {
-            Role: 'admin',
-            Club: {
-                ID: '1',
-                Name: 'Admin Club',
-                Description: 'A club where I am admin',
-                CreatedAt: '2024-01-01T00:00:00Z',
-                Deleted: false,
-                Teams: []
-            }
-        },
-        {
-            Role: 'owner',
-            Club: {
-                ID: '2',
-                Name: 'Owner Club',
-                Description: 'A club where I am owner',
-                CreatedAt: '2024-01-02T00:00:00Z',
-                Deleted: false,
-                Teams: []
-            }
-        },
-        {
-            Role: 'member',
-            Club: {
-                ID: '3',
-                Name: 'Member Club',
-                Description: 'A club where I am just a member',
-                CreatedAt: '2024-01-03T00:00:00Z',
-                Deleted: false,
-                Teams: []
-            }
-        },
-        {
-            Role: 'owner',
-            Club: {
-                ID: '4',
-                Name: 'Deleted Club',
-                Description: 'A deleted club where I am owner',
-                CreatedAt: '2024-01-04T00:00:00Z',
-                Deleted: true,
-                Teams: []
-            }
-        }
-    ]
-};
+// OData v2 response format with PascalCase field names
+const mockODataClubs = [
+    {
+        ID: '1',
+        Name: 'Admin Club',
+        Description: 'A club where I am admin',
+        CreatedAt: '2024-01-01T00:00:00Z',
+        Deleted: false,
+        Members: [
+            { UserID: mockUserId, Role: 'admin' },
+            { UserID: 'other-user', Role: 'member' }
+        ],
+        Teams: []
+    },
+    {
+        ID: '2',
+        Name: 'Owner Club',
+        Description: 'A club where I am owner',
+        CreatedAt: '2024-01-02T00:00:00Z',
+        Deleted: false,
+        Members: [
+            { UserID: mockUserId, Role: 'owner' }
+        ],
+        Teams: []
+    },
+    {
+        ID: '3',
+        Name: 'Member Club',
+        Description: 'A club where I am just a member',
+        CreatedAt: '2024-01-03T00:00:00Z',
+        Deleted: false,
+        Members: [
+            { UserID: mockUserId, Role: 'member' }
+        ],
+        Teams: []
+    },
+    {
+        ID: '4',
+        Name: 'Deleted Club',
+        Description: 'A deleted club where I am owner',
+        CreatedAt: '2024-01-04T00:00:00Z',
+        Deleted: true,
+        Members: [
+            { UserID: mockUserId, Role: 'owner' }
+        ],
+        Teams: []
+    },
+];
 
 describe('ClubList', () => {
     beforeEach(() => {
@@ -142,7 +137,12 @@ describe('ClubList', () => {
     });
 
     it('renders empty state when no clubs', async () => {
-        mockedApi.get.mockResolvedValue({ data: { Members: [] } });
+        mockedApi.get.mockImplementation((url: string) => {
+            if (url.includes('GetDiscoverableClubs')) {
+                return Promise.resolve({ data: { value: [] } });
+            }
+            return Promise.resolve({ data: { value: [] } });
+        });
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {
@@ -152,7 +152,12 @@ describe('ClubList', () => {
     });
 
     it('renders clubs separated by role sections', async () => {
-        mockedApi.get.mockResolvedValue({ data: mockUserWithMembers });
+        mockedApi.get.mockImplementation((url: string) => {
+            if (url.includes('GetDiscoverableClubs')) {
+                return Promise.resolve({ data: { value: [] } });
+            }
+            return Promise.resolve({ data: { value: mockODataClubs } });
+        });
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {
@@ -173,7 +178,12 @@ describe('ClubList', () => {
     });
 
     it('navigates to club details when club card is clicked', async () => {
-        mockedApi.get.mockResolvedValue({ data: mockUserWithMembers });
+        mockedApi.get.mockImplementation((url: string) => {
+            if (url.includes('GetDiscoverableClubs')) {
+                return Promise.resolve({ data: { value: [] } });
+            }
+            return Promise.resolve({ data: { value: mockODataClubs } });
+        });
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {
@@ -184,7 +194,12 @@ describe('ClubList', () => {
     });
 
     it('navigates to create club page when button is clicked in empty state', async () => {
-        mockedApi.get.mockResolvedValue({ data: { Members: [] } });
+        mockedApi.get.mockImplementation((url: string) => {
+            if (url.includes('GetDiscoverableClubs')) {
+                return Promise.resolve({ data: { value: [] } });
+            }
+            return Promise.resolve({ data: [] });
+        });
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {
@@ -195,7 +210,12 @@ describe('ClubList', () => {
     });
 
     it('displays role badges correctly', async () => {
-        mockedApi.get.mockResolvedValue({ data: mockUserWithMembers });
+        mockedApi.get.mockImplementation((url: string) => {
+            if (url.includes('GetDiscoverableClubs')) {
+                return Promise.resolve({ data: { value: [] } });
+            }
+            return Promise.resolve({ data: { value: mockODataClubs } });
+        });
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {
@@ -206,7 +226,12 @@ describe('ClubList', () => {
     });
 
     it('displays deleted badge for deleted clubs', async () => {
-        mockedApi.get.mockResolvedValue({ data: mockUserWithMembers });
+        mockedApi.get.mockImplementation((url: string) => {
+            if (url.includes('GetDiscoverableClubs')) {
+                return Promise.resolve({ data: { value: [] } });
+            }
+            return Promise.resolve({ data: { value: mockODataClubs } });
+        });
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {
