@@ -29,7 +29,7 @@ interface Team {
 // OData response types for User -> Members -> Club navigation
 interface ODataMemberWithClub {
     Role: string;
-    Club?: ODataClubWithTeams;
+    Club: ODataClubWithTeams; // Club is guaranteed by $expand query
 }
 
 interface ODataClubWithTeams {
@@ -76,24 +76,23 @@ const ClubList = () => {
             const members: ODataMemberWithClub[] = response.data.Members || [];
             
             // Transform to Club array with role information
-            const transformedClubs = members
-                .filter((m) => m.Club) // Only include members with a club
-                .map((m) => ({
-                    id: m.Club!.ID,
-                    name: m.Club!.Name,
-                    description: m.Club!.Description,
-                    created_at: m.Club!.CreatedAt,
-                    deleted: m.Club!.Deleted,
-                    user_role: m.Role, // Role comes from the Member entity
-                    // Map expanded Teams
-                    user_teams: m.Club!.Teams?.map((team) => ({
-                        id: team.ID,
-                        name: team.Name,
-                        description: team.Description,
-                        createdAt: team.CreatedAt,
-                        clubId: team.ClubID
-                    })) || []
-                }));
+            // Note: Club is guaranteed by $expand query, no need for defensive filtering
+            const transformedClubs = members.map((m) => ({
+                id: m.Club.ID,
+                name: m.Club.Name,
+                description: m.Club.Description,
+                created_at: m.Club.CreatedAt,
+                deleted: m.Club.Deleted,
+                user_role: m.Role, // Role comes from the Member entity
+                // Map expanded Teams
+                user_teams: m.Club.Teams?.map((team) => ({
+                    id: team.ID,
+                    name: team.Name,
+                    description: team.Description,
+                    createdAt: team.CreatedAt,
+                    clubId: team.ClubID
+                })) || []
+            }));
             
             setClubs(transformedClubs);
         } catch (err: Error | unknown) {

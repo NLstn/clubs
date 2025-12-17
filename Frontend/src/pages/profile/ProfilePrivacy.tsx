@@ -67,13 +67,12 @@ const ProfilePrivacy = () => {
                 const members = userResponse.data.Members || [];
                 
                 // Extract clubs from members
-                interface ODataMember { Club?: { ID: string; Name: string; }; }
-                const mappedClubs = members
-                    .filter((m: ODataMember) => m.Club) // Only include members with a club
-                    .map((m: ODataMember) => ({
-                        id: m.Club!.ID,
-                        name: m.Club!.Name
-                    }));
+                // Club is guaranteed by $expand query
+                interface ODataMember { Club: { ID: string; Name: string; }; }
+                const mappedClubs = members.map((m: ODataMember) => ({
+                    id: m.Club.ID,
+                    name: m.Club.Name
+                }));
                 setClubs(mappedClubs);
                 
             } catch (error) {
@@ -85,7 +84,7 @@ const ProfilePrivacy = () => {
         };
 
         fetchData();
-    }, [api, currentUser]);
+    }, [api, currentUser?.ID]);
 
     const updateGlobalSetting = async (shareBirthDate: boolean) => {
         try {
