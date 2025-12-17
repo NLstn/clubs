@@ -61,7 +61,8 @@ func TestAuthorizationQueryFiltering(t *testing.T) {
 
 		assert.NoError(t, query.Error)
 		// Should see both clubs (not filtered by membership)
-		assert.Len(t, clubs, 2, "Expected exactly 2 clubs")
+		// Only 2 clubs exist in the test database at this point
+		assert.Len(t, clubs, 2, "Expected exactly 2 clubs (all non-deleted clubs in test DB)")
 
 		// Verify both clubs are present
 		clubIDs := map[string]bool{club1.ID: false, club2.ID: false}
