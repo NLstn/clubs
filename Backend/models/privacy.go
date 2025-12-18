@@ -20,6 +20,12 @@ type UserPrivacySettings struct {
 	UpdatedAt      time.Time `json:"UpdatedAt"`
 }
 
+// EntitySetName returns the custom entity set name to prevent double pluralization
+// Without this, the OData library would pluralize "UserPrivacySettings" to "UserPrivacySettingses"
+func (UserPrivacySettings) EntitySetName() string {
+	return "UserPrivacySettings"
+}
+
 // GetUserPrivacySettings returns privacy settings for a user and specific club
 // If no club-specific setting exists, returns the global setting
 // If no settings exist at all, returns default (private) settings
