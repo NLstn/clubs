@@ -12,6 +12,7 @@ const ButtonDemo = () => {
   const [state2, setState2] = useState<ButtonState>('idle');
   const [state3, setState3] = useState<ButtonState>('idle');
   const [cancelledCount, setCancelledCount] = useState(0);
+  const [operationTimer, setOperationTimer] = useState<NodeJS.Timeout | null>(null);
 
   // Simulate async operation for state1
   const handleSave = async () => {
@@ -34,13 +35,20 @@ const ButtonDemo = () => {
     setState3('loading');
     
     // Simulate a long operation
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setState3('success');
       setTimeout(() => setState3('idle'), 3000);
+      setOperationTimer(null);
     }, 5000);
+    
+    setOperationTimer(timer);
   };
 
   const handleCancel = () => {
+    if (operationTimer) {
+      clearTimeout(operationTimer);
+      setOperationTimer(null);
+    }
     setState3('idle');
     setCancelledCount(prev => prev + 1);
   };
