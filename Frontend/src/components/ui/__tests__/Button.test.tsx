@@ -106,4 +106,129 @@ describe('Button Component', () => {
     expect(button).toBeDisabled();
     expect(button).toHaveAttribute('aria-label', 'Custom Label');
   });
+
+  describe('State-based functionality', () => {
+    it('renders in idle state by default', () => {
+      render(<Button>Test</Button>);
+      const button = screen.getByRole('button');
+      expect(button).not.toHaveClass('ui-button--loading');
+      expect(button).not.toHaveClass('ui-button--success');
+      expect(button).not.toHaveClass('ui-button--error');
+      expect(button).not.toBeDisabled();
+    });
+
+    it('renders loading state with spinner', () => {
+      const { container } = render(<Button state="loading">Save</Button>);
+      const button = screen.getByRole('button');
+      
+      expect(button).toHaveClass('ui-button--loading');
+      expect(button).toBeDisabled();
+      expect(button).toHaveAttribute('aria-busy', 'true');
+      
+      const spinner = container.querySelector('.ui-button__spinner');
+      expect(spinner).toBeInTheDocument();
+      expect(screen.getByText('Save')).toBeInTheDocument();
+    });
+
+    it('renders success state with checkmark', () => {
+      render(<Button state="success" successMessage="Saved!">Save</Button>);
+      const button = screen.getByRole('button');
+      
+      expect(button).toHaveClass('ui-button--success');
+      expect(button).toBeDisabled();
+      expect(screen.getByText('Saved!')).toBeInTheDocument();
+      expect(screen.getByText('✓')).toBeInTheDocument();
+    });
+
+    it('uses children as fallback when no success message provided', () => {
+      render(<Button state="success">Save</Button>);
+      expect(screen.getByText('Save')).toBeInTheDocument();
+      expect(screen.getByText('✓')).toBeInTheDocument();
+    });
+
+    it('renders error state with X icon', () => {
+      render(<Button state="error" errorMessage="Failed!">Save</Button>);
+      const button = screen.getByRole('button');
+      
+      expect(button).toHaveClass('ui-button--error');
+      expect(button).not.toBeDisabled(); // Error state should allow retry
+      expect(screen.getByText('Failed!')).toBeInTheDocument();
+      expect(screen.getByText('✕')).toBeInTheDocument();
+    });
+
+    it('uses children as fallback when no error message provided', () => {
+      render(<Button state="error">Save</Button>);
+      expect(screen.getByText('Save')).toBeInTheDocument();
+      expect(screen.getByText('✕')).toBeInTheDocument();
+    });
+
+    it('renders cancel button during loading state when onCancel is provided', () => {
+      const onCancel = vi.fn();
+      render(
+        <Button state="loading" onCancel={onCancel}>
+          Saving...
+        </Button>
+      );
+
+      const cancelButton = screen.getByLabelText('Cancel');
+      expect(cancelButton).toBeInTheDocument();
+      expect(cancelButton).toHaveClass('ui-button__cancel');
+    });
+
+    it('calls onCancel when cancel button is clicked', () => {
+      const onCancel = vi.fn();
+      render(
+        <Button state="loading" onCancel={onCancel}>
+          Saving...
+        </Button>
+      );
+
+      const cancelButton = screen.getByLabelText('Cancel');
+      cancelButton.click();
+      
+      expect(onCancel).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render cancel button when onCancel is not provided', () => {
+      render(<Button state="loading">Saving...</Button>);
+      
+      const cancelButton = screen.queryByLabelText('Cancel');
+      expect(cancelButton).not.toBeInTheDocument();
+    });
+
+    it('hides counter badge during non-idle states', () => {
+      const { rerender } = render(
+        <Button counter={5} state="loading">
+          Save
+        </Button>
+      );
+      expect(screen.queryByText('5')).not.toBeInTheDocument();
+
+      rerender(
+        <Button counter={5} state="success">
+          Save
+        </Button>
+      );
+      expect(screen.queryByText('5')).not.toBeInTheDocument();
+
+      rerender(
+        <Button counter={5} state="error">
+          Save
+        </Button>
+      );
+      expect(screen.queryByText('5')).not.toBeInTheDocument();
+
+      rerender(
+        <Button counter={5} state="idle">
+          Save
+        </Button>
+      );
+      expect(screen.getByText('5')).toBeInTheDocument();
+    });
+
+    it('respects explicit disabled prop even in idle state', () => {
+      render(<Button disabled>Test</Button>);
+      expect(screen.getByRole('button')).toBeDisabled();
+    });
+  });
 });
