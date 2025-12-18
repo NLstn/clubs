@@ -23,7 +23,7 @@ const ProfileInvites = () => {
     setLoading(true);
     try {
       // OData v2: Query Invites entity - backend filters to current user's invites
-      const response = await api.get('/api/v2/Invites?$expand=Club');
+      const response = await api.get('/api/v2/Invites?$select=ID&$expand=Club($select=Name)');
       if (response.status === 200) {
         interface ODataInvite { ID: string; ClubName?: string; Club?: { Name: string; }; }
         const data = response.data.value || [];

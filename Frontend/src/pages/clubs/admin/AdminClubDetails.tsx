@@ -77,8 +77,8 @@ const AdminClubDetails = () => {
         try {
             // OData v2: Fetch Members and Invites using OData queries
             const [membersResponse, invitesResponse] = await Promise.all([
-                api.get(`/api/v2/Members?$filter=ClubID eq '${id}'`),
-                api.get(`/api/v2/Invites?$filter=ClubID eq '${id}'`),
+                api.get(`/api/v2/Members?$select=CreatedAt&$filter=ClubID eq '${id}'`),
+                api.get(`/api/v2/Invites?$select=ID&$filter=ClubID eq '${id}'`),
             ]);
 
             const members = membersResponse.data.value || [];

@@ -63,7 +63,7 @@ const ClubDetails = () => {
                 // Get user's role by fetching club members and finding current user
                 try {
                     interface ODataMember { UserID: string; Role: string; }
-                    const membersResponse = await api.get(`/api/v2/Members?$filter=ClubID eq '${id}'&$expand=User`);
+                    const membersResponse = await api.get(`/api/v2/Members?$select=UserID,Role&$filter=ClubID eq '${id}'`);
                     const members = membersResponse.data.value || [];
                     const currentUserMember = members.find((member: ODataMember) => member.UserID === currentUser?.ID);
                     if (currentUserMember) {
