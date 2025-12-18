@@ -9,15 +9,18 @@ import './Profile.css';
 interface Club {
     id: string;
     name: string;
+    memberId: string; // Added to track member ID for privacy settings
 }
 
 interface PrivacySettings {
     global: {
         shareBirthDate: boolean;
+        id?: string; // Track ID for updates
     };
     clubs: Array<{
-        clubId: string;
+        memberId: string;
         shareBirthDate: boolean;
+        id?: string; // Track ID for updates/deletes
     }>;
 }
 
@@ -43,37 +46,47 @@ const ProfilePrivacy = () => {
                     return;
                 }
                 
-                // OData v2: Fetch privacy settings
+                // OData v2: Fetch global privacy settings
                 const privacyResponse = await api.get('/api/v2/UserPrivacySettings');
                 const privacyData = privacyResponse.data.value || [];
+                const globalSetting = privacyData[0]; // Should only be one global setting per user
                 
-                // Process privacy settings into expected format
-                interface ODataPrivacySetting { ID: string; ClubID?: string; ShareBirthDate: boolean; }
-                const globalSetting = privacyData.find((s: ODataPrivacySetting) => !s.ClubID);
-                const clubSettings = privacyData
-                    .filter((s: ODataPrivacySetting) => s.ClubID)
-                    .map((s: ODataPrivacySetting) => ({
-                        clubId: s.ClubID!,
-                        shareBirthDate: s.ShareBirthDate
+                // OData v2: Fetch user's members with clubs and privacy settings
+                const encodedUserId = encodeURIComponent(currentUser.ID);
+                const membersResponse = await api.get(
+                    `/api/v2/Users('${encodedUserId}')/Members?$expand=Club,PrivacySettings&$filter=Club/Deleted eq false`
+                );
+                const members = membersResponse.data.value || [];
+                
+                // Process members data
+                interface ODataMember {
+                    ID: string;
+                    Club: { ID: string; Name: string; };
+                    PrivacySettings?: { ID: string; ShareBirthDate: boolean; };
+                }
+                
+                const mappedClubs = members.map((m: ODataMember) => ({
+                    id: m.Club.ID,
+                    name: m.Club.Name,
+                    memberId: m.ID
+                }));
+                setClubs(mappedClubs);
+                
+                const clubSettings = members
+                    .filter((m: ODataMember) => m.PrivacySettings)
+                    .map((m: ODataMember) => ({
+                        memberId: m.ID,
+                        shareBirthDate: m.PrivacySettings!.ShareBirthDate,
+                        id: m.PrivacySettings!.ID
                     }));
                 
                 setPrivacySettings({
-                    global: { shareBirthDate: globalSetting?.ShareBirthDate || false },
+                    global: { 
+                        shareBirthDate: globalSetting?.ShareBirthDate || false,
+                        id: globalSetting?.ID
+                    },
                     clubs: clubSettings
                 });
-                
-                // OData v2: Fetch user's clubs via Members navigation
-                const userResponse = await api.get(`/api/v2/Users('${currentUser.ID}')?$expand=Members($expand=Club)`);
-                const members = userResponse.data.Members || [];
-                
-                // Extract clubs from members
-                // Club is guaranteed by $expand query
-                interface ODataMember { Club: { ID: string; Name: string; }; }
-                const mappedClubs = members.map((m: ODataMember) => ({
-                    id: m.Club.ID,
-                    name: m.Club.Name
-                }));
-                setClubs(mappedClubs);
                 
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -88,21 +101,25 @@ const ProfilePrivacy = () => {
 
     const updateGlobalSetting = async (shareBirthDate: boolean) => {
         try {
-            // OData v2: Find or create global privacy setting
-            const privacyResponse = await api.get('/api/v2/UserPrivacySettings?$filter=ClubID eq null');
-            const privacyData = privacyResponse.data.value || [];
-            
-            if (privacyData.length > 0) {
+            if (privacySettings.global.id) {
                 // Update existing global setting
-                await api.patch(`/api/v2/UserPrivacySettings('${privacyData[0].ID}')`, { ShareBirthDate: shareBirthDate });
+                await api.patch(`/api/v2/UserPrivacySettings('${privacySettings.global.id}')`, { 
+                    ShareBirthDate: shareBirthDate 
+                });
             } else {
                 // Create new global setting
-                await api.post('/api/v2/UserPrivacySettings', { ShareBirthDate: shareBirthDate });
+                const response = await api.post('/api/v2/UserPrivacySettings', { 
+                    ShareBirthDate: shareBirthDate 
+                });
+                setPrivacySettings(prev => ({
+                    ...prev,
+                    global: { shareBirthDate, id: response.data.ID }
+                }));
             }
             
             setPrivacySettings(prev => ({
                 ...prev,
-                global: { shareBirthDate }
+                global: { ...prev.global, shareBirthDate }
             }));
             setMessage('Global privacy settings updated successfully!');
             setTimeout(() => setMessage(''), 3000);
@@ -112,30 +129,51 @@ const ProfilePrivacy = () => {
         }
     };
 
-    const updateClubSetting = async (clubId: string, shareBirthDate: boolean) => {
+    const updateClubSetting = async (memberId: string, shareBirthDate: boolean) => {
         try {
-            // OData v2: Find or create club-specific privacy setting
-            const privacyResponse = await api.get(`/api/v2/UserPrivacySettings?$filter=ClubID eq '${clubId}'`);
-            const privacyData = privacyResponse.data.value || [];
+            const existingSetting = privacySettings.clubs.find(c => c.memberId === memberId);
+            const globalSetting = privacySettings.global.shareBirthDate;
             
-            if (privacyData.length > 0) {
-                // Update existing club setting
-                await api.patch(`/api/v2/UserPrivacySettings('${privacyData[0].ID}')`, { ShareBirthDate: shareBirthDate });
-            } else {
-                // Create new club setting
-                await api.post('/api/v2/UserPrivacySettings', { ClubID: clubId, ShareBirthDate: shareBirthDate });
-            }
-            
-            setPrivacySettings(prev => {
-                const updatedClubs = prev.clubs.filter(c => c.clubId !== clubId);
-                if (shareBirthDate !== prev.global.shareBirthDate) {
-                    updatedClubs.push({ clubId, shareBirthDate });
+            // If new setting matches global setting, delete the override (if it exists)
+            if (shareBirthDate === globalSetting) {
+                if (existingSetting?.id) {
+                    await api.delete(`/api/v2/MemberPrivacySettings('${existingSetting.id}')`);
+                    setPrivacySettings(prev => ({
+                        ...prev,
+                        clubs: prev.clubs.filter(c => c.memberId !== memberId)
+                    }));
                 }
-                return {
-                    ...prev,
-                    clubs: updatedClubs
-                };
-            });
+            } else {
+                // Setting differs from global, create or update override
+                if (existingSetting?.id) {
+                    // Update existing override
+                    await api.patch(`/api/v2/MemberPrivacySettings('${existingSetting.id}')`, { 
+                        ShareBirthDate: shareBirthDate 
+                    });
+                    setPrivacySettings(prev => ({
+                        ...prev,
+                        clubs: prev.clubs.map(c => 
+                            c.memberId === memberId 
+                                ? { ...c, shareBirthDate } 
+                                : c
+                        )
+                    }));
+                } else {
+                    // Create new override
+                    const response = await api.post('/api/v2/MemberPrivacySettings', { 
+                        MemberID: memberId,
+                        ShareBirthDate: shareBirthDate 
+                    });
+                    setPrivacySettings(prev => ({
+                        ...prev,
+                        clubs: [...prev.clubs, { 
+                            memberId, 
+                            shareBirthDate, 
+                            id: response.data.ID 
+                        }]
+                    }));
+                }
+            }
             
             setMessage('Club privacy settings updated successfully!');
             setTimeout(() => setMessage(''), 3000);
@@ -145,8 +183,8 @@ const ProfilePrivacy = () => {
         }
     };
 
-    const getClubSetting = (clubId: string): boolean => {
-        const clubSetting = privacySettings.clubs ? privacySettings.clubs.find(c => c.clubId === clubId) : undefined;
+    const getClubSetting = (memberId: string): boolean => {
+        const clubSetting = privacySettings.clubs.find(c => c.memberId === memberId);
         return clubSetting ? clubSetting.shareBirthDate : privacySettings.global.shareBirthDate;
     };
 
@@ -210,8 +248,8 @@ const ProfilePrivacy = () => {
                                                 <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)' }}>
                                                     <input
                                                         type="checkbox"
-                                                        checked={getClubSetting(club.id)}
-                                                        onChange={(e) => updateClubSetting(club.id, e.target.checked)}
+                                                        checked={getClubSetting(club.memberId)}
+                                                        onChange={(e) => updateClubSetting(club.memberId, e.target.checked)}
                                                     />
                                                     <span style={{ fontSize: '0.9rem' }}>Share birth date</span>
                                                 </label>
