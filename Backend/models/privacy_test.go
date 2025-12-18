@@ -164,8 +164,16 @@ func TestMemberPrivacySettingsAuthorization(t *testing.T) {
 	club1 := handlers.CreateTestClub(t, user1, "Club 1")
 	club2 := handlers.CreateTestClub(t, user2, "Club 2")
 
-	member1 := handlers.CreateTestMember(t, user1, club1, "owner")
-	member2 := handlers.CreateTestMember(t, user2, club2, "owner")
+	// CreateTestClub already creates owner members, so just retrieve them
+	var member1 models.Member
+	err := database.Db.Where("user_id = ? AND club_id = ?", user1.ID, club1.ID).First(&member1).Error
+	require.NoError(t, err)
+
+	var member2 models.Member
+	err = database.Db.Where("user_id = ? AND club_id = ?", user2.ID, club2.ID).First(&member2).Error
+	require.NoError(t, err)
+
+	// Create additional member for user1 in club2
 	member1InClub2 := handlers.CreateTestMember(t, user1, club2, "member")
 
 	// Create privacy settings for members
@@ -173,7 +181,7 @@ func TestMemberPrivacySettingsAuthorization(t *testing.T) {
 		MemberID:       member1.ID,
 		ShareBirthDate: true,
 	}
-	err := database.Db.Create(&memberSettings1).Error
+	err = database.Db.Create(&memberSettings1).Error
 	require.NoError(t, err)
 
 	memberSettings2 := models.MemberPrivacySettings{
@@ -301,14 +309,18 @@ func TestGetEffectivePrivacySettings(t *testing.T) {
 
 	user1, _ := handlers.CreateTestUser(t, "user1@example.com")
 	club1 := handlers.CreateTestClub(t, user1, "Club 1")
-	member1 := handlers.CreateTestMember(t, user1, club1, "owner")
+	
+	// CreateTestClub already creates a member for the owner, retrieve it
+	var member1 models.Member
+	err := database.Db.Where("user_id = ? AND club_id = ?", user1.ID, club1.ID).First(&member1).Error
+	require.NoError(t, err)
 
 	// Create global privacy settings
 	globalSettings := models.UserPrivacySettings{
 		UserID:         user1.ID,
 		ShareBirthDate: true,
 	}
-	err := database.Db.Create(&globalSettings).Error
+	err = database.Db.Create(&globalSettings).Error
 	require.NoError(t, err)
 
 	t.Run("returns_global_setting_when_no_member_override", func(t *testing.T) {
