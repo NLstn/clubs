@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import CookieConsent from '../../components/CookieConsent';
 import { Input, Button } from '@/components/ui';
 
 const Signup: React.FC = () => {
   const { api } = useAuth();
   const navigate = useNavigate();
+  const { user: currentUser } = useCurrentUser();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,18 +25,15 @@ const Signup: React.FC = () => {
       return;
     }
 
+    if (!currentUser?.ID) {
+      setMessage('User information not available. Please try again.');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      // First fetch current user to get ID
-      const userResponse = await api.get('/api/v2/Users');
-      const users = userResponse.data.value || [];
-      const userId = users[0]?.ID;
-      
-      if (!userId) {
-        throw new Error('User ID not found');
-      }
-      
       // OData v2: PATCH to update user entity
-      await api.patch(`/api/v2/Users('${userId}')`, {
+      await api.patch(`/api/v2/Users('${currentUser.ID}')`, {
         firstName: firstName.trim(),
         lastName: lastName.trim()
       });
