@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useT } from '../hooks/useTranslation';
 import Layout from '../components/layout/Layout';
 import { Button } from '../components/ui';
 import { addRecentClub } from '../utils/recentClubs';
+import { buildODataQuery } from '../utils/odata';
 import './Dashboard.css';
 import '../styles/events.css';
 
@@ -96,6 +97,11 @@ const Dashboard = () => {
     const [activities, setActivities] = useState<ActivityItem[]>([]);
     const [dashboardLoading, setDashboardLoading] = useState(true);
     const [dashboardError, setDashboardError] = useState<string | null>(null);
+    const [skip, setSkip] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const loaderRef = useRef<HTMLDivElement>(null);
+    const PAGE_SIZE = 20;
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -103,10 +109,16 @@ const Dashboard = () => {
             setDashboardError(null);
             
             try {
-                const response = await api.get('/api/v2/TimelineItems');
+                const query = buildODataQuery({
+                    top: PAGE_SIZE,
+                    orderby: 'CreatedAt desc'
+                });
+                const response = await api.get(`/api/v2/TimelineItems${query}`);
                 const timelineData = response.data.value || [];
                 const activitiesData = timelineData.map((item: TimelineItem) => convertToActivity(item));
                 setActivities(activitiesData);
+                setSkip(PAGE_SIZE);
+                setHasMore(timelineData.length === PAGE_SIZE);
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
                 setDashboardError('Failed to load dashboard data');
@@ -118,6 +130,58 @@ const Dashboard = () => {
 
         fetchDashboardData();
     }, [api]);
+
+    const loadMore = useCallback(async () => {
+        if (loadingMore || !hasMore || dashboardLoading) return;
+
+        setLoadingMore(true);
+        try {
+            const query = buildODataQuery({
+                top: PAGE_SIZE,
+                skip: skip,
+                orderby: 'CreatedAt desc'
+            });
+            const response = await api.get(`/api/v2/TimelineItems${query}`);
+            const timelineData = response.data.value || [];
+            const newActivities = timelineData.map((item: TimelineItem) => convertToActivity(item));
+            
+            // Prevent duplicates by filtering out items with existing IDs
+            const existingIds = new Set(activities.map(a => a.ID));
+            const uniqueNewActivities = newActivities.filter((a: ActivityItem) => !existingIds.has(a.ID));
+            
+            setActivities(prev => [...prev, ...uniqueNewActivities]);
+            setSkip(prev => prev + PAGE_SIZE);
+            setHasMore(timelineData.length === PAGE_SIZE);
+        } catch (error) {
+            console.error('Error loading more activities:', error);
+        } finally {
+            setLoadingMore(false);
+        }
+    }, [api, skip, hasMore, loadingMore, dashboardLoading, activities]);
+
+    // Intersection Observer for infinite scroll
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const target = entries[0];
+                if (target.isIntersecting && hasMore && !loadingMore && !dashboardLoading) {
+                    loadMore();
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        const currentLoader = loaderRef.current;
+        if (currentLoader) {
+            observer.observe(currentLoader);
+        }
+
+        return () => {
+            if (currentLoader) {
+                observer.unobserve(currentLoader);
+            }
+        };
+    }, [hasMore, loadingMore, dashboardLoading, loadMore]);
 
     const translateRole = (role: string | undefined): string => {
         if (!role) return t('common.unknownRole');
@@ -266,50 +330,62 @@ const Dashboard = () => {
                         <div className="dashboard-section">
                             <h2>Activity Feed</h2>
                             {activities.length > 0 ? (
-                                <div className="activity-feed">
-                                    {activities.map(activity => (
-                                        <div key={`${activity.Type}-${activity.ID}`} className="activity-item">
-                                            <div className="activity-header">
-                                                {activity.Type === 'event' ? (
-                                                    <Button 
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        className="activity-type-badge clickable-badge"
-                                                        onClick={() => handleEventClick(activity)}
+                                <>
+                                    <div className="activity-feed">
+                                        {activities.map(activity => (
+                                            <div key={`${activity.Type}-${activity.ID}`} className="activity-item">
+                                                <div className="activity-header">
+                                                    {activity.Type === 'event' ? (
+                                                        <Button 
+                                                            size="sm"
+                                                            variant="secondary"
+                                                            className="activity-type-badge clickable-badge"
+                                                            onClick={() => handleEventClick(activity)}
+                                                        >
+                                                            {activity.Type.replace(/_/g, ' ')}
+                                                        </Button>
+                                                    ) : (
+                                                        <div className="activity-type-badge">
+                                                            {activity.Type.replace(/_/g, ' ')}
+                                                        </div>
+                                                    )}
+                                                    <span 
+                                                        className="club-badge"
+                                                        onClick={() => handleClubClick(activity.ClubID, activity.ClubName)}
                                                     >
-                                                        {activity.Type.replace(/_/g, ' ')}
-                                                    </Button>
-                                                ) : (
-                                                    <div className="activity-type-badge">
-                                                        {activity.Type.replace(/_/g, ' ')}
-                                                    </div>
-                                                )}
-                                                <span 
-                                                    className="club-badge"
-                                                    onClick={() => handleClubClick(activity.ClubID, activity.ClubName)}
-                                                >
-                                                    {activity.ClubName}
-                                                </span>
-                                            </div>
-                                            <h4 className="activity-title">{getPersonalizedTitle(activity)}</h4>
-                                            {renderActivityContent(activity)}
-                                            <small className="activity-meta">
-                                                {(activity.Type === 'member_promoted' || activity.Type === 'member_demoted' || activity.Type === 'role_changed') ? (
-                                                    <>
-                                                        {getRoleChangeMessage(activity) && `${getRoleChangeMessage(activity)} • `}
-                                                    </>
-                                                ) : (
-                                                    activity.ActorName && activity.Type !== 'event' && (
+                                                        {activity.ClubName}
+                                                    </span>
+                                                </div>
+                                                <h4 className="activity-title">{getPersonalizedTitle(activity)}</h4>
+                                                {renderActivityContent(activity)}
+                                                <small className="activity-meta">
+                                                    {(activity.Type === 'member_promoted' || activity.Type === 'member_demoted' || activity.Type === 'role_changed') ? (
                                                         <>
-                                                            {`Created by ${activity.ActorName}`} • 
+                                                            {getRoleChangeMessage(activity) && `${getRoleChangeMessage(activity)} • `}
                                                         </>
-                                                    )
-                                                )}
-                                                Posted on {formatDateTime(activity.CreatedAt)}
-                                            </small>
+                                                    ) : (
+                                                        activity.ActorName && activity.Type !== 'event' && (
+                                                            <>
+                                                                {`Created by ${activity.ActorName}`} • 
+                                                            </>
+                                                        )
+                                                    )}
+                                                    Posted on {formatDateTime(activity.CreatedAt)}
+                                                </small>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {/* Infinite scroll loader */}
+                                    {hasMore && (
+                                        <div ref={loaderRef} className="load-more-trigger">
+                                            {loadingMore && (
+                                                <div className="loading-more">
+                                                    Loading more activities...
+                                                </div>
+                                            )}
                                         </div>
-                                    ))}
-                                </div>
+                                    )}
+                                </>
                             ) : (
                                 <div className="empty-state">
                                     <p>No recent activities from your clubs.</p>
