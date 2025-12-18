@@ -106,6 +106,10 @@ const ProfilePrivacy = () => {
                 await api.patch(`/api/v2/UserPrivacySettings('${privacySettings.global.id}')`, { 
                     ShareBirthDate: shareBirthDate 
                 });
+                setPrivacySettings(prev => ({
+                    ...prev,
+                    global: { ...prev.global, shareBirthDate }
+                }));
             } else {
                 // Create new global setting
                 const response = await api.post('/api/v2/UserPrivacySettings', { 
@@ -117,10 +121,6 @@ const ProfilePrivacy = () => {
                 }));
             }
             
-            setPrivacySettings(prev => ({
-                ...prev,
-                global: { ...prev.global, shareBirthDate }
-            }));
             setMessage('Global privacy settings updated successfully!');
             setTimeout(() => setMessage(''), 3000);
         } catch (error) {

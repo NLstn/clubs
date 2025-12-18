@@ -13,18 +13,20 @@ import (
 )
 
 // UserPrivacySettings stores global privacy settings for a user
+// These settings apply to all clubs unless overridden by MemberPrivacySettings
 type UserPrivacySettings struct {
 	ID             string    `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
-	UserID         string    `json:"UserID" gorm:"type:uuid;not null;uniqueIndex" odata:"required"` // One global setting per user
+	UserID         string    `json:"UserID" gorm:"type:uuid;not null;uniqueIndex" odata:"required"`
 	ShareBirthDate bool      `json:"ShareBirthDate" gorm:"default:false"`
 	CreatedAt      time.Time `json:"CreatedAt" odata:"immutable"`
 	UpdatedAt      time.Time `json:"UpdatedAt"`
 }
 
 // MemberPrivacySettings stores club-specific privacy settings (overrides for global settings)
+// When present, these settings take precedence over UserPrivacySettings for the specific club
 type MemberPrivacySettings struct {
 	ID             string    `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
-	MemberID       string    `json:"MemberID" gorm:"type:uuid;not null;uniqueIndex" odata:"required"` // One setting per member
+	MemberID       string    `json:"MemberID" gorm:"type:uuid;not null;uniqueIndex" odata:"required"`
 	ShareBirthDate bool      `json:"ShareBirthDate" gorm:"default:false"`
 	CreatedAt      time.Time `json:"CreatedAt" odata:"immutable"`
 	UpdatedAt      time.Time `json:"UpdatedAt"`

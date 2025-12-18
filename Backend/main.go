@@ -211,23 +211,6 @@ func migratePrivacySettings() error {
 	}
 	log.Println("Dropped club_id column from user_privacy_settings table")
 
-	// Add unique constraint on user_id if it doesn't exist
-	err = database.Db.Exec(`
-		DO $$
-		BEGIN
-			IF NOT EXISTS (
-				SELECT 1 FROM pg_constraint 
-				WHERE conname = 'idx_user_privacy_settings_user_id'
-			) THEN
-				CREATE UNIQUE INDEX idx_user_privacy_settings_user_id ON user_privacy_settings(user_id);
-			END IF;
-		END $$;
-	`).Error
-	if err != nil {
-		return fmt.Errorf("failed to add unique constraint: %w", err)
-	}
-	log.Println("Added unique constraint on user_id in user_privacy_settings table")
-
 	log.Println("Privacy settings migration completed successfully")
 	return nil
 }
