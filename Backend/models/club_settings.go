@@ -26,6 +26,12 @@ type ClubSettings struct {
 	UpdatedBy                string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 }
 
+// EntitySetName returns the custom entity set name to prevent double pluralization
+// Without this, the OData library would pluralize "ClubSettings" to "ClubSettingses"
+func (ClubSettings) EntitySetName() string {
+	return "ClubSettings"
+}
+
 func GetClubSettings(clubID string) (ClubSettings, error) {
 	var settings ClubSettings
 	result := database.Db.First(&settings, "club_id = ?", clubID)
