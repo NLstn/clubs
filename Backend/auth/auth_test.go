@@ -2,6 +2,7 @@ package auth
 
 import (
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -103,12 +104,12 @@ func TestGenerateAPIKey(t *testing.T) {
 		assert.Contains(t, plainKey, "sk_live_")
 		assert.Greater(t, len(plainKey), 20, "Key should be sufficiently long")
 
-		// Verify hash is SHA-256 (64 hex characters)
-		assert.Equal(t, 64, len(keyHash))
+		// Verify hash is bcrypt (starts with $2a$ and is ~60 chars)
+		assert.True(t, strings.HasPrefix(keyHash, "$2a$"), "Hash should be bcrypt format")
+		assert.Greater(t, len(keyHash), 50, "Bcrypt hash should be at least 50 characters")
 
-		// Verify prefix is extracted correctly
-		assert.Contains(t, keyPrefix, "sk_live")
-		assert.LessOrEqual(t, len(keyPrefix), 20)
+		// Verify prefix is just the prefix part
+		assert.Equal(t, "sk_live", keyPrefix)
 	})
 
 	t.Run("Valid key generation with sk_test prefix", func(t *testing.T) {
