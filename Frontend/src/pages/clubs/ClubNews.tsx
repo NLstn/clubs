@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../utils/api";
+import { buildODataQuery, ODataFilter } from "../../utils/odata";
 import { useT } from "../../hooks/useTranslation";
 import './ClubNews.css';
 
@@ -24,7 +25,12 @@ const ClubNews = () => {
         setError(null);
         try {
             // OData v2: Query News filtered by club ID, ordered by creation date
-            const response = await api.get(`/api/v2/News?$filter=ClubID eq '${id}'&$orderby=CreatedAt desc`);
+            const query = buildODataQuery({
+                select: ['ID', 'Title', 'Content', 'CreatedAt', 'UpdatedAt'],
+                filter: ODataFilter.eq('ClubID', id!),
+                orderby: 'CreatedAt desc'
+            });
+            const response = await api.get(`/api/v2/News${query}`);
             interface ODataNews { ID: string; Title: string; Content: string; CreatedAt: string; UpdatedAt: string; }
             const newsData = response.data.value || [];
             // Map OData response to match expected format

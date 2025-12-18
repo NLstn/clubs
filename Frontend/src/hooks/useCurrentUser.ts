@@ -20,7 +20,7 @@ export const useCurrentUser = () => {
       try {
         setLoading(true);
         // OData v2: Query Users entity - backend hooks filter to current user
-        const response = await api.get('/api/v2/Users');
+        const response = await api.get('/api/v2/Users?$select=ID,Email,FirstName,LastName,BirthDate');
         // OData returns collection with 'value' array
         const users = response.data.value || [];
         if (users.length > 0) {

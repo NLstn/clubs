@@ -47,14 +47,14 @@ const ProfilePrivacy = () => {
                 }
                 
                 // OData v2: Fetch global privacy settings
-                const privacyResponse = await api.get('/api/v2/UserPrivacySettings');
+                const privacyResponse = await api.get('/api/v2/UserPrivacySettings?$select=ID,ShareBirthDate');
                 const privacyData = privacyResponse.data.value || [];
                 const globalSetting = privacyData[0]; // Should only be one global setting per user
                 
                 // OData v2: Fetch user's members with clubs and privacy settings
                 const encodedUserId = encodeURIComponent(currentUser.ID);
                 const membersResponse = await api.get(
-                    `/api/v2/Users('${encodedUserId}')/Members?$expand=Club,PrivacySettings&$filter=Club/Deleted eq false`
+                    `/api/v2/Users('${encodedUserId}')/Members?$select=ID&$expand=Club($select=ID,Name;$filter=Deleted eq false),PrivacySettings($select=ID,ShareBirthDate)`
                 );
                 const members = membersResponse.data.value || [];
                 

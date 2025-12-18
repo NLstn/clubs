@@ -32,7 +32,7 @@ function ProfileShifts() {
                 // Filter for shifts with startTime > now() and expand related data
                 const now = new Date().toISOString();
                 const response = await api.get(
-                    `/api/v2/ShiftMembers?$expand=Shift($expand=Event($expand=Club))&$filter=Shift/StartTime gt ${now}&$orderby=Shift/StartTime`
+                    `/api/v2/ShiftMembers?$select=ID&$expand=Shift($select=ID,StartTime,EndTime;$expand=Event($select=ID,Name,Location;$expand=Club($select=ID,Name)))&$filter=Shift/StartTime gt ${now}&$orderby=Shift/StartTime`
                 );
                 
                 interface ODataShiftMember { ID: string; Shift?: { ID: string; StartTime: string; EndTime: string; Event?: { ID: string; Name: string; Location: string; Club?: { ID: string; Name: string; }; }; }; }
