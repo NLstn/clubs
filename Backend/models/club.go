@@ -242,31 +242,55 @@ func (c *Club) ODataAfterUpdate(ctx context.Context, r *http.Request) error {
 	return nil
 }
 
-// ODataBeforeReadCollection OData read hook - filters out soft-deleted clubs
+// ODataBeforeReadCollection OData read hook - filters clubs based on membership and discoverability
+// Users can see:
+// 1. Non-deleted clubs they are members of
+// 2. Non-deleted clubs where DiscoverableByNonMembers is enabled
+// Note: Deleted clubs are only visible to owners when includeDeleted=true (handled elsewhere)
 func (c Club) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// Filter out soft-deleted clubs
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("deleted = ?", false)
+		// Show only non-deleted clubs where:
+		// 1. User is a member
+		// OR
+		// 2. Club is discoverable by non-members
+		return db.Where(
+			"clubs.deleted = ? AND (clubs.id IN (SELECT club_id FROM members WHERE user_id = ?) OR clubs.id IN (SELECT club_id FROM club_settings WHERE discoverable_by_non_members = ?))",
+			false,
+			userID,
+			true,
+		)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
 }
 
-// ODataBeforeReadEntity OData read hook - prevents reading soft-deleted clubs
+// ODataBeforeReadEntity OData read hook - allows access to clubs based on membership and discoverability
+// Users can access:
+// 1. Non-deleted clubs they are members of
+// 2. Non-deleted clubs where DiscoverableByNonMembers is enabled
+// Note: Deleted clubs are only accessible to owners when requested with includeDeleted=true
 func (c Club) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// Filter out soft-deleted clubs
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("deleted = ?", false)
+		// Allow access to non-deleted clubs only where:
+		// 1. User is a member
+		// OR
+		// 2. Club is discoverable by non-members
+		return db.Where(
+			"clubs.deleted = ? AND (clubs.id IN (SELECT club_id FROM members WHERE user_id = ?) OR clubs.id IN (SELECT club_id FROM club_settings WHERE discoverable_by_non_members = ?))",
+			false,
+			userID,
+			true,
+		)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil

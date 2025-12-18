@@ -49,17 +49,10 @@ interface ODataTeam {
     ClubID: string;
 }
 
-interface DiscoverableClub {
-    id: string;
-    name: string;
-    description: string;
-}
-
 const ClubList = () => {
     const { t } = useT();
     const { user: currentUser } = useCurrentUser();
     const [clubs, setClubs] = useState<Club[]>([]);
-    const [discoverableClubs, setDiscoverableClubs] = useState<DiscoverableClub[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
@@ -76,14 +69,13 @@ const ClubList = () => {
             }
 
             // OData v2 API: Get user's clubs via Members navigation
-            // This uses the new User -> Members -> Club navigation pattern
+            // This uses the User -> Members -> Club navigation pattern
             const response = await api.get(`/api/v2/Users('${currentUser.ID}')?$expand=Members($expand=Club($expand=Teams))`);
             
             // Extract members with their clubs from the response
             const members: ODataMemberWithClub[] = response.data.Members || [];
             
             // Transform to Club array with role information
-            // Note: Club is guaranteed by $expand query, no need for defensive filtering
             const transformedClubs = members.map((m) => ({
                 id: m.Club.ID,
                 name: m.Club.Name,
@@ -102,21 +94,6 @@ const ClubList = () => {
             }));
             
             setClubs(transformedClubs);
-
-            // Fetch discoverable clubs
-            try {
-                const discoverableResponse = await api.get('/api/v2/GetDiscoverableClubs()');
-                const discoverableData = discoverableResponse.data.value || [];
-                const transformedDiscoverable = discoverableData.map((club: ODataClub) => ({
-                    id: club.ID,
-                    name: club.Name,
-                    description: club.Description || ''
-                }));
-                setDiscoverableClubs(transformedDiscoverable);
-            } catch (discoverErr) {
-                // If fetching discoverable clubs fails, just log it - not critical
-                console.warn('Could not fetch discoverable clubs:', discoverErr);
-            }
         } catch (err: Error | unknown) {
             console.error('Error fetching clubs:', err);
             setError('Failed to fetch clubs');
@@ -265,33 +242,6 @@ const ClubList = () => {
                         >
                             Create Your First Club
                         </Button>
-                    </div>
-                )}
-
-                {discoverableClubs.length > 0 && (
-                    <div className="clubs-section">
-                        <h2>{t('clubs.discoverClubs')}</h2>
-                        <div className="clubs-grid">
-                            {discoverableClubs.map(club => (
-                                <Card
-                                    key={club.id}
-                                    variant="light"
-                                    padding="lg"
-                                    clickable
-                                    hover
-                                    onClick={() => navigate(`/clubs/${club.id}/public`)}
-                                    className="club-card"
-                                >
-                                    <div className="club-header">
-                                        <h3>{club.name}</h3>
-                                        <span className="role-badge discoverable">
-                                            {t('clubs.discoverable')}
-                                        </span>
-                                    </div>
-                                    <p className="club-description">{club.description}</p>
-                                </Card>
-                            ))}
-                        </div>
                     </div>
                 )}
             </div>
