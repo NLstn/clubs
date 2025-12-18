@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/azure"
