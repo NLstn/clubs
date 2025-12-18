@@ -558,7 +558,8 @@ func TestAPIKeyAuthentication(t *testing.T) {
 		KeyPrefix: keyPrefix,
 		IsActive:  true,
 	}
-	ctx.service.db.Create(apiKey)
+	err := ctx.service.db.Create(apiKey).Error
+	require.NoError(t, err)
 
 	t.Run("authenticate_with_api_key_x_api_key_header", func(t *testing.T) {
 		// Try to access an endpoint using X-API-Key header
@@ -583,8 +584,8 @@ func TestAPIKeyAuthentication(t *testing.T) {
 	})
 
 	t.Run("inactive_key_cannot_authenticate", func(t *testing.T) {
-		// Deactivate the key
-		ctx.service.db.Model(&models.APIKey{}).Where("key_hash = ?", keyHash).Update("is_active", false)
+		// Deactivate the key using user_id and name
+		ctx.service.db.Model(&models.APIKey{}).Where("user_id = ? AND name = ?", ctx.testUser.ID, "Auth Test Key").Update("is_active", false)
 
 		req := httptest.NewRequest("GET", "/api/v2/Users", nil)
 		req.Header.Set("X-API-Key", plainKey)
@@ -595,13 +596,13 @@ func TestAPIKeyAuthentication(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
 
 		// Reactivate for other tests
-		ctx.service.db.Model(&models.APIKey{}).Where("key_hash = ?", keyHash).Update("is_active", true)
+		ctx.service.db.Model(&models.APIKey{}).Where("user_id = ? AND name = ?", ctx.testUser.ID, "Auth Test Key").Update("is_active", true)
 	})
 
 	t.Run("expired_key_cannot_authenticate", func(t *testing.T) {
 		// Set expiration to past
 		pastTime := time.Now().Add(-1 * time.Hour)
-		ctx.service.db.Model(&models.APIKey{}).Where("key_hash = ?", keyHash).Update("expires_at", pastTime)
+		ctx.service.db.Model(&models.APIKey{}).Where("user_id = ? AND name = ?", ctx.testUser.ID, "Auth Test Key").Update("expires_at", pastTime)
 
 		req := httptest.NewRequest("GET", "/api/v2/Users", nil)
 		req.Header.Set("X-API-Key", plainKey)
@@ -612,7 +613,7 @@ func TestAPIKeyAuthentication(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
 
 		// Clear expiration for other tests
-		ctx.service.db.Model(&models.APIKey{}).Where("key_hash = ?", keyHash).Update("expires_at", nil)
+		ctx.service.db.Model(&models.APIKey{}).Where("user_id = ? AND name = ?", ctx.testUser.ID, "Auth Test Key").Update("expires_at", nil)
 	})
 
 	t.Run("invalid_key_cannot_authenticate", func(t *testing.T) {

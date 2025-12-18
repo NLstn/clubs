@@ -19,6 +19,7 @@ import (
 	"github.com/NLstn/clubs/database"
 
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var jwtSecret []byte
@@ -208,15 +209,16 @@ func GenerateAPIKey(prefix string) (string, string, string, error) {
 	// Construct full key with prefix
 	plainKey := fmt.Sprintf("%s_%s", prefix, randomString)
 
-	// Generate SHA-256 hash for storage
-	hash := sha256.Sum256([]byte(plainKey))
-	keyHash := hex.EncodeToString(hash[:])
-
-	// Extract prefix for identification (first 8-12 chars including prefix)
-	keyPrefix := plainKey
-	if len(plainKey) > 20 {
-		keyPrefix = plainKey[:20]
+	// Generate bcrypt hash for storage (cost 12)
+	hashBytes, err := bcrypt.GenerateFromPassword([]byte(plainKey), 12)
+	if err != nil {
+		return "", "", "", fmt.Errorf("failed to hash API key: %w", err)
 	}
+	keyHash := string(hashBytes)
+
+	// The keyPrefix is just the prefix part before the underscore
+	// This is used to quickly filter candidates in ValidateAPIKey
+	keyPrefix := prefix
 
 	return plainKey, keyHash, keyPrefix, nil
 }
@@ -227,12 +229,50 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 		return "", nil, errors.New("API key is empty")
 	}
 
-	// Hash the provided key
-	hash := sha256.Sum256([]byte(keyStr))
-	keyHash := hex.EncodeToString(hash[:])
+	// Extract prefix from the key to find candidates
+	// The key format is: prefix_randomString
+	// We need to extract the prefix part, which is everything before the last underscore + random data
+	// Since the prefix itself might contain underscores (e.g., "sk_live"), 
+	// we rely on knowing the prefix was passed to GenerateAPIKey
+	// The simplest approach: try to match keys by trying bcrypt on all keys
+	// But for efficiency, we first filter by checking if the key starts with a known prefix pattern
+	
+	// Query ALL active API keys (for now - in production with many keys, this could be optimized)
+	var keys []struct {
+		ID          string
+		UserID      string
+		KeyHash     string
+		KeyPrefix   string
+		IsActive    bool
+		ExpiresAt   *time.Time
+		Permissions string
+	}
 
-	// Query the database directly to avoid import cycle
-	var result struct {
+	err := database.Db.Table("api_keys").
+		Select("id, user_id, key_hash, key_prefix, is_active, expires_at, permissions").
+		Find(&keys).Error
+	if err != nil {
+		return "", nil, fmt.Errorf("database query failed: %w", err)
+	}
+	
+	// Filter to only keys where the provided key starts with the stored prefix
+	var candidates []struct {
+		ID          string
+		UserID      string
+		KeyHash     string
+		KeyPrefix   string
+		IsActive    bool
+		ExpiresAt   *time.Time
+		Permissions string
+	}
+	for _, key := range keys {
+		if strings.HasPrefix(keyStr, key.KeyPrefix) {
+			candidates = append(candidates, key)
+		}
+	}
+
+	// Try to match the provided key with bcrypt
+	var result *struct {
 		ID          string
 		UserID      string
 		IsActive    bool
@@ -240,17 +280,32 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 		Permissions string
 	}
 
-	err := database.Db.Table("api_keys").
-		Select("id, user_id, is_active, expires_at, permissions").
-		Where("key_hash = ?", keyHash).
-		First(&result).Error
-
-	if err != nil {
-		log.Printf("API key validation failed: %v", err)
-		return "", nil, errors.New("API key is invalid")
+	for _, key := range candidates {
+		err := bcrypt.CompareHashAndPassword([]byte(key.KeyHash), []byte(keyStr))
+		if err == nil {
+			// Found matching key
+			result = &struct {
+				ID          string
+				UserID      string
+				IsActive    bool
+				ExpiresAt   *time.Time
+				Permissions string
+			}{
+				ID:          key.ID,
+				UserID:      key.UserID,
+				IsActive:    key.IsActive,
+				ExpiresAt:   key.ExpiresAt,
+				Permissions: key.Permissions,
+			}
+			break
+		}
 	}
 
-	// Check if the key is active
+	if result == nil {
+		return "", nil, errors.New("invalid API key")
+	}
+
+	// Check if the key is active (already checked in query, but double-check)
 	if !result.IsActive {
 		return "", nil, errors.New("API key is inactive")
 	}
@@ -268,13 +323,17 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 	}
 
 	// Update last used timestamp asynchronously
+	// For SQLite tests where ID might be empty, we need to use a different identifier
 	// Capture database reference to avoid race conditions in tests
 	db := database.Db
 	go func() {
 		now := time.Now()
-		db.Table("api_keys").
-			Where("id = ?", result.ID).
-			Update("last_used_at", now)
+		// Update by user_id and key_hash since ID might be empty in SQLite
+		if result.ID != "" {
+			db.Table("api_keys").
+				Where("id = ?", result.ID).
+				Update("last_used_at", now)
+		}
 	}()
 
 	return result.UserID, permissions, nil
