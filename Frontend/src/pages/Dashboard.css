@@ -268,3 +268,15 @@
   color: var(--color-text-secondary);
   font-size: 0.85rem;
 }
+
+/* Infinite scroll loader styles */
+.load-more-trigger {
+  padding: var(--space-md);
+  text-align: center;
+}
+
+.loading-more {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  padding: var(--space-sm);
+}
