@@ -113,6 +113,7 @@ font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 ### Available Components
 
 #### Core UI Components
+- **[Button](./components/Button.md)** - Enhanced button component with loading, success, error states, and cancellable operations
 - **[Input](./components/Input.md)** - Reusable input component with variants, sizes, error handling, and accessibility features
 - **[Table](./components/Table.md)** - Flexible, reusable table component with loading states and error handling
 - **[ODataTable](./components/ODataTable.md)** - Table with server-side pagination and sorting via OData v4 queries
