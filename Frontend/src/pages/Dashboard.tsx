@@ -100,6 +100,7 @@ const Dashboard = () => {
     const [skip, setSkip] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
+    const [existingIds, setExistingIds] = useState<Set<string>>(new Set());
     const loaderRef = useRef<HTMLDivElement>(null);
     const PAGE_SIZE = 20;
 
@@ -117,12 +118,14 @@ const Dashboard = () => {
                 const timelineData = response.data.value || [];
                 const activitiesData = timelineData.map((item: TimelineItem) => convertToActivity(item));
                 setActivities(activitiesData);
+                setExistingIds(new Set(activitiesData.map((a: ActivityItem) => a.ID)));
                 setSkip(PAGE_SIZE);
                 setHasMore(timelineData.length === PAGE_SIZE);
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
                 setDashboardError('Failed to load dashboard data');
                 setActivities([]);
+                setExistingIds(new Set());
             } finally {
                 setDashboardLoading(false);
             }
@@ -146,10 +149,17 @@ const Dashboard = () => {
             const newActivities = timelineData.map((item: TimelineItem) => convertToActivity(item));
             
             // Prevent duplicates by filtering out items with existing IDs
-            const existingIds = new Set(activities.map(a => a.ID));
             const uniqueNewActivities = newActivities.filter((a: ActivityItem) => !existingIds.has(a.ID));
             
-            setActivities(prev => [...prev, ...uniqueNewActivities]);
+            if (uniqueNewActivities.length > 0) {
+                setActivities(prev => [...prev, ...uniqueNewActivities]);
+                setExistingIds(prev => {
+                    const newSet = new Set(prev);
+                    uniqueNewActivities.forEach((a: ActivityItem) => newSet.add(a.ID));
+                    return newSet;
+                });
+            }
+            
             setSkip(prev => prev + PAGE_SIZE);
             setHasMore(timelineData.length === PAGE_SIZE);
         } catch (error) {
@@ -157,7 +167,7 @@ const Dashboard = () => {
         } finally {
             setLoadingMore(false);
         }
-    }, [api, skip, hasMore, loadingMore, dashboardLoading, activities]);
+    }, [api, skip, hasMore, loadingMore, dashboardLoading, existingIds]);
 
     // Intersection Observer for infinite scroll
     useEffect(() => {
