@@ -238,12 +238,15 @@ func setupTestContext(t *testing.T) *testContext {
 	testDB.Exec(`CREATE TABLE IF NOT EXISTS club_settings (
 		id TEXT PRIMARY KEY,
 		club_id TEXT NOT NULL UNIQUE,
-		enable_fines BOOLEAN DEFAULT TRUE,
-		enable_shifts BOOLEAN DEFAULT TRUE,
-		enable_events BOOLEAN DEFAULT TRUE,
-		enable_teams BOOLEAN DEFAULT TRUE,
+		fines_enabled BOOLEAN DEFAULT TRUE,
+		shifts_enabled BOOLEAN DEFAULT TRUE,
+		teams_enabled BOOLEAN DEFAULT TRUE,
+		members_list_visible BOOLEAN DEFAULT TRUE,
+		discoverable_by_non_members BOOLEAN DEFAULT FALSE,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		created_by TEXT,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_by TEXT
 	)`)
 
 	testDB.Exec(`CREATE TABLE IF NOT EXISTS user_privacy_settings (
@@ -357,6 +360,20 @@ func setupTestContext(t *testing.T) *testContext {
 		UpdatedBy: testUser.ID,
 	}
 	require.NoError(t, database.Db.Create(testMember).Error, "Failed to create test member")
+
+	// Create club settings for the test club
+	testClubSettings := &models.ClubSettings{
+		ID:                       uuid.New().String(),
+		ClubID:                   testClub.ID,
+		FinesEnabled:             true,
+		ShiftsEnabled:            true,
+		TeamsEnabled:             true,
+		MembersListVisible:       true,
+		DiscoverableByNonMembers: false,
+		CreatedBy:                testUser.ID,
+		UpdatedBy:                testUser.ID,
+	}
+	require.NoError(t, database.Db.Create(testClubSettings).Error, "Failed to create test club settings")
 
 	return &testContext{
 		service:    service,

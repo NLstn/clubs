@@ -89,29 +89,6 @@ func (s *Service) registerFunctions() error {
 		return fmt.Errorf("failed to register GetOverview function for Team: %w", err)
 	}
 
-	// Unbound function to get discoverable clubs (clubs user is not a member of)
-	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
-		Name:       "GetDiscoverableClubs",
-		IsBound:    false,
-		Parameters: []odata.ParameterDefinition{},
-		ReturnType: reflect.TypeOf([]models.Club{}),
-		Handler:    s.getDiscoverableClubsFunction,
-	}); err != nil {
-		return fmt.Errorf("failed to register GetDiscoverableClubs function: %w", err)
-	}
-
-	// Bound function to get public club details (restricted view for non-members)
-	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
-		Name:       "GetPublicDetails",
-		IsBound:    true,
-		EntitySet:  "Clubs",
-		Parameters: []odata.ParameterDefinition{},
-		ReturnType: reflect.TypeOf(PublicClubDetails{}),
-		Handler:    s.getPublicClubDetailsFunction,
-	}); err != nil {
-		return fmt.Errorf("failed to register GetPublicDetails function for Club: %w", err)
-	}
-
 	return nil
 }
 
@@ -137,14 +114,6 @@ type TeamOverviewResponse struct {
 	Stats    map[string]interface{} `json:"Stats"`
 	UserRole string                 `json:"UserRole"`
 	IsAdmin  bool                   `json:"IsAdmin"`
-}
-
-type PublicClubDetails struct {
-	ID          string  `json:"ID"`
-	Name        string  `json:"Name"`
-	Description *string `json:"Description,omitempty"`
-	LogoURL     *string `json:"LogoURL,omitempty"`
-	IsMember    bool    `json:"IsMember"`
 }
 
 type EventWithRSVP struct {
@@ -546,92 +515,5 @@ func (s *Service) getTeamOverviewFunction(w http.ResponseWriter, r *http.Request
 		Stats:    stats,
 		UserRole: userRole,
 		IsAdmin:  team.IsAdmin(user),
-	}, nil
-}
-
-// getDiscoverableClubsFunction returns clubs that the user is not a member of but are discoverable
-// GET /api/v2/GetDiscoverableClubs()
-func (s *Service) getDiscoverableClubsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	// Get user ID from request context
-	userID, ok := r.Context().Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, fmt.Errorf("unauthorized: missing user id")
-	}
-
-	// Get clubs the user is a member of
-	var userClubs []models.Member
-	if err := s.db.Where("user_id = ?", userID).Find(&userClubs).Error; err != nil {
-		return nil, fmt.Errorf("failed to get user clubs: %w", err)
-	}
-
-	// Build list of club IDs user is already a member of
-	memberClubIDs := make([]string, len(userClubs))
-	for i, member := range userClubs {
-		memberClubIDs[i] = member.ClubID
-	}
-
-	// Query for clubs that are:
-	// 1. Not deleted
-	// 2. User is NOT a member of
-	// 3. Have DiscoverableByNonMembers enabled in settings
-	query := s.db.Table("clubs").
-		Joins("JOIN club_settings ON clubs.id = club_settings.club_id").
-		Where("clubs.deleted = ?", false).
-		Where("club_settings.discoverable_by_non_members = ?", true)
-
-	// Exclude clubs user is already a member of
-	if len(memberClubIDs) > 0 {
-		query = query.Where("clubs.id NOT IN ?", memberClubIDs)
-	}
-
-	var clubs []models.Club
-	if err := query.Find(&clubs).Error; err != nil {
-		return nil, fmt.Errorf("failed to query discoverable clubs: %w", err)
-	}
-
-	return clubs, nil
-}
-
-// getPublicClubDetailsFunction returns restricted club details for non-members
-// GET /api/v2/Clubs('{clubId}')/GetPublicDetails()
-func (s *Service) getPublicClubDetailsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	club := ctx.(*models.Club)
-
-	// Get user ID from request context
-	userID, ok := r.Context().Value(auth.UserIDKey).(string)
-	if !ok || userID == "" {
-		return nil, fmt.Errorf("unauthorized: missing user id")
-	}
-
-	// Get user from database
-	var user models.User
-	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		return nil, fmt.Errorf("failed to find user: %w", err)
-	}
-
-	// Check if user is a member
-	isMember := club.IsMember(user)
-
-	// If user is not a member, check if club is discoverable
-	if !isMember {
-		// Get club settings to check if discoverable
-		var settings models.ClubSettings
-		if err := s.db.Where("club_id = ?", club.ID).First(&settings).Error; err != nil {
-			return nil, fmt.Errorf("failed to get club settings: %w", err)
-		}
-
-		// If club is not discoverable, deny access
-		if !settings.DiscoverableByNonMembers {
-			return nil, fmt.Errorf("forbidden: this club is not discoverable")
-		}
-	}
-
-	// Return restricted club details
-	return PublicClubDetails{
-		ID:          club.ID,
-		Name:        club.Name,
-		Description: club.Description,
-		LogoURL:     club.LogoURL,
-		IsMember:    isMember,
 	}, nil
 }

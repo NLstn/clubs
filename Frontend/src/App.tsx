@@ -8,7 +8,6 @@ import { ThemeProvider } from './context/ThemeProvider';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const ClubDetails = lazy(() => import('./pages/clubs/ClubDetails'));
 const ClubList = lazy(() => import('./pages/clubs/ClubList'));
-const PublicClubDetails = lazy(() => import('./pages/clubs/PublicClubDetails'));
 const AdminClubDetails = lazy(() => import('./pages/clubs/admin/AdminClubDetails'));
 const CreateClub = lazy(() => import('./pages/clubs/CreateClub'));
 const JoinClub = lazy(() => import('./pages/clubs/JoinClub'));
@@ -67,15 +66,6 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <ClubDetails />
-                                </ProtectedRoute>
-                            }
-                        />
-
-                        <Route
-                            path="/clubs/:id/public"
-                            element={
-                                <ProtectedRoute>
-                                    <PublicClubDetails />
                                 </ProtectedRoute>
                             }
                         />
