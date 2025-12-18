@@ -40,19 +40,6 @@ const TeamMembers = () => {
         return t(`clubs.roles.${role}`);
     };
 
-    const sortMembersByRole = (members: Member[]): Member[] => {
-        const roleOrder: { [key: string]: number } = { 
-            'admin': 0, 
-            'member': 1 
-        };
-        
-        return [...members].sort((a, b) => {
-            const aOrder = roleOrder[a.role.toLowerCase()] ?? 999;
-            const bOrder = roleOrder[b.role.toLowerCase()] ?? 999;
-            return aOrder - bOrder;
-        });
-    };
-
     useEffect(() => {
         const fetchMembers = async () => {
             if (!clubId || !teamId) {
@@ -66,6 +53,7 @@ const TeamMembers = () => {
                 const teamMembers = response.data.value || response.data;
                 
                 // Transform TeamMember entities with nested User to flat structure
+                // Note: Server already sorts by Role,User/FirstName via $orderby
                 const membersData = teamMembers.map((tm: TeamMemberResponse) => ({
                     id: tm.ID,
                     userId: tm.UserID,
@@ -74,8 +62,7 @@ const TeamMembers = () => {
                     name: tm.User ? `${tm.User.FirstName} ${tm.User.LastName}` : 'Unknown'
                 }));
                 
-                const sortedMembers = sortMembersByRole(membersData);
-                setMembers(sortedMembers);
+                setMembers(membersData);
                 setError(null);
             } catch (err) {
                 console.error('Error fetching team members:', err);
