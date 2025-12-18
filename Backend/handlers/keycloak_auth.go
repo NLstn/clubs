@@ -95,9 +95,14 @@ func handleKeycloakCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Validate state parameter against stored state to prevent CSRF attacks
-	// For now, we just ensure it's present. In production, implement proper state validation
-	// using a secure session store or signed/encrypted state tokens.
+	// NOTE: State validation against server-side store is not currently implemented.
+	// The current implementation relies on PKCE (code_verifier/code_challenge) for security,
+	// which protects against authorization code interception attacks.
+	// For full CSRF protection, implement server-side state validation using:
+	// - A session store (Redis, in-memory cache with TTL, or database)
+	// - Store state on login, validate on callback, then delete
+	// - Consider using signed/encrypted JWT tokens as state values
+	// See: https://datatracker.ietf.org/doc/html/rfc6749#section-10.12
 
 	keycloakAuth := auth.GetKeycloakAuth()
 	if keycloakAuth == nil {

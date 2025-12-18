@@ -23,8 +23,10 @@ func main() {
 		log.Fatal("Could not initialize database:", err)
 	}
 
-	// FIXME: This should be in the database.go file, but importing the models there would result
-	//        in a circular dependency.
+	// Run database migrations
+	// NOTE: AutoMigrate must be called here (not in database package) to avoid circular dependency.
+	// The models package imports database for DB connection, so database cannot import models.
+	// This is the standard pattern for GORM applications.
 	err = database.Db.AutoMigrate(&models.Club{},
 		&models.Member{},
 		&models.Team{},

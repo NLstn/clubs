@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -192,7 +193,7 @@ func (m *Member) notifyAdded(actorID *string) {
 	err := CreateMemberJoinedActivity(club.ID, user.ID, club.Name, actorID)
 	if err != nil {
 		// Log error but don't fail the operation
-		// TODO: Add proper logging
+		log.Printf("ERROR: Failed to create member joined activity for user %s in club %s: %v", user.ID, club.ID, err)
 	}
 
 	// Send in-app notification based on preferences
@@ -207,7 +208,7 @@ func (m *Member) notifyRoleChanged(oldRole, newRole, clubName, actorID string) {
 	err := CreateRoleChangeActivity(m.ClubID, m.UserID, actorID, clubName, oldRole, newRole)
 	if err != nil {
 		// Log error but don't fail the operation
-		// TODO: Add proper logging
+		log.Printf("ERROR: Failed to create role change activity for member %s in club %s: %v", m.ID, m.ClubID, err)
 	}
 
 	// Get user notification preferences

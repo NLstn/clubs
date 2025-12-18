@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -40,7 +41,7 @@ func (c *Club) CreateJoinRequest(userID, email string) error {
 	err = c.notifyAdminsAboutJoinRequest(userID, email, request.ID)
 	if err != nil {
 		// Log error but don't fail the operation
-		// TODO: Add proper logging
+		log.Printf("ERROR: Failed to notify admins about join request %s for club %s: %v", request.ID, c.ID, err)
 	}
 
 	return nil
@@ -91,7 +92,7 @@ func AcceptJoinRequest(requestId, adminUserId string) error {
 	err = RemoveJoinRequestNotifications(joinRequest.ID)
 	if err != nil {
 		// Log error but don't fail the operation
-		// TODO: Add proper logging
+		log.Printf("ERROR: Failed to remove join request notifications for request %s: %v", joinRequest.ID, err)
 	}
 
 	// Delete the join request since it's now complete
@@ -127,7 +128,7 @@ func RejectJoinRequest(requestId, adminUserId string) error {
 	err = RemoveJoinRequestNotifications(joinRequest.ID)
 	if err != nil {
 		// Log error but don't fail the operation
-		// TODO: Add proper logging
+		log.Printf("ERROR: Failed to remove join request notifications for request %s: %v", joinRequest.ID, err)
 	}
 
 	return database.Db.Delete(&JoinRequest{}, "id = ?", requestId).Error
@@ -191,7 +192,7 @@ func (c *Club) notifyAdminsAboutJoinRequest(userID, email, joinRequestID string)
 			err := CreateNotificationWithJoinRequest(admin.ID, "join_request_received", title, message, &c.ID, nil, nil, &joinRequestID)
 			if err != nil {
 				// Log error but continue with other notifications
-				// TODO: Add proper logging
+				log.Printf("ERROR: Failed to create join request notification for admin %s in club %s: %v", admin.ID, c.ID, err)
 			}
 		}
 
