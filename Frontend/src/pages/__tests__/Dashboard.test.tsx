@@ -39,9 +39,8 @@ class MockIntersectionObserver {
   unobserve = vi.fn();
   disconnect = vi.fn();
   
-  constructor(callback: IntersectionObserverCallback) {
-    // Store callback for potential use
-    void callback;
+  constructor() {
+    // Mock implementation for testing
   }
 }
 
