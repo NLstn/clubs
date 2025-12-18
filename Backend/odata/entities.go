@@ -43,6 +43,7 @@ func (s *Service) registerEntities() error {
 		// Settings and privacy entities
 		&models.ClubSettings{},
 		&models.UserPrivacySettings{},
+		&models.MemberPrivacySettings{},
 
 		// API Key entities
 		&models.APIKey{},

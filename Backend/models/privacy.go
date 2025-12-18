@@ -11,98 +11,80 @@ import (
 	"gorm.io/gorm"
 )
 
+// UserPrivacySettings stores global privacy settings for a user
 type UserPrivacySettings struct {
 	ID             string    `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
-	UserID         string    `json:"UserID" gorm:"type:uuid;not null" odata:"required"`
-	ClubID         *string   `json:"ClubID,omitempty" gorm:"type:uuid" odata:"nullable"` // NULL means global setting
+	UserID         string    `json:"UserID" gorm:"type:uuid;not null;uniqueIndex" odata:"required"` // One global setting per user
 	ShareBirthDate bool      `json:"ShareBirthDate" gorm:"default:false"`
 	CreatedAt      time.Time `json:"CreatedAt" odata:"immutable"`
 	UpdatedAt      time.Time `json:"UpdatedAt"`
 }
 
-// EntitySetName returns the custom entity set name to prevent double pluralization
-// Without this, the OData library would pluralize "UserPrivacySettings" to "UserPrivacySettingses"
-func (UserPrivacySettings) EntitySetName() string {
-	return "UserPrivacySettings"
-}
+// MemberPrivacySettings stores club-specific privacy settings (overrides for global settings)
+type MemberPrivacySettings struct {
+	ID             string    `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
+	MemberID       string    `json:"MemberID" gorm:"type:uuid;not null;uniqueIndex" odata:"required"` // One setting per member
+	ShareBirthDate bool      `json:"ShareBirthDate" gorm:"default:false"`
+	CreatedAt      time.Time `json:"CreatedAt" odata:"immutable"`
+	UpdatedAt      time.Time `json:"UpdatedAt"`
 
-// GetUserPrivacySettings returns privacy settings for a user and specific club
-// If no club-specific setting exists, returns the global setting
-// If no settings exist at all, returns default (private) settings
-func GetUserPrivacySettings(userID, clubID string) (*UserPrivacySettings, error) {
-	var settings UserPrivacySettings
-
-	// First try to get club-specific settings
-	err := database.Db.Where("user_id = ? AND club_id = ?", userID, clubID).First(&settings).Error
-	if err == nil {
-		return &settings, nil
-	}
-
-	// If no club-specific settings, try global settings
-	err = database.Db.Where("user_id = ? AND club_id IS NULL", userID).First(&settings).Error
-	if err == nil {
-		return &settings, nil
-	}
-
-	// If no settings exist, return default private settings
-	return &UserPrivacySettings{
-		UserID:         userID,
-		ClubID:         nil,
-		ShareBirthDate: false,
-	}, nil
+	// Navigation property for OData
+	Member Member `gorm:"foreignKey:MemberID" json:"Member,omitempty" odata:"nav"`
 }
 
 // GetUserGlobalPrivacySettings returns global privacy settings for a user
 func GetUserGlobalPrivacySettings(userID string) (*UserPrivacySettings, error) {
 	var settings UserPrivacySettings
-	err := database.Db.Where("user_id = ? AND club_id IS NULL", userID).First(&settings).Error
+	err := database.Db.Where("user_id = ?", userID).First(&settings).Error
 	if err != nil {
 		// Return default settings if none exist
 		return &UserPrivacySettings{
 			UserID:         userID,
-			ClubID:         nil,
 			ShareBirthDate: false,
 		}, nil
 	}
 	return &settings, nil
 }
 
-// GetUserClubSpecificPrivacySettings returns all club-specific privacy settings for a user
-func GetUserClubSpecificPrivacySettings(userID string) ([]UserPrivacySettings, error) {
-	var settings []UserPrivacySettings
-	err := database.Db.Where("user_id = ? AND club_id IS NOT NULL", userID).Find(&settings).Error
-	return settings, err
+// GetMemberPrivacySettings returns privacy settings for a specific member
+// If no member-specific setting exists, returns nil
+func GetMemberPrivacySettings(memberID string) (*MemberPrivacySettings, error) {
+	var settings MemberPrivacySettings
+	err := database.Db.Where("member_id = ?", memberID).First(&settings).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &settings, nil
 }
 
-// UpdateOrCreatePrivacySettings updates or creates privacy settings
-func UpdateOrCreatePrivacySettings(userID, clubID string, shareBirthDate bool) error {
-	var settings UserPrivacySettings
-
-	var err error
-	if clubID == "" {
-		// Global setting
-		err = database.Db.Where("user_id = ? AND club_id IS NULL", userID).First(&settings).Error
-	} else {
-		// Club-specific setting
-		err = database.Db.Where("user_id = ? AND club_id = ?", userID, clubID).First(&settings).Error
-	}
-
+// GetEffectivePrivacySettings returns the effective privacy settings for a user in a club
+// If member-specific settings exist, they take precedence over global settings
+func GetEffectivePrivacySettings(userID, clubID string) (bool, error) {
+	// First get the member record
+	var member Member
+	err := database.Db.Where("user_id = ? AND club_id = ?", userID, clubID).First(&member).Error
 	if err != nil {
-		// Create new settings
-		settings = UserPrivacySettings{
-			UserID:         userID,
-			ShareBirthDate: shareBirthDate,
-		}
-		if clubID != "" {
-			settings.ClubID = &clubID
-		}
-		// For global settings (clubID == ""), ClubID should remain empty/null
-		return database.Db.Create(&settings).Error
-	} else {
-		// Update existing settings
-		settings.ShareBirthDate = shareBirthDate
-		return database.Db.Save(&settings).Error
+		return false, err
 	}
+
+	// Try to get member-specific settings
+	memberSettings, err := GetMemberPrivacySettings(member.ID)
+	if err != nil {
+		return false, err
+	}
+	if memberSettings != nil {
+		return memberSettings.ShareBirthDate, nil
+	}
+
+	// Fall back to global settings
+	globalSettings, err := GetUserGlobalPrivacySettings(userID)
+	if err != nil {
+		return false, err
+	}
+	return globalSettings.ShareBirthDate, nil
 }
 
 // ODataBeforeReadCollection filters privacy settings to only those belonging to the user
@@ -185,6 +167,97 @@ func (ups *UserPrivacySettings) ODataBeforeDelete(ctx context.Context, r *http.R
 	// Users can only delete their own privacy settings
 	if ups.UserID != userID {
 		return fmt.Errorf("unauthorized: can only delete your own privacy settings")
+	}
+
+	return nil
+}
+
+// MemberPrivacySettings OData Hooks
+
+// ODataBeforeReadCollection filters member privacy settings to those belonging to user's members
+func (mps MemberPrivacySettings) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see privacy settings for their own member records
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("member_id IN (SELECT id FROM members WHERE user_id = ?)", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to specific member privacy settings
+func (mps MemberPrivacySettings) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see privacy settings for their own member records
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("member_id IN (SELECT id FROM members WHERE user_id = ?)", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeCreate validates member privacy settings creation
+func (mps *MemberPrivacySettings) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Verify the member belongs to the current user
+	var member Member
+	err := database.Db.Where("id = ? AND user_id = ?", mps.MemberID, userID).First(&member).Error
+	if err != nil {
+		return fmt.Errorf("unauthorized: cannot create privacy settings for another user's member record")
+	}
+
+	// Set CreatedAt and UpdatedAt
+	now := time.Now()
+	mps.CreatedAt = now
+	mps.UpdatedAt = now
+
+	return nil
+}
+
+// ODataBeforeUpdate validates member privacy settings update permissions
+func (mps *MemberPrivacySettings) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Verify the member belongs to the current user
+	var member Member
+	err := database.Db.Where("id = ? AND user_id = ?", mps.MemberID, userID).First(&member).Error
+	if err != nil {
+		return fmt.Errorf("unauthorized: can only update privacy settings for your own member records")
+	}
+
+	// Set UpdatedAt
+	mps.UpdatedAt = time.Now()
+
+	return nil
+}
+
+// ODataBeforeDelete validates member privacy settings deletion permissions
+func (mps *MemberPrivacySettings) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Verify the member belongs to the current user
+	var member Member
+	err := database.Db.Where("id = ? AND user_id = ?", mps.MemberID, userID).First(&member).Error
+	if err != nil {
+		return fmt.Errorf("unauthorized: can only delete privacy settings for your own member records")
 	}
 
 	return nil
