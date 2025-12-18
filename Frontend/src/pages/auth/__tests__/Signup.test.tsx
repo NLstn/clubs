@@ -14,6 +14,14 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+vi.mock('../../../hooks/useCurrentUser', () => ({
+  useCurrentUser: () => ({
+    user: { ID: 'user-123', Email: 'test@example.com', FirstName: 'Test', LastName: 'User' },
+    loading: false,
+    error: null,
+  }),
+}));
+
 const mockApi = {
   get: vi.fn(),
   post: vi.fn(),
@@ -86,7 +94,6 @@ describe('Signup', () => {
   });
 
   it('submits form with correct data and navigates to dashboard', async () => {
-    mockApi.get.mockResolvedValue({ data: { value: [{ ID: 'user-123' }] } });
     mockApi.patch = vi.fn().mockResolvedValue({ data: {} });
 
     render(
@@ -113,7 +120,6 @@ describe('Signup', () => {
   });
 
   it('shows error message when API call fails', async () => {
-    mockApi.get.mockResolvedValue({ data: { value: [{ ID: 'user-123' }] } });
     mockApi.patch = vi.fn().mockRejectedValue(new Error('API Error'));
 
     render(

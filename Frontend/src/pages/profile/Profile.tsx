@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { useAuth } from "../../hooks/useAuth";
+import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { Input, Button, FormGroup } from '@/components/ui';
 import './Profile.css';
 
@@ -14,6 +15,7 @@ interface UserProfile {
 
 const Profile = () => {
     const { api } = useAuth();
+    const { user: currentUser, loading: userLoading, error: userError } = useCurrentUser();
     const [profile, setProfile] = useState<UserProfile>({
         firstName: '',
         lastName: '',
@@ -24,60 +26,46 @@ const Profile = () => {
     const [editedFirstName, setEditedFirstName] = useState('');
     const [editedLastName, setEditedLastName] = useState('');
     const [editedBirthDate, setEditedBirthDate] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        const fetchUserProfile = async () => {
-            try {
-                // OData v2: Query Users entity - backend filters to current user
-                const response = await api.get('/api/v2/Users');
-                const users = response.data.value || [];
-                const userData = users[0] || {};
-                const birthDate = userData.BirthDate ? userData.BirthDate.split('T')[0] : undefined;
-                setProfile({
-                    firstName: userData.FirstName || '',
-                    lastName: userData.LastName || '',
-                    email: userData.Email || '',
-                    birthDate: birthDate
-                });
-                setEditedFirstName(userData.FirstName || '');
-                setEditedLastName(userData.LastName || '');
-                setEditedBirthDate(birthDate || '');
-            } catch (error) {
-                console.error('Error fetching user profile:', error);
-                setProfile({
-                    firstName: 'Demo',
-                    lastName: 'User',
-                    email: 'user@example.com'
-                });
-                setEditedFirstName('Demo');
-                setEditedLastName('User');
-                setEditedBirthDate('');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchUserProfile();
-    }, [api]);
+        if (currentUser) {
+            const birthDate = currentUser.BirthDate ? currentUser.BirthDate.split('T')[0] : undefined;
+            setProfile({
+                firstName: currentUser.FirstName || '',
+                lastName: currentUser.LastName || '',
+                email: currentUser.Email || '',
+                birthDate: birthDate
+            });
+            setEditedFirstName(currentUser.FirstName || '');
+            setEditedLastName(currentUser.LastName || '');
+            setEditedBirthDate(birthDate || '');
+        } else if (userError) {
+            console.error('Error loading user profile:', userError);
+            setProfile({
+                firstName: 'Demo',
+                lastName: 'User',
+                email: 'user@example.com'
+            });
+            setEditedFirstName('Demo');
+            setEditedLastName('User');
+            setEditedBirthDate('');
+        }
+    }, [currentUser, userError]);
 
     const handleEdit = () => {
         setIsEditing(true);
     };
 
     const handleSave = async () => {
-        setIsLoading(true);
+        if (!currentUser?.ID) {
+            setMessage('User ID not found');
+            return;
+        }
+
+        setIsSaving(true);
         try {
-            // First fetch current user to get ID
-            const userResponse = await api.get('/api/v2/Users');
-            const users = userResponse.data.value || [];
-            const userId = users[0]?.ID;
-            
-            if (!userId) {
-                throw new Error('User ID not found');
-            }
-            
             const updateData: {
                 firstName: string;
                 lastName: string;
@@ -93,7 +81,7 @@ const Profile = () => {
             }
             
             // OData v2: PATCH to update user entity
-            await api.patch(`/api/v2/Users('${userId}')`, updateData);
+            await api.patch(`/api/v2/Users('${currentUser.ID}')`, updateData);
 
             setProfile({
                 ...profile,
@@ -107,7 +95,7 @@ const Profile = () => {
             console.error('Error updating profile:', error);
             setMessage('Failed to update profile');
         } finally {
-            setIsLoading(false);
+            setIsSaving(false);
             setIsEditing(false);
         }
     };
@@ -141,11 +129,11 @@ const Profile = () => {
                             <Button 
                                 onClick={handleSave}
                                 variant="accept"
-                                disabled={!editedFirstName.trim() || !editedLastName.trim()}
+                                disabled={!editedFirstName.trim() || !editedLastName.trim() || isSaving}
                             >
-                                Save Changes
+                                {isSaving ? 'Saving...' : 'Save Changes'}
                             </Button>
-                            <Button onClick={handleCancel} variant="cancel">Cancel</Button>
+                            <Button onClick={handleCancel} variant="cancel" disabled={isSaving}>Cancel</Button>
                         </>
                     )
                 }
@@ -156,7 +144,7 @@ const Profile = () => {
                     </div>
                 )}
 
-                {isLoading ? (
+                {userLoading ? (
                     <div style={{ textAlign: 'center', padding: 'var(--space-xl)', color: 'var(--color-text-secondary)' }}>
                         <p>Loading profile...</p>
                     </div>
