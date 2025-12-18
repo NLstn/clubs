@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button Component Demo - Enhanced Feedback States</title>
+  <style>
+    :root {
+      --color-primary: #4CAF50;
+      --color-primary-hover: #45a049;
+      --color-secondary: #646cff;
+      --color-secondary-hover: #535bf2;
+      --color-cancel: #f44336;
+      --color-cancel-hover: #e53935;
+      --color-background: #242424;
+      --color-background-light: #333333;
+      --color-text: rgba(255, 255, 255, 0.87);
+      --color-text-secondary: #888888;
+      --space-xs: 0.5rem;
+      --space-sm: 1rem;
+      --space-md: 1.5rem;
+      --space-lg: 2rem;
+      --space-xl: 3rem;
+      --border-radius-sm: 4px;
+      --border-radius-md: 6px;
+      --border-radius-lg: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+      background-color: var(--color-background);
+      color: var(--color-text);
+      line-height: 1.5;
+      padding: var(--space-lg);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: var(--space-md);
+      color: var(--color-text);
+    }
+
+    .description {
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-xl);
+      font-size: 1.1rem;
+    }
+
+    .section {
+      background-color: var(--color-background-light);
+      border-radius: var(--border-radius-lg);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+
+    .section h2 {
+      color: var(--color-text);
+      margin-bottom: var(--space-md);
+    }
+
+    .section p {
+      color: var(--color-text-secondary);
+      margin-bottom: var(--space-md);
+    }
+
+    .button-container {
+      display: flex;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-md);
+    }
+
+    .state-info {
+      margin-top: var(--space-md);
+      padding: var(--space-sm);
+      background-color: var(--color-background);
+      border-radius: var(--border-radius-sm);
+      color: var(--color-text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .state-info strong {
+      color: var(--color-text);
+      font-weight: 600;
+    }
+
+    /* Button Wrapper */
+    .ui-button-wrapper {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Button Base Styles */
+    .ui-button {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: var(--color-primary);
+      color: white;
+      border: none;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--border-radius-sm);
+      font-size: 1rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      min-height: 44px;
+      white-space: nowrap;
+    }
+
+    .ui-button:hover:not(:disabled) {
+      background-color: var(--color-primary-hover);
+    }
+
+    .ui-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Button Variants */
+    .ui-button--primary {
+      background-color: var(--color-primary);
+    }
+
+    .ui-button--primary:hover:not(:disabled) {
+      background-color: var(--color-primary-hover);
+    }
+
+    .ui-button--secondary {
+      background-color: var(--color-secondary);
+    }
+
+    .ui-button--secondary:hover:not(:disabled) {
+      background-color: var(--color-secondary-hover);
+    }
+
+    .ui-button--cancel {
+      background-color: var(--color-cancel);
+    }
+
+    .ui-button--cancel:hover:not(:disabled) {
+      background-color: var(--color-cancel-hover);
+    }
+
+    /* Loading State */
+    .ui-button--loading {
+      position: relative;
+      pointer-events: auto;
+    }
+
+    .ui-button__spinner {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: var(--space-xs);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Success State */
+    .ui-button--success {
+      background-color: var(--color-primary);
+    }
+
+    .ui-button__icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: var(--space-xs);
+      font-weight: bold;
+    }
+
+    /* Error State */
+    .ui-button--error {
+      background-color: var(--color-cancel);
+    }
+
+    /* Cancel Button */
+    .ui-button__cancel {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: var(--color-cancel);
+      color: white;
+      border: 2px solid var(--color-background);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: bold;
+      transition: background-color 0.2s, transform 0.1s;
+      padding: 0;
+      line-height: 1;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .ui-button__cancel:hover {
+      background-color: var(--color-cancel-hover);
+      transform: scale(1.1);
+    }
+
+    .ui-button__content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Enhanced Button Component Demo</h1>
+    <p class="description">
+      This demo showcases the new feedback capabilities of the Button component,
+      including loading states with spinners, success/error feedback, and cancellation support.
+    </p>
+
+    <div class="section">
+      <h2>1. Success Flow</h2>
+      <p>Click the button to simulate a successful save operation.</p>
+      <div class="button-container">
+        <div class="ui-button-wrapper">
+          <button class="ui-button ui-button--primary" id="successBtn">
+            <span class="ui-button__content">Save Changes</span>
+          </button>
+        </div>
+      </div>
+      <div class="state-info">Current state: <strong id="successState">idle</strong></div>
+    </div>
+
+    <div class="section">
+      <h2>2. Error Flow</h2>
+      <p>Click the button to simulate a failed operation with error feedback.</p>
+      <div class="button-container">
+        <div class="ui-button-wrapper">
+          <button class="ui-button ui-button--primary" id="errorBtn">
+            <span class="ui-button__content">Save (Will Fail)</span>
+          </button>
+        </div>
+      </div>
+      <div class="state-info">Current state: <strong id="errorState">idle</strong></div>
+    </div>
+
+    <div class="section">
+      <h2>3. Cancellable Operation</h2>
+      <p>Click the button to start a long operation. Click the X button to cancel it.</p>
+      <div class="button-container">
+        <div class="ui-button-wrapper" id="cancelWrapper">
+          <button class="ui-button ui-button--secondary" id="cancelBtn">
+            <span class="ui-button__content">Start Long Process</span>
+          </button>
+        </div>
+      </div>
+      <div class="state-info">
+        Current state: <strong id="cancelState">idle</strong> |
+        Cancelled: <strong id="cancelCount">0</strong> times
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>4. All States Demo</h2>
+      <p>See how buttons look in different states.</p>
+      <div class="button-container">
+        <button class="ui-button ui-button--primary">
+          <span class="ui-button__content">Idle</span>
+        </button>
+        <button class="ui-button ui-button--primary ui-button--loading" disabled>
+          <span class="ui-button__content">
+            <span class="ui-button__spinner"></span>
+            Loading
+          </span>
+        </button>
+        <button class="ui-button ui-button--primary ui-button--success" disabled>
+          <span class="ui-button__content">
+            <span class="ui-button__icon">✓</span>
+            Success!
+          </span>
+        </button>
+        <button class="ui-button ui-button--cancel ui-button--error">
+          <span class="ui-button__content">
+            <span class="ui-button__icon">✕</span>
+            Error!
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Success button demo
+    const successBtn = document.getElementById('successBtn');
+    const successState = document.getElementById('successState');
+    let successTimer;
+
+    successBtn.addEventListener('click', async () => {
+      if (successBtn.disabled) return;
+      
+      // Loading state
+      successBtn.disabled = true;
+      successBtn.classList.add('ui-button--loading');
+      successBtn.querySelector('.ui-button__content').innerHTML = `
+        <span class="ui-button__spinner"></span>
+        <span>Saving...</span>
+      `;
+      successState.textContent = 'loading';
+
+      // Simulate async operation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Success state
+      successBtn.classList.remove('ui-button--loading');
+      successBtn.classList.add('ui-button--success');
+      successBtn.querySelector('.ui-button__content').innerHTML = `
+        <span class="ui-button__icon">✓</span>
+        <span>Saved successfully!</span>
+      `;
+      successState.textContent = 'success';
+
+      // Reset after 3 seconds
+      successTimer = setTimeout(() => {
+        successBtn.disabled = false;
+        successBtn.classList.remove('ui-button--success');
+        successBtn.querySelector('.ui-button__content').innerHTML = 'Save Changes';
+        successState.textContent = 'idle';
+      }, 3000);
+    });
+
+    // Error button demo
+    const errorBtn = document.getElementById('errorBtn');
+    const errorState = document.getElementById('errorState');
+    let errorTimer;
+
+    errorBtn.addEventListener('click', async () => {
+      if (errorBtn.disabled) return;
+      
+      // Loading state
+      errorBtn.disabled = true;
+      errorBtn.classList.add('ui-button--loading');
+      errorBtn.querySelector('.ui-button__content').innerHTML = `
+        <span class="ui-button__spinner"></span>
+        <span>Saving...</span>
+      `;
+      errorState.textContent = 'loading';
+
+      // Simulate async operation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Error state
+      errorBtn.disabled = false; // Allow retry
+      errorBtn.classList.remove('ui-button--loading');
+      errorBtn.classList.add('ui-button--error');
+      errorBtn.querySelector('.ui-button__content').innerHTML = `
+        <span class="ui-button__icon">✕</span>
+        <span>Save failed!</span>
+      `;
+      errorState.textContent = 'error';
+
+      // Reset after 3 seconds
+      errorTimer = setTimeout(() => {
+        errorBtn.classList.remove('ui-button--error');
+        errorBtn.querySelector('.ui-button__content').innerHTML = 'Save (Will Fail)';
+        errorState.textContent = 'idle';
+      }, 3000);
+    });
+
+    // Cancellable button demo
+    const cancelBtn = document.getElementById('cancelBtn');
+    const cancelWrapper = document.getElementById('cancelWrapper');
+    const cancelState = document.getElementById('cancelState');
+    const cancelCount = document.getElementById('cancelCount');
+    let cancelTimer;
+    let cancelledTimes = 0;
+
+    cancelBtn.addEventListener('click', async () => {
+      if (cancelBtn.disabled) return;
+      
+      // Loading state
+      cancelBtn.disabled = true;
+      cancelBtn.classList.add('ui-button--loading');
+      cancelBtn.querySelector('.ui-button__content').innerHTML = `
+        <span class="ui-button__spinner"></span>
+        <span>Processing...</span>
+      `;
+      cancelState.textContent = 'loading';
+
+      // Add cancel button
+      const cancelButton = document.createElement('button');
+      cancelButton.type = 'button';
+      cancelButton.className = 'ui-button__cancel';
+      cancelButton.innerHTML = '✕';
+      cancelButton.setAttribute('aria-label', 'Cancel');
+      cancelWrapper.appendChild(cancelButton);
+
+      // Cancel handler
+      cancelButton.addEventListener('click', () => {
+        clearTimeout(cancelTimer);
+        cancelWrapper.removeChild(cancelButton);
+        cancelBtn.disabled = false;
+        cancelBtn.classList.remove('ui-button--loading');
+        cancelBtn.querySelector('.ui-button__content').innerHTML = 'Start Long Process';
+        cancelState.textContent = 'idle';
+        cancelledTimes++;
+        cancelCount.textContent = cancelledTimes;
+      });
+
+      // Simulate long operation
+      cancelTimer = setTimeout(() => {
+        if (cancelWrapper.contains(cancelButton)) {
+          cancelWrapper.removeChild(cancelButton);
+        }
+        
+        cancelBtn.classList.remove('ui-button--loading');
+        cancelBtn.classList.add('ui-button--success');
+        cancelBtn.querySelector('.ui-button__content').innerHTML = `
+          <span class="ui-button__icon">✓</span>
+          <span>Completed!</span>
+        `;
+        cancelState.textContent = 'success';
+
+        setTimeout(() => {
+          cancelBtn.disabled = false;
+          cancelBtn.classList.remove('ui-button--success');
+          cancelBtn.querySelector('.ui-button__content').innerHTML = 'Start Long Process';
+          cancelState.textContent = 'idle';
+        }, 3000);
+      }, 5000);
+    });
+  </script>
+</body>
+</html>
