@@ -40,11 +40,15 @@ func GetUserGlobalPrivacySettings(userID string) (*UserPrivacySettings, error) {
 	var settings UserPrivacySettings
 	err := database.Db.Where("user_id = ?", userID).First(&settings).Error
 	if err != nil {
-		// Return default settings if none exist
-		return &UserPrivacySettings{
-			UserID:         userID,
-			ShareBirthDate: false,
-		}, nil
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Return default settings if none exist
+			return &UserPrivacySettings{
+				UserID:         userID,
+				ShareBirthDate: false,
+			}, nil
+		}
+		// Return other database errors
+		return nil, err
 	}
 	return &settings, nil
 }
