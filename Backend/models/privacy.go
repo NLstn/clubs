@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -52,7 +53,7 @@ func GetMemberPrivacySettings(memberID string) (*MemberPrivacySettings, error) {
 	var settings MemberPrivacySettings
 	err := database.Db.Where("member_id = ?", memberID).First(&settings).Error
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
