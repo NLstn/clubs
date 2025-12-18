@@ -4,7 +4,7 @@ export { default as ODataTable, type ODataTableColumn } from './ODataTable';
 export { TypeAheadDropdown } from './TypeAheadDropdown';
 export { default as Modal, type ModalProps } from './Modal';
 export { default as ConfirmDialog, type ConfirmDialogProps } from './ConfirmDialog';
-export { Button, type ButtonProps } from './Button';
+export { Button, type ButtonProps, type ButtonState } from './Button';
 export { Tabs, type TabsProps, type Tab } from './Tabs';
 export { FormGroup } from './FormGroup';
 export { Card, type CardProps } from './Card';
