@@ -267,8 +267,16 @@ func SetupTestDB(t *testing.T) {
 	testDB.Exec(`
 		CREATE TABLE IF NOT EXISTS user_privacy_settings (
 			id TEXT PRIMARY KEY,
-			user_id TEXT NOT NULL,
-			club_id TEXT,
+			user_id TEXT NOT NULL UNIQUE,
+			share_birth_date BOOLEAN DEFAULT FALSE,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS member_privacy_settings (
+			id TEXT PRIMARY KEY,
+			member_id TEXT NOT NULL UNIQUE,
 			share_birth_date BOOLEAN DEFAULT FALSE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -312,6 +320,7 @@ func TeardownTestDB(t *testing.T) {
 		testDB.Exec("DELETE FROM magic_links")
 		testDB.Exec("DELETE FROM user_notification_preferences")
 		testDB.Exec("DELETE FROM user_privacy_settings")
+		testDB.Exec("DELETE FROM member_privacy_settings")
 		testDB.Exec("DELETE FROM notifications")
 		testDB.Exec("DELETE FROM fines")
 		testDB.Exec("DELETE FROM members")
