@@ -28,6 +28,7 @@ const EventDetails = lazy(() => import('./pages/clubs/events/EventDetails'));
 const AdminEventDetails = lazy(() => import('./pages/clubs/admin/events/AdminEventDetails'));
 const TeamDetails = lazy(() => import('./pages/teams/TeamDetails'));
 const AdminTeamDetails = lazy(() => import('./pages/teams/AdminTeamDetails'));
+const ButtonDemo = lazy(() => import('./pages/ButtonDemo'));
 
 // Loading component for suspense fallback
 const PageLoader = () => (
@@ -224,6 +225,12 @@ function App() {
                         <Route path="/profile/notifications" element={
                             <ProtectedRoute>
                                 <ProfileNotificationSettings />
+                            </ProtectedRoute>
+                        } />
+
+                        <Route path="/demo/button" element={
+                            <ProtectedRoute>
+                                <ButtonDemo />
                             </ProtectedRoute>
                         } />
 
