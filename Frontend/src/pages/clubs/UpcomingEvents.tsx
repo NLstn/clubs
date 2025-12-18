@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Button } from '../../components/ui';
 import api from '../../utils/api';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { buildODataQuery, odataExpandWithOptions, ODataFilter } from '@/utils/odata';
 import '../../styles/events.css';
 
 interface Event {
@@ -28,11 +29,20 @@ const UpcomingEvents = () => {
         if (!id || !currentUser?.ID) return;
         
         try {
-            // OData v2: Use navigation property with filter for upcoming events
+            // OData v2: Use navigation property with filter for upcoming events and nested expand for user's RSVPs
             const now = new Date().toISOString();
             const encodedId = encodeURIComponent(id);
             const encodedUserId = encodeURIComponent(currentUser.ID);
-            const response = await api.get(`/api/v2/Clubs('${encodedId}')/Events?$filter=StartTime ge ${now}&$orderby=StartTime&$expand=EventRSVPs($filter=UserID eq '${encodedUserId}')`);
+            
+            const query = buildODataQuery({
+                filter: ODataFilter.ge('StartTime', now),
+                orderby: 'StartTime',
+                expand: odataExpandWithOptions('EventRSVPs', {
+                    filter: ODataFilter.eq('UserID', encodedUserId)
+                })
+            });
+            
+            const response = await api.get(`/api/v2/Clubs('${encodedId}')/Events${query}`);
             interface ODataEvent { ID: string; Name: string; Description: string; Location: string; StartTime: string; EndTime: string; EventRSVPs?: Array<{ Response: string; }>; }
             const eventsData = response.data.value || response.data || [];
             // Map OData response to match expected format

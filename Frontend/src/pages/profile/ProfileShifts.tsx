@@ -4,6 +4,7 @@ import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { useAuth } from '../../hooks/useAuth';
 import { useT } from '../../hooks/useTranslation';
 import { Card } from '@/components/ui';
+import { buildODataQuery, odataExpandWithOptions, ODataFilter } from '@/utils/odata';
 
 interface UserShift {
     id: string;
@@ -28,12 +29,26 @@ function ProfileShifts() {
         const fetchShifts = async () => {
             try {
                 setLoading(true);
-                // OData v2: Query ShiftMembers with expansions for current user's future shifts
-                // Filter for shifts with startTime > now() and expand related data
+                // OData v2: Query ShiftMembers with nested expansions for current user's future shifts
                 const now = new Date().toISOString();
-                const response = await api.get(
-                    `/api/v2/ShiftMembers?$select=ID&$expand=Shift($select=ID,StartTime,EndTime;$expand=Event($select=ID,Name,Location;$expand=Club($select=ID,Name)))&$filter=Shift/StartTime gt ${now}&$orderby=Shift/StartTime`
-                );
+                
+                // Build nested expand with select clauses for optimal payload
+                const query = buildODataQuery({
+                    select: ['ID'],
+                    expand: odataExpandWithOptions('Shift', {
+                        select: ['ID', 'StartTime', 'EndTime'],
+                        expand: odataExpandWithOptions('Event', {
+                            select: ['ID', 'Name', 'Location'],
+                            expand: odataExpandWithOptions('Club', {
+                                select: ['ID', 'Name']
+                            })
+                        })
+                    }),
+                    filter: ODataFilter.gt('Shift/StartTime', now),
+                    orderby: 'Shift/StartTime'
+                });
+                
+                const response = await api.get(`/api/v2/ShiftMembers${query}`);
                 
                 interface ODataShiftMember { ID: string; Shift?: { ID: string; StartTime: string; EndTime: string; Event?: { ID: string; Name: string; Location: string; Club?: { ID: string; Name: string; }; }; }; }
                 const shiftMembers = response.data.value || [];
