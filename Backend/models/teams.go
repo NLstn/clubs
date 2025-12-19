@@ -612,7 +612,7 @@ func (tm *TeamMember) ODataBeforeUpdate(ctx context.Context, r *http.Request) er
 		if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", team.ClubID, userID).First(&existingMember).Error; err != nil {
 			// Check if user is team admin
 			var teamMember TeamMember
-			if err := database.Db.Where("team_id = ? AND user_id = ? AND role = 'admin'", tm.TeamID, userID).First(&teamMember).Error; err != nil {
+			if err := database.Db.Where("team_id = ? AND user_id = ? AND role = 'admin'", currentTeamMember.TeamID, userID).First(&teamMember).Error; err != nil {
 				return fmt.Errorf("unauthorized: only club admins/owners or team admins can update team members")
 			}
 		}
