@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import EditNews from "./EditNews";
 import AddNews from "./AddNews";
@@ -20,6 +20,15 @@ const AdminClubNewsList = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const [deleteStates, setDeleteStates] = useState<Record<string, ButtonState>>({});
+    const timeoutRefs = useRef<number[]>([]);
+
+    useEffect(() => {
+        // Cleanup timeouts on unmount
+        const timeouts = timeoutRefs.current;
+        return () => {
+            timeouts.forEach(clearTimeout);
+        };
+    }, []);
 
     const refreshNews = useCallback(() => {
         setRefreshKey(prev => prev + 1);
@@ -46,7 +55,7 @@ const AdminClubNewsList = () => {
             await api.delete(`/api/v2/News('${newsId}')`);
             setDeleteStates(prev => ({ ...prev, [newsId]: 'success' }));
             
-            setTimeout(() => {
+            const timeoutId = window.setTimeout(() => {
                 refreshNews(); // Refresh the list
                 setDeleteStates(prev => {
                     const newState = { ...prev };
@@ -54,17 +63,19 @@ const AdminClubNewsList = () => {
                     return newState;
                 });
             }, 1000);
+            timeoutRefs.current.push(timeoutId);
         } catch (error) {
             console.error("Error deleting news:", error);
             setDeleteStates(prev => ({ ...prev, [newsId]: 'error' }));
             
-            setTimeout(() => {
+            const timeoutId = window.setTimeout(() => {
                 setDeleteStates(prev => {
                     const newState = { ...prev };
                     delete newState[newsId];
                     return newState;
                 });
             }, 3000);
+            timeoutRefs.current.push(timeoutId);
         }
     };
 

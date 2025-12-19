@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useState, useEffect, useRef } from 'react';
 import { Input, Modal, Button, ButtonState } from '@/components/ui';
 
 interface InviteMemberProps {
@@ -10,20 +10,31 @@ interface InviteMemberProps {
 const InviteMember: FC<InviteMemberProps> = ({ isOpen, onClose, onSubmit }) => {
   const [email, setEmail] = useState('');
   const [buttonState, setButtonState] = useState<ButtonState>('idle');
+  const timeoutRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    // Cleanup timeout on unmount
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = async () => {
     setButtonState('loading');
     try {
       await onSubmit(email);
       setButtonState('success');
-      setTimeout(() => {
+      timeoutRef.current = window.setTimeout(() => {
         setButtonState('idle');
         setEmail('');
         onClose();
       }, 1000);
-    } catch {
+    } catch (error) {
       setButtonState('error');
-      setTimeout(() => setButtonState('idle'), 3000);
+      timeoutRef.current = window.setTimeout(() => setButtonState('idle'), 3000);
+      throw error;
     }
   };
 
@@ -46,7 +57,7 @@ const InviteMember: FC<InviteMemberProps> = ({ isOpen, onClose, onSubmit }) => {
         <Button 
           variant="accept" 
           onClick={handleSubmit} 
-          disabled={!email}
+          disabled={!email || buttonState === 'loading'}
           state={buttonState}
           successMessage="Invite sent!"
           errorMessage="Failed to send invite"

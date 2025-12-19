@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button, ButtonState } from "../../../components/ui";
 import PageHeader from "../../../components/layout/PageHeader";
@@ -38,6 +38,7 @@ const EventDetails: FC = () => {
     const [yesButtonState, setYesButtonState] = useState<ButtonState>('idle');
     const [maybeButtonState, setMaybeButtonState] = useState<ButtonState>('idle');
     const [noButtonState, setNoButtonState] = useState<ButtonState>('idle');
+    const timeoutRef = useRef<number | undefined>(undefined);
 
     const fetchEventDetails = async (abortSignal?: AbortSignal) => {
         if (!clubId || !eventId) return;
@@ -103,6 +104,9 @@ const EventDetails: FC = () => {
         
         return () => {
             abortController.abort();
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
         };
     }, [clubId, eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -127,14 +131,14 @@ const EventDetails: FC = () => {
             setButtonState('success');
             
             // Refresh event details to update RSVP status
-            setTimeout(async () => {
+            timeoutRef.current = window.setTimeout(async () => {
                 await fetchEventDetails();
                 setButtonState('idle');
             }, 1000);
         } catch (error) {
             console.error("Error updating RSVP:", error);
             setButtonState('error');
-            setTimeout(() => setButtonState('idle'), 3000);
+            timeoutRef.current = window.setTimeout(() => setButtonState('idle'), 3000);
         }
     };
 

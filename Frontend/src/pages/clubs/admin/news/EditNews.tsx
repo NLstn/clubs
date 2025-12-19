@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import api from "../../../../utils/api";
 import { Input, Modal, Button, ButtonState } from '@/components/ui';
 
@@ -19,20 +19,45 @@ interface EditNewsProps {
 }
 
 const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, onSuccess }) => {
-    // Initialize form state from news prop (avoiding setState in effect)
-    const [title, setTitle] = useState<string>(news?.Title || '');
-    const [content, setContent] = useState<string>(news?.Content || '');
+    const [formData, setFormData] = useState({ title: '', content: '', newsId: '' });
     const [error, setError] = useState<string | null>(null);
     const [buttonState, setButtonState] = useState<ButtonState>('idle');
+    const timeoutRef = useRef<number | undefined>(undefined);
 
-    // Update form when news changes
+    // Derive form data from news prop
+    const title = news && formData.newsId === news.ID ? formData.title : (news?.Title || '');
+    const content = news && formData.newsId === news.ID ? formData.content : (news?.Content || '');
+
+    const setTitle = (newTitle: string) => {
+        setFormData(prev => ({ ...prev, title: newTitle, newsId: news?.ID || '' }));
+    };
+
+    const setContent = (newContent: string) => {
+        setFormData(prev => ({ ...prev, content: newContent, newsId: news?.ID || '' }));
+    };
+
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
-        if (news) {
-            setTitle(news.Title);
-            setContent(news.Content);
+        // Reset form data when modal closes or news changes
+        // This is a legitimate use of setState in effect for controlled form synchronization
+        if (!isOpen || !news) {
+            setFormData({ title: '', content: '', newsId: '' });
+            setError(null);
+            setButtonState('idle');
+        } else if (news.ID !== formData.newsId) {
+            setFormData({ title: news.Title, content: news.Content, newsId: news.ID });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [news?.ID]); // Only update when news ID changes
+    }, [isOpen, news]); // eslint-disable-line react-hooks/exhaustive-deps
+    /* eslint-enable react-hooks/set-state-in-effect */
+
+    useEffect(() => {
+        // Cleanup timeout on unmount
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     if (!isOpen || !news) return null;
 
@@ -52,7 +77,7 @@ const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, onSuccess }) => {
             });
             setButtonState('success');
             
-            setTimeout(() => {
+            timeoutRef.current = window.setTimeout(() => {
                 setButtonState('idle');
                 onSuccess();
                 onClose();
@@ -64,11 +89,12 @@ const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, onSuccess }) => {
             } else {
                 setError("Failed to update news: Unknown error");
             }
-            setTimeout(() => setButtonState('idle'), 3000);
+            timeoutRef.current = window.setTimeout(() => setButtonState('idle'), 3000);
         }
     };
 
     const handleClose = () => {
+        setFormData({ title: '', content: '', newsId: '' });
         setError(null);
         setButtonState('idle');
         onClose();

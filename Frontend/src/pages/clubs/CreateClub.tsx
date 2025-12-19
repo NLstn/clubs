@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import Layout from '../../components/layout/Layout';
@@ -11,6 +11,16 @@ const CreateClub = () => {
     const [description, setDescription] = useState('');
     const [createButtonState, setCreateButtonState] = useState<ButtonState>('idle');
     const [message, setMessage] = useState('');
+    const timeoutRef = useRef<number | undefined>(undefined);
+
+    useEffect(() => {
+        // Cleanup timeout on unmount
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,7 +36,7 @@ const CreateClub = () => {
             const createdClub = response.data;
             setCreateButtonState('success');
             setMessage('Club created successfully!');
-            setTimeout(() => {
+            timeoutRef.current = window.setTimeout(() => {
                 // OData returns ID property with capital I
                 navigate(`/clubs/${createdClub.ID || createdClub.id}`);
             }, 1000);
@@ -34,7 +44,7 @@ const CreateClub = () => {
             setCreateButtonState('error');
             setMessage('Error creating club');
             console.error(error);
-            setTimeout(() => setCreateButtonState('idle'), 3000);
+            timeoutRef.current = window.setTimeout(() => setCreateButtonState('idle'), 3000);
         }
     };
 

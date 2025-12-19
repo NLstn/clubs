@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import AdminClubJoinRequestList from "./AdminClubJoinRequestList";
 import AdminClubPendingInviteList from "./AdminClubPendingInviteList";
 import { Table, TableColumn, Input, Button, ButtonState } from '@/components/ui';
@@ -55,6 +55,15 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
     const [loading, setLoading] = useState(true);
     const [joinRequestCount, setJoinRequestCount] = useState<number>(0);
     const [memberActions, setMemberActions] = useState<Record<string, ButtonState>>({});
+    const timeoutRefs = useRef<number[]>([]);
+
+    useEffect(() => {
+        // Cleanup timeouts on unmount
+        const timeouts = timeoutRefs.current;
+        return () => {
+            timeouts.forEach(clearTimeout);
+        };
+    }, []);
 
     const translateRole = (role: string): string => {
         return t(`clubs.roles.${role}`);
@@ -182,23 +191,25 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             refetchOwnerCount();
             
             setMemberActions(prev => ({ ...prev, [actionKey]: 'success' }));
-            setTimeout(() => {
+            const timeoutId = window.setTimeout(() => {
                 setMemberActions(prev => {
                     const newState = { ...prev };
                     delete newState[actionKey];
                     return newState;
                 });
             }, 1000);
+            timeoutRefs.current.push(timeoutId);
         } catch {
             setError('Failed to update member role');
             setMemberActions(prev => ({ ...prev, [actionKey]: 'error' }));
-            setTimeout(() => {
+            const timeoutId = window.setTimeout(() => {
                 setMemberActions(prev => {
                     const newState = { ...prev };
                     delete newState[actionKey];
                     return newState;
                 });
             }, 3000);
+            timeoutRefs.current.push(timeoutId);
         }
     };
 
@@ -210,7 +221,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             await api.delete(`/api/v2/Members('${memberId}')`);
             setMemberActions(prev => ({ ...prev, [`delete-${memberId}`]: 'success' }));
             
-            setTimeout(() => {
+            const timeoutId = window.setTimeout(() => {
                 setMembers(members.filter(member => member.id !== memberId));
                 setMemberActions(prev => {
                     const newState = { ...prev };
@@ -218,16 +229,18 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                     return newState;
                 });
             }, 1000);
+            timeoutRefs.current.push(timeoutId);
         } catch {
             setError('Failed to delete member');
             setMemberActions(prev => ({ ...prev, [`delete-${memberId}`]: 'error' }));
-            setTimeout(() => {
+            const timeoutId = window.setTimeout(() => {
                 setMemberActions(prev => {
                     const newState = { ...prev };
                     delete newState[`delete-${memberId}`];
                     return newState;
                 });
             }, 3000);
+            timeoutRefs.current.push(timeoutId);
         }
     };
 

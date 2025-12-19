@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import api from "../../../../utils/api";
 import { Input, Modal, Button, ButtonState } from '@/components/ui';
 
@@ -14,6 +14,16 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
     const [content, setContent] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
     const [buttonState, setButtonState] = useState<ButtonState>('idle');
+    const timeoutRef = useRef<number | undefined>(undefined);
+
+    useEffect(() => {
+        // Cleanup timeout on unmount
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
 
     if (!isOpen) return null;
 
@@ -34,7 +44,7 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
             });
             setButtonState('success');
             
-            setTimeout(() => {
+            timeoutRef.current = window.setTimeout(() => {
                 setTitle('');
                 setContent('');
                 setButtonState('idle');
@@ -48,7 +58,7 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
             } else {
                 setError("Failed to add news: Unknown error");
             }
-            setTimeout(() => setButtonState('idle'), 3000);
+            timeoutRef.current = window.setTimeout(() => setButtonState('idle'), 3000);
         }
     };
 

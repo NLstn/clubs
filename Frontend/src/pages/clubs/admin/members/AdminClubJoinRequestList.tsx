@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { ODataTable, ODataTableColumn, Button, ButtonState } from '@/components/ui';
 import api from "../../../../utils/api";
@@ -17,6 +17,15 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
     const { id } = useParams();
     const [refreshKey, setRefreshKey] = useState(0);
     const [processingRequests, setProcessingRequests] = useState<Record<string, ButtonState>>({});
+    const timeoutRefs = useRef<number[]>([]);
+
+    useEffect(() => {
+        // Cleanup timeouts on unmount
+        const timeouts = timeoutRefs.current;
+        return () => {
+            timeouts.forEach(clearTimeout);
+        };
+    }, []);
 
     const handleApprove = async (requestId: string) => {
         setProcessingRequests(prev => ({ ...prev, [`approve-${requestId}`]: 'loading' }));
@@ -26,7 +35,7 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
             await api.post(`/api/v2/JoinRequests('${requestId}')/Accept`, {});
             setProcessingRequests(prev => ({ ...prev, [`approve-${requestId}`]: 'success' }));
             
-            setTimeout(() => {
+            const timeoutId = window.setTimeout(() => {
                 setRefreshKey(prev => prev + 1); // Refresh the table
                 onRequestsChange?.(); // Notify parent component about the change
                 setProcessingRequests(prev => {
@@ -35,16 +44,18 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
                     return newState;
                 });
             }, 1000);
+            timeoutRefs.current.push(timeoutId);
         } catch (error) {
             console.error("Error approving join request:", error);
             setProcessingRequests(prev => ({ ...prev, [`approve-${requestId}`]: 'error' }));
-            setTimeout(() => {
+            const timeoutId = window.setTimeout(() => {
                 setProcessingRequests(prev => {
                     const newState = { ...prev };
                     delete newState[`approve-${requestId}`];
                     return newState;
                 });
             }, 3000);
+            timeoutRefs.current.push(timeoutId);
         }
     };
 
@@ -56,7 +67,7 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
             await api.post(`/api/v2/JoinRequests('${requestId}')/Reject`, {});
             setProcessingRequests(prev => ({ ...prev, [`reject-${requestId}`]: 'success' }));
             
-            setTimeout(() => {
+            const timeoutId = window.setTimeout(() => {
                 setRefreshKey(prev => prev + 1); // Refresh the table
                 onRequestsChange?.(); // Notify parent component about the change
                 setProcessingRequests(prev => {
@@ -65,16 +76,18 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
                     return newState;
                 });
             }, 1000);
+            timeoutRefs.current.push(timeoutId);
         } catch (error) {
             console.error("Error rejecting join request:", error);
             setProcessingRequests(prev => ({ ...prev, [`reject-${requestId}`]: 'error' }));
-            setTimeout(() => {
+            const timeoutId = window.setTimeout(() => {
                 setProcessingRequests(prev => {
                     const newState = { ...prev };
                     delete newState[`reject-${requestId}`];
                     return newState;
                 });
             }, 3000);
+            timeoutRefs.current.push(timeoutId);
         }
     };
 

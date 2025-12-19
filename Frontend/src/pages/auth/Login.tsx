@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import CookieConsent from '../../components/CookieConsent';
 import { useT } from '../../hooks/useTranslation';
@@ -12,6 +12,7 @@ const Login: React.FC = () => {
   const [keycloakButtonState, setKeycloakButtonState] = useState<ButtonState>('idle');
   const [message, setMessage] = useState('');
   const location = useLocation();
+  const timeoutRefs = useRef<number[]>([]);
 
   useEffect(() => {
     // Check if this is a redirect from a protected page
@@ -21,6 +22,14 @@ const Login: React.FC = () => {
       setMessage(t('auth.redirectMessage'));
     }
   }, [location, t]);
+
+  useEffect(() => {
+    // Cleanup timeouts on unmount
+    const timeouts = timeoutRefs.current;
+    return () => {
+      timeouts.forEach(clearTimeout);
+    };
+  }, []);
 
   const handleKeycloakLogin = async () => {
     setKeycloakButtonState('loading');
@@ -50,7 +59,8 @@ const Login: React.FC = () => {
     } catch {
       setKeycloakButtonState('error');
       setMessage(t('auth.keycloakError'));
-      setTimeout(() => setKeycloakButtonState('idle'), 3000);
+      const timeoutId = window.setTimeout(() => setKeycloakButtonState('idle'), 3000);
+      timeoutRefs.current.push(timeoutId);
     }
   };
 
@@ -72,17 +82,20 @@ const Login: React.FC = () => {
         setMagicLinkButtonState('success');
         setMessage(t('auth.checkEmail'));
         setEmail('');
-        setTimeout(() => setMagicLinkButtonState('idle'), 3000);
+        const timeoutId = window.setTimeout(() => setMagicLinkButtonState('idle'), 3000);
+        timeoutRefs.current.push(timeoutId);
       } else {
         const error = await response.text();
         setMagicLinkButtonState('error');
         setMessage(`${t('common.error')}: ${error}`);
-        setTimeout(() => setMagicLinkButtonState('idle'), 3000);
+        const timeoutId = window.setTimeout(() => setMagicLinkButtonState('idle'), 3000);
+        timeoutRefs.current.push(timeoutId);
       }
     } catch {
       setMagicLinkButtonState('error');
       setMessage(t('auth.networkError'));
-      setTimeout(() => setMagicLinkButtonState('idle'), 3000);
+      const timeoutId = window.setTimeout(() => setMagicLinkButtonState('idle'), 3000);
+      timeoutRefs.current.push(timeoutId);
     }
   };
 
@@ -128,6 +141,7 @@ const Login: React.FC = () => {
           variant="secondary"
           fullWidth
           state={keycloakButtonState}
+          successMessage="Redirecting..."
           errorMessage={t('auth.keycloakError')}
         >
           {t('auth.loginWithKeycloak')}
