@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import api from "../../../../utils/api";
-import { Input, Modal, Button } from '@/components/ui';
+import { Input, Modal, Button, ButtonState } from '@/components/ui';
 
 interface AddNewsProps {
     isOpen: boolean;
@@ -13,7 +13,7 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
     const [title, setTitle] = useState<string>('');
     const [content, setContent] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [buttonState, setButtonState] = useState<ButtonState>('idle');
 
     if (!isOpen) return null;
 
@@ -24,7 +24,7 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
         }
 
         setError(null);
-        setIsSubmitting(true);
+        setButtonState('loading');
         
         try {
             await api.post(`/api/v2/News`, { 
@@ -32,18 +32,23 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                 Content: content,
                 ClubID: clubId
             });
-            setTitle('');
-            setContent('');
-            onSuccess();
-            onClose();
+            setButtonState('success');
+            
+            setTimeout(() => {
+                setTitle('');
+                setContent('');
+                setButtonState('idle');
+                onSuccess();
+                onClose();
+            }, 1000);
         } catch (error: unknown) {
+            setButtonState('error');
             if (error instanceof Error) {
                 setError("Failed to add news: " + error.message);
             } else {
                 setError("Failed to add news: Unknown error");
             }
-        } finally {
-            setIsSubmitting(false);
+            setTimeout(() => setButtonState('idle'), 3000);
         }
     };
 
@@ -51,6 +56,7 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
         setTitle('');
         setContent('');
         setError(null);
+        setButtonState('idle');
         onClose();
     };
 
@@ -67,7 +73,7 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="News Title"
-                        disabled={isSubmitting}
+                        disabled={buttonState === 'loading'}
                     />
 
                     <Input
@@ -75,7 +81,7 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         placeholder="News Content"
-                        disabled={isSubmitting}
+                        disabled={buttonState === 'loading'}
                         multiline
                         rows={6}
                     />
@@ -86,21 +92,16 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                 <Button 
                     variant="accept"
                     onClick={handleSubmit}
-                    disabled={isSubmitting}
+                    state={buttonState}
+                    successMessage="News added!"
+                    errorMessage="Failed to add news"
                 >
-                    {isSubmitting ? (
-                        <>
-                            <Modal.LoadingSpinner />
-                            Adding...
-                        </>
-                    ) : (
-                        'Add News'
-                    )}
+                    Add News
                 </Button>
                 <Button 
                     variant="cancel"
                     onClick={handleClose}
-                    disabled={isSubmitting}
+                    disabled={buttonState === 'loading'}
                 >
                     Cancel
                 </Button>

@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import api from "../../../../utils/api";
-import { Input, Modal, Button } from '@/components/ui';
+import { Input, Modal, Button, ButtonState } from '@/components/ui';
 
 interface News {
     ID: string;
@@ -22,7 +22,7 @@ const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, onSuccess }) => {
     const [title, setTitle] = useState<string>('');
     const [content, setContent] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [buttonState, setButtonState] = useState<ButtonState>('idle');
 
     useEffect(() => {
         if (news) {
@@ -40,28 +40,34 @@ const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, onSuccess }) => {
         }
 
         setError(null);
-        setIsSubmitting(true);
+        setButtonState('loading');
         
         try {
             await api.patch(`/api/v2/News('${news.ID}')`, { 
                 Title: title,
                 Content: content
             });
-            onSuccess();
-            onClose();
+            setButtonState('success');
+            
+            setTimeout(() => {
+                setButtonState('idle');
+                onSuccess();
+                onClose();
+            }, 1000);
         } catch (error: unknown) {
+            setButtonState('error');
             if (error instanceof Error) {
                 setError("Failed to update news: " + error.message);
             } else {
                 setError("Failed to update news: Unknown error");
             }
-        } finally {
-            setIsSubmitting(false);
+            setTimeout(() => setButtonState('idle'), 3000);
         }
     };
 
     const handleClose = () => {
         setError(null);
+        setButtonState('idle');
         onClose();
     };
 
@@ -78,7 +84,7 @@ const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, onSuccess }) => {
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="News Title"
-                        disabled={isSubmitting}
+                        disabled={buttonState === 'loading'}
                     />
 
                     <Input
@@ -86,7 +92,7 @@ const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, onSuccess }) => {
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         placeholder="News Content"
-                        disabled={isSubmitting}
+                        disabled={buttonState === 'loading'}
                         multiline
                         rows={6}
                     />
@@ -97,21 +103,16 @@ const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, onSuccess }) => {
                 <Button 
                     variant="accept"
                     onClick={handleSubmit}
-                    disabled={isSubmitting}
+                    state={buttonState}
+                    successMessage="Updated!"
+                    errorMessage="Failed to update"
                 >
-                    {isSubmitting ? (
-                        <>
-                            <Modal.LoadingSpinner />
-                            Updating...
-                        </>
-                    ) : (
-                        'Update News'
-                    )}
+                    Update News
                 </Button>
                 <Button 
                     variant="cancel"
                     onClick={handleClose}
-                    disabled={isSubmitting}
+                    disabled={buttonState === 'loading'}
                 >
                     Cancel
                 </Button>

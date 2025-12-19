@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import AdminClubJoinRequestList from "./AdminClubJoinRequestList";
 import AdminClubPendingInviteList from "./AdminClubPendingInviteList";
-import { Table, TableColumn, Input, Button } from '@/components/ui';
+import { Table, TableColumn, Input, Button, ButtonState } from '@/components/ui';
 import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
 import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
@@ -54,6 +54,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [joinRequestCount, setJoinRequestCount] = useState<number>(0);
+    const [memberActions, setMemberActions] = useState<Record<string, ButtonState>>({});
 
     const translateRole = (role: string): string => {
         return t(`clubs.roles.${role}`);
@@ -166,7 +167,9 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
         }
     };
 
-    const handleRoleChange = async (memberId: string, newRole: string) => {
+    const handleRoleChange = async (memberId: string, newRole: string, actionKey: string) => {
+        setMemberActions(prev => ({ ...prev, [actionKey]: 'loading' }));
+        
         try {
             // OData v2: Use UpdateRole action on Member entity
             await api.post(`/api/v2/Members('${memberId}')/UpdateRole`, { newRole });
@@ -177,18 +180,54 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             setMembers(sortedMembers);
             // Refetch owner count when roles change
             refetchOwnerCount();
+            
+            setMemberActions(prev => ({ ...prev, [actionKey]: 'success' }));
+            setTimeout(() => {
+                setMemberActions(prev => {
+                    const newState = { ...prev };
+                    delete newState[actionKey];
+                    return newState;
+                });
+            }, 1000);
         } catch {
             setError('Failed to update member role');
+            setMemberActions(prev => ({ ...prev, [actionKey]: 'error' }));
+            setTimeout(() => {
+                setMemberActions(prev => {
+                    const newState = { ...prev };
+                    delete newState[actionKey];
+                    return newState;
+                });
+            }, 3000);
         }
     };
 
     const deleteMember = async (memberId: string) => {
+        setMemberActions(prev => ({ ...prev, [`delete-${memberId}`]: 'loading' }));
+        
         try {
             // OData v2: Delete member using DELETE
             await api.delete(`/api/v2/Members('${memberId}')`);
-            setMembers(members.filter(member => member.id !== memberId));
+            setMemberActions(prev => ({ ...prev, [`delete-${memberId}`]: 'success' }));
+            
+            setTimeout(() => {
+                setMembers(members.filter(member => member.id !== memberId));
+                setMemberActions(prev => {
+                    const newState = { ...prev };
+                    delete newState[`delete-${memberId}`];
+                    return newState;
+                });
+            }, 1000);
         } catch {
             setError('Failed to delete member');
+            setMemberActions(prev => ({ ...prev, [`delete-${memberId}`]: 'error' }));
+            setTimeout(() => {
+                setMemberActions(prev => {
+                    const newState = { ...prev };
+                    delete newState[`delete-${memberId}`];
+                    return newState;
+                });
+            }, 3000);
         }
     };
 
@@ -287,6 +326,9 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                             variant="cancel"
                             onClick={() => deleteMember(member.id)}
                             aria-label="Remove member"
+                            state={memberActions[`delete-${member.id}`] || 'idle'}
+                            successMessage="Removed"
+                            errorMessage="Failed"
                         >
                             Remove
                         </Button>
@@ -295,7 +337,10 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                         <Button
                             size="sm"
                             variant="secondary"
-                            onClick={() => handleRoleChange(member.id, 'admin')}
+                            onClick={() => handleRoleChange(member.id, 'admin', `promote-admin-${member.id}`)}
+                            state={memberActions[`promote-admin-${member.id}`] || 'idle'}
+                            successMessage="Promoted!"
+                            errorMessage="Failed"
                         >
                             Promote
                         </Button>
@@ -306,7 +351,10 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                                 <Button
                                     size="sm"
                                     variant="secondary"
-                                    onClick={() => handleRoleChange(member.id, 'member')}
+                                    onClick={() => handleRoleChange(member.id, 'member', `demote-member-${member.id}`)}
+                                    state={memberActions[`demote-member-${member.id}`] || 'idle'}
+                                    successMessage="Demoted"
+                                    errorMessage="Failed"
                                 >
                                     Demote
                                 </Button>
@@ -315,7 +363,10 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                                 <Button
                                     size="sm"
                                     variant="secondary"
-                                    onClick={() => handleRoleChange(member.id, 'owner')}
+                                    onClick={() => handleRoleChange(member.id, 'owner', `promote-owner-${member.id}`)}
+                                    state={memberActions[`promote-owner-${member.id}`] || 'idle'}
+                                    successMessage="Promoted!"
+                                    errorMessage="Failed"
                                 >
                                     Promote
                                 </Button>
@@ -326,7 +377,10 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                         <Button
                             size="sm"
                             variant="secondary"
-                            onClick={() => handleRoleChange(member.id, 'admin')}
+                            onClick={() => handleRoleChange(member.id, 'admin', `demote-admin-${member.id}`)}
+                            state={memberActions[`demote-admin-${member.id}`] || 'idle'}
+                            successMessage="Demoted"
+                            errorMessage="Failed"
                         >
                             Demote
                         </Button>
