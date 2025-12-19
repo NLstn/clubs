@@ -26,7 +26,7 @@ type ClubSettings struct {
 	UpdatedBy                string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 
 	// Navigation properties for OData
-	Club Club `gorm:"foreignKey:ClubID" json:"Club,omitempty" odata:"nav"`
+	Club *Club `gorm:"foreignKey:ClubID" json:"Club,omitempty" odata:"nav"`
 }
 
 // EntitySetName returns the custom entity set name to prevent double pluralization
