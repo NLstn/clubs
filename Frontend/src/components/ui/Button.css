@@ -6,6 +6,11 @@
   justify-content: center;
 }
 
+.ui-button-wrapper:has(.ui-button--full-width) {
+  width: 100%;
+  display: flex;
+}
+
 .ui-button-wrapper .ui-button--full-width {
   width: 100%;
 }
