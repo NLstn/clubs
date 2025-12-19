@@ -13,6 +13,8 @@ This comprehensive guide will walk you through:
 - Setting up your profile
 - Common questions and troubleshooting
 
+💡 **Already familiar with the basics?** Check out the **[Quick Reference Guide](quick-reference.md)** for fast access to common tasks!
+
 ## Features
 
 - **Club Management**: Create and manage multiple clubs with customizable settings
