@@ -75,7 +75,9 @@ const response = await api.get(`/api/v2/Events('${eventId}')?$expand=EventRSVPs(
 
 **Location:** [Frontend/src/pages/clubs/MyTeams.tsx](../Frontend/src/pages/clubs/MyTeams.tsx)
 
-**Current Implementation:**
+**Status:** ✅ **RESOLVED** (December 19, 2024)
+
+**Previous Implementation:**
 ```typescript
 // Step 1: Get TeamMembers for user
 const teamMembersResponse = await api.get(`/api/v2/TeamMembers?$filter=UserID eq '${userId}'`);
@@ -86,16 +88,23 @@ const teamsResponse = await api.get(`/api/v2/Teams?$filter=ClubID eq '${clubId}'
 
 **Problem:** Two API calls when one should suffice. Also builds complex OR filter.
 
-**Solution:**
+**Current Implementation:**
 ```typescript
 // Single call with $expand from TeamMembers
 const response = await api.get(
     `/api/v2/TeamMembers?$filter=UserID eq '${userId}'&$expand=Team($filter=ClubID eq '${clubId}')`
 );
+const teams = response.data.value
+    .map((tm: TeamMemberResponse) => tm.Team)
+    .filter((team: Team | null) => team !== null);
 ```
 
-**Backend Enhancement:**
-- Add `Team` navigation property to `TeamMember` model (may already exist, needs verification)
+**Resolution Notes:**
+- Added `Team` navigation property to `TeamMember` model in Backend/models/teams.go
+- Simplified component from two-step to single-query pattern
+- Updated field references to PascalCase for OData v2 compatibility
+- Reduced API calls from 2 to 1 per page load
+- Eliminated complex OR filter construction
 
 ---
 
@@ -360,15 +369,16 @@ catch (err) {
 - [x] ~~Add navigation properties to Shift model~~ (Already implemented)
 - [x] ~~Add navigation properties to ShiftMember model~~ (Already implemented)
 - [x] ~~Add Shifts navigation to Event model~~ (Already implemented)
+- [x] ~~Add Team navigation to TeamMember model~~ (Completed December 19, 2024)
 - [ ] Add Settings navigation to Club model
 - [ ] Implement GetRSVPCounts bound function
 - [ ] Implement GetMyTeams bound function
 - [ ] Consider GetEventDetails bound function
 
 ### Frontend Changes
-- [x] Update AdminClubEventList to use $expand (Completed December 19, 2024)
-- [x] Update AdminEventDetails to use $expand (Completed December 19, 2024)
-- [ ] Simplify MyTeams.tsx with better OData query
+- [x] ~~Update AdminClubEventList to use $expand~~ (Completed December 19, 2024)
+- [x] ~~Update AdminEventDetails to use $expand~~ (Completed December 19, 2024)
+- [x] ~~Simplify MyTeams.tsx with better OData query~~ (Completed December 19, 2024)
 - [ ] Add $select to reduce payload sizes
 - [ ] Consider adopting PascalCase interfaces
 
