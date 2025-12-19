@@ -6,11 +6,19 @@ import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 
 interface Team {
-    id: string;
-    name: string;
-    description: string;
-    createdAt: string;
-    clubId: string;
+    ID: string;
+    Name: string;
+    Description: string;
+    CreatedAt: string;
+    ClubID: string;
+}
+
+interface TeamMemberResponse {
+    ID: string;
+    TeamID: string;
+    UserID: string;
+    Role: string;
+    Team?: Team;
 }
 
 const MyTeams = () => {
@@ -30,49 +38,21 @@ const MyTeams = () => {
             }
 
             try {
-                // OData v2: Two-step query to avoid lambda operators
-                // Step 1: Get TeamMembers for this user and club
-                const encodedClubId = encodeURIComponent(clubId);
+                // OData v2: Single query with $expand to get teams for this user and club
                 const encodedUserId = encodeURIComponent(currentUser.ID);
+                const encodedClubId = encodeURIComponent(clubId);
                 
-                interface TeamMember { TeamID: string; }
-                const teamMembersResponse = await api.get<ODataCollectionResponse<TeamMember>>(
-                    `/api/v2/TeamMembers?$filter=UserID eq '${encodedUserId}'`
+                const response = await api.get<ODataCollectionResponse<TeamMemberResponse>>(
+                    `/api/v2/TeamMembers?$filter=UserID eq '${encodedUserId}'&$expand=Team($filter=ClubID eq '${encodedClubId}')`
                 );
-                const teamMembersData = parseODataCollection(teamMembersResponse.data);
+                const teamMembersData = parseODataCollection(response.data);
                 
-                // Extract unique TeamIDs and filter by ClubID
-                const teamIds = [...new Set(
-                    teamMembersData
-                        .map((tm: { TeamID: string }) => tm.TeamID)
-                        .filter((id: string) => id)
-                )] as string[];
+                // Extract teams from the expanded navigation property, filtering out null/undefined Teams
+                const userTeams = teamMembersData
+                    .map((tm: TeamMemberResponse) => tm.Team)
+                    .filter((team): team is Team => team !== null && team !== undefined);
                 
-                if (teamIds.length === 0) {
-                    setTeams([]);
-                    setError(null);
-                    setLoading(false);
-                    return;
-                }
-                
-                // Step 2: Get Teams by IDs and filter by ClubID
-                // Build filter with 'or' conditions for each team ID
-                interface ODataTeam { ID: string; Name: string; Description: string; CreatedAt: string; ClubID: string; }
-                const teamIdFilter = teamIds.map((id: string) => `ID eq '${encodeURIComponent(id)}'`).join(' or ');
-                const teamsResponse = await api.get<ODataCollectionResponse<ODataTeam>>(
-                    `/api/v2/Teams?$filter=ClubID eq '${encodedClubId}' and (${teamIdFilter})`
-                );
-                const teamsData = parseODataCollection(teamsResponse.data);
-                
-                // Map OData response to match expected format
-                const mappedTeams = teamsData.map((team: ODataTeam) => ({
-                    id: team.ID,
-                    name: team.Name,
-                    description: team.Description,
-                    createdAt: team.CreatedAt,
-                    clubId: team.ClubID
-                }));
-                setTeams(mappedTeams);
+                setTeams(userTeams);
                 setError(null);
             } catch (err) {
                 console.error('Error fetching user teams:', err);
@@ -110,14 +90,14 @@ const MyTeams = () => {
             <div className="teams-list">
                 {teams.map(team => (
                     <div 
-                        key={team.id} 
+                        key={team.ID} 
                         className="team-item clickable"
-                        onClick={() => handleTeamClick(team.id)}
+                        onClick={() => handleTeamClick(team.ID)}
                         style={{ cursor: 'pointer' }}
                     >
-                        <h4 className="team-name">{team.name}</h4>
-                        {team.description && (
-                            <p className="team-description">{team.description}</p>
+                        <h4 className="team-name">{team.Name}</h4>
+                        {team.Description && (
+                            <p className="team-description">{team.Description}</p>
                         )}
                         <div className="team-actions">
                             <span className="team-link">View Team →</span>
