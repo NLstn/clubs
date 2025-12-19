@@ -8,19 +8,25 @@ import api from "../../../../utils/api";
 import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import { calculateRSVPCounts, RSVPCounts } from "../../../../utils/eventUtils";
 
-interface Event {
-    id: string;
-    name: string;
-    description: string;
-    location: string;
-    start_time: string;
-    end_time: string;
+interface EventRSVP {
+    Response: string;
 }
 
 interface Shift {
-    id: string;
-    startTime: string;
-    endTime: string;
+    ID: string;
+    StartTime: string;
+    EndTime: string;
+}
+
+interface Event {
+    ID: string;
+    Name: string;
+    Description: string;
+    Location: string;
+    StartTime: string;
+    EndTime: string;
+    EventRSVPs?: EventRSVP[];
+    Shifts?: Shift[];
 }
 
 const AdminClubEventList = () => {
@@ -40,37 +46,25 @@ const AdminClubEventList = () => {
         setLoading(true);
         setError(null);
         try {
-            // OData v2: Query Events for this club
-            const response = await api.get<ODataCollectionResponse<Event>>(`/api/v2/Events?$filter=ClubID eq '${id}'`);
+            // OData v2: Query Events for this club with expanded navigation properties
+            // This eliminates the N+1 query pattern by fetching related data in a single request
+            const response = await api.get<ODataCollectionResponse<Event>>(`/api/v2/Events?$filter=ClubID eq '${id}'&$expand=EventRSVPs,Shifts`);
             const eventList = parseODataCollection(response.data);
             setEvents(eventList);
 
-            // Fetch RSVP counts and shifts for each event
-            // TODO: Optimize to avoid N+1 query pattern - see issue #472
-            // Consider using $expand=EventRSVPs in initial query or batch endpoint
+            // Calculate RSVP counts from the expanded data
             const counts: Record<string, RSVPCounts> = {};
             const shifts: Record<string, Shift[]> = {};
+            
             for (const event of eventList) {
-                try {
-                    // Fetch RSVP counts
-                    // OData v2: Use EventRSVPs navigation and compute counts client-side
-                    interface EventRSVP { Response: string; }
-                    const rsvpResponse = await api.get<ODataCollectionResponse<EventRSVP>>(`/api/v2/Events('${event.id}')/EventRSVPs`);
-                    const rsvpList = parseODataCollection(rsvpResponse.data);
-                    // Compute counts by grouping RSVPs by Response field
-                    const computedCounts = calculateRSVPCounts(rsvpList);
-                    counts[event.id] = computedCounts;
-                    
-                    // Fetch event shifts
-                    // OData v2: Query Shifts for this event
-                    const shiftsResponse = await api.get<ODataCollectionResponse<Shift>>(`/api/v2/Shifts?$filter=EventID eq '${event.id}'`);
-                    shifts[event.id] = parseODataCollection(shiftsResponse.data);
-                } catch (err) {
-                    console.warn(`Failed to fetch data for event ${event.id}:`, err);
-                    counts[event.id] = {};
-                    shifts[event.id] = [];
-                }
+                // Calculate RSVP counts from the expanded EventRSVPs
+                const rsvpList = event.EventRSVPs || [];
+                counts[event.ID] = calculateRSVPCounts(rsvpList);
+                
+                // Store shifts from the expanded Shifts
+                shifts[event.ID] = event.Shifts || [];
             }
+            
             setRsvpCounts(counts);
             setEventShifts(shifts);
         } catch (error) {
@@ -144,23 +138,23 @@ const AdminClubEventList = () => {
         {
             key: 'name',
             header: 'Name',
-            render: (event) => event.name
+            render: (event) => event.Name
         },
         {
             key: 'start_time',
             header: 'Start',
-            render: (event) => formatDateTime(event.start_time)
+            render: (event) => formatDateTime(event.StartTime)
         },
         {
             key: 'end_time',
             header: 'End',
-            render: (event) => formatDateTime(event.end_time)
+            render: (event) => formatDateTime(event.EndTime)
         },
         {
             key: 'rsvps',
             header: 'RSVPs',
             render: (event) => {
-                const counts = rsvpCounts[event.id] || {};
+                const counts = rsvpCounts[event.ID] || {};
                 const yesCount = counts.yes || 0;
                 const noCount = counts.no || 0;
                 const maybeCount = counts.maybe || 0;
@@ -189,7 +183,7 @@ const AdminClubEventList = () => {
             key: 'shifts',
             header: 'Shifts',
             render: (event) => {
-                const shifts = eventShifts[event.id] || [];
+                const shifts = eventShifts[event.ID] || [];
                 return (
                     <span style={{color: shifts.length > 0 ? 'blue' : 'gray'}}>
                         {shifts.length} shift{shifts.length !== 1 ? 's' : ''}
@@ -203,7 +197,7 @@ const AdminClubEventList = () => {
             render: (event) => (
                 <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                     <Link 
-                        to={`/clubs/${id}/admin/events/${event.id}`}
+                        to={`/clubs/${id}/admin/events/${event.ID}`}
                         style={{ textDecoration: 'none' }}
                     >
                         <Button variant="secondary" size="sm">
@@ -218,7 +212,7 @@ const AdminClubEventList = () => {
                         Edit
                     </Button>
                     <Button
-                        onClick={() => handleDeleteEvent(event.id)}
+                        onClick={() => handleDeleteEvent(event.ID)}
                         variant="cancel"
                         size="sm"
                     >
@@ -235,7 +229,7 @@ const AdminClubEventList = () => {
             <Table
                 columns={eventColumns}
                 data={events}
-                keyExtractor={(event) => event.id}
+                keyExtractor={(event) => event.ID}
                 loading={loading}
                 error={error}
                 emptyMessage="No events available"
@@ -250,7 +244,14 @@ const AdminClubEventList = () => {
             <EditEvent
                 isOpen={isEditModalOpen}
                 onClose={handleCloseEditModal}
-                event={selectedEvent}
+                event={selectedEvent ? {
+                    id: selectedEvent.ID,
+                    name: selectedEvent.Name,
+                    description: selectedEvent.Description,
+                    location: selectedEvent.Location,
+                    start_time: selectedEvent.StartTime,
+                    end_time: selectedEvent.EndTime
+                } : null}
                 clubId={id}
                 onSuccess={fetchEvents}
             />
@@ -263,8 +264,8 @@ const AdminClubEventList = () => {
             <EventRSVPList
                 isOpen={isRSVPModalOpen}
                 onClose={handleCloseRSVPModal}
-                eventId={selectedEventForRSVP?.id || ''}
-                eventName={selectedEventForRSVP?.name || ''}
+                eventId={selectedEventForRSVP?.ID || ''}
+                eventName={selectedEventForRSVP?.Name || ''}
                 clubId={id || ''}
             />
         </div>

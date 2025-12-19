@@ -17,7 +17,9 @@ This document identifies opportunities to improve the frontend's usage of backen
 
 **Location:** [Frontend/src/pages/clubs/admin/events/AdminClubEventList.tsx](../Frontend/src/pages/clubs/admin/events/AdminClubEventList.tsx)
 
-**Current Implementation:**
+**Status:** ✅ **RESOLVED** (December 19, 2024)
+
+**Previous Implementation:**
 ```typescript
 // Fetches all events, then loops through each to fetch RSVPs and Shifts
 const response = await api.get(`/api/v2/Events?$filter=ClubID eq '${id}'`);
@@ -27,21 +29,19 @@ for (const event of response.data || []) {
 }
 ```
 
-**Problem:** For N events, this makes 2N+1 API calls.
+**Problem:** For N events, this made 2N+1 API calls.
 
-**Solution Options:**
-1. **Use $expand** (Recommended):
-   ```typescript
-   // Single query with nested expansions
-   const response = await api.get(`/api/v2/Events?$filter=ClubID eq '${id}'&$expand=EventRSVPs,Shifts`);
-   ```
+**Current Implementation:**
+```typescript
+// Single query with nested expansions
+const response = await api.get(`/api/v2/Events?$filter=ClubID eq '${id}'&$expand=EventRSVPs,Shifts`);
+```
 
-2. **Add an OData function for RSVP counts**:
-   Create `GetRSVPCounts()` bound function on Events that returns aggregated counts directly.
-
-**Backend Change Required:** 
-- Add `Shifts` navigation property to the `Event` model (currently missing)
-- Consider adding a `GetEventSummary()` function that returns events with RSVP counts pre-calculated
+**Resolution Notes:**
+- Navigation properties (EventRSVPs and Shifts) were already present in the Event model
+- Updated component to use `$expand` parameter for single-call data fetching
+- Migrated from snake_case to PascalCase field names for OData v2 consistency
+- Eliminated N+1 query pattern, reducing API calls from 2N+1 to 1
 
 ---
 
@@ -49,18 +49,25 @@ for (const event of response.data || []) {
 
 **Location:** [Frontend/src/pages/clubs/admin/events/AdminEventDetails.tsx](../Frontend/src/pages/clubs/admin/events/AdminEventDetails.tsx)
 
-**Current Implementation:**
+**Status:** ✅ **RESOLVED** (December 19, 2024)
+
+**Previous Implementation:**
 ```typescript
 const eventResponse = await api.get(`/api/v2/Events('${eventId}')`);
 const rsvpResponse = await api.get(`/api/v2/Events('${eventId}')/EventRSVPs`);
 const shiftsResponse = await api.get(`/api/v2/Shifts?$filter=EventID eq '${eventId}'`);
 ```
 
-**Solution:**
+**Current Implementation:**
 ```typescript
 // Single call with $expand
 const response = await api.get(`/api/v2/Events('${eventId}')?$expand=EventRSVPs($expand=User),Shifts`);
 ```
+
+**Resolution Notes:**
+- Component already had `$expand` implemented for RSVPs
+- Updated all field references from snake_case to PascalCase for OData v2 consistency
+- Reduced API calls from 3 to 1 per event details page load
 
 ---
 
@@ -98,24 +105,26 @@ const response = await api.get(
 
 **Location:** [Backend/models/shift_schedules.go](../Backend/models/shift_schedules.go)
 
-**Current State:**
-The `Shift` and `ShiftMember` models lack OData navigation properties.
+**Status:** ✅ **VERIFIED** (December 19, 2024)
 
-**Missing Navigations:**
+**Current State:**
+The `Shift` and `ShiftMember` models have all required OData navigation properties:
+
 ```go
-// Shift should have:
-Event        Event         `gorm:"foreignKey:EventID" json:"Event,omitempty" odata:"nav"`
-Club         Club          `gorm:"foreignKey:ClubID" json:"Club,omitempty" odata:"nav"`
+// Shift has:
+Event        *Event        `gorm:"foreignKey:EventID" json:"Event,omitempty" odata:"nav"`
+Club         *Club         `gorm:"foreignKey:ClubID" json:"Club,omitempty" odata:"nav"`
 ShiftMembers []ShiftMember `gorm:"foreignKey:ShiftID" json:"ShiftMembers,omitempty" odata:"nav"`
 
-// ShiftMember should have:
-Shift Shift `gorm:"foreignKey:ShiftID" json:"Shift,omitempty" odata:"nav"`
-User  User  `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
+// ShiftMember has:
+Shift *Shift `gorm:"foreignKey:ShiftID" json:"Shift,omitempty" odata:"nav"`
+User  *User  `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
 ```
 
 **Impact:** 
-- [ProfileShifts.tsx](../Frontend/src/pages/profile/ProfileShifts.tsx) could use simpler `$expand` instead of nested expansions
-- AdminClubEventList could fetch shifts with events in single call
+- Navigation properties already implemented and registered in OData service
+- [ProfileShifts.tsx](../Frontend/src/pages/profile/ProfileShifts.tsx) can use `$expand` for nested data
+- AdminClubEventList now successfully fetches shifts with events in single call
 
 ---
 
@@ -123,14 +132,17 @@ User  User  `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
 
 **Location:** [Backend/models/events.go](../Backend/models/events.go)
 
-**Current State:** Event only has `EventRSVPs` navigation.
+**Status:** ✅ **VERIFIED** (December 19, 2024)
 
-**Missing Navigation:**
+**Current State:** Event has both `EventRSVPs` and `Shifts` navigation properties:
+
 ```go
-Shifts []Shift `gorm:"foreignKey:EventID" json:"Shifts,omitempty" odata:"nav"`
+// Navigation properties
+EventRSVPs []EventRSVP `gorm:"foreignKey:EventID" json:"EventRSVPs,omitempty" odata:"nav"`
+Shifts     []Shift     `gorm:"foreignKey:EventID" json:"Shifts,omitempty" odata:"nav"`
 ```
 
-**Impact:** Would enable fetching events with their shifts in a single `$expand` call.
+**Impact:** Frontend can fetch events with their shifts in a single `$expand` call (already implemented in AdminClubEventList).
 
 ---
 
@@ -345,17 +357,17 @@ catch (err) {
 ## Implementation Checklist
 
 ### Backend Changes
-- [ ] Add navigation properties to Shift model
-- [ ] Add navigation properties to ShiftMember model  
-- [ ] Add Shifts navigation to Event model
+- [x] ~~Add navigation properties to Shift model~~ (Already implemented)
+- [x] ~~Add navigation properties to ShiftMember model~~ (Already implemented)
+- [x] ~~Add Shifts navigation to Event model~~ (Already implemented)
 - [ ] Add Settings navigation to Club model
 - [ ] Implement GetRSVPCounts bound function
 - [ ] Implement GetMyTeams bound function
 - [ ] Consider GetEventDetails bound function
 
 ### Frontend Changes
-- [ ] Update AdminClubEventList to use $expand
-- [ ] Update AdminEventDetails to use $expand
+- [x] Update AdminClubEventList to use $expand (Completed December 19, 2024)
+- [x] Update AdminEventDetails to use $expand (Completed December 19, 2024)
 - [ ] Simplify MyTeams.tsx with better OData query
 - [ ] Add $select to reduce payload sizes
 - [ ] Consider adopting PascalCase interfaces

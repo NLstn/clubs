@@ -59,37 +59,41 @@ const renderWithRouter = (component: React.ReactElement) => {
   )
 }
 
-const mockTeams = [
-  {
-    id: 'team-1',
-    name: 'Empty Team',
-    description: 'A team with no members',
-    createdAt: '2024-01-01T00:00:00Z',
-    clubId: 'test-club-id'
-  },
-  {
-    id: 'team-2',
-    name: 'Team with Members',
-    description: 'A team with members',
-    createdAt: '2024-01-01T00:00:00Z',
-    clubId: 'test-club-id'
-  }
-]
+const mockTeams = {
+  value: [
+    {
+      id: 'team-1',
+      name: 'Empty Team',
+      description: 'A team with no members',
+      createdAt: '2024-01-01T00:00:00Z',
+      clubId: 'test-club-id'
+    },
+    {
+      id: 'team-2',
+      name: 'Team with Members',
+      description: 'A team with members',
+      createdAt: '2024-01-01T00:00:00Z',
+      clubId: 'test-club-id'
+    }
+  ]
+}
 
-const mockClubMembers = [
-  {
-    id: 'member-1',
-    userId: 'user-1',
-    name: 'John Doe',
-    role: 'member'
-  },
-  {
-    id: 'member-2',
-    userId: 'user-2',
-    name: 'Jane Smith',
-    role: 'admin'
-  }
-]
+const mockClubMembers = {
+  value: [
+    {
+      id: 'member-1',
+      userId: 'user-1',
+      name: 'John Doe',
+      role: 'member'
+    },
+    {
+      id: 'member-2',
+      userId: 'user-2',
+      name: 'Jane Smith',
+      role: 'admin'
+    }
+  ]
+}
 
 const mockTeamMembers = {
   value: [
@@ -153,7 +157,7 @@ describe('AdminClubTeamList', () => {
     mockGet
       .mockResolvedValueOnce({ data: mockTeams }) // fetchTeams
       .mockResolvedValueOnce({ data: mockClubMembers }) // fetchClubMembers
-      .mockResolvedValueOnce({ data: [] }) // fetchTeamMembers - empty array
+      .mockResolvedValueOnce({ data: { value: [] } }) // fetchTeamMembers - empty array
 
     renderWithRouter(<AdminClubTeamList />)
 
@@ -274,7 +278,7 @@ describe('AdminClubTeamList', () => {
     mockGet
       .mockResolvedValueOnce({ data: mockTeams }) // fetchTeams
       .mockResolvedValueOnce({ data: mockClubMembers }) // fetchClubMembers
-      .mockResolvedValueOnce({ data: [] }) // fetchTeamMembers - empty
+      .mockResolvedValueOnce({ data: { value: [] } }) // fetchTeamMembers - empty
 
     renderWithRouter(<AdminClubTeamList />)
 
