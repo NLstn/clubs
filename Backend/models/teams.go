@@ -571,19 +571,50 @@ func (tm *TeamMember) ODataBeforeUpdate(ctx context.Context, r *http.Request) er
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
+	// Get the current team member state from database before update
+	var currentTeamMember TeamMember
+	if err := database.Db.Where("id = ?", tm.ID).First(&currentTeamMember).Error; err != nil {
+		return fmt.Errorf("team member not found")
+	}
+
 	// Get team to find club ID
 	var team Team
-	if err := database.Db.Where("id = ?", tm.TeamID).First(&team).Error; err != nil {
+	if err := database.Db.Where("id = ?", currentTeamMember.TeamID).First(&team).Error; err != nil {
 		return fmt.Errorf("team not found")
 	}
 
-	// Check if user is an admin/owner of the club or team admin
-	var existingMember Member
-	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", team.ClubID, userID).First(&existingMember).Error; err != nil {
-		// Check if user is team admin
-		var teamMember TeamMember
-		if err := database.Db.Where("team_id = ? AND user_id = ? AND role = 'admin'", tm.TeamID, userID).First(&teamMember).Error; err != nil {
-			return fmt.Errorf("unauthorized: only club admins/owners or team admins can update team members")
+	// SECURITY: Prevent changing the team of an existing team member (TeamID is immutable)
+	if tm.TeamID != currentTeamMember.TeamID {
+		return fmt.Errorf("forbidden: team cannot be changed for an existing team member")
+	}
+
+	// SECURITY: Check if role is being changed
+	if tm.Role != currentTeamMember.Role {
+		// Role changes require special authorization
+		changingUser := User{ID: userID}
+
+		// Use the same authorization logic as UpdateMemberRole
+		// Note: We use currentTeamMember (from DB) to avoid TOCTOU race conditions
+		canChange, err := team.canChangeRole(changingUser, currentTeamMember, tm.Role)
+		if err != nil {
+			if err == ErrLastTeamAdminDemotion {
+				return fmt.Errorf("cannot demote the last admin of the team")
+			}
+			return fmt.Errorf("unauthorized: cannot change team member role")
+		}
+		if !canChange {
+			return fmt.Errorf("unauthorized: insufficient permissions to change team member role")
+		}
+	} else {
+		// If role is not being changed, still validate general update permission
+		// Check if user is an admin/owner of the club or team admin
+		var existingMember Member
+		if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", team.ClubID, userID).First(&existingMember).Error; err != nil {
+			// Check if user is team admin
+			var teamMember TeamMember
+			if err := database.Db.Where("team_id = ? AND user_id = ? AND role = 'admin'", tm.TeamID, userID).First(&teamMember).Error; err != nil {
+				return fmt.Errorf("unauthorized: only club admins/owners or team admins can update team members")
+			}
 		}
 	}
 
