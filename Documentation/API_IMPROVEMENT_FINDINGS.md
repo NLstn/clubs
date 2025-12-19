@@ -155,22 +155,25 @@ Shifts     []Shift     `gorm:"foreignKey:EventID" json:"Shifts,omitempty" odata:
 
 ---
 
-### 3. ClubSettings - Could Use Club Navigation
+### 3. ClubSettings - Using Club Navigation
 
 **Location:** [Backend/models/club_settings.go](../Backend/models/club_settings.go)
 
-**Opportunity:**
-Instead of:
-```typescript
-api.get(`/api/v2/ClubSettings?$filter=ClubID eq '${clubId}'`)
+**Status:** ✅ **VERIFIED** (December 19, 2024)
+
+**Current State:** Club has Settings navigation property:
+```go
+// In Club model (Backend/models/club.go)
+Settings *ClubSettings `gorm:"foreignKey:ClubID" json:"Settings,omitempty" odata:"nav"`
 ```
 
-Could use:
+**Usage:**
 ```typescript
+// Frontend already using navigation property
 api.get(`/api/v2/Clubs('${clubId}')/Settings`)
 ```
 
-**Backend Change:** Add `Settings ClubSettings` navigation to Club model.
+**Impact:** Cleaner API access pattern compared to filtering ClubSettings entity set.
 
 ---
 
@@ -398,7 +401,7 @@ const counts = {
 - [x] ~~Add Shifts navigation to Event model~~ (Already implemented)
 - [x] ~~Add Team navigation to TeamMember model~~ (Completed December 19, 2024)
 - [x] ~~Implement GetRSVPCounts bound function~~ (Completed December 19, 2024)
-- [ ] Add Settings navigation to Club model
+- [x] ~~Add Settings navigation to Club model~~ (Already implemented)
 - [ ] Implement GetMyTeams bound function
 - [ ] Consider GetEventDetails bound function
 
