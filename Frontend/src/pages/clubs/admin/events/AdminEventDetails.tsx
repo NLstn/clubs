@@ -9,13 +9,17 @@ import EditEvent from "./EditEvent";
 import "./AdminEventDetails.css";
 import '../../../../styles/events.css';
 
+interface EventRSVP {
+    Response: string;
+}
+
 interface UserRSVP {
-    id: string;
-    event_id: string;
-    user_id: string;
-    response: string;
-    created_at: string;
-    updated_at: string;
+    ID: string;
+    EventID: string;
+    UserID: string;
+    Response: string;
+    CreatedAt: string;
+    UpdatedAt: string;
 }
 
 interface RSVPCounts {
@@ -24,24 +28,26 @@ interface RSVPCounts {
     maybe?: number;
 }
 
-interface EventDetailsData {
-    id: string;
-    name: string;
-    description: string;
-    location: string;
-    start_time: string;
-    end_time: string;
-    created_at: string;
-    created_by: string;
-    updated_at: string;
-    updated_by: string;
-    user_rsvp?: UserRSVP;
+interface Shift {
+    ID: string;
+    StartTime: string;
+    EndTime: string;
 }
 
-interface Shift {
-    id: string;
-    startTime: string;
-    endTime: string;
+interface EventDetailsData {
+    ID: string;
+    Name: string;
+    Description: string;
+    Location: string;
+    StartTime: string;
+    EndTime: string;
+    CreatedAt: string;
+    CreatedBy: string;
+    UpdatedAt: string;
+    UpdatedBy: string;
+    UserRSVP?: UserRSVP;
+    EventRSVPs?: EventRSVP[];
+    Shifts?: Shift[];
 }
 
 const AdminEventDetails: FC = () => {
@@ -210,7 +216,7 @@ const AdminEventDetails: FC = () => {
         );
     }
 
-    const { user_rsvp } = eventData;
+    const { UserRSVP: userRSVP } = eventData;
     const totalRSVPs = (rsvpCounts.yes || 0) + (rsvpCounts.no || 0) + (rsvpCounts.maybe || 0);
 
     return (
@@ -237,7 +243,7 @@ const AdminEventDetails: FC = () => {
 
             <div className="admin-event-details-card">
                 <div className="event-header">
-                    <h1>{eventData.name}</h1>
+                    <h1>{eventData.Name}</h1>
                     <div className="event-actions">
                         <Button 
                             onClick={() => setIsRSVPModalOpen(true)} 
@@ -257,17 +263,17 @@ const AdminEventDetails: FC = () => {
                     </div>
                 </div>
                 
-                {eventData.description && (
+                {eventData.Description && (
                     <div className="info-section">
                         <h3>Description</h3>
-                        <p className="event-description">{eventData.description}</p>
+                        <p className="event-description">{eventData.Description}</p>
                     </div>
                 )}
                 
-                {eventData.location && (
+                {eventData.Location && (
                     <div className="info-section">
                         <h3>Location</h3>
-                        <p className="event-location">{eventData.location}</p>
+                        <p className="event-location">{eventData.Location}</p>
                     </div>
                 )}
                 
@@ -276,13 +282,13 @@ const AdminEventDetails: FC = () => {
                         <h3>Event Schedule</h3>
                         <div className="schedule-details">
                             <div className="schedule-item">
-                                <strong>Date:</strong> {formatDate(eventData.start_time)}
+                                <strong>Date:</strong> {formatDate(eventData.StartTime)}
                             </div>
                             <div className="schedule-item">
-                                <strong>Start Time:</strong> {formatTime(eventData.start_time)}
+                                <strong>Start Time:</strong> {formatTime(eventData.StartTime)}
                             </div>
                             <div className="schedule-item">
-                                <strong>End Time:</strong> {formatTime(eventData.end_time)}
+                                <strong>End Time:</strong> {formatTime(eventData.EndTime)}
                             </div>
                         </div>
                     </div>
@@ -308,12 +314,12 @@ const AdminEventDetails: FC = () => {
                                     <span className="stat-label">Total</span>
                                 </div>
                             </div>
-                            {user_rsvp && (
+                            {userRSVP && (
                                 <div className="admin-rsvp">
                                     <p>
                                         Your response: 
-                                        <span className={`rsvp-status ${user_rsvp.response}`}>
-                                            {user_rsvp.response === 'yes' ? ' Yes' : user_rsvp.response === 'no' ? ' No' : ' Maybe'}
+                                        <span className={`rsvp-status ${userRSVP.Response}`}>
+                                            {userRSVP.Response === 'yes' ? ' Yes' : userRSVP.Response === 'no' ? ' No' : ' Maybe'}
                                         </span>
                                     </p>
                                 </div>
@@ -326,8 +332,8 @@ const AdminEventDetails: FC = () => {
                             <h3>Shifts</h3>
                             <div className="shifts-list">
                                 {eventShifts.map((shift) => (
-                                    <div key={shift.id} className="shift-item">
-                                        <span>{formatTime(shift.startTime)} - {formatTime(shift.endTime)}</span>
+                                    <div key={shift.ID} className="shift-item">
+                                        <span>{formatTime(shift.StartTime)} - {formatTime(shift.EndTime)}</span>
                                     </div>
                                 ))}
                             </div>
@@ -337,11 +343,11 @@ const AdminEventDetails: FC = () => {
                     <div className="info-section">
                         <h3>Event Management</h3>
                         <div className="meta-info">
-                            <p><strong>Created:</strong> {formatDateTime(eventData.created_at)}</p>
-                            {eventData.updated_at !== eventData.created_at && (
-                                <p><strong>Last Updated:</strong> {formatDateTime(eventData.updated_at)}</p>
+                            <p><strong>Created:</strong> {formatDateTime(eventData.CreatedAt)}</p>
+                            {eventData.UpdatedAt !== eventData.CreatedAt && (
+                                <p><strong>Last Updated:</strong> {formatDateTime(eventData.UpdatedAt)}</p>
                             )}
-                            <p><strong>Event ID:</strong> {eventData.id}</p>
+                            <p><strong>Event ID:</strong> {eventData.ID}</p>
                         </div>
                     </div>
                 </div>
@@ -353,7 +359,7 @@ const AdminEventDetails: FC = () => {
                     isOpen={isRSVPModalOpen}
                     onClose={() => setIsRSVPModalOpen(false)}
                     eventId={eventId!}
-                    eventName={eventData.name}
+                    eventName={eventData.Name}
                     clubId={clubId!}
                 />
             )}
@@ -364,12 +370,12 @@ const AdminEventDetails: FC = () => {
                     isOpen={isEditModalOpen}
                     onClose={() => setIsEditModalOpen(false)}
                     event={{
-                        id: eventData.id,
-                        name: eventData.name,
-                        description: eventData.description,
-                        location: eventData.location,
-                        start_time: eventData.start_time,
-                        end_time: eventData.end_time
+                        id: eventData.ID,
+                        name: eventData.Name,
+                        description: eventData.Description,
+                        location: eventData.Location,
+                        start_time: eventData.StartTime,
+                        end_time: eventData.EndTime
                     }}
                     clubId={clubId}
                     onSuccess={() => {
