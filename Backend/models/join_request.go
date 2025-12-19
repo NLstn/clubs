@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -40,7 +41,7 @@ func (c *Club) CreateJoinRequest(userID, email string) error {
 	err = c.notifyAdminsAboutJoinRequest(userID, email, request.ID)
 	if err != nil {
 		// Log error but don't fail the operation
-		// TODO: Add proper logging
+		log.Printf("Failed to notify admins about join request for club %s: %v", c.ID, err)
 	}
 
 	return nil
@@ -127,7 +128,7 @@ func RejectJoinRequest(requestId, adminUserId string) error {
 	err = RemoveJoinRequestNotifications(joinRequest.ID)
 	if err != nil {
 		// Log error but don't fail the operation
-		// TODO: Add proper logging
+		log.Printf("Failed to remove notifications for join request %s during rejection: %v", joinRequest.ID, err)
 	}
 
 	return database.Db.Delete(&JoinRequest{}, "id = ?", requestId).Error
@@ -197,8 +198,9 @@ func (c *Club) notifyAdminsAboutJoinRequest(userID, email, joinRequestID string)
 
 		// Send email notification if enabled and notifications package is available
 		if preferences.JoinRequestEmail {
-			// TODO: Implement email notification for join requests if needed
+			// Email notification for join requests not implemented yet
 			// This would require adding a function to the notifications package
+			// For now, only in-app notifications are sent
 		}
 	}
 

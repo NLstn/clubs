@@ -109,10 +109,12 @@ func (s *Service) getTimelineCollection(ctx *odata.OverwriteContext) (*odata.Col
 		return timelineItems[i].Timestamp.After(timelineItems[j].Timestamp)
 	})
 
-	// Note: Query options like $filter, $top, and $skip are not currently implemented.
-	// The OData library cannot apply these filters to in-memory data for virtual entities.
-	// For production use, manual implementation of filtering and pagination would be required.
-	// TODO: Implement $filter, $top, and $skip for timelineItems in-memory.
+	// Note: Virtual entity limitations
+	// The OData library handles in-memory virtual entities but does not support
+	// server-side filtering ($filter), pagination ($top, $skip), or sorting ($orderby).
+	// These operations are limited by the in-memory data model.
+	// For production use with large datasets, consider implementing manual filtering
+	// and pagination logic or converting this to a database-backed entity.
 
 	return &odata.CollectionResult{Items: timelineItems}, nil
 }
