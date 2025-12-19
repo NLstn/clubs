@@ -250,12 +250,25 @@ func (c *Club) canChangeRole(changingUser User, targetMember Member, newRole str
 		}
 	}
 
+	// Only owners can change any role
 	if changingUserRole == "owner" {
 		return true, nil
 	}
-	if changingUserRole == "admin" && (targetMember.Role == "member" || newRole == "admin") {
-		return true, nil
+	
+	// SECURITY FIX: Admins can only promote members to admin or demote admins to member
+	// They CANNOT create/promote to owner or demote owners
+	if changingUserRole == "admin" {
+		// Admins cannot touch owner roles
+		if targetMember.Role == "owner" || newRole == "owner" {
+			return false, nil
+		}
+		// Admins can change between member and admin roles
+		if (targetMember.Role == "member" || targetMember.Role == "admin") && 
+		   (newRole == "member" || newRole == "admin") {
+			return true, nil
+		}
 	}
+	
 	return false, nil
 }
 
@@ -314,9 +327,22 @@ func (m *Member) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
+	// Get the creating user's role
+	var creatingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ?", m.ClubID, userID).First(&creatingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only club members can add other members")
+	}
+
+	// SECURITY: Only owners can add new owners, only owners and admins can add admins
+	if m.Role == "owner" && creatingMember.Role != "owner" {
+		return fmt.Errorf("unauthorized: only owners can add new owners")
+	}
+	if m.Role == "admin" && creatingMember.Role != "owner" && creatingMember.Role != "admin" {
+		return fmt.Errorf("unauthorized: only admins and owners can add new admins")
+	}
+
 	// Check if user is an admin/owner of the club
-	var existingMember Member
-	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", m.ClubID, userID).First(&existingMember).Error; err != nil {
+	if creatingMember.Role != "admin" && creatingMember.Role != "owner" {
 		return fmt.Errorf("unauthorized: only admins and owners can add members")
 	}
 
@@ -337,7 +363,32 @@ func (m *Member) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// Check if user is an admin/owner of the club
+	// Get the current member state from database before update
+	var currentMember Member
+	if err := database.Db.Where("id = ?", m.ID).First(&currentMember).Error; err != nil {
+		return fmt.Errorf("member not found")
+	}
+
+	// SECURITY: Check if role is being changed
+	if m.Role != currentMember.Role {
+		// Role changes require special authorization
+		club := Club{ID: m.ClubID}
+		changingUser := User{ID: userID}
+
+		// Use the same authorization logic as UpdateMemberRole
+		canChange, err := club.canChangeRole(changingUser, currentMember, m.Role)
+		if err != nil {
+			if err == ErrLastOwnerDemotion {
+				return fmt.Errorf("cannot demote the last owner of the club")
+			}
+			return fmt.Errorf("unauthorized: cannot change member role")
+		}
+		if !canChange {
+			return fmt.Errorf("unauthorized: insufficient permissions to change member role")
+		}
+	}
+
+	// Check if user is an admin/owner of the club for other updates
 	var existingMember Member
 	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", m.ClubID, userID).First(&existingMember).Error; err != nil {
 		return fmt.Errorf("unauthorized: only admins and owners can update members")

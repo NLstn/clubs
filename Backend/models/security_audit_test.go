@@ -292,3 +292,225 @@ func TestFineCreationTeamIDClubIDMismatch(t *testing.T) {
 func strPtr(s string) *string {
 	return &s
 }
+
+// TestPrivilegeEscalationViaRoleUpdate tests if admins can improperly escalate privileges
+func TestPrivilegeEscalationViaRoleUpdate(t *testing.T) {
+	setupSecurityTestDB(t)
+	db := database.Db
+
+	// Create club and users
+	ownerID := uuid.New().String()
+	adminID := uuid.New().String()
+	memberID := uuid.New().String()
+
+	// Create users
+	owner := User{ID: ownerID, FirstName: "Owner", LastName: "User", Email: "owner@test.com"}
+	admin := User{ID: adminID, FirstName: "Admin", LastName: "User", Email: "admin@test.com"}
+	member := User{ID: memberID, FirstName: "Member", LastName: "User", Email: "member@test.com"}
+	db.Create(&owner)
+	db.Create(&admin)
+	db.Create(&member)
+
+	// Create club
+	club := Club{
+		ID:        uuid.New().String(),
+		Name:      "Test Club",
+		CreatedBy: ownerID,
+		UpdatedBy: ownerID,
+	}
+	db.Create(&club)
+
+	// Add owner
+	ownerMember := Member{
+		ID:        uuid.New().String(),
+		ClubID:    club.ID,
+		UserID:    ownerID,
+		Role:      "owner",
+		CreatedBy: ownerID,
+		UpdatedBy: ownerID,
+	}
+	db.Create(&ownerMember)
+
+	// Add admin
+	adminMember := Member{
+		ID:        uuid.New().String(),
+		ClubID:    club.ID,
+		UserID:    adminID,
+		Role:      "admin",
+		CreatedBy: ownerID,
+		UpdatedBy: ownerID,
+	}
+	db.Create(&adminMember)
+
+	// Add regular member
+	regularMember := Member{
+		ID:        uuid.New().String(),
+		ClubID:    club.ID,
+		UserID:    memberID,
+		Role:      "member",
+		CreatedBy: ownerID,
+		UpdatedBy: ownerID,
+	}
+	db.Create(&regularMember)
+
+	// TEST 1: Admin tries to promote themselves to owner (should FAIL)
+	t.Run("Admin cannot promote themselves to owner", func(t *testing.T) {
+		updatedMember := adminMember
+		updatedMember.Role = "owner" // Try to escalate to owner
+
+		ctx := context.WithValue(context.Background(), auth.UserIDKey, adminID)
+		req, _ := http.NewRequest("PATCH", "/api/v2/Members", nil)
+		req = req.WithContext(ctx)
+
+		err := updatedMember.ODataBeforeUpdate(ctx, req)
+		if err == nil {
+			t.Error("SECURITY VULNERABILITY: Admin was able to promote themselves to owner!")
+		} else {
+			t.Log("Security check passed: Admin cannot self-promote to owner")
+		}
+	})
+
+	// TEST 2: Admin tries to promote regular member to owner (should FAIL)
+	t.Run("Admin cannot promote member to owner", func(t *testing.T) {
+		updatedMember := regularMember
+		updatedMember.Role = "owner" // Try to make member an owner
+
+		ctx := context.WithValue(context.Background(), auth.UserIDKey, adminID)
+		req, _ := http.NewRequest("PATCH", "/api/v2/Members", nil)
+		req = req.WithContext(ctx)
+
+		err := updatedMember.ODataBeforeUpdate(ctx, req)
+		if err == nil {
+			t.Error("SECURITY VULNERABILITY: Admin was able to promote member to owner!")
+		} else {
+			t.Log("Security check passed: Admin cannot promote members to owner")
+		}
+	})
+
+	// TEST 3: Admin tries to demote owner (should FAIL)
+	t.Run("Admin cannot demote owner", func(t *testing.T) {
+		updatedMember := ownerMember
+		updatedMember.Role = "member" // Try to demote owner
+
+		ctx := context.WithValue(context.Background(), auth.UserIDKey, adminID)
+		req, _ := http.NewRequest("PATCH", "/api/v2/Members", nil)
+		req = req.WithContext(ctx)
+
+		err := updatedMember.ODataBeforeUpdate(ctx, req)
+		if err == nil {
+			t.Error("SECURITY VULNERABILITY: Admin was able to demote owner!")
+		} else {
+			t.Log("Security check passed: Admin cannot demote owner")
+		}
+	})
+
+	// TEST 4: Owner CAN promote admin to owner (should PASS)
+	t.Run("Owner can promote admin to owner", func(t *testing.T) {
+		updatedMember := adminMember
+		updatedMember.Role = "owner"
+
+		ctx := context.WithValue(context.Background(), auth.UserIDKey, ownerID)
+		req, _ := http.NewRequest("PATCH", "/api/v2/Members", nil)
+		req = req.WithContext(ctx)
+
+		err := updatedMember.ODataBeforeUpdate(ctx, req)
+		if err != nil {
+			t.Errorf("Owner should be able to promote admin to owner, but got error: %v", err)
+		} else {
+			t.Log("Security check passed: Owner can promote to owner")
+		}
+	})
+}
+
+// TestPrivilegeEscalationViaCreate tests if users can create members with improper roles
+func TestPrivilegeEscalationViaCreate(t *testing.T) {
+	setupSecurityTestDB(t)
+	db := database.Db
+
+	// Create club and users
+	ownerID := uuid.New().String()
+	adminID := uuid.New().String()
+	newUserID := uuid.New().String()
+
+	// Create users
+	owner := User{ID: ownerID, FirstName: "Owner", LastName: "User", Email: "owner@test.com"}
+	admin := User{ID: adminID, FirstName: "Admin", LastName: "User", Email: "admin@test.com"}
+	newUser := User{ID: newUserID, FirstName: "New", LastName: "User", Email: "new@test.com"}
+	db.Create(&owner)
+	db.Create(&admin)
+	db.Create(&newUser)
+
+	// Create club
+	club := Club{
+		ID:        uuid.New().String(),
+		Name:      "Test Club",
+		CreatedBy: ownerID,
+		UpdatedBy: ownerID,
+	}
+	db.Create(&club)
+
+	// Add owner
+	ownerMember := Member{
+		ID:        uuid.New().String(),
+		ClubID:    club.ID,
+		UserID:    ownerID,
+		Role:      "owner",
+		CreatedBy: ownerID,
+		UpdatedBy: ownerID,
+	}
+	db.Create(&ownerMember)
+
+	// Add admin
+	adminMember := Member{
+		ID:        uuid.New().String(),
+		ClubID:    club.ID,
+		UserID:    adminID,
+		Role:      "admin",
+		CreatedBy: ownerID,
+		UpdatedBy: ownerID,
+	}
+	db.Create(&adminMember)
+
+	// TEST 1: Admin tries to create a new owner (should FAIL)
+	t.Run("Admin cannot create new owner", func(t *testing.T) {
+		newMember := Member{
+			ID:     uuid.New().String(),
+			ClubID: club.ID,
+			UserID: newUserID,
+			Role:   "owner", // Admin trying to create an owner
+		}
+
+		ctx := context.WithValue(context.Background(), auth.UserIDKey, adminID)
+		req, _ := http.NewRequest("POST", "/api/v2/Members", nil)
+		req = req.WithContext(ctx)
+
+		err := newMember.ODataBeforeCreate(ctx, req)
+		if err == nil {
+			t.Error("SECURITY VULNERABILITY: Admin was able to create a new owner!")
+		} else {
+			t.Log("Security check passed: Admin cannot create owners")
+		}
+	})
+
+	// TEST 2: Owner CAN create a new owner (should PASS)
+	t.Run("Owner can create new owner", func(t *testing.T) {
+		newMember := Member{
+			ID:     uuid.New().String(),
+			ClubID: club.ID,
+			UserID: newUserID,
+			Role:   "owner",
+		}
+
+		ctx := context.WithValue(context.Background(), auth.UserIDKey, ownerID)
+		req, _ := http.NewRequest("POST", "/api/v2/Members", nil)
+		req = req.WithContext(ctx)
+
+		err := newMember.ODataBeforeCreate(ctx, req)
+		if err != nil {
+			t.Errorf("Owner should be able to create new owner, but got error: %v", err)
+		} else {
+			t.Log("Security check passed: Owner can create owners")
+		}
+	})
+}
+
