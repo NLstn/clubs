@@ -263,6 +263,12 @@ func (u User) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts i
 	return []func(*gorm.DB) *gorm.DB{getUserVisibilityScope(userID)}, nil
 }
 
+// ODataBeforeCreate prevents direct user creation via OData API
+// User creation must be done through authentication endpoints (magic link, Keycloak)
+func (u *User) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	return fmt.Errorf("forbidden: user creation must be done through authentication endpoints (magic link or OAuth)")
+}
+
 // ODataBeforeUpdate validates user update permissions
 // Users can only update their own information
 func (u *User) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {

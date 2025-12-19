@@ -61,9 +61,9 @@ func setupUserAuthTestDB(t *testing.T) {
 	database.Db = db
 }
 
-// TestUserReadAuthorizationMissing tests for missing authorization on User read operations
-// This is a CRITICAL security vulnerability where users can read other users' private information
-func TestUserReadAuthorizationMissing(t *testing.T) {
+// TestUserReadAuthorization verifies that authorization is enforced on User read operations
+// Ensures users cannot read other users' private information without proper permissions
+func TestUserReadAuthorization(t *testing.T) {
 	setupUserAuthTestDB(t)
 
 	// Create three users
@@ -96,62 +96,70 @@ func TestUserReadAuthorizationMissing(t *testing.T) {
 	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
 		uuid.New().String(), club2ID, user3ID, "member", user2ID, user2ID)
 
-	t.Run("VULNERABILITY: User can read all users without authorization", func(t *testing.T) {
+	t.Run("Authorization properly restricts user visibility", func(t *testing.T) {
 		user := User{}
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1ID)
 		req := &http.Request{}
 
-		// Try to get authorization scopes for reading users
-		// The User model should have ODataBeforeReadCollection but currently doesn't
-		// This will fail compilation which is expected - we need to add the hooks
+		// Try to get authorization scopes for reading users using the OData hook
+		// The User model now has ODataBeforeReadCollection; this test verifies it is present
+		// and correctly restricts which users can be read by the current user.
 		scopes, err := user.ODataBeforeReadCollection(ctx, req, nil)
 		if err != nil {
-			t.Logf("User model does not have ODataBeforeReadCollection - SECURITY ISSUE CONFIRMED")
-			t.Logf("Any authenticated user can query all users in the system!")
-			
-			// Currently, users can query ALL users without restriction
+			t.Fatalf("User model is missing or failed ODataBeforeReadCollection - SECURITY ISSUE: %v", err)
+		}
+		
+		// Apply the authorization scopes to restrict the query
 			var allUsers []User
 			err = database.Db.Find(&allUsers).Error
 			if err != nil {
 				t.Fatalf("Query failed: %v", err)
 			}
 
-			if len(allUsers) == 3 {
-				t.Error("CRITICAL VULNERABILITY: user1 can see ALL users (including user2 from different club)")
-				t.Error("Expected: Users should only see users from clubs they share")
-				t.Error("Actual: All 3 users are visible")
-			}
-		} else {
-			// If hooks exist, verify they work correctly
-			db := database.Db
-			for _, scope := range scopes {
-				db = scope(db)
-			}
+		// Apply scopes to the database query
+		db := database.Db
+		for _, scope := range scopes {
+			db = scope(db)
+		}
 
-			var results []User
-			err = db.Find(&results).Error
-			if err != nil {
-				t.Fatalf("Query failed: %v", err)
-			}
+		var results []User
+		err = db.Find(&results).Error
+		if err != nil {
+			t.Fatalf("Query failed: %v", err)
+		}
 
-			// user1 should only see user1 and user3 (users in club1)
-			// user1 should NOT see user2 (only in club2)
-			if len(results) > 2 {
-				t.Error("User can see users outside of their shared clubs")
-			}
+		// user1 should only see user1 and user3 (users in club1)
+		// user1 should NOT see user2 (only in club2)
+		if len(results) != 2 {
+			t.Errorf("Expected user1 to see exactly 2 users (self + user3 in shared club), got %d", len(results))
+		}
 
-			// Verify user2 is NOT in the results
-			for _, u := range results {
-				if u.ID == user2ID {
-					t.Error("user1 should NOT be able to see user2 (no shared clubs)")
-				}
+		// Verify user2 is NOT in the results
+		for _, u := range results {
+			if u.ID == user2ID {
+				t.Error("CRITICAL: user1 should NOT be able to see user2 (no shared clubs)")
 			}
+		}
+		
+		// Verify user1 and user3 ARE in the results
+		foundUser1 := false
+		foundUser3 := false
+		for _, u := range results {
+			if u.ID == user1ID {
+				foundUser1 = true
+			}
+			if u.ID == user3ID {
+				foundUser3 = true
+			}
+		}
+		if !foundUser1 || !foundUser3 {
+			t.Error("user1 should be able to see themselves and user3 (shared club member)")
 		}
 	})
 }
 
-// TestUserUpdateAuthorizationMissing tests for missing authorization on User update operations
-func TestUserUpdateAuthorizationMissing(t *testing.T) {
+// TestUserUpdateAuthorization tests that authorization is enforced on User update operations
+func TestUserUpdateAuthorization(t *testing.T) {
 	setupUserAuthTestDB(t)
 
 	// Create two users
@@ -163,7 +171,7 @@ func TestUserUpdateAuthorizationMissing(t *testing.T) {
 	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
 		user2ID, "User", "Two", "user2@test.com")
 
-	t.Run("VULNERABILITY: User might be able to update other users' information", func(t *testing.T) {
+	t.Run("User cannot update another user's information", func(t *testing.T) {
 		user := User{
 			ID:        user2ID,
 			FirstName: "Modified",
@@ -174,15 +182,43 @@ func TestUserUpdateAuthorizationMissing(t *testing.T) {
 		req := &http.Request{}
 
 		// Try to update user2 while logged in as user1
-		// The User model should have ODataBeforeUpdate but currently doesn't
+		// The User model's ODataBeforeUpdate hook should prevent this unauthorized update
 		err := user.ODataBeforeUpdate(ctx, req)
-		if err != nil {
-			// This is expected - there's no such method yet
-			t.Logf("User model does not have ODataBeforeUpdate - POTENTIAL SECURITY ISSUE")
-			t.Logf("Need to verify if OData framework prevents this automatically")
-		} else {
-			// If the hook exists and returns no error, that would be a vulnerability
+		if err == nil {
+			// If the hook allows this, it's a critical vulnerability
 			t.Error("CRITICAL: user1 was able to update user2's information!")
+		} else {
+			// Expected: authorization hook rejects updates to other users' data
+			t.Logf("ODataBeforeUpdate correctly prevented unauthorized update: %v", err)
+		}
+	})
+}
+
+// TestUserCreateAuthorization tests that user creation via OData API is prevented
+func TestUserCreateAuthorization(t *testing.T) {
+	setupUserAuthTestDB(t)
+
+	// Create an authenticated user
+	user1ID := uuid.New().String()
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+		user1ID, "User", "One", "user1@test.com")
+
+	t.Run("Direct user creation via OData API is prevented", func(t *testing.T) {
+		newUser := User{
+			FirstName: "New",
+			LastName:  "User",
+			Email:     "newuser@test.com",
+		}
+		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1ID)
+		req := &http.Request{}
+
+		// Try to create a new user directly via OData API
+		// This should be prevented - user creation must go through auth endpoints
+		err := newUser.ODataBeforeCreate(ctx, req)
+		if err == nil {
+			t.Error("CRITICAL: Direct user creation via OData API was allowed!")
+		} else {
+			t.Logf("ODataBeforeCreate correctly prevented direct user creation: %v", err)
 		}
 	})
 }
