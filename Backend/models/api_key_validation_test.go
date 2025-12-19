@@ -20,7 +20,7 @@ func setupValidationTestDB(t *testing.T) *gorm.DB {
 
 func TestValidateAPIKeyIntegration(t *testing.T) {
 	t.Skip("Skipping SQLite test - PostgreSQL-specific UUID types are tested in integration tests")
-	
+
 	// This test is comprehensive but requires PostgreSQL
 	// The logic is tested in production with the actual database schema
 }

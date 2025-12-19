@@ -137,11 +137,11 @@ func TestAPIKey_Permissions(t *testing.T) {
 	// Test permission encoding/decoding without database
 	permissions := []string{"read:events", "write:members", "admin"}
 	apiKey := &APIKey{}
-	
+
 	err := apiKey.SetPermissions(permissions)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, apiKey.Permissions)
-	
+
 	retrieved := apiKey.GetPermissions()
 	assert.Equal(t, permissions, retrieved)
 }

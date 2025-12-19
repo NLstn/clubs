@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/models"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -628,7 +628,7 @@ func TestAPIKeyAuthentication(t *testing.T) {
 
 	t.Run("last_used_at_updated_after_authentication", func(t *testing.T) {
 		t.Skip("Async LastUsedAt update is flaky in SQLite tests - works in production PostgreSQL")
-		
+
 		// Record current LastUsedAt
 		var before models.APIKey
 		ctx.service.db.Where("key_hash = ?", keyHash).First(&before)

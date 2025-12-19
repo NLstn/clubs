@@ -155,7 +155,7 @@ func APIKeyAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Check for API key in X-API-Key header (preferred)
 		apiKey := r.Header.Get("X-API-Key")
-		
+
 		// If not found, check Authorization header for "ApiKey" scheme
 		if apiKey == "" {
 			authHeader := r.Header.Get("Authorization")
@@ -189,7 +189,7 @@ func APIKeyAuthMiddleware(next http.Handler) http.Handler {
 func CompositeAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
-		
+
 		// Try JWT Bearer token authentication first
 		if strings.HasPrefix(authHeader, "Bearer ") {
 			// Use the existing JWT auth logic
