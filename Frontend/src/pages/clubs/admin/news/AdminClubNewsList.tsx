@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import EditNews from "./EditNews";
 import AddNews from "./AddNews";
-import { ODataTable, ODataTableColumn, Button } from '@/components/ui';
+import { ODataTable, ODataTableColumn, Button, ButtonState } from '@/components/ui';
 import api from "../../../../utils/api";
 
 interface News {
@@ -19,6 +19,7 @@ const AdminClubNewsList = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [deleteStates, setDeleteStates] = useState<Record<string, ButtonState>>({});
 
     const refreshNews = useCallback(() => {
         setRefreshKey(prev => prev + 1);
@@ -39,12 +40,31 @@ const AdminClubNewsList = () => {
             return;
         }
 
+        setDeleteStates(prev => ({ ...prev, [newsId]: 'loading' }));
+
         try {
             await api.delete(`/api/v2/News('${newsId}')`);
-            refreshNews(); // Refresh the list
+            setDeleteStates(prev => ({ ...prev, [newsId]: 'success' }));
+            
+            setTimeout(() => {
+                refreshNews(); // Refresh the list
+                setDeleteStates(prev => {
+                    const newState = { ...prev };
+                    delete newState[newsId];
+                    return newState;
+                });
+            }, 1000);
         } catch (error) {
             console.error("Error deleting news:", error);
-            alert(error instanceof Error ? error.message : "Failed to delete news");
+            setDeleteStates(prev => ({ ...prev, [newsId]: 'error' }));
+            
+            setTimeout(() => {
+                setDeleteStates(prev => {
+                    const newState = { ...prev };
+                    delete newState[newsId];
+                    return newState;
+                });
+            }, 3000);
         }
     };
 
@@ -115,6 +135,9 @@ const AdminClubNewsList = () => {
                         variant="cancel"
                         size="sm"
                         onClick={() => handleDeleteNews(newsItem.ID)}
+                        state={deleteStates[newsItem.ID] || 'idle'}
+                        successMessage="Deleted!"
+                        errorMessage="Failed"
                     >
                         Delete
                     </Button>
