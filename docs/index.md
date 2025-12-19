@@ -17,7 +17,7 @@ Clubs is a comprehensive club management platform designed to help you efficient
 
 To start using Clubs, you'll need to:
 
-1. **Create an Account**: See the [Authentication](login.md) page for registration instructions
+1. **Create an Account**: See the [Login](login.md) page for registration instructions
 2. **Create or Join a Club**: After logging in, create a new club or request to join an existing one
 3. **Configure Your Club**: Set up your club details, invite members, and configure settings
 4. **Start Managing**: Create events, manage members, track fines, and more!
