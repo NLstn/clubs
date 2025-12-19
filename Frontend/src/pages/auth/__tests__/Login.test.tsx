@@ -66,7 +66,9 @@ describe('Login Component', () => {
     fireEvent.click(submitButton);
     
     await waitFor(() => {
-      const message = screen.getByText(/check your email for a login link/i);
+      const message = screen.getAllByText(/check your email for a login link/i).find(
+        (el) => el.classList.contains('message')
+      );
       expect(message).toBeInTheDocument();
       expect(message).toHaveClass('message', 'success');
     });

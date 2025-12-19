@@ -21,7 +21,7 @@ const InviteMember: FC<InviteMemberProps> = ({ isOpen, onClose, onSubmit }) => {
         setEmail('');
         onClose();
       }, 1000);
-    } catch (error) {
+    } catch {
       setButtonState('error');
       setTimeout(() => setButtonState('idle'), 3000);
     }

@@ -78,7 +78,10 @@ describe('CreateClub', () => {
       });
     });
     
-    expect(screen.getByText('Club created successfully!')).toBeInTheDocument();
+    const successMessages = screen.getAllByText('Club created successfully!');
+    expect(successMessages.length).toBeGreaterThan(0);
+    const messageDiv = successMessages.find((el) => el.classList.contains('message'));
+    expect(messageDiv).toBeInTheDocument();
     
     // Wait for navigation timeout
     await waitFor(() => {

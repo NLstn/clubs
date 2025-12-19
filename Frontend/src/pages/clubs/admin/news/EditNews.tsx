@@ -19,17 +19,20 @@ interface EditNewsProps {
 }
 
 const EditNews: FC<EditNewsProps> = ({ isOpen, onClose, news, onSuccess }) => {
-    const [title, setTitle] = useState<string>('');
-    const [content, setContent] = useState<string>('');
+    // Initialize form state from news prop (avoiding setState in effect)
+    const [title, setTitle] = useState<string>(news?.Title || '');
+    const [content, setContent] = useState<string>(news?.Content || '');
     const [error, setError] = useState<string | null>(null);
     const [buttonState, setButtonState] = useState<ButtonState>('idle');
 
+    // Update form when news changes
     useEffect(() => {
         if (news) {
             setTitle(news.Title);
             setContent(news.Content);
         }
-    }, [news]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [news?.ID]); // Only update when news ID changes
 
     if (!isOpen || !news) return null;
 
