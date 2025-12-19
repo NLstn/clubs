@@ -91,8 +91,6 @@ For passwordless login (after you have an account):
 
 ## Logging In (Returning Users)
 
-## Logging In (Returning Users)
-
 Once you have an account, here's how to log in:
 
 ### Using SSO (Username and Password)

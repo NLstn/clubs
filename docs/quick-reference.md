@@ -96,9 +96,8 @@ A quick reference for common tasks in the Clubs platform. Bookmark this page for
 |------|--------|
 | **View News** | Dashboard → "News Feed" or Club page → "News" |
 | **Create News Post** (Admin) | Admin panel → "News" → "Add News" → Write post → "Publish" |
-| **Schedule News Post** (Admin) | Create News → Set future date → "Save as Scheduled" |
 | **Edit News Post** (Admin) | Admin panel → "News" → Select post → Make changes → Save |
-| **Pin Important Post** (Admin) | News post → "Pin Post" |
+| **Delete News Post** (Admin) | Admin panel → "News" → Select post → "Delete" → Confirm |
 
 ## Quick Navigation Tips
 
@@ -126,18 +125,6 @@ Admin features are only visible to club administrators:
    - "Manage" or "Manage Club" option
    - Settings gear icon (⚙️)
    - Admin tab
-
-## Keyboard Shortcuts
-
-*Note: Shortcuts may vary by browser and implementation*
-
-| Shortcut | Action |
-|----------|--------|
-| `Alt + H` | Go to Home/Dashboard |
-| `Alt + C` | Go to Clubs |
-| `Alt + P` | Go to Profile |
-| `Esc` | Close modal/dialog |
-| `/` | Focus search (if available) |
 
 ## Role Permissions Quick Reference
 
@@ -173,28 +160,23 @@ Admin features are only visible to club administrators:
 
 ## Common Status Indicators
 
-### Events
-- 🟢 **Attending** - You've RSVP'd yes
-- 🔴 **Declined** - You've RSVP'd no
-- ⚪ **No Response** - You haven't responded yet
-- 🟡 **Maybe** - You're tentative (if available)
+### Event RSVPs
+When you RSVP to an event, your response will be one of:
+- **Yes** - You're attending
+- **No** - You're not attending  
+- **Maybe** - You're tentative (if available)
+
+If you haven't RSVP'd yet, the event will show as pending or no response depending on the view.
 
 ### Fines
 - 🔴 **Unpaid** - Fine not yet paid
 - 🟢 **Paid** - Fine has been paid
 
 ### Shifts
-- 🟡 **Scheduled** - Shift is upcoming
-- 🔵 **In Progress** - Shift is happening now
-- 🟢 **Completed** - Shift was finished
-- 🔴 **Missed** - Member didn't show up
-- ⚫ **Cancelled** - Shift was cancelled
+Shifts display their date, time, assigned members, and associated event. Check the shift schedule to see upcoming and past shifts.
 
 ### Invitations
-- 🟡 **Pending** - Waiting for response
-- 🟢 **Accepted** - Invitation accepted
-- 🔴 **Declined** - Invitation declined
-- ⚫ **Expired** - Invitation expired
+Invitations appear in your invitations list while pending. Once you accept or decline an invitation, it's removed from the list.
 
 ## Getting Help
 
