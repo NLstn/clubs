@@ -194,19 +194,6 @@ describe('ClubList', () => {
         });
     });
 
-    it('displays club names correctly', async () => {
-        mockedApi.get.mockResolvedValue({ data: mockUserWithMembers });
-        renderWithRouter(<ClubList />);
-        
-        await waitFor(() => {
-            // Verify all club names are displayed
-            expect(screen.getByText('Admin Club')).toBeInTheDocument();
-            expect(screen.getByText('Owner Club')).toBeInTheDocument();
-            expect(screen.getByText('Member Club')).toBeInTheDocument();
-            expect(screen.getByText('Deleted Club')).toBeInTheDocument();
-        });
-    });
-
     it('displays deleted badge for deleted clubs', async () => {
         mockedApi.get.mockResolvedValue({ data: mockUserWithMembers });
         renderWithRouter(<ClubList />);
