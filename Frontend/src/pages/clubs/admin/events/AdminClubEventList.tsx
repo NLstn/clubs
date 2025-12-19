@@ -41,15 +41,16 @@ const AdminClubEventList = () => {
         setError(null);
         try {
             // OData v2: Query Events for this club
-            const response = await api.get(`/api/v2/Events?$filter=ClubID eq '${id}'`);
-            setEvents(response.data || []);
+            const response = await api.get<ODataCollectionResponse<Event>>(`/api/v2/Events?$filter=ClubID eq '${id}'`);
+            const eventList = parseODataCollection(response.data);
+            setEvents(eventList);
 
             // Fetch RSVP counts and shifts for each event
             // TODO: Optimize to avoid N+1 query pattern - see issue #472
             // Consider using $expand=EventRSVPs in initial query or batch endpoint
             const counts: Record<string, RSVPCounts> = {};
             const shifts: Record<string, Shift[]> = {};
-            for (const event of response.data || []) {
+            for (const event of eventList) {
                 try {
                     // Fetch RSVP counts
                     // OData v2: Use EventRSVPs navigation and compute counts client-side
@@ -62,8 +63,8 @@ const AdminClubEventList = () => {
                     
                     // Fetch event shifts
                     // OData v2: Query Shifts for this event
-                    const shiftsResponse = await api.get(`/api/v2/Shifts?$filter=EventID eq '${event.id}'`);
-                    shifts[event.id] = shiftsResponse.data || [];
+                    const shiftsResponse = await api.get<ODataCollectionResponse<Shift>>(`/api/v2/Shifts?$filter=EventID eq '${event.id}'`);
+                    shifts[event.id] = parseODataCollection(shiftsResponse.data);
                 } catch (err) {
                     console.warn(`Failed to fetch data for event ${event.id}:`, err);
                     counts[event.id] = {};

@@ -60,8 +60,9 @@ const AdminClubTeamList = () => {
     const fetchTeams = useCallback(async () => {
         try {
             // OData v2: Query Teams for this club
-            const response = await api.get(`/api/v2/Teams?$filter=ClubID eq '${clubId}'`);
-            setTeams(response.data);
+            const response = await api.get<ODataCollectionResponse<Team>>(`/api/v2/Teams?$filter=ClubID eq '${clubId}'`);
+            const teamList = parseODataCollection(response.data);
+            setTeams(teamList);
         } catch {
             setError('Failed to fetch teams');
         }
@@ -70,8 +71,9 @@ const AdminClubTeamList = () => {
     const fetchClubMembers = useCallback(async () => {
         try {
             // OData v2: Query Members for this club
-            const response = await api.get(`/api/v2/Members?$filter=ClubID eq '${clubId}'&$expand=User`);
-            setClubMembers(response.data);
+            const response = await api.get<ODataCollectionResponse<ClubMember>>(`/api/v2/Members?$filter=ClubID eq '${clubId}'&$expand=User`);
+            const memberList = parseODataCollection(response.data);
+            setClubMembers(memberList);
         } catch {
             setError('Failed to fetch club members');
         }
