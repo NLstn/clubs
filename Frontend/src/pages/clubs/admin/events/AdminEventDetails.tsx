@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "../../../../components/ui";
 import PageHeader from "../../../../components/layout/PageHeader";
 import api from "../../../../utils/api";
-import { calculateRSVPCounts } from "../../../../utils/eventUtils";
 import EventRSVPList from "./EventRSVPList";
 import EditEvent from "./EditEvent";
 import "./AdminEventDetails.css";
@@ -69,10 +68,10 @@ const AdminEventDetails: FC = () => {
         setError(null);
         
         try {
-            // OData v2: Fetch Event with expanded EventRSVPs and Shifts in a single call
-            // This eliminates the N+1 query pattern (was 3 calls, now 1 call)
+            // OData v2: Fetch Event with expanded Shifts in a single call
+            // Use GetRSVPCounts function for efficient server-side aggregation
             const eventResponse = await api.get(
-                `/api/v2/Events('${eventId}')?$expand=EventRSVPs($expand=User),Shifts`,
+                `/api/v2/Events('${eventId}')?$expand=Shifts`,
                 { signal: abortSignal }
             );
             
@@ -80,11 +79,23 @@ const AdminEventDetails: FC = () => {
                 const event = eventResponse.data;
                 setEventData(event);
                 
-                // Calculate RSVP counts from the expanded EventRSVPs
-                if (event.EventRSVPs && Array.isArray(event.EventRSVPs)) {
-                    const computedCounts = calculateRSVPCounts(event.EventRSVPs);
-                    setRsvpCounts(computedCounts);
-                } else {
+                // Fetch RSVP counts using server-side function
+                try {
+                    const countsResponse = await api.get<{ Yes: number; No: number; Maybe: number }>(
+                        `/api/v2/Events('${eventId}')/GetRSVPCounts()`,
+                        { signal: abortSignal }
+                    );
+                    
+                    if (!abortSignal?.aborted) {
+                        // Transform PascalCase response to camelCase for frontend
+                        setRsvpCounts({
+                            yes: countsResponse.data.Yes,
+                            no: countsResponse.data.No,
+                            maybe: countsResponse.data.Maybe
+                        });
+                    }
+                } catch (countsError) {
+                    console.error("Error fetching RSVP counts:", countsError);
                     setRsvpCounts({});
                 }
                 
