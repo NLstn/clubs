@@ -225,6 +225,83 @@ func HashToken(token string) string {
 	return hex.EncodeToString(sum[:])
 }
 
+// ODataBeforeReadCollection filters users to only those in clubs shared with the current user
+// This prevents users from enumerating all users in the system
+func (u User) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see:
+	// 1. Themselves
+	// 2. Users who are members of clubs they belong to
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where(
+			"id = ? OR id IN (SELECT DISTINCT user_id FROM members WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))",
+			userID,
+			userID,
+		)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to a specific user record
+// Users can read user records of people in their clubs
+func (u User) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Same logic as collection - user can see themselves and club members
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where(
+			"id = ? OR id IN (SELECT DISTINCT user_id FROM members WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))",
+			userID,
+			userID,
+		)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeUpdate validates user update permissions
+// Users can only update their own information
+func (u *User) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only update their own profile
+	if u.ID != userID {
+		return fmt.Errorf("forbidden: can only update your own user profile")
+	}
+
+	// Set UpdatedAt
+	u.UpdatedAt = time.Now()
+
+	return nil
+}
+
+// ODataBeforeDelete validates user deletion permissions
+// Users can only delete their own account
+func (u *User) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Users can only delete their own profile
+	if u.ID != userID {
+		return fmt.Errorf("forbidden: can only delete your own user account")
+	}
+
+	return nil
+}
+
 func FindOrCreateUser(email string) (User, error) {
 	var user User
 	err := database.Db.Where("email = ?", email).First(&user).Error
