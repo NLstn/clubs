@@ -232,12 +232,14 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 	// Extract prefix from the key to find candidates
 	// The key format is: prefix_randomString
 	// We need to extract the prefix part, which is everything before the last underscore + random data
-	// Since the prefix itself might contain underscores (e.g., "sk_live"), 
+	// Since the prefix itself might contain underscores (e.g., "sk_live"),
 	// we rely on knowing the prefix was passed to GenerateAPIKey
 	// The simplest approach: try to match keys by trying bcrypt on all keys
 	// But for efficiency, we first filter by checking if the key starts with a known prefix pattern
-	
-	// Query ALL active API keys (for now - in production with many keys, this could be optimized)
+
+	// Query active API keys only
+	// Note: Rate limiting for failed authentication attempts is handled by the RateLimitMiddleware
+	// applied to OData endpoints via AuthMiddleware in handlers/middlewares.go
 	var keys []struct {
 		ID          string
 		UserID      string
@@ -250,11 +252,12 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 
 	err := database.Db.Table("api_keys").
 		Select("id, user_id, key_hash, key_prefix, is_active, expires_at, permissions").
+		Where("is_active = ?", true).
 		Find(&keys).Error
 	if err != nil {
 		return "", nil, fmt.Errorf("database query failed: %w", err)
 	}
-	
+
 	// Filter to only keys where the provided key starts with the stored prefix
 	var candidates []struct {
 		ID          string
