@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useT } from '../hooks/useTranslation';
+import { parseODataCollection, type ODataCollectionResponse } from '../utils/odata';
 import Layout from '../components/layout/Layout';
 import { Button } from '../components/ui';
 import { addRecentClub } from '../utils/recentClubs';
@@ -115,8 +116,8 @@ const Dashboard = () => {
                     top: PAGE_SIZE,
                     orderby: 'CreatedAt desc'
                 });
-                const response = await api.get(`/api/v2/TimelineItems${query}`);
-                const timelineData = response.data.value || [];
+                const response = await api.get<ODataCollectionResponse<TimelineItem>>(`/api/v2/TimelineItems${query}`);
+                const timelineData = parseODataCollection(response.data);
                 const activitiesData = timelineData.map((item: TimelineItem) => convertToActivity(item));
                 setActivities(activitiesData);
                 existingIdsRef.current = new Set(activitiesData.map((a: ActivityItem) => a.ID));
@@ -145,8 +146,8 @@ const Dashboard = () => {
                 skip: skip,
                 orderby: 'CreatedAt desc'
             });
-            const response = await api.get(`/api/v2/TimelineItems${query}`);
-            const timelineData = response.data.value || [];
+            const response = await api.get<ODataCollectionResponse<TimelineItem>>(`/api/v2/TimelineItems${query}`);
+            const timelineData = parseODataCollection(response.data);
             const newActivities = timelineData.map((item: TimelineItem) => convertToActivity(item));
             
             // Prevent duplicates by filtering out items with existing IDs

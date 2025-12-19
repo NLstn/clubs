@@ -3,6 +3,7 @@ import Layout from "../../components/layout/Layout";
 import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { Table, TableColumn, Button } from '@/components/ui';
 import api from '../../utils/api';
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import './Profile.css';
 
 interface Invitation {
@@ -23,10 +24,10 @@ const ProfileInvites = () => {
     setLoading(true);
     try {
       // OData v2: Query Invites entity - backend filters to current user's invites
-      const response = await api.get('/api/v2/Invites?$select=ID&$expand=Club($select=Name)');
+      interface ODataInvite { ID: string; ClubName?: string; Club?: { Name: string; }; }
+      const response = await api.get<ODataCollectionResponse<ODataInvite>>('/api/v2/Invites?$select=ID&$expand=Club($select=Name)');
       if (response.status === 200) {
-        interface ODataInvite { ID: string; ClubName?: string; Club?: { Name: string; }; }
-        const data = response.data.value || [];
+        const data = parseODataCollection(response.data);
         // Map OData response to match expected format
         const mappedInvites = data.map((invite: ODataInvite) => ({
           id: invite.ID,

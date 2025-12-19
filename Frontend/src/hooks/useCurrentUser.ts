@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 
 export interface CurrentUser {
   ID: string;
@@ -20,9 +21,9 @@ export const useCurrentUser = () => {
       try {
         setLoading(true);
         // OData v2: Query Users entity - backend hooks filter to current user
-        const response = await api.get('/api/v2/Users?$select=ID,Email,FirstName,LastName,BirthDate');
+        const response = await api.get<ODataCollectionResponse<CurrentUser>>('/api/v2/Users?$select=ID,Email,FirstName,LastName,BirthDate');
         // OData returns collection with 'value' array
-        const users = response.data.value || [];
+        const users = parseODataCollection(response.data);
         if (users.length > 0) {
           setUser(users[0]);
         } else {

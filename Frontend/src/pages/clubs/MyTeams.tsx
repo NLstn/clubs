@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import { useT } from '../../hooks/useTranslation';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 
 interface Team {
     id: string;
@@ -34,10 +35,11 @@ const MyTeams = () => {
                 const encodedClubId = encodeURIComponent(clubId);
                 const encodedUserId = encodeURIComponent(currentUser.ID);
                 
-                const teamMembersResponse = await api.get(
+                interface TeamMember { TeamID: string; }
+                const teamMembersResponse = await api.get<ODataCollectionResponse<TeamMember>>(
                     `/api/v2/TeamMembers?$filter=UserID eq '${encodedUserId}'`
                 );
-                const teamMembersData = teamMembersResponse.data.value || [];
+                const teamMembersData = parseODataCollection(teamMembersResponse.data);
                 
                 // Extract unique TeamIDs and filter by ClubID
                 const teamIds = [...new Set(
@@ -55,14 +57,14 @@ const MyTeams = () => {
                 
                 // Step 2: Get Teams by IDs and filter by ClubID
                 // Build filter with 'or' conditions for each team ID
+                interface ODataTeam { ID: string; Name: string; Description: string; CreatedAt: string; ClubID: string; }
                 const teamIdFilter = teamIds.map((id: string) => `ID eq '${encodeURIComponent(id)}'`).join(' or ');
-                const teamsResponse = await api.get(
+                const teamsResponse = await api.get<ODataCollectionResponse<ODataTeam>>(
                     `/api/v2/Teams?$filter=ClubID eq '${encodedClubId}' and (${teamIdFilter})`
                 );
-                const teamsData = teamsResponse.data.value || [];
+                const teamsData = parseODataCollection(teamsResponse.data);
                 
                 // Map OData response to match expected format
-                interface ODataTeam { ID: string; Name: string; Description: string; CreatedAt: string; ClubID: string; }
                 const mappedTeams = teamsData.map((team: ODataTeam) => ({
                     id: team.ID,
                     name: team.Name,

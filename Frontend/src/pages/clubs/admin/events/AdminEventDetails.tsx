@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "../../../../components/ui";
 import PageHeader from "../../../../components/layout/PageHeader";
 import api from "../../../../utils/api";
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import { calculateRSVPCounts } from "../../../../utils/eventUtils";
 import EventRSVPList from "./EventRSVPList";
 import EditEvent from "./EditEvent";
@@ -75,11 +76,12 @@ const AdminEventDetails: FC = () => {
             // Fetch RSVP counts
             try {
                 // OData v2: Use EventRSVPs navigation and compute counts client-side
-                const rsvpResponse = await api.get(`/api/v2/Events('${eventId}')/EventRSVPs`, {
+                interface EventRSVP { Response: string; }
+                const rsvpResponse = await api.get<ODataCollectionResponse<EventRSVP>>(`/api/v2/Events('${eventId}')/EventRSVPs`, {
                     signal: abortSignal
                 });
                 if (!abortSignal?.aborted) {
-                    const rsvpList = rsvpResponse.data.value || [];
+                    const rsvpList = parseODataCollection(rsvpResponse.data);
                     // Compute counts by grouping RSVPs by Response field
                     const computedCounts = calculateRSVPCounts(rsvpList);
                     setRsvpCounts(computedCounts);

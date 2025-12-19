@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../utils/api";
-import { buildODataQuery, ODataFilter } from "../../utils/odata";
+import { buildODataQuery, ODataFilter, parseODataCollection, type ODataCollectionResponse } from "../../utils/odata";
 import { useT } from "../../hooks/useTranslation";
 import './ClubNews.css';
 
@@ -30,9 +30,9 @@ const ClubNews = () => {
                 filter: ODataFilter.eq('ClubID', id!),
                 orderby: 'CreatedAt desc'
             });
-            const response = await api.get(`/api/v2/News${query}`);
+            const response = await api.get<ODataCollectionResponse<ODataNews>>(`/api/v2/News${query}`);
             interface ODataNews { ID: string; Title: string; Content: string; CreatedAt: string; UpdatedAt: string; }
-            const newsData = response.data.value || [];
+            const newsData = parseODataCollection(response.data);
             // Map OData response to match expected format
             const mappedNews = newsData.map((item: ODataNews) => ({
                 id: item.ID,

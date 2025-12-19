@@ -4,6 +4,7 @@ import AdminClubPendingInviteList from "./AdminClubPendingInviteList";
 import { Table, TableColumn, Input, Button } from '@/components/ui';
 import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import { useParams, useSearchParams } from "react-router-dom";
 import { useT } from "../../../../hooks/useTranslation";
 import { useCurrentUser } from "../../../../hooks/useCurrentUser";
@@ -77,8 +78,8 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             setLoading(true);
             setError(null);
             // OData v2: Query Members with expanded User data
-            const response = await api.get(`/api/v2/Members?$filter=ClubID eq '${id}'&$expand=User`);
-            const odataMembers = response.data.value || [];
+            const response = await api.get<ODataCollectionResponse<MemberResponse>>(`/api/v2/Members?$filter=ClubID eq '${id}'&$expand=User`);
+            const odataMembers = parseODataCollection(response.data);
             
             // Transform OData response (PascalCase) to frontend interface (camelCase)
             const transformedMembers = odataMembers.map((m: MemberResponse) => ({

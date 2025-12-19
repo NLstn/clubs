@@ -1,5 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import api from "../../../../utils/api";
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import { TypeAheadDropdown, Input, Modal, Button, FormGroup } from '@/components/ui';
 
 interface Member {
@@ -76,8 +77,8 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
     useEffect(() => {
         const fetchMembers = async () => {
             try {
-                const response = await api.get(`/api/v2/Members?$filter=ClubID eq '${clubId}'&$expand=User`);
-                const membersData = (response.data.value || []) as ODataMember[];
+                const response = await api.get<ODataCollectionResponse<ODataMember>>(`/api/v2/Members?$filter=ClubID eq '${clubId}'&$expand=User`);
+                const membersData = parseODataCollection(response.data);
                 // Map OData response to expected format
                 const mappedMembers = membersData.map((member) => ({
                     id: member.ID,
@@ -97,8 +98,8 @@ const AddFine: FC<AddFineProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
 
         const fetchFineTemplates = async () => {
             try {
-                const response = await api.get(`/api/v2/FineTemplates?$filter=ClubID eq '${clubId}'`);
-                const templatesData = (response.data.value || []) as ODataFineTemplate[];
+                const response = await api.get<ODataCollectionResponse<ODataFineTemplate>>(`/api/v2/FineTemplates?$filter=ClubID eq '${clubId}'`);
+                const templatesData = parseODataCollection(response.data);
                 // Map OData response to expected format
                 const mappedTemplates = templatesData.map((template) => ({
                     id: template.ID,

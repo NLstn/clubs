@@ -5,6 +5,7 @@ import AddEvent from "./AddEvent";
 import EventRSVPList from "./EventRSVPList";
 import { Table, TableColumn, Button } from '@/components/ui';
 import api from "../../../../utils/api";
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import { calculateRSVPCounts, RSVPCounts } from "../../../../utils/eventUtils";
 
 interface Event {
@@ -52,8 +53,9 @@ const AdminClubEventList = () => {
                 try {
                     // Fetch RSVP counts
                     // OData v2: Use EventRSVPs navigation and compute counts client-side
-                    const rsvpResponse = await api.get(`/api/v2/Events('${event.id}')/EventRSVPs`);
-                    const rsvpList = rsvpResponse.data.value || [];
+                    interface EventRSVP { Response: string; }
+                    const rsvpResponse = await api.get<ODataCollectionResponse<EventRSVP>>(`/api/v2/Events('${event.id}')/EventRSVPs`);
+                    const rsvpList = parseODataCollection(rsvpResponse.data);
                     // Compute counts by grouping RSVPs by Response field
                     const computedCounts = calculateRSVPCounts(rsvpList);
                     counts[event.id] = computedCounts;

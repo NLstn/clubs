@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../utils/api';
+import { parseODataCollection, type ODataCollectionResponse } from '../utils/odata';
 
 export interface Notification {
   ID: string;
@@ -42,7 +43,7 @@ export const useNotifications = () => {
       setError(null);
       // OData v2: Query Notifications with optional top limit, ordered by creation date
       const topParam = limit ? `&$top=${limit}` : '';
-      const response = await api.get(`/api/v2/Notifications?$orderby=CreatedAt desc${topParam}`);
+      const response = await api.get<ODataCollectionResponse<ODataNotification>>(`/api/v2/Notifications?$orderby=CreatedAt desc${topParam}`);
       interface ODataNotification {
         ID: string;
         UserID: string;
@@ -57,7 +58,7 @@ export const useNotifications = () => {
         FineID?: string;
         InviteID?: string;
       }
-      const notificationsData = response.data.value || [];
+      const notificationsData = parseODataCollection(response.data);
       // Map OData response to match expected format
       const mappedNotifications = notificationsData.map((n: ODataNotification) => ({
         ID: n.ID,
@@ -150,8 +151,8 @@ export const useNotifications = () => {
   const fetchPreferences = useCallback(async () => {
     try {
       // OData v2: Query UserNotificationPreferences for current user
-      const response = await api.get('/api/v2/UserNotificationPreferences');
-      const prefsData = response.data.value || [];
+      const response = await api.get<ODataCollectionResponse<NotificationPreferences>>('/api/v2/UserNotificationPreferences');
+      const prefsData = parseODataCollection(response.data);
       return prefsData.length > 0 ? prefsData[0] : null;
     } catch (err) {
       console.error('Error fetching notification preferences:', err);
@@ -220,8 +221,8 @@ export const useNotificationPreferences = () => {
       setLoading(true);
       setError(null);
       // OData v2: Query UserNotificationPreferences for current user
-      const response = await api.get('/api/v2/UserNotificationPreferences');
-      const prefsData = response.data.value || [];
+      const response = await api.get<ODataCollectionResponse<NotificationPreferences>>('/api/v2/UserNotificationPreferences');
+      const prefsData = parseODataCollection(response.data);
       if (prefsData.length > 0) {
         setPreferences(prefsData[0]);
       }
@@ -238,8 +239,8 @@ export const useNotificationPreferences = () => {
       setLoading(true);
       setError(null);
       // First get current preferences to get ID
-      const currentResponse = await api.get('/api/v2/UserNotificationPreferences');
-      const currentPrefs = currentResponse.data.value?.[0];
+      const currentResponse = await api.get<ODataCollectionResponse<NotificationPreferences>>('/api/v2/UserNotificationPreferences');
+      const currentPrefs = parseODataCollection(currentResponse.data)[0];
       if (!currentPrefs) {
         throw new Error('Preferences not found');
       }

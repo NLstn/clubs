@@ -237,9 +237,10 @@ export type ODataSingleResponse<T> = T & {
 
 /**
  * Parse OData collection response and return just the value array
+ * Returns empty array if response is null/undefined
  */
-export function parseODataCollection<T>(response: ODataCollectionResponse<T>): T[] {
-  return response.value;
+export function parseODataCollection<T>(response: ODataCollectionResponse<T> | null | undefined): T[] {
+  return response?.value || [];
 }
 
 /**

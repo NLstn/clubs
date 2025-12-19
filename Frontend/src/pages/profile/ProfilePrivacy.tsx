@@ -4,6 +4,7 @@ import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { useAuth } from "../../hooks/useAuth";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { FormGroup, Card } from '@/components/ui';
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import './Profile.css';
 
 interface Club {
@@ -47,23 +48,24 @@ const ProfilePrivacy = () => {
                 }
                 
                 // OData v2: Fetch global privacy settings
-                const privacyResponse = await api.get('/api/v2/UserPrivacySettings?$select=ID,ShareBirthDate');
-                const privacyData = privacyResponse.data.value || [];
+                interface ODataPrivacySetting { ID: string; ShareBirthDate: boolean; }
+                const privacyResponse = await api.get<ODataCollectionResponse<ODataPrivacySetting>>('/api/v2/UserPrivacySettings?$select=ID,ShareBirthDate');
+                const privacyData = parseODataCollection(privacyResponse.data);
                 const globalSetting = privacyData[0]; // Should only be one global setting per user
                 
                 // OData v2: Fetch user's members with clubs and privacy settings
                 const encodedUserId = encodeURIComponent(currentUser.ID);
-                const membersResponse = await api.get(
-                    `/api/v2/Users('${encodedUserId}')/Members?$select=ID&$expand=Club($select=ID,Name;$filter=Deleted eq false),PrivacySettings($select=ID,ShareBirthDate)`
-                );
-                const members = membersResponse.data.value || [];
-                
-                // Process members data
                 interface ODataMember {
                     ID: string;
                     Club: { ID: string; Name: string; };
                     PrivacySettings?: { ID: string; ShareBirthDate: boolean; };
                 }
+                const membersResponse = await api.get<ODataCollectionResponse<ODataMember>>(
+                    `/api/v2/Users('${encodedUserId}')/Members?$select=ID&$expand=Club($select=ID,Name;$filter=Deleted eq false),PrivacySettings($select=ID,ShareBirthDate)`
+                );
+                const members = parseODataCollection(membersResponse.data);
+                
+                // Process members data
                 
                 const mappedClubs = members.map((m: ODataMember) => ({
                     id: m.Club.ID,

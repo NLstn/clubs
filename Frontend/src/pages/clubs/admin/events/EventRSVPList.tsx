@@ -2,6 +2,7 @@ import { FC, useState, useEffect } from "react";
 import { Table, TableColumn, Button, Card } from '@/components/ui';
 import Modal from '@/components/ui/Modal';
 import api from "../../../../utils/api";
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import { calculateRSVPCounts, RSVPCounts } from "../../../../utils/eventUtils";
 
 interface EventRSVP {
@@ -41,8 +42,8 @@ const EventRSVPList: FC<EventRSVPListProps> = ({ isOpen, onClose, eventId, event
         
         try {
             // OData v2: Use EventRSVPs navigation property with User expansion
-            const response = await api.get(`/api/v2/Events('${eventId}')/EventRSVPs?$expand=User`);
-            const rsvpList = response.data.value || [];
+            const response = await api.get<ODataCollectionResponse<EventRSVP>>(`/api/v2/Events('${eventId}')/EventRSVPs?$expand=User`);
+            const rsvpList = parseODataCollection(response.data);
             setRsvps(rsvpList);
             
             // Compute counts by grouping RSVPs by Response field
