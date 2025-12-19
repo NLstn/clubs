@@ -21,7 +21,7 @@ Before you begin, make sure you have:
 First, you need to navigate to your Clubs instance. The URL will depend on your organization's setup:
 
 - **Organization-hosted**: Your organization will provide a URL like `https://clubs.yourorganization.com`
-- **Local development**: If you're a developer, see the [Local Development Guide](../Documentation/LocalDev.md)
+- **Local development**: If you're a developer, see the [Local Development Guide](https://github.com/NLstn/clubs/blob/main/Documentation/LocalDev.md)
 
 !!! tip "Can't Find the URL?"
     Contact your organization's IT department or the person who invited you to Clubs for the correct URL.

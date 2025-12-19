@@ -13,7 +13,7 @@ Before you can create an account, you need to know where to access Clubs:
 
 1. **Get the URL**: Contact your organization or the person who invited you for your Clubs URL
    - It typically looks like: `https://clubs.yourorganization.com`
-   - Or for local development: `http://localhost:3000` (see [Local Development Guide](../Documentation/LocalDev.md))
+   - Or for local development: `http://localhost:3000` (see [Local Development Guide](https://github.com/NLstn/clubs/blob/main/Documentation/LocalDev.md))
 
 2. **Open in your browser**: Use a modern web browser (Chrome, Firefox, Safari, or Edge)
 
