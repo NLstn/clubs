@@ -1,49 +1,72 @@
 # Authentication
 
-Clubs supports multiple authentication methods to ensure secure access to the platform.
+Clubs provides multiple secure authentication methods to access the platform. Choose the method that works best for you.
 
-## Authentication Methods
+## Creating Your Account
 
-### 1. Keycloak (OAuth/OIDC)
+### Single Sign-On (SSO)
 
-In the development environment, Clubs uses Keycloak for authentication. Keycloak provides secure Single Sign-On (SSO) capabilities.
+Clubs uses Keycloak for secure Single Sign-On authentication. If this is your first time using Clubs:
 
-**Development Test User Credentials:**
+1. **Navigate to the Login Page**: Open the Clubs application in your web browser
+2. **Click "Sign Up"**: You'll be redirected to the registration page
+3. **Complete Registration Form**:
+   - Enter your email address
+   - Create a strong password
+   - Provide your first and last name
+4. **Verify Your Email**: Check your email for a verification link and click it to activate your account
+5. **Login**: Return to Clubs and sign in with your new credentials
 
-- **Username:** `testuser`
-- **Password:** `testpass`
+### Magic Link Authentication
 
-**Keycloak Admin Console Access:**
+For passwordless authentication, Clubs offers Magic Link login:
 
-- URL: [http://localhost:8081/admin](http://localhost:8081/admin)
-- **Username:** `admin`
-- **Password:** `admin`
+1. **Navigate to the Login Page**: Open the Clubs application
+2. **Choose Magic Link**: Select the "Login with Magic Link" option
+3. **Enter Your Email**: Provide the email address associated with your account
+4. **Check Your Email**: You'll receive a secure login link
+5. **Click the Link**: This will automatically log you into Clubs
 
-### 2. Magic Link Email Authentication
+!!! note "Note"
+    Magic Link emails are valid for a limited time for security purposes. If your link expires, simply request a new one.
 
-Clubs also supports passwordless authentication via Magic Link emails. Users receive a secure link via email that logs them in automatically.
+## Logging In
 
-## Login Steps
+Once you have an account:
 
-1. **Start Services**: Ensure the backend and frontend services are running
-2. **Open Application**: Navigate to the frontend in your browser
-3. **Choose Authentication Method**:
-   - Click **Login with Keycloak** for OAuth/OIDC authentication
-   - OR enter your email for Magic Link authentication
-4. **Authenticate**:
-   - For Keycloak: Use the test user credentials above
-   - For Magic Link: Check your email for the login link
+1. **Open the Application**: Navigate to the Clubs platform
+2. **Choose Your Authentication Method**:
+   - **SSO Login**: Enter your username and password, then click "Login"
+   - **Magic Link**: Enter your email to receive a login link
+3. **Access Your Dashboard**: After successful authentication, you'll be directed to your dashboard
 
 ## First Time Setup
 
-When logging in for the first time:
+After your first login:
 
-1. Complete your profile information
-2. Create a new club or request to join an existing one
-3. Configure your notification preferences
+1. **Complete Your Profile**: Add any additional profile information
+2. **Join or Create a Club**: 
+   - Request to join an existing club by browsing available clubs
+   - Or create a new club if you're an administrator
+3. **Configure Preferences**: Set up your notification and communication preferences
 
-## Security Features
+## Account Security
 
-- **JWT Tokens**: Secure access and refresh token mechanism
-- **Role-Based Access Control**: Different permissions for admins and members
-- **Session Management**: View and manage active sessions from your profile
+Clubs implements robust security measures to protect your account:
+
+- **Secure Authentication**: All login sessions use encrypted tokens
+- **Role-Based Access**: Different permission levels ensure appropriate access control
+- **Session Management**: Monitor and manage your active sessions from your profile settings
+- **Automatic Timeout**: Sessions expire after periods of inactivity for your protection
+
+## Troubleshooting
+
+### Can't Access Your Account?
+
+- **Forgot Password**: Click "Forgot Password" on the login page to reset your credentials
+- **Magic Link Not Received**: Check your spam/junk folder, or request a new link
+- **Account Locked**: Contact your system administrator if you're unable to access your account
+
+### Need Help?
+
+If you encounter issues with authentication, please contact your organization's Clubs administrator or submit a support request through the help portal.

@@ -1,6 +1,6 @@
 # Welcome to Clubs
 
-Clubs is a full-stack club management platform for managing members, events, fines, shifts, and communications. It combines a Go backend with a React frontend to provide role-based administration, scheduling, and notifications for club operations.
+Clubs is a comprehensive club management platform designed to help you efficiently manage your organization's members, events, fines, shifts, and communications. Whether you're running a sports club, social organization, or community group, Clubs provides all the tools you need to stay organized and keep your members engaged.
 
 ## Features
 
@@ -11,24 +11,17 @@ Clubs is a full-stack club management platform for managing members, events, fin
 - **Shift Scheduling**: Organize and assign shifts to members
 - **Team Organization**: Create teams within clubs for better organization
 - **News & Notifications**: Keep members informed with news posts and notifications
-- **Authentication**: Secure authentication via Keycloak (OAuth/OIDC) and Magic Link email authentication
+- **Secure Authentication**: Multiple authentication options for secure access
 
 ## Getting Started
 
 To start using Clubs, you'll need to:
 
-1. **Login**: See the [Login](login.md) page for authentication instructions
+1. **Create an Account**: See the [Authentication](login.md) page for registration instructions
 2. **Create or Join a Club**: After logging in, create a new club or request to join an existing one
 3. **Configure Your Club**: Set up your club details, invite members, and configure settings
 4. **Start Managing**: Create events, manage members, track fines, and more!
 
-## Technology Stack
-
-- **Backend**: Go with PostgreSQL database
-- **Frontend**: React with TypeScript
-- **Authentication**: Keycloak (OAuth/OIDC), Magic Link email authentication
-- **Cloud Services**: Azure integration for storage and communication services
-
 ## Support
 
-For issues, feature requests, or contributions, visit our [GitHub repository](https://github.com/NLstn/clubs).
+For questions, feedback, or support, visit our [GitHub repository](https://github.com/NLstn/clubs) or contact your system administrator.
