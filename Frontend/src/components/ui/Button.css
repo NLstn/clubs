@@ -118,12 +118,6 @@
   padding-right: calc(var(--space-md) + var(--space-xs));
 }
 
-.ui-button__content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .ui-button__counter {
   position: absolute;
   top: -6px;
@@ -290,6 +284,12 @@
 
 .ui-button__cancel:active {
   transform: scale(0.95);
+}
+
+.ui-button__cancel:focus-visible,
+.ui-button__cancel:focus {
+  outline: 2px solid var(--color-focus, #ffffff);
+  outline-offset: 2px;
 }
 
 /* Adjust content spacing when icons are present */
