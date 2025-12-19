@@ -49,6 +49,7 @@ nav:
     - Fines: fines.md
     - News & Communications: news.md
   - Help:
+    - Quick Reference: quick-reference.md
     - Troubleshooting & FAQ: troubleshooting.md
 
 markdown_extensions:
