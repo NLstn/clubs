@@ -185,17 +185,28 @@ func (f *Fine) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// SECURITY: If TeamID is being updated, verify it belongs to the ClubID
+	// Load the existing fine to enforce immutable fields
+	var existingFine Fine
+	if err := database.Db.First(&existingFine, "id = ?", f.ID).Error; err != nil {
+		return fmt.Errorf("fine not found")
+	}
+
+	// SECURITY: Prevent changing the club of an existing fine (ClubID is immutable)
+	if f.ClubID != existingFine.ClubID {
+		return fmt.Errorf("forbidden: club cannot be changed for an existing fine")
+	}
+
+	// SECURITY: If TeamID is being updated, verify it belongs to the (unchanged) ClubID
 	if f.TeamID != nil && *f.TeamID != "" {
 		var team Team
-		if err := database.Db.Where("id = ? AND club_id = ?", *f.TeamID, f.ClubID).First(&team).Error; err != nil {
+		if err := database.Db.Where("id = ? AND club_id = ?", *f.TeamID, existingFine.ClubID).First(&team).Error; err != nil {
 			return fmt.Errorf("unauthorized: team does not belong to the specified club")
 		}
 	}
 
 	// Check if user is an admin/owner of the club
 	var existingMember Member
-	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", f.ClubID, userID).First(&existingMember).Error; err != nil {
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", existingFine.ClubID, userID).First(&existingMember).Error; err != nil {
 		return fmt.Errorf("unauthorized: only admins and owners can update fines")
 	}
 
