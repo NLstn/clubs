@@ -45,8 +45,8 @@ type EventRSVP struct {
 	UpdatedAt time.Time `json:"UpdatedAt"`
 
 	// Navigation properties
-	Event Event `gorm:"foreignKey:EventID" json:"Event,omitempty" odata:"nav"`
-	User  User  `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
+	Event *Event `gorm:"foreignKey:EventID" json:"Event,omitempty" odata:"nav"`
+	User  *User  `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
 }
 
 // CreateEvent creates a new event for the club

@@ -32,7 +32,7 @@ type MemberPrivacySettings struct {
 	UpdatedAt      time.Time `json:"UpdatedAt"`
 
 	// Navigation property for OData
-	Member Member `gorm:"foreignKey:MemberID" json:"Member,omitempty" odata:"nav"`
+	Member *Member `gorm:"foreignKey:MemberID" json:"Member,omitempty" odata:"nav"`
 }
 
 // GetUserGlobalPrivacySettings returns global privacy settings for a user
