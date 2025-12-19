@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "../../../../components/ui";
 import PageHeader from "../../../../components/layout/PageHeader";
 import api from "../../../../utils/api";
-import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import { calculateRSVPCounts } from "../../../../utils/eventUtils";
 import EventRSVPList from "./EventRSVPList";
 import EditEvent from "./EditEvent";
@@ -64,47 +63,29 @@ const AdminEventDetails: FC = () => {
         setError(null);
         
         try {
-            // Fetch event details
-            // OData v2: Fetch Event with expanded data
-            const eventResponse = await api.get(`/api/v2/Events('${eventId}')`, {
-                signal: abortSignal
-            });
+            // OData v2: Fetch Event with expanded EventRSVPs and Shifts in a single call
+            // This eliminates the N+1 query pattern (was 3 calls, now 1 call)
+            const eventResponse = await api.get(
+                `/api/v2/Events('${eventId}')?$expand=EventRSVPs($expand=User),Shifts`,
+                { signal: abortSignal }
+            );
+            
             if (!abortSignal?.aborted) {
-                setEventData(eventResponse.data);
-            }
-
-            // Fetch RSVP counts
-            try {
-                // OData v2: Use EventRSVPs navigation and compute counts client-side
-                interface EventRSVP { Response: string; }
-                const rsvpResponse = await api.get<ODataCollectionResponse<EventRSVP>>(`/api/v2/Events('${eventId}')/EventRSVPs`, {
-                    signal: abortSignal
-                });
-                if (!abortSignal?.aborted) {
-                    const rsvpList = parseODataCollection(rsvpResponse.data);
-                    // Compute counts by grouping RSVPs by Response field
-                    const computedCounts = calculateRSVPCounts(rsvpList);
+                const event = eventResponse.data;
+                setEventData(event);
+                
+                // Calculate RSVP counts from the expanded EventRSVPs
+                if (event.EventRSVPs && Array.isArray(event.EventRSVPs)) {
+                    const computedCounts = calculateRSVPCounts(event.EventRSVPs);
                     setRsvpCounts(computedCounts);
-                }
-            } catch (rsvpError) {
-                if (!abortSignal?.aborted) {
-                    console.error("Error fetching RSVP counts:", rsvpError);
+                } else {
                     setRsvpCounts({});
                 }
-            }
-
-            // Fetch shifts if available
-            try {
-                // OData v2: Query Shifts for this event
-                const shiftsResponse = await api.get(`/api/v2/Shifts?$filter=EventID eq '${eventId}'`, {
-                    signal: abortSignal
-                });
-                if (!abortSignal?.aborted) {
-                    setEventShifts(shiftsResponse.data || []);
-                }
-            } catch {
-                // Shifts endpoint might not exist, ignore error
-                if (!abortSignal?.aborted) {
+                
+                // Set shifts from the expanded Shifts
+                if (event.Shifts && Array.isArray(event.Shifts)) {
+                    setEventShifts(event.Shifts);
+                } else {
                     setEventShifts([]);
                 }
             }
