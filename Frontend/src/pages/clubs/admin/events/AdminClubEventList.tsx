@@ -60,14 +60,18 @@ const AdminClubEventList = () => {
             const countPromises = eventList.map(event =>
                 api.get<{ Yes: number; No: number; Maybe: number }>(
                     `/api/v2/Events('${event.ID}')/GetRSVPCounts()`
-                ).then(res => ({ eventId: event.ID, counts: res.data }))
+                ).then(res => ({ eventId: event.ID, counts: res.data, status: 'fulfilled' as const }))
+                 .catch(() => ({ eventId: event.ID, status: 'rejected' as const }))
             );
             
             const countResults = await Promise.all(countPromises);
             
             for (const event of eventList) {
                 // Transform PascalCase response to camelCase for frontend
-                const result = countResults.find(r => r.eventId === event.ID);
+                const result = countResults.find(
+                    (r): r is { eventId: string; counts: { Yes: number; No: number; Maybe: number }; status: 'fulfilled' } =>
+                        r.status === 'fulfilled' && r.eventId === event.ID
+                );
                 if (result) {
                     counts[event.ID] = {
                         yes: result.counts.Yes,
