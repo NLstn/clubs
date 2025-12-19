@@ -6,6 +6,16 @@ import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { buildODataQuery, odataExpandWithOptions, ODataFilter, parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import '../../styles/events.css';
 
+interface ODataEvent { 
+    ID: string; 
+    Name: string; 
+    Description: string; 
+    Location: string; 
+    StartTime: string; 
+    EndTime: string; 
+    EventRSVPs?: Array<{ Response: string; }>; 
+}
+
 interface Event {
     id: string;
     name: string;
@@ -43,7 +53,6 @@ const UpcomingEvents = () => {
             });
             
             const response = await api.get<ODataCollectionResponse<ODataEvent>>(`/api/v2/Clubs('${encodedId}')/Events${query}`);
-            interface ODataEvent { ID: string; Name: string; Description: string; Location: string; StartTime: string; EndTime: string; EventRSVPs?: Array<{ Response: string; }>; }
             const eventsData = parseODataCollection(response.data);
             // Map OData response to match expected format
             const mappedEvents = eventsData.map((event: ODataEvent) => ({

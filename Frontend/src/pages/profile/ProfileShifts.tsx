@@ -2,9 +2,29 @@ import { useState, useEffect } from 'react';
 import Layout from '../../components/layout/Layout';
 import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { useAuth } from '../../hooks/useAuth';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useT } from '../../hooks/useTranslation';
 import { Card } from '@/components/ui';
 import { buildODataQuery, odataExpandWithOptions, ODataFilter, parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
+
+interface ODataShiftMember { 
+    ID: string; 
+    UserID: string;
+    Shift?: { 
+        ID: string; 
+        StartTime: string; 
+        EndTime: string; 
+        Event?: { 
+            ID: string; 
+            Name: string; 
+            Location: string; 
+            Club?: { 
+                ID: string; 
+                Name: string; 
+            }; 
+        }; 
+    }; 
+}
 
 interface UserShift {
     id: string;
@@ -20,6 +40,7 @@ interface UserShift {
 
 function ProfileShifts() {
     const { api } = useAuth();
+    const { user: currentUser } = useCurrentUser();
     const { t } = useT();
     const [shifts, setShifts] = useState<UserShift[]>([]);
     const [loading, setLoading] = useState(true);
@@ -27,14 +48,20 @@ function ProfileShifts() {
 
     useEffect(() => {
         const fetchShifts = async () => {
+            if (!currentUser?.ID) {
+                setLoading(false);
+                return;
+            }
+            
             try {
                 setLoading(true);
                 // OData v2: Query ShiftMembers with nested expansions for current user's future shifts
                 const now = new Date().toISOString();
                 
                 // Build nested expand with select clauses for optimal payload
+                // Filter by current user's ID to only show their shifts
                 const query = buildODataQuery({
-                    select: ['ID'],
+                    select: ['ID', 'UserID'],
                     expand: odataExpandWithOptions('Shift', {
                         select: ['ID', 'StartTime', 'EndTime'],
                         expand: odataExpandWithOptions('Event', {
@@ -44,13 +71,15 @@ function ProfileShifts() {
                             })
                         })
                     }),
-                    filter: ODataFilter.gt('Shift/StartTime', now),
+                    filter: ODataFilter.and(
+                        ODataFilter.eq('UserID', currentUser.ID),
+                        ODataFilter.gt('Shift/StartTime', now)
+                    ),
                     orderby: 'Shift/StartTime'
                 });
                 
                 const response = await api.get<ODataCollectionResponse<ODataShiftMember>>(`/api/v2/ShiftMembers${query}`);
                 
-                interface ODataShiftMember { ID: string; Shift?: { ID: string; StartTime: string; EndTime: string; Event?: { ID: string; Name: string; Location: string; Club?: { ID: string; Name: string; }; }; }; }
                 const shiftMembers = parseODataCollection(response.data);
                 // Map OData response to match expected format
                 const mappedShifts = shiftMembers.map((sm: ODataShiftMember) => ({
@@ -75,7 +104,7 @@ function ProfileShifts() {
         };
 
         fetchShifts();
-    }, [api]);
+    }, [api, currentUser]);
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);

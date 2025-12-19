@@ -84,13 +84,21 @@ const AdminClubTeamList = () => {
             const teamMembers = parseODataCollection(response.data);
             
             // Transform TeamMember entities with nested User to flat structure expected by UI
-            const transformedMembers = teamMembers.map((tm: TeamMemberResponse) => ({
-                id: tm.ID,
-                userId: tm.UserID,
-                role: tm.Role as 'admin' | 'member',
-                joinedAt: tm.CreatedAt,
-                name: tm.User ? `${tm.User.FirstName} ${tm.User.LastName}` : 'Unknown'
-            }));
+            const transformedMembers = teamMembers.map((tm: TeamMemberResponse) => {
+                // Type guard: Ensure Role is one of the expected values
+                const role: 'admin' | 'member' = 
+                    tm.Role === 'admin' || tm.Role === 'member' 
+                        ? tm.Role 
+                        : 'member'; // Default to 'member' if role is unexpected
+                
+                return {
+                    id: tm.ID,
+                    userId: tm.UserID,
+                    role,
+                    joinedAt: tm.CreatedAt,
+                    name: tm.User ? `${tm.User.FirstName} ${tm.User.LastName}` : 'Unknown'
+                };
+            });
             
             // Ensure we always set an array, even if API returns null (prevents .map() crashes)
             setTeamMembers(transformedMembers || []);

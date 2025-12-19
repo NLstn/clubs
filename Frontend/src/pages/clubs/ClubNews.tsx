@@ -5,6 +5,14 @@ import { buildODataQuery, ODataFilter, parseODataCollection, type ODataCollectio
 import { useT } from "../../hooks/useTranslation";
 import './ClubNews.css';
 
+interface ODataNews { 
+    ID: string; 
+    Title: string; 
+    Content: string; 
+    CreatedAt: string; 
+    UpdatedAt: string; 
+}
+
 interface News {
     id: string;
     title: string;
@@ -31,7 +39,6 @@ const ClubNews = () => {
                 orderby: 'CreatedAt desc'
             });
             const response = await api.get<ODataCollectionResponse<ODataNews>>(`/api/v2/News${query}`);
-            interface ODataNews { ID: string; Title: string; Content: string; CreatedAt: string; UpdatedAt: string; }
             const newsData = parseODataCollection(response.data);
             // Map OData response to match expected format
             const mappedNews = newsData.map((item: ODataNews) => ({

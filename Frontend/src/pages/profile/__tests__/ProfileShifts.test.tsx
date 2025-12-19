@@ -12,6 +12,14 @@ vi.mock('../../../hooks/useAuth', () => ({
   })
 }));
 
+vi.mock('../../../hooks/useCurrentUser', () => ({
+  useCurrentUser: () => ({
+    user: { ID: 'user-123', Email: 'test@example.com', FirstName: 'Test', LastName: 'User' },
+    loading: false,
+    error: null
+  })
+}));
+
 vi.mock('../../../hooks/useTranslation', () => ({
   useT: () => ({
     t: (key: string) => key
