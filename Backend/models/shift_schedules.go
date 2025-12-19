@@ -187,6 +187,14 @@ func (s *Shift) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
+	// SECURITY: Verify the EventID belongs to the specified ClubID
+	if s.EventID != "" {
+		var event Event
+		if err := database.Db.Where("id = ? AND club_id = ?", s.EventID, s.ClubID).First(&event).Error; err != nil {
+			return fmt.Errorf("unauthorized: event does not belong to the specified club")
+		}
+	}
+
 	// Check if user is an admin/owner of the club
 	var existingMember Member
 	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", s.ClubID, userID).First(&existingMember).Error; err != nil {
@@ -208,6 +216,14 @@ func (s *Shift) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// SECURITY: Verify the EventID belongs to the specified ClubID if being updated
+	if s.EventID != "" {
+		var event Event
+		if err := database.Db.Where("id = ? AND club_id = ?", s.EventID, s.ClubID).First(&event).Error; err != nil {
+			return fmt.Errorf("unauthorized: event does not belong to the specified club")
+		}
 	}
 
 	// Check if user is an admin/owner of the club
