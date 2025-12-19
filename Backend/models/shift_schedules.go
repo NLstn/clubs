@@ -221,20 +221,31 @@ func (s *Shift) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// SECURITY: Verify the EventID belongs to the specified ClubID if being updated
+	// Load the existing shift to enforce immutable fields
+	var existingShift Shift
+	if err := database.Db.First(&existingShift, "id = ?", s.ID).Error; err != nil {
+		return fmt.Errorf("shift not found")
+	}
+
+	// SECURITY: Prevent changing the club of an existing shift (ClubID is immutable)
+	if s.ClubID != existingShift.ClubID {
+		return fmt.Errorf("forbidden: club cannot be changed for an existing shift")
+	}
+
+	// SECURITY: Verify the EventID belongs to the (unchanged) ClubID
 	// EventID is a required field, so we just check it's not empty
 	if s.EventID == "" {
 		return fmt.Errorf("event ID is required")
 	}
 	
 	var event Event
-	if err := database.Db.Where("id = ? AND club_id = ?", s.EventID, s.ClubID).First(&event).Error; err != nil {
+	if err := database.Db.Where("id = ? AND club_id = ?", s.EventID, existingShift.ClubID).First(&event).Error; err != nil {
 		return fmt.Errorf("unauthorized: event does not belong to the specified club")
 	}
 
 	// Check if user is an admin/owner of the club
 	var existingMember Member
-	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", s.ClubID, userID).First(&existingMember).Error; err != nil {
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", existingShift.ClubID, userID).First(&existingMember).Error; err != nil {
 		return fmt.Errorf("unauthorized: only admins and owners can update shifts")
 	}
 

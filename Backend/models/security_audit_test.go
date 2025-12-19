@@ -288,6 +288,98 @@ func TestFineCreationTeamIDClubIDMismatch(t *testing.T) {
 	}
 }
 
+// TestShiftCreationEventIDClubIDMismatch tests the vulnerability for shifts
+func TestShiftCreationEventIDClubIDMismatch(t *testing.T) {
+	setupSecurityTestDB(t)
+	db := database.Db
+
+	// Create two clubs
+	user1ID := uuid.New().String()
+	user2ID := uuid.New().String()
+
+	// Create users
+	user1 := User{ID: user1ID, FirstName: "User", LastName: "One", Email: "user1@test.com"}
+	user2 := User{ID: user2ID, FirstName: "User", LastName: "Two", Email: "user2@test.com"}
+	db.Create(&user1)
+	db.Create(&user2)
+
+	// Club A (user1 is owner)
+	clubA := Club{
+		ID:        uuid.New().String(),
+		Name:      "Club A",
+		CreatedBy: user1ID,
+		UpdatedBy: user1ID,
+	}
+	db.Create(&clubA)
+
+	// Club B (user2 is owner)
+	clubB := Club{
+		ID:        uuid.New().String(),
+		Name:      "Club B",
+		CreatedBy: user2ID,
+		UpdatedBy: user2ID,
+	}
+	db.Create(&clubB)
+
+	// Add user1 as owner of Club A
+	memberA := Member{
+		ID:        uuid.New().String(),
+		ClubID:    clubA.ID,
+		UserID:    user1ID,
+		Role:      "owner",
+		CreatedBy: user1ID,
+		UpdatedBy: user1ID,
+	}
+	db.Create(&memberA)
+
+	// Add user2 as owner of Club B
+	memberB := Member{
+		ID:        uuid.New().String(),
+		ClubID:    clubB.ID,
+		UserID:    user2ID,
+		Role:      "owner",
+		CreatedBy: user2ID,
+		UpdatedBy: user2ID,
+	}
+	db.Create(&memberB)
+
+	// Create an event in Club B
+	eventB := Event{
+		ID:        uuid.New().String(),
+		ClubID:    clubB.ID,
+		Name:      "Event B",
+		StartTime: time.Now(),
+		EndTime:   time.Now().Add(time.Hour),
+		CreatedBy: user2ID,
+		UpdatedBy: user2ID,
+	}
+	db.Create(&eventB)
+
+	// Now try to create a shift as user1 (admin of Club A)
+	// with ClubID = A but EventID = eventB (which belongs to Club B)
+	shift := Shift{
+		ID:        uuid.New().String(),
+		ClubID:    clubA.ID,   // Club A
+		EventID:   eventB.ID,  // Event from Club B - SECURITY ISSUE!
+		StartTime: time.Now(),
+		EndTime:   time.Now().Add(time.Hour),
+	}
+
+	ctx := context.WithValue(context.Background(), auth.UserIDKey, user1ID)
+	req, _ := http.NewRequest("POST", "/api/v2/Shifts", nil)
+	req = req.WithContext(ctx)
+
+	err := shift.ODataBeforeCreate(ctx, req)
+
+	// The authorization should FAIL because EventID belongs to a different club
+	if err == nil {
+		t.Error("CRITICAL SECURITY VULNERABILITY: User from Club A can create shifts with Events from Club B!")
+		t.Error("This allows cross-club data manipulation and breaks club isolation")
+	} else {
+		t.Log("Security check passed: Cross-club event assignment prevented")
+	}
+}
+
 // Helper function
 func strPtr(s string) *string {
 	return &s

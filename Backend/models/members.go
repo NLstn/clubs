@@ -269,6 +269,12 @@ func (c *Club) canChangeRole(changingUser User, targetMember Member, newRole str
 		}
 	}
 	
+	// Members cannot change roles
+	// This explicit check makes the authorization logic clearer
+	if changingUserRole == "member" {
+		return false, nil
+	}
+	
 	return false, nil
 }
 
@@ -369,13 +375,19 @@ func (m *Member) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("member not found")
 	}
 
+	// SECURITY: Prevent changing the club of an existing member (ClubID is immutable)
+	if m.ClubID != currentMember.ClubID {
+		return fmt.Errorf("forbidden: club cannot be changed for an existing member")
+	}
+
 	// SECURITY: Check if role is being changed
 	if m.Role != currentMember.Role {
 		// Role changes require special authorization
-		club := Club{ID: m.ClubID}
+		club := Club{ID: currentMember.ClubID}
 		changingUser := User{ID: userID}
 
 		// Use the same authorization logic as UpdateMemberRole
+		// Note: We use currentMember (from DB) to avoid TOCTOU race conditions
 		canChange, err := club.canChangeRole(changingUser, currentMember, m.Role)
 		if err != nil {
 			if err == ErrLastOwnerDemotion {
@@ -390,7 +402,7 @@ func (m *Member) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 
 	// Check if user is an admin/owner of the club for other updates
 	var existingMember Member
-	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", m.ClubID, userID).First(&existingMember).Error; err != nil {
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", currentMember.ClubID, userID).First(&existingMember).Error; err != nil {
 		return fmt.Errorf("unauthorized: only admins and owners can update members")
 	}
 

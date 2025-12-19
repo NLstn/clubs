@@ -469,17 +469,28 @@ func (e *Event) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// SECURITY: If TeamID is being updated, verify it belongs to the ClubID
+	// Load the existing event to enforce immutable fields
+	var existingEvent Event
+	if err := database.Db.First(&existingEvent, "id = ?", e.ID).Error; err != nil {
+		return fmt.Errorf("event not found")
+	}
+
+	// SECURITY: Prevent changing the club of an existing event (ClubID is immutable)
+	if e.ClubID != existingEvent.ClubID {
+		return fmt.Errorf("forbidden: club cannot be changed for an existing event")
+	}
+
+	// SECURITY: If TeamID is being updated, verify it belongs to the (unchanged) ClubID
 	if e.TeamID != nil && *e.TeamID != "" {
 		var team Team
-		if err := database.Db.Where("id = ? AND club_id = ?", *e.TeamID, e.ClubID).First(&team).Error; err != nil {
+		if err := database.Db.Where("id = ? AND club_id = ?", *e.TeamID, existingEvent.ClubID).First(&team).Error; err != nil {
 			return fmt.Errorf("unauthorized: team does not belong to the specified club")
 		}
 	}
 
 	// Check if user is an admin/owner of the club
 	var existingMember Member
-	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", e.ClubID, userID).First(&existingMember).Error; err != nil {
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", existingEvent.ClubID, userID).First(&existingMember).Error; err != nil {
 		return fmt.Errorf("unauthorized: only admins and owners can update events")
 	}
 
