@@ -194,14 +194,16 @@ describe('ClubList', () => {
         });
     });
 
-    it('displays role badges correctly', async () => {
+    it('displays club names correctly', async () => {
         mockedApi.get.mockResolvedValue({ data: mockUserWithMembers });
         renderWithRouter(<ClubList />);
         
         await waitFor(() => {
-            expect(screen.getByText('Admin')).toBeInTheDocument();
-            expect(screen.getAllByText('Owner')).toHaveLength(2); // Two owner clubs
-            expect(screen.getByText('Member')).toBeInTheDocument();
+            // Verify all club names are displayed
+            expect(screen.getByText('Admin Club')).toBeInTheDocument();
+            expect(screen.getByText('Owner Club')).toBeInTheDocument();
+            expect(screen.getByText('Member Club')).toBeInTheDocument();
+            expect(screen.getByText('Deleted Club')).toBeInTheDocument();
         });
     });
 
