@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
-import { Table, TableColumn, Button } from '@/components/ui';
+import { Table, TableColumn, Button, ButtonState } from '@/components/ui';
 import api from '../../utils/api';
 import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import './Profile.css';
@@ -15,6 +15,7 @@ const ProfileInvites = () => {
   const [invites, setInvites] = useState<Invitation[]>([]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [processingInvites, setProcessingInvites] = useState<Record<string, ButtonState>>({});
 
   useEffect(() => {
     fetchInvitations();
@@ -43,32 +44,72 @@ const ProfileInvites = () => {
   };
 
   const handleAccept = async (inviteId: string, clubName: string) => {
+    setProcessingInvites(prev => ({ ...prev, [`accept-${inviteId}`]: 'loading' }));
+    
     try {
       // OData v2: Use Accept action on Invite entity
       await api.post(`/api/v2/Invites('${inviteId}')/Accept`);
-      setInvites((prev) => (Array.isArray(prev) ? prev.filter(invite => invite.id !== inviteId) : []));
+      setProcessingInvites(prev => ({ ...prev, [`accept-${inviteId}`]: 'success' }));
 
       // Show success message
       setMessage(`You've joined ${clubName}!`);
-      setTimeout(() => setMessage(''), 3000);
+      
+      setTimeout(() => {
+        setInvites((prev) => (Array.isArray(prev) ? prev.filter(invite => invite.id !== inviteId) : []));
+        setMessage('');
+        setProcessingInvites(prev => {
+          const newState = { ...prev };
+          delete newState[`accept-${inviteId}`];
+          return newState;
+        });
+      }, 1500);
     } catch (error) {
       console.error('Error accepting invitation:', error);
+      setProcessingInvites(prev => ({ ...prev, [`accept-${inviteId}`]: 'error' }));
       setMessage('Failed to accept invitation');
+      
+      setTimeout(() => {
+        setProcessingInvites(prev => {
+          const newState = { ...prev };
+          delete newState[`accept-${inviteId}`];
+          return newState;
+        });
+      }, 3000);
     }
   };
 
   const handleDecline = async (inviteId: string) => {
+    setProcessingInvites(prev => ({ ...prev, [`decline-${inviteId}`]: 'loading' }));
+    
     try {
       // OData v2: Use Reject action on Invite entity
       await api.post(`/api/v2/Invites('${inviteId}')/Reject`);
-      setInvites((prev) => (Array.isArray(prev) ? prev.filter(invite => invite.id !== inviteId) : []));
+      setProcessingInvites(prev => ({ ...prev, [`decline-${inviteId}`]: 'success' }));
 
       // Show success message
       setMessage('Invitation declined');
-      setTimeout(() => setMessage(''), 3000);
+      
+      setTimeout(() => {
+        setInvites((prev) => (Array.isArray(prev) ? prev.filter(invite => invite.id !== inviteId) : []));
+        setMessage('');
+        setProcessingInvites(prev => {
+          const newState = { ...prev };
+          delete newState[`decline-${inviteId}`];
+          return newState;
+        });
+      }, 1500);
     } catch (error) {
       console.error('Error declining invitation:', error);
+      setProcessingInvites(prev => ({ ...prev, [`decline-${inviteId}`]: 'error' }));
       setMessage('Failed to decline invitation');
+      
+      setTimeout(() => {
+        setProcessingInvites(prev => {
+          const newState = { ...prev };
+          delete newState[`decline-${inviteId}`];
+          return newState;
+        });
+      }, 3000);
     }
   };
 
@@ -87,6 +128,9 @@ const ProfileInvites = () => {
             variant="accept"
             size="sm"
             onClick={() => handleAccept(invite.id, invite.clubName)}
+            state={processingInvites[`accept-${invite.id}`] || 'idle'}
+            successMessage="Joined!"
+            errorMessage="Failed"
           >
             Accept
           </Button>
@@ -94,6 +138,9 @@ const ProfileInvites = () => {
             variant="cancel"
             size="sm"
             onClick={() => handleDecline(invite.id)}
+            state={processingInvites[`decline-${invite.id}`] || 'idle'}
+            successMessage="Declined"
+            errorMessage="Failed"
           >
             Decline
           </Button>

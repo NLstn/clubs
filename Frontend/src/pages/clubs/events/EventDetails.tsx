@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Button } from "../../../components/ui";
+import { Button, ButtonState } from "../../../components/ui";
 import PageHeader from "../../../components/layout/PageHeader";
 import api from "../../../utils/api";
 import "./EventDetails.css";
@@ -35,7 +35,9 @@ const EventDetails: FC = () => {
     const [eventData, setEventData] = useState<EventDetailsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [rsvpLoading, setRsvpLoading] = useState(false);
+    const [yesButtonState, setYesButtonState] = useState<ButtonState>('idle');
+    const [maybeButtonState, setMaybeButtonState] = useState<ButtonState>('idle');
+    const [noButtonState, setNoButtonState] = useState<ButtonState>('idle');
 
     const fetchEventDetails = async (abortSignal?: AbortSignal) => {
         if (!clubId || !eventId) return;
@@ -105,20 +107,34 @@ const EventDetails: FC = () => {
     }, [clubId, eventId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleRSVP = async (response: string) => {
-        if (!clubId || !eventId || rsvpLoading) return;
+        if (!clubId || !eventId) return;
         
-        setRsvpLoading(true);
+        // Determine which button was clicked
+        const setButtonState = response === 'yes' ? setYesButtonState : 
+                               response === 'maybe' ? setMaybeButtonState : 
+                               setNoButtonState;
+        
+        // Check if any button is currently loading
+        if (yesButtonState === 'loading' || maybeButtonState === 'loading' || noButtonState === 'loading') {
+            return;
+        }
+        
+        setButtonState('loading');
         
         try {
             // OData v2: Use AddRSVP action on Event entity
             await api.post(`/api/v2/Events('${eventId}')/AddRSVP`, { response });
+            setButtonState('success');
+            
             // Refresh event details to update RSVP status
-            await fetchEventDetails();
+            setTimeout(async () => {
+                await fetchEventDetails();
+                setButtonState('idle');
+            }, 1000);
         } catch (error) {
             console.error("Error updating RSVP:", error);
-            alert("Failed to update RSVP. Please try again.");
-        } finally {
-            setRsvpLoading(false);
+            setButtonState('error');
+            setTimeout(() => setButtonState('idle'), 3000);
         }
     };
 
@@ -264,26 +280,32 @@ const EventDetails: FC = () => {
                                     <Button 
                                         variant="primary"
                                         onClick={() => handleRSVP('yes')}
-                                        disabled={rsvpLoading}
                                         className={user_rsvp?.response === 'yes' ? 'active' : ''}
+                                        state={yesButtonState}
+                                        successMessage="Attending!"
+                                        errorMessage="Failed"
                                     >
-                                        {rsvpLoading ? 'Updating...' : 'Yes, I\'ll attend'}
+                                        Yes, I'll attend
                                     </Button>
                                     <Button 
                                         variant="maybe"
                                         onClick={() => handleRSVP('maybe')}
-                                        disabled={rsvpLoading}
                                         className={user_rsvp?.response === 'maybe' ? 'active' : ''}
+                                        state={maybeButtonState}
+                                        successMessage="Noted!"
+                                        errorMessage="Failed"
                                     >
-                                        {rsvpLoading ? 'Updating...' : 'Maybe, I\'m not sure'}
+                                        Maybe, I'm not sure
                                     </Button>
                                     <Button 
                                         variant="cancel"
                                         onClick={() => handleRSVP('no')}
-                                        disabled={rsvpLoading}
                                         className={user_rsvp?.response === 'no' ? 'active' : ''}
+                                        state={noButtonState}
+                                        successMessage="Noted"
+                                        errorMessage="Failed"
                                     >
-                                        {rsvpLoading ? 'Updating...' : 'No, I can\'t attend'}
+                                        No, I can't attend
                                     </Button>
                                 </div>
                             </div>
