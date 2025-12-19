@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Layout from "../../components/layout/Layout";
 import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { Table, TableColumn, Button, ButtonState } from '@/components/ui';
@@ -16,9 +16,18 @@ const ProfileInvites = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [processingInvites, setProcessingInvites] = useState<Record<string, ButtonState>>({});
+  const timeoutRefs = useRef<number[]>([]);
 
   useEffect(() => {
     fetchInvitations();
+  }, []);
+
+  useEffect(() => {
+    // Cleanup timeouts on unmount
+    const timeouts = timeoutRefs.current;
+    return () => {
+      timeouts.forEach(clearTimeout);
+    };
   }, []);
 
   const fetchInvitations = async () => {
@@ -54,7 +63,7 @@ const ProfileInvites = () => {
       // Show success message
       setMessage(`You've joined ${clubName}!`);
       
-      setTimeout(() => {
+      const timeoutId = window.setTimeout(() => {
         setInvites((prev) => (Array.isArray(prev) ? prev.filter(invite => invite.id !== inviteId) : []));
         setMessage('');
         setProcessingInvites(prev => {
@@ -63,18 +72,20 @@ const ProfileInvites = () => {
           return newState;
         });
       }, 1500);
+      timeoutRefs.current.push(timeoutId);
     } catch (error) {
       console.error('Error accepting invitation:', error);
       setProcessingInvites(prev => ({ ...prev, [`accept-${inviteId}`]: 'error' }));
       setMessage('Failed to accept invitation');
       
-      setTimeout(() => {
+      const timeoutId = window.setTimeout(() => {
         setProcessingInvites(prev => {
           const newState = { ...prev };
           delete newState[`accept-${inviteId}`];
           return newState;
         });
       }, 3000);
+      timeoutRefs.current.push(timeoutId);
     }
   };
 
@@ -89,7 +100,7 @@ const ProfileInvites = () => {
       // Show success message
       setMessage('Invitation declined');
       
-      setTimeout(() => {
+      const timeoutId = window.setTimeout(() => {
         setInvites((prev) => (Array.isArray(prev) ? prev.filter(invite => invite.id !== inviteId) : []));
         setMessage('');
         setProcessingInvites(prev => {
@@ -98,18 +109,20 @@ const ProfileInvites = () => {
           return newState;
         });
       }, 1500);
+      timeoutRefs.current.push(timeoutId);
     } catch (error) {
       console.error('Error declining invitation:', error);
       setProcessingInvites(prev => ({ ...prev, [`decline-${inviteId}`]: 'error' }));
       setMessage('Failed to decline invitation');
       
-      setTimeout(() => {
+      const timeoutId = window.setTimeout(() => {
         setProcessingInvites(prev => {
           const newState = { ...prev };
           delete newState[`decline-${inviteId}`];
           return newState;
         });
       }, 3000);
+      timeoutRefs.current.push(timeoutId);
     }
   };
 
