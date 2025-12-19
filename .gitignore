@@ -44,3 +44,6 @@ dist-ssr
 coverage
 coverage.html
 coverage.out
+
+# MkDocs build output
+site/
