@@ -86,17 +86,21 @@ describe('MyTeams Component', () => {
       }
     ];
 
-    // Mock two-step query: first TeamMembers, then Teams
-    mockGet
-      .mockResolvedValueOnce({ 
-        data: { 
-          value: [
-            { TeamID: 'team-1' },
-            { TeamID: 'team-2' }
-          ] 
-        } 
-      })
-      .mockResolvedValueOnce({ data: { value: mockTeams } });
+    // Mock single query with $expand=Team
+    mockGet.mockResolvedValueOnce({ 
+      data: { 
+        value: [
+          { 
+            TeamID: 'team-1',
+            Team: mockTeams[0]
+          },
+          { 
+            TeamID: 'team-2',
+            Team: mockTeams[1]
+          }
+        ] 
+      } 
+    });
 
     renderWithRouter(<MyTeams />);
 
@@ -110,8 +114,7 @@ describe('MyTeams Component', () => {
     expect(screen.getByText('Marketing Team')).toBeInTheDocument();
     expect(screen.getByText('Team for marketing')).toBeInTheDocument();
 
-    expect(mockGet).toHaveBeenNthCalledWith(1, "/api/v2/TeamMembers?$filter=UserID eq 'test-user-id'");
-    expect(mockGet).toHaveBeenNthCalledWith(2, "/api/v2/Teams?$filter=ClubID eq 'test-club-id' and (ID eq 'team-1' or ID eq 'team-2')");
+    expect(mockGet).toHaveBeenCalledWith("/api/v2/TeamMembers?$filter=UserID eq 'test-user-id'&$expand=Team($filter=ClubID eq 'test-club-id')");
   });
 
   it('does not render anything when user has no teams', async () => {

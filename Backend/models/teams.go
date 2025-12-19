@@ -44,6 +44,7 @@ type TeamMember struct {
 	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
 
 	// Navigation properties for OData
+	Team *Team `gorm:"foreignKey:TeamID" json:"Team,omitempty" odata:"nav"`
 	User *User `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
 }
 
