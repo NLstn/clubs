@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { ODataTable, ODataTableColumn, Button } from '@/components/ui';
+import { ODataTable, ODataTableColumn, Button, ButtonState } from '@/components/ui';
 import api from "../../../../utils/api";
 import { ODataFilter } from '../../../../utils/odata';
 
@@ -16,28 +16,65 @@ interface AdminClubJoinRequestListProps {
 const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestListProps) => {
     const { id } = useParams();
     const [refreshKey, setRefreshKey] = useState(0);
+    const [processingRequests, setProcessingRequests] = useState<Record<string, ButtonState>>({});
 
     const handleApprove = async (requestId: string) => {
+        setProcessingRequests(prev => ({ ...prev, [`approve-${requestId}`]: 'loading' }));
+        
         try {
             // OData v2: Use Accept action on JoinRequest entity
             await api.post(`/api/v2/JoinRequests('${requestId}')/Accept`, {});
-            setRefreshKey(prev => prev + 1); // Refresh the table
-            onRequestsChange?.(); // Notify parent component about the change
+            setProcessingRequests(prev => ({ ...prev, [`approve-${requestId}`]: 'success' }));
+            
+            setTimeout(() => {
+                setRefreshKey(prev => prev + 1); // Refresh the table
+                onRequestsChange?.(); // Notify parent component about the change
+                setProcessingRequests(prev => {
+                    const newState = { ...prev };
+                    delete newState[`approve-${requestId}`];
+                    return newState;
+                });
+            }, 1000);
         } catch (error) {
             console.error("Error approving join request:", error);
-            alert("Failed to approve join request. Please try again.");
+            setProcessingRequests(prev => ({ ...prev, [`approve-${requestId}`]: 'error' }));
+            setTimeout(() => {
+                setProcessingRequests(prev => {
+                    const newState = { ...prev };
+                    delete newState[`approve-${requestId}`];
+                    return newState;
+                });
+            }, 3000);
         }
     };
 
     const handleReject = async (requestId: string) => {
+        setProcessingRequests(prev => ({ ...prev, [`reject-${requestId}`]: 'loading' }));
+        
         try {
             // OData v2: Use Reject action on JoinRequest entity
             await api.post(`/api/v2/JoinRequests('${requestId}')/Reject`, {});
-            setRefreshKey(prev => prev + 1); // Refresh the table
-            onRequestsChange?.(); // Notify parent component about the change
+            setProcessingRequests(prev => ({ ...prev, [`reject-${requestId}`]: 'success' }));
+            
+            setTimeout(() => {
+                setRefreshKey(prev => prev + 1); // Refresh the table
+                onRequestsChange?.(); // Notify parent component about the change
+                setProcessingRequests(prev => {
+                    const newState = { ...prev };
+                    delete newState[`reject-${requestId}`];
+                    return newState;
+                });
+            }, 1000);
         } catch (error) {
             console.error("Error rejecting join request:", error);
-            alert("Failed to reject join request. Please try again.");
+            setProcessingRequests(prev => ({ ...prev, [`reject-${requestId}`]: 'error' }));
+            setTimeout(() => {
+                setProcessingRequests(prev => {
+                    const newState = { ...prev };
+                    delete newState[`reject-${requestId}`];
+                    return newState;
+                });
+            }, 3000);
         }
     };
 
@@ -59,6 +96,9 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
                         variant="accept"
                         onClick={() => handleApprove(request.ID)}
                         style={{marginRight: '8px'}}
+                        state={processingRequests[`approve-${request.ID}`] || 'idle'}
+                        successMessage="Approved!"
+                        errorMessage="Failed"
                     >
                         Approve
                     </Button>
@@ -66,6 +106,9 @@ const AdminClubJoinRequestList = ({ onRequestsChange }: AdminClubJoinRequestList
                         size="sm"
                         variant="cancel"
                         onClick={() => handleReject(request.ID)}
+                        state={processingRequests[`reject-${request.ID}`] || 'idle'}
+                        successMessage="Rejected"
+                        errorMessage="Failed"
                     >
                         Reject
                     </Button>

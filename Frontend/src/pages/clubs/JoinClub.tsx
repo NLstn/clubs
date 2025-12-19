@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Button } from '../../components/ui';
+import { Button, ButtonState } from '../../components/ui';
 import api from '../../utils/api';
 import ClubNotFound from './ClubNotFound';
 import { removeRecentClub } from '../../utils/recentClubs';
@@ -23,7 +23,7 @@ const JoinClub: React.FC = () => {
   const [club, setClub] = useState<Club | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
-  const [isJoining, setIsJoining] = useState(false);
+  const [joinButtonState, setJoinButtonState] = useState<ButtonState>('idle');
 
   const fetchClubInfo = useCallback(async () => {
     if (!clubId) {
@@ -74,21 +74,24 @@ const JoinClub: React.FC = () => {
   const handleJoinClub = async () => {
     if (!clubId) return;
 
-    setIsJoining(true);
+    setJoinButtonState('loading');
     setMessage('');
 
     try {
       // OData v2: Use Join action on Club entity
       const response = await api.post(`/api/v2/Clubs('${clubId}')/Join`);
       if (response.status === 201 || response.status === 200) {
+        setJoinButtonState('success');
         setMessage('Join request sent successfully! An admin will review your request.');
         // Redirect to profile invites page after a delay
         setTimeout(() => {
           navigate('/profile/invites');
-        }, 3000);
+        }, 2000);
       }
     } catch (error: unknown) {
       console.error('Error joining club:', error);
+      setJoinButtonState('error');
+      
       if (error && typeof error === 'object' && 'response' in error) {
         const axiosError = error as { response?: { status?: number; data?: string } };
         if (axiosError.response?.status === 409) {
@@ -112,8 +115,8 @@ const JoinClub: React.FC = () => {
       } else {
         setMessage('Failed to join club. Please try again.');
       }
-    } finally {
-      setIsJoining(false);
+      
+      setTimeout(() => setJoinButtonState('idle'), 3000);
     }
   };
 
@@ -206,14 +209,17 @@ const JoinClub: React.FC = () => {
             <div className="join-actions">
               <Button 
                 onClick={handleJoinClub} 
-                disabled={isJoining}
                 variant="accept"
+                state={joinButtonState}
+                successMessage="Request sent!"
+                errorMessage="Failed to join"
               >
-                {isJoining ? 'Sending Request...' : 'Request to Join'}
+                Request to Join
               </Button>
               <Button 
                 onClick={() => navigate('/')} 
                 variant="cancel"
+                disabled={joinButtonState === 'loading'}
               >
                 Cancel
               </Button>
