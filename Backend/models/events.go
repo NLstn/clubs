@@ -33,6 +33,7 @@ type Event struct {
 
 	// Navigation properties
 	EventRSVPs []EventRSVP `gorm:"foreignKey:EventID" json:"EventRSVPs,omitempty" odata:"nav"`
+	Shifts     []Shift     `gorm:"foreignKey:EventID" json:"Shifts,omitempty" odata:"nav"`
 }
 
 type EventRSVP struct {

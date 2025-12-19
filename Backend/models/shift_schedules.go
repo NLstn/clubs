@@ -21,6 +21,11 @@ type Shift struct {
 	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
 	UpdatedAt time.Time `json:"UpdatedAt"`
 	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
+
+	// Navigation properties
+	Event        Event         `gorm:"foreignKey:EventID" json:"Event,omitempty" odata:"nav"`
+	Club         Club          `gorm:"foreignKey:ClubID" json:"Club,omitempty" odata:"nav"`
+	ShiftMembers []ShiftMember `gorm:"foreignKey:ShiftID" json:"ShiftMembers,omitempty" odata:"nav"`
 }
 
 type ShiftMember struct {
@@ -31,6 +36,10 @@ type ShiftMember struct {
 	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
 	UpdatedAt time.Time `json:"UpdatedAt"`
 	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
+
+	// Navigation properties
+	Shift Shift `gorm:"foreignKey:ShiftID" json:"Shift,omitempty" odata:"nav"`
+	User  User  `gorm:"foreignKey:UserID" json:"User,omitempty" odata:"nav"`
 }
 
 func (c *Club) CreateShift(startTime, endTime time.Time, createdBy string, eventID string) (string, error) {
