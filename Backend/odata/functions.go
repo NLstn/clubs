@@ -575,6 +575,10 @@ func (s *Service) getRSVPCountsFunction(w http.ResponseWriter, r *http.Request, 
 	// Build response map with PascalCase keys
 	result := make(map[string]int64)
 	for _, count := range counts {
+		// Skip empty responses to avoid slicing an empty string
+		if count.Response == "" {
+			continue
+		}
 		// Capitalize first letter to match OData v2 convention
 		response := strings.ToUpper(count.Response[:1]) + strings.ToLower(count.Response[1:])
 		result[response] = count.Count

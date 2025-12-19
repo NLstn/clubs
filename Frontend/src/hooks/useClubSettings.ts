@@ -77,7 +77,7 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
             const response = await api.get<ClubSettings>(`/api/v2/Clubs('${clubId}')/Settings`);
             if (response.data) {
                 setSettings(response.data);
-            } else{
+            } else {
                 // No settings found, use defaults
                 throw new Error('Settings not found');
             }
