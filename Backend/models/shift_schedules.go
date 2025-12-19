@@ -192,7 +192,7 @@ func (s *Shift) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 	if s.EventID == "" {
 		return fmt.Errorf("event ID is required")
 	}
-	
+
 	var event Event
 	if err := database.Db.Where("id = ? AND club_id = ?", s.EventID, s.ClubID).First(&event).Error; err != nil {
 		return fmt.Errorf("unauthorized: event does not belong to the specified club")
@@ -237,7 +237,7 @@ func (s *Shift) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 	if s.EventID == "" {
 		return fmt.Errorf("event ID is required")
 	}
-	
+
 	var event Event
 	if err := database.Db.Where("id = ? AND club_id = ?", s.EventID, existingShift.ClubID).First(&event).Error; err != nil {
 		return fmt.Errorf("unauthorized: event does not belong to the specified club")

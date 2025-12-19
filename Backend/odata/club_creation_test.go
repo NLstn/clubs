@@ -154,7 +154,7 @@ func TestCreateClubForNewUser(t *testing.T) {
 		assert.NotEmpty(t, member.ID, "Member ID should not be empty")
 		assert.NotZero(t, member.CreatedAt, "Member CreatedAt should be set")
 		assert.NotZero(t, member.UpdatedAt, "Member UpdatedAt should be set")
-		t.Logf("Created member: ID=%s, UserID=%s, ClubID=%s, Role=%s, CreatedAt=%v, UpdatedAt=%v", 
+		t.Logf("Created member: ID=%s, UserID=%s, ClubID=%s, Role=%s, CreatedAt=%v, UpdatedAt=%v",
 			member.ID, member.UserID, member.ClubID, member.Role, member.CreatedAt, member.UpdatedAt)
 	}
 }

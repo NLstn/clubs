@@ -173,8 +173,8 @@ func TestEventCreationTeamIDClubIDMismatch(t *testing.T) {
 	// This should be REJECTED but currently may be ALLOWED
 	event := Event{
 		ID:          uuid.New().String(),
-		ClubID:      clubA.ID,      // Club A
-		TeamID:      &teamB.ID,     // Team from Club B - SECURITY ISSUE!
+		ClubID:      clubA.ID,  // Club A
+		TeamID:      &teamB.ID, // Team from Club B - SECURITY ISSUE!
 		Name:        "Malicious Event",
 		Description: strPtr("This event crosses club boundaries"),
 		StartTime:   time.Now(),
@@ -265,12 +265,12 @@ func TestFineCreationTeamIDClubIDMismatch(t *testing.T) {
 	// Now try to create a fine as user1 (admin of Club A)
 	// with ClubID = A but TeamID = teamB (which belongs to Club B)
 	fine := Fine{
-		ID:      uuid.New().String(),
-		ClubID:  clubA.ID,  // Club A
-		TeamID:  &teamB.ID, // Team from Club B - SECURITY ISSUE!
-		UserID:  user1ID,
-		Reason:  "Malicious Fine",
-		Amount:  100.0,
+		ID:     uuid.New().String(),
+		ClubID: clubA.ID,  // Club A
+		TeamID: &teamB.ID, // Team from Club B - SECURITY ISSUE!
+		UserID: user1ID,
+		Reason: "Malicious Fine",
+		Amount: 100.0,
 	}
 
 	ctx := context.WithValue(context.Background(), auth.UserIDKey, user1ID)
@@ -359,8 +359,8 @@ func TestShiftCreationEventIDClubIDMismatch(t *testing.T) {
 	// with ClubID = A but EventID = eventB (which belongs to Club B)
 	shift := Shift{
 		ID:        uuid.New().String(),
-		ClubID:    clubA.ID,   // Club A
-		EventID:   eventB.ID,  // Event from Club B - SECURITY ISSUE!
+		ClubID:    clubA.ID,  // Club A
+		EventID:   eventB.ID, // Event from Club B - SECURITY ISSUE!
 		StartTime: time.Now(),
 		EndTime:   time.Now().Add(time.Hour),
 	}
@@ -605,4 +605,3 @@ func TestPrivilegeEscalationViaCreate(t *testing.T) {
 		}
 	})
 }
-

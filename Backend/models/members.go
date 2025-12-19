@@ -254,7 +254,7 @@ func (c *Club) canChangeRole(changingUser User, targetMember Member, newRole str
 	if changingUserRole == "owner" {
 		return true, nil
 	}
-	
+
 	// SECURITY FIX: Admins can only promote members to admin or demote admins to member
 	// They CANNOT create/promote to owner or demote owners
 	if changingUserRole == "admin" {
@@ -263,18 +263,18 @@ func (c *Club) canChangeRole(changingUser User, targetMember Member, newRole str
 			return false, nil
 		}
 		// Admins can change between member and admin roles
-		if (targetMember.Role == "member" || targetMember.Role == "admin") && 
-		   (newRole == "member" || newRole == "admin") {
+		if (targetMember.Role == "member" || targetMember.Role == "admin") &&
+			(newRole == "member" || newRole == "admin") {
 			return true, nil
 		}
 	}
-	
+
 	// Members cannot change roles
 	// This explicit check makes the authorization logic clearer
 	if changingUserRole == "member" {
 		return false, nil
 	}
-	
+
 	return false, nil
 }
 
@@ -283,7 +283,7 @@ func (m *Member) BeforeCreate(tx *gorm.DB) error {
 	if m.ID == "" {
 		m.ID = uuid.New().String()
 	}
-	
+
 	// Set timestamps if not already set
 	now := time.Now()
 	if m.CreatedAt.IsZero() {
@@ -292,7 +292,7 @@ func (m *Member) BeforeCreate(tx *gorm.DB) error {
 	if m.UpdatedAt.IsZero() {
 		m.UpdatedAt = now
 	}
-	
+
 	return nil
 }
 

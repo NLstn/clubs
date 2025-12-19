@@ -309,7 +309,7 @@ func TestGetEffectivePrivacySettings(t *testing.T) {
 
 	user1, _ := handlers.CreateTestUser(t, "user1@example.com")
 	club1 := handlers.CreateTestClub(t, user1, "Club 1")
-	
+
 	// CreateTestClub already creates a member for the owner, retrieve it
 	var member1 models.Member
 	err := database.Db.Where("user_id = ? AND club_id = ?", user1.ID, club1.ID).First(&member1).Error
