@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import CookieConsent from '../../components/CookieConsent';
 import { useT } from '../../hooks/useTranslation';
-import { Input, Button, Divider } from '@/components/ui';
+import { Input, Button, Divider, ButtonState } from '@/components/ui';
 import './Login.css';
 
 const Login: React.FC = () => {
   const { t } = useT();
   const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [magicLinkButtonState, setMagicLinkButtonState] = useState<ButtonState>('idle');
+  const [keycloakButtonState, setKeycloakButtonState] = useState<ButtonState>('idle');
   const [message, setMessage] = useState('');
   const location = useLocation();
 
@@ -22,6 +23,9 @@ const Login: React.FC = () => {
   }, [location, t]);
 
   const handleKeycloakLogin = async () => {
+    setKeycloakButtonState('loading');
+    setMessage('');
+    
     try {
       // Store redirect path for after login
       const params = new URLSearchParams(location.search);
@@ -41,16 +45,18 @@ const Login: React.FC = () => {
         sessionStorage.setItem('keycloak_code_verifier', data.codeVerifier);
       }
       
-      // Redirect to Keycloak
+      // Redirect to Keycloak (don't set success state as we're redirecting)
       window.location.href = data.authURL;
     } catch {
+      setKeycloakButtonState('error');
       setMessage(t('auth.keycloakError'));
+      setTimeout(() => setKeycloakButtonState('idle'), 3000);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setMagicLinkButtonState('loading');
     setMessage('');
 
     try {
@@ -63,16 +69,20 @@ const Login: React.FC = () => {
       });
 
       if (response.ok) {
+        setMagicLinkButtonState('success');
         setMessage(t('auth.checkEmail'));
         setEmail('');
+        setTimeout(() => setMagicLinkButtonState('idle'), 3000);
       } else {
         const error = await response.text();
+        setMagicLinkButtonState('error');
         setMessage(`${t('common.error')}: ${error}`);
+        setTimeout(() => setMagicLinkButtonState('idle'), 3000);
       }
     } catch {
+      setMagicLinkButtonState('error');
       setMessage(t('auth.networkError'));
-    } finally {
-      setIsSubmitting(false);
+      setTimeout(() => setMagicLinkButtonState('idle'), 3000);
     }
   };
 
@@ -96,10 +106,17 @@ const Login: React.FC = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            disabled={isSubmitting}
+            disabled={magicLinkButtonState === 'loading'}
           />
-          <Button type="submit" disabled={isSubmitting} variant="primary" fullWidth>
-            {isSubmitting ? t('auth.sending') : t('auth.sendMagicLink')}
+          <Button 
+            type="submit" 
+            variant="primary" 
+            fullWidth
+            state={magicLinkButtonState}
+            successMessage={t('auth.checkEmail')}
+            errorMessage={t('auth.networkError')}
+          >
+            {t('auth.sendMagicLink')}
           </Button>
         </form>
 
@@ -108,9 +125,10 @@ const Login: React.FC = () => {
         <Button 
           type="button" 
           onClick={handleKeycloakLogin}
-          disabled={isSubmitting}
           variant="secondary"
           fullWidth
+          state={keycloakButtonState}
+          errorMessage={t('auth.keycloakError')}
         >
           {t('auth.loginWithKeycloak')}
         </Button>

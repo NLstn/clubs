@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 import api from "../../../../utils/api";
-import { Input, Modal, Button } from '@/components/ui';
+import { Input, Modal, Button, ButtonState } from '@/components/ui';
 
 interface AddEventProps {
     isOpen: boolean;
@@ -20,7 +20,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
     const [recurrenceInterval, setRecurrenceInterval] = useState<number>(1);
     const [recurrenceEnd, setRecurrenceEnd] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [buttonState, setButtonState] = useState<ButtonState>('idle');
 
     if (!isOpen) return null;
 
@@ -52,7 +52,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
         }
 
         setError(null);
-        setIsSubmitting(true);
+        setButtonState('loading');
         
         try {
             const endpoint = isRecurring 
@@ -75,27 +75,32 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
 
             await api.post(endpoint, payload);
             
-            // Reset form
-            setName('');
-            setDescription('');
-            setLocation('');
-            setStartTime('');
-            setEndTime('');
-            setIsRecurring(false);
-            setRecurrencePattern('weekly');
-            setRecurrenceInterval(1);
-            setRecurrenceEnd('');
+            setButtonState('success');
             
-            onSuccess();
-            onClose();
+            setTimeout(() => {
+                // Reset form
+                setName('');
+                setDescription('');
+                setLocation('');
+                setStartTime('');
+                setEndTime('');
+                setIsRecurring(false);
+                setRecurrencePattern('weekly');
+                setRecurrenceInterval(1);
+                setRecurrenceEnd('');
+                setButtonState('idle');
+                
+                onSuccess();
+                onClose();
+            }, 1000);
         } catch (error: unknown) {
+            setButtonState('error');
             if (error instanceof Error) {
                 setError("Failed to add event: " + error.message);
             } else {
                 setError("Failed to add event: Unknown error");
             }
-        } finally {
-            setIsSubmitting(false);
+            setTimeout(() => setButtonState('idle'), 3000);
         }
     };
 
@@ -110,6 +115,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
         setRecurrenceInterval(1);
         setRecurrenceEnd('');
         setError(null);
+        setButtonState('idle');
         onClose();
     };
 
@@ -126,7 +132,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Event Name"
-                        disabled={isSubmitting}
+                        disabled={buttonState === 'loading'}
                     />
 
                     <Input
@@ -134,7 +140,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Event description (optional)"
-                        disabled={isSubmitting}
+                        disabled={buttonState === 'loading'}
                         multiline
                         rows={3}
                     />
@@ -146,7 +152,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
                         placeholder="Event location (optional)"
-                        disabled={isSubmitting}
+                        disabled={buttonState === 'loading'}
                     />
 
                     <Input
@@ -155,7 +161,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                         type="datetime-local"
                         value={startTime}
                         onChange={(e) => setStartTime(e.target.value)}
-                        disabled={isSubmitting}
+                        disabled={buttonState === 'loading'}
                     />
 
                     <Input
@@ -164,7 +170,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                         type="datetime-local"
                         value={endTime}
                         onChange={(e) => setEndTime(e.target.value)}
-                        disabled={isSubmitting}
+                        disabled={buttonState === 'loading'}
                     />
 
                     <div className="modal-form-section">
@@ -173,7 +179,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                                 type="checkbox"
                                 checked={isRecurring}
                                 onChange={(e) => setIsRecurring(e.target.checked)}
-                                disabled={isSubmitting}
+                                disabled={buttonState === 'loading'}
                             />
                             Make this a recurring event
                         </label>
@@ -187,7 +193,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                                     id="recurrencePattern"
                                     value={recurrencePattern}
                                     onChange={(e) => setRecurrencePattern(e.target.value)}
-                                    disabled={isSubmitting}
+                                    disabled={buttonState === 'loading'}
                                 >
                                     <option value="daily">Daily</option>
                                     <option value="weekly">Weekly</option>
@@ -203,7 +209,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                                 max="52"
                                 value={recurrenceInterval.toString()}
                                 onChange={(e) => setRecurrenceInterval(parseInt(e.target.value) || 1)}
-                                disabled={isSubmitting}
+                                disabled={buttonState === 'loading'}
                             />
 
                             <Input
@@ -212,7 +218,7 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                                 type="date"
                                 value={recurrenceEnd}
                                 onChange={(e) => setRecurrenceEnd(e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={buttonState === 'loading'}
                             />
                         </>
                     )}
@@ -223,21 +229,16 @@ const AddEvent: FC<AddEventProps> = ({ isOpen, onClose, clubId, onSuccess }) => 
                 <Button 
                     onClick={handleSubmit} 
                     variant="accept"
-                    disabled={isSubmitting}
+                    state={buttonState}
+                    successMessage="Event added!"
+                    errorMessage="Failed to add event"
                 >
-                    {isSubmitting ? (
-                        <>
-                            <Modal.LoadingSpinner />
-                            Adding...
-                        </>
-                    ) : (
-                        'Add Event'
-                    )}
+                    Add Event
                 </Button>
                 <Button 
                     onClick={handleClose} 
                     variant="cancel"
-                    disabled={isSubmitting}
+                    disabled={buttonState === 'loading'}
                 >
                     Cancel
                 </Button>
