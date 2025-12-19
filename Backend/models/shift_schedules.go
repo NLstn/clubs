@@ -188,11 +188,14 @@ func (s *Shift) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 	}
 
 	// SECURITY: Verify the EventID belongs to the specified ClubID
-	if s.EventID != "" {
-		var event Event
-		if err := database.Db.Where("id = ? AND club_id = ?", s.EventID, s.ClubID).First(&event).Error; err != nil {
-			return fmt.Errorf("unauthorized: event does not belong to the specified club")
-		}
+	// EventID is a required field, so we just check it's not empty
+	if s.EventID == "" {
+		return fmt.Errorf("event ID is required")
+	}
+	
+	var event Event
+	if err := database.Db.Where("id = ? AND club_id = ?", s.EventID, s.ClubID).First(&event).Error; err != nil {
+		return fmt.Errorf("unauthorized: event does not belong to the specified club")
 	}
 
 	// Check if user is an admin/owner of the club
@@ -219,11 +222,14 @@ func (s *Shift) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 	}
 
 	// SECURITY: Verify the EventID belongs to the specified ClubID if being updated
-	if s.EventID != "" {
-		var event Event
-		if err := database.Db.Where("id = ? AND club_id = ?", s.EventID, s.ClubID).First(&event).Error; err != nil {
-			return fmt.Errorf("unauthorized: event does not belong to the specified club")
-		}
+	// EventID is a required field, so we just check it's not empty
+	if s.EventID == "" {
+		return fmt.Errorf("event ID is required")
+	}
+	
+	var event Event
+	if err := database.Db.Where("id = ? AND club_id = ?", s.EventID, s.ClubID).First(&event).Error; err != nil {
+		return fmt.Errorf("unauthorized: event does not belong to the specified club")
 	}
 
 	// Check if user is an admin/owner of the club
