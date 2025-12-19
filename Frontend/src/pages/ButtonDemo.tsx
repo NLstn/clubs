@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../components/layout/Layout';
 import { Button, ButtonState } from '@/components/ui';
 import './ButtonDemo.css';
@@ -12,14 +12,15 @@ const ButtonDemo = () => {
   const [state2, setState2] = useState<ButtonState>('idle');
   const [state3, setState3] = useState<ButtonState>('idle');
   const [cancelledCount, setCancelledCount] = useState(0);
-  const [operationTimer, setOperationTimer] = useState<NodeJS.Timeout | null>(null);
+  const [operationTimer, setOperationTimer] = useState<number | null>(null);
 
   // Simulate async operation for state1
   const handleSave = async () => {
     setState1('loading');
     await new Promise(resolve => setTimeout(resolve, 2000));
     setState1('success');
-    setTimeout(() => setState1('idle'), 3000);
+    const timer = setTimeout(() => setState1('idle'), 3000);
+    return timer;
   };
 
   // Simulate async operation with error for state2
@@ -27,11 +28,12 @@ const ButtonDemo = () => {
     setState2('loading');
     await new Promise(resolve => setTimeout(resolve, 2000));
     setState2('error');
-    setTimeout(() => setState2('idle'), 3000);
+    const timer = setTimeout(() => setState2('idle'), 3000);
+    return timer;
   };
 
   // Simulate cancellable operation for state3
-  const handleCancellableOperation = async () => {
+  const handleCancellableOperation = () => {
     setState3('loading');
     
     // Simulate a long operation
@@ -52,6 +54,15 @@ const ButtonDemo = () => {
     setState3('idle');
     setCancelledCount(prev => prev + 1);
   };
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (operationTimer) {
+        clearTimeout(operationTimer);
+      }
+    };
+  }, [operationTimer]);
 
   return (
     <Layout title="Button Component Demo">

@@ -270,16 +270,21 @@ type ButtonState = 'idle' | 'loading' | 'success' | 'error';
    - `error`: Button remains enabled for retry
    - `idle`: Normal button behavior
 
-2. **Counter Badge**:
+2. **State Colors Override Variants**:
+   - `success` state always uses green (`--color-primary`) regardless of variant for universal recognition
+   - `error` state always uses red (`--color-cancel`) regardless of variant for universal recognition
+   - This ensures consistent visual feedback across all button types
+
+3. **Counter Badge**:
    - Only displayed when `state='idle'` and `counter > 0`
    - Hidden during loading, success, and error states
 
-3. **Cancel Button**:
+4. **Cancel Button**:
    - Only displayed when `state='loading'` and `onCancel` prop is provided
    - Positioned outside the main button to avoid nesting issues
    - Has its own click handler that doesn't trigger the main button's onClick
 
-4. **Accessibility**:
+5. **Accessibility**:
    - `aria-busy="true"` when state is loading
    - Proper focus management
    - Semantic HTML structure
@@ -341,6 +346,35 @@ If you have existing buttons without state management, no changes are required. 
 <Button variant="primary" state={buttonState} onClick={handleClick}>
   Click Me
 </Button>
+```
+
+### Important: DOM Structure Change
+
+The Button component now renders a wrapper `<div>` around the `<button>` element to support the cancel button feature:
+
+```html
+<!-- New structure -->
+<div class="ui-button-wrapper">
+  <button class="ui-button">...</button>
+  <!-- Optional cancel button when loading -->
+</div>
+```
+
+**Potential Impact:**
+- CSS selectors targeting buttons directly (e.g., `.parent > button`) may need adjustment
+- Layout styles relying on the button being a direct child may be affected
+- The wrapper is styled as `display: inline-flex` to maintain button-like behavior
+
+**Recommended Fix:**
+If you have CSS that targets buttons directly, update selectors to account for the wrapper:
+```css
+/* Before */
+.parent > button { ... }
+
+/* After */
+.parent > .ui-button-wrapper { ... }
+/* or */
+.parent .ui-button { ... }
 ```
 
 ## Best Practices
