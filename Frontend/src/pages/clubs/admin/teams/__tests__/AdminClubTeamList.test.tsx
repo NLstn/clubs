@@ -62,18 +62,18 @@ const renderWithRouter = (component: React.ReactElement) => {
 const mockTeams = {
   value: [
     {
-      id: 'team-1',
-      name: 'Empty Team',
-      description: 'A team with no members',
-      createdAt: '2024-01-01T00:00:00Z',
-      clubId: 'test-club-id'
+      ID: 'team-1',
+      Name: 'Empty Team',
+      Description: 'A team with no members',
+      CreatedAt: '2024-01-01T00:00:00Z',
+      ClubID: 'test-club-id'
     },
     {
-      id: 'team-2',
-      name: 'Team with Members',
-      description: 'A team with members',
-      createdAt: '2024-01-01T00:00:00Z',
-      clubId: 'test-club-id'
+      ID: 'team-2',
+      Name: 'Team with Members',
+      Description: 'A team with members',
+      CreatedAt: '2024-01-01T00:00:00Z',
+      ClubID: 'test-club-id'
     }
   ]
 }
@@ -81,16 +81,16 @@ const mockTeams = {
 const mockClubMembers = {
   value: [
     {
-      id: 'member-1',
-      userId: 'user-1',
-      name: 'John Doe',
-      role: 'member'
+      ID: 'member-1',
+      UserID: 'user-1',
+      Name: 'John Doe',
+      Role: 'member'
     },
     {
-      id: 'member-2',
-      userId: 'user-2',
-      name: 'Jane Smith',
-      role: 'admin'
+      ID: 'member-2',
+      UserID: 'user-2',
+      Name: 'Jane Smith',
+      Role: 'admin'
     }
   ]
 }

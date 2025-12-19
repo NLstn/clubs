@@ -7,11 +7,11 @@ import { Input, Modal, Button, Card } from '@/components/ui';
 import './AdminClubTeamList.css';
 
 interface Team {
-    id: string;
-    name: string;
-    description: string;
-    createdAt: string;
-    clubId: string;
+    ID: string;
+    Name: string;
+    Description: string;
+    CreatedAt: string;
+    ClubID: string;
 }
 
 interface TeamMember {
@@ -23,10 +23,10 @@ interface TeamMember {
 }
 
 interface ClubMember {
-    id: string;
-    userId: string;
-    name: string;
-    role: string;
+    ID: string;
+    UserID: string;
+    Name: string;
+    Role: string;
 }
 
 interface TeamMemberResponse {
@@ -123,7 +123,7 @@ const AdminClubTeamList = () => {
         if (selectedTeam) {
             // Calling fetchTeamMembers here is the correct pattern for data fetching
             // eslint-disable-next-line react-hooks/set-state-in-effect
-            fetchTeamMembers(selectedTeam.id);
+            fetchTeamMembers(selectedTeam.ID);
         }
     }, [selectedTeam, fetchTeamMembers]);
 
@@ -151,14 +151,14 @@ const AdminClubTeamList = () => {
 
         try {
             // OData v2: Update team using PATCH
-            await api.patch(`/api/v2/Teams('${selectedTeam.id}')`, {
+            await api.patch(`/api/v2/Teams('${selectedTeam.ID}')`, {
                 Name: editTeamName,
                 Description: editTeamDescription,
             });
             setShowEditModal(false);
             await fetchTeams();
             // Update selected team
-            setSelectedTeam(prev => prev ? { ...prev, name: editTeamName, description: editTeamDescription } : null);
+            setSelectedTeam(prev => prev ? { ...prev, Name: editTeamName, Description: editTeamDescription } : null);
         } catch {
             setError('Failed to update team');
         }
@@ -171,7 +171,7 @@ const AdminClubTeamList = () => {
             // OData v2: Delete team
             await api.delete(`/api/v2/Teams('${teamId}')`);
             await fetchTeams();
-            if (selectedTeam?.id === teamId) {
+            if (selectedTeam?.ID === teamId) {
                 setSelectedTeam(null);
                 setTeamMembers([]);
             }
@@ -186,12 +186,12 @@ const AdminClubTeamList = () => {
         try {
             // OData v2: Create TeamMember entity directly
             await api.post(`/api/v2/TeamMembers`, {
-                TeamID: selectedTeam.id,
+                TeamID: selectedTeam.ID,
                 UserID: userId,
                 Role: role
             });
             setShowAddMemberModal(false);
-            await fetchTeamMembers(selectedTeam.id);
+            await fetchTeamMembers(selectedTeam.ID);
         } catch {
             setError('Failed to add team member');
         }
@@ -203,14 +203,14 @@ const AdminClubTeamList = () => {
         try {
             // OData v2: Find TeamMember and update role
             interface TeamMemberLookup { ID: string; }
-            const tmResponse = await api.get<ODataCollectionResponse<TeamMemberLookup>>(`/api/v2/TeamMembers?$filter=TeamID eq '${selectedTeam.id}' and MemberID eq '${memberId}'`);
+            const tmResponse = await api.get<ODataCollectionResponse<TeamMemberLookup>>(`/api/v2/TeamMembers?$filter=TeamID eq '${selectedTeam.ID}' and MemberID eq '${memberId}'`);
             const teamMember = parseODataCollection(tmResponse.data)[0];
             if (teamMember) {
                 await api.patch(`/api/v2/TeamMembers('${teamMember.ID}')`, {
                     Role: newRole
                 });
             }
-            await fetchTeamMembers(selectedTeam.id);
+            await fetchTeamMembers(selectedTeam.ID);
         } catch {
             setError('Failed to update member role');
         }
@@ -222,12 +222,12 @@ const AdminClubTeamList = () => {
         try {
             // OData v2: Find TeamMember and delete
             interface TeamMemberLookup { ID: string; }
-            const tmResponse = await api.get<ODataCollectionResponse<TeamMemberLookup>>(`/api/v2/TeamMembers?$filter=TeamID eq '${selectedTeam.id}' and MemberID eq '${memberId}'`);
+            const tmResponse = await api.get<ODataCollectionResponse<TeamMemberLookup>>(`/api/v2/TeamMembers?$filter=TeamID eq '${selectedTeam.ID}' and MemberID eq '${memberId}'`);
             const teamMember = parseODataCollection(tmResponse.data)[0];
             if (teamMember) {
                 await api.delete(`/api/v2/TeamMembers('${teamMember.ID}')`);
             }
-            await fetchTeamMembers(selectedTeam.id);
+            await fetchTeamMembers(selectedTeam.ID);
         } catch {
             setError('Failed to remove team member');
         }
@@ -235,15 +235,15 @@ const AdminClubTeamList = () => {
 
     const openEditModal = (team: Team) => {
         setSelectedTeam(team);
-        setEditTeamName(team.name);
-        setEditTeamDescription(team.description);
+        setEditTeamName(team.Name);
+        setEditTeamDescription(team.Description);
         setShowEditModal(true);
     };
 
     const getAvailableMembers = () => {
         // Use defensive programming to prevent crashes if teamMembers is null/undefined
         const teamMemberIds = (teamMembers || []).map(tm => tm.userId);
-        return clubMembers.filter(cm => !teamMemberIds.includes(cm.userId));
+        return clubMembers.filter(cm => !teamMemberIds.includes(cm.UserID));
     };
 
     if (loading) return <div>Loading teams...</div>;
@@ -267,16 +267,16 @@ const AdminClubTeamList = () => {
                     <div className="teams-grid">
                         {teams.map(team => (
                             <Card
-                                key={team.id}
+                                key={team.ID}
                                 variant="light"
                                 padding="md"
                                 clickable
                                 hover
                                 onClick={() => setSelectedTeam(team)}
-                                className={`team-card ${selectedTeam?.id === team.id ? 'selected' : ''}`}
+                                className={`team-card ${selectedTeam?.ID === team.ID ? 'selected' : ''}`}
                             >
                                 <div className="team-header">
-                                    <h4>{team.name}</h4>
+                                    <h4>{team.Name}</h4>
                                     <div className="team-actions">
                                         <Button 
                                             size="sm"
@@ -293,14 +293,14 @@ const AdminClubTeamList = () => {
                                             variant="cancel"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleDeleteTeam(team.id);
+                                                handleDeleteTeam(team.ID);
                                             }}
                                         >
                                             {t('common.delete')}
                                         </Button>
                                     </div>
                                 </div>
-                                {team.description && <p className="team-description">{team.description}</p>}
+                                {team.Description && <p className="team-description">{team.Description}</p>}
                             </Card>
                         ))}
                     </div>
@@ -310,7 +310,7 @@ const AdminClubTeamList = () => {
                 {selectedTeam && (
                     <div className="team-members-section">
                         <div className="section-header">
-                            <h3>{t('teams.membersOf', { teamName: selectedTeam.name })}</h3>
+                            <h3>{t('teams.membersOf', { teamName: selectedTeam.Name })}</h3>
                             <Button 
                                 variant="accept"
                                 onClick={() => setShowAddMemberModal(true)}
@@ -446,20 +446,20 @@ const AdminClubTeamList = () => {
                 <Modal.Body>
                     <div className="available-members">
                         {getAvailableMembers().map(member => (
-                            <div key={member.id} className="member-option">
-                                <span>{member.name}</span>
+                            <div key={member.ID} className="member-option">
+                                <span>{member.Name}</span>
                                 <div className="role-actions">
                                     <Button
                                         variant="accept"
                                         size="sm"
-                                        onClick={() => handleAddMember(member.userId, 'member')}
+                                        onClick={() => handleAddMember(member.UserID, 'member')}
                                     >
                                         {t('teams.addAsMember')}
                                     </Button>
                                     <Button
                                         variant="secondary"
                                         size="sm"
-                                        onClick={() => handleAddMember(member.userId, 'admin')}
+                                        onClick={() => handleAddMember(member.UserID, 'admin')}
                                     >
                                         {t('teams.addAsAdmin')}
                                     </Button>
