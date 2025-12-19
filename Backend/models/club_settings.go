@@ -103,7 +103,7 @@ func (s ClubSettings) ODataBeforeReadEntity(ctx context.Context, r *http.Request
 }
 
 // ODataBeforeUpdate OData hook - restricts ClubSettings updates to club admins only
-func (s ClubSettings) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+func (s *ClubSettings) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
@@ -125,6 +125,11 @@ func (s ClubSettings) ODataBeforeUpdate(ctx context.Context, r *http.Request) er
 	if !club.IsAdmin(user) {
 		return fmt.Errorf("forbidden: only club admins can update settings")
 	}
+
+	// Set UpdatedBy and UpdatedAt
+	now := time.Now()
+	s.UpdatedAt = now
+	s.UpdatedBy = userID
 
 	return nil
 }

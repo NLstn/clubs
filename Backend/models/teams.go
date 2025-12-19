@@ -471,10 +471,17 @@ func (t *Team) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// Check if user is an admin/owner of the club
-	var existingMember Member
-	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", t.ClubID, userID).First(&existingMember).Error; err != nil {
-		return fmt.Errorf("unauthorized: only admins and owners can update teams")
+	// Get user for permission checks
+	var user User
+	if err := database.Db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return fmt.Errorf("user not found")
+	}
+
+	// Check if user can edit this team:
+	// 1. Club admins/owners can edit any team
+	// 2. Team admins can edit their own team
+	if !t.CanUserEditTeam(user) {
+		return fmt.Errorf("unauthorized: only club admins/owners and team admins can update teams")
 	}
 
 	// Set UpdatedBy

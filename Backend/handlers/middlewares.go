@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -24,9 +25,23 @@ func (rw *responseWriter) WriteHeader(code int) {
 
 func CorsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		// SECURITY: Use FRONTEND_URL from environment instead of wildcard (*)
+		// Wildcard (*) with credentials is a security vulnerability
+		allowedOrigin := os.Getenv("FRONTEND_URL")
+		if allowedOrigin == "" {
+			// Fallback to localhost for development if not set
+			allowedOrigin = "http://localhost:5173"
+		}
+		
+		// Check if origin is allowed
+		origin := r.Header.Get("Origin")
+		if origin == allowedOrigin {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
+		
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, DELETE, PUT, PATCH")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Refresh-Token")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Refresh-Token, X-API-Key")
 
 		// Handle preflight request
 		if r.Method == "OPTIONS" {
@@ -133,10 +148,35 @@ var (
 func RateLimitMiddleware(limiter *IPRateLimiter) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// Get IP from X-Forwarded-For header, or fallback to RemoteAddr
-			ip := r.Header.Get("X-Forwarded-For")
+			// SECURITY: Extract IP address carefully
+			// In production with a reverse proxy (e.g., nginx, load balancer),
+			// X-Forwarded-For should be used. In development, use RemoteAddr.
+			// We use X-Real-IP as it's typically set by trusted reverse proxies
+			// and is harder to spoof than X-Forwarded-For
+			var ip string
+			
+			// Try X-Real-IP first (set by trusted reverse proxy)
+			ip = r.Header.Get("X-Real-IP")
 			if ip == "" {
-				ip = r.RemoteAddr
+				// Fallback to X-Forwarded-For, taking only the first (client) IP
+				xff := r.Header.Get("X-Forwarded-For")
+				if xff != "" {
+					// X-Forwarded-For may contain multiple IPs: "client, proxy1, proxy2"
+					// Take the first one (client IP)
+					ips := strings.Split(xff, ",")
+					ip = strings.TrimSpace(ips[0])
+				}
+			}
+			
+			// Fallback to RemoteAddr if no proxy headers
+			if ip == "" {
+				// RemoteAddr format is "IP:port", extract just the IP
+				addr := r.RemoteAddr
+				if idx := strings.LastIndex(addr, ":"); idx != -1 {
+					ip = addr[:idx]
+				} else {
+					ip = addr
+				}
 			}
 
 			limiter := limiter.GetLimiter(ip)
