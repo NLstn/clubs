@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Table, { TableColumn } from './Table';
 import Button from './Button';
 import api from '../../utils/api';
-import { buildODataQuery, ODataCollectionResponse } from '../../utils/odata';
+import { buildODataQuery, ODataCollectionResponse, parseODataCollection } from '../../utils/odata';
 import './ODataTable.css';
 
 export interface ODataTableColumn<T> extends TableColumn<T> {
@@ -119,7 +119,7 @@ function ODataTable<T>({
             const queryString = buildODataQuery(queryOptions);
             const response = await api.get<ODataCollectionResponse<T>>(`${endpoint}${queryString}`);
             
-            setData(response.data.value || []);
+            setData(parseODataCollection(response.data));
             setTotalCount(response.data['@odata.count'] || 0);
         } catch (err) {
             console.error('ODataTable fetch error:', err);

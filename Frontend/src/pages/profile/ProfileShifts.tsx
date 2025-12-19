@@ -4,7 +4,7 @@ import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
 import { useAuth } from '../../hooks/useAuth';
 import { useT } from '../../hooks/useTranslation';
 import { Card } from '@/components/ui';
-import { buildODataQuery, odataExpandWithOptions, ODataFilter } from '@/utils/odata';
+import { buildODataQuery, odataExpandWithOptions, ODataFilter, parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 
 interface UserShift {
     id: string;
@@ -48,10 +48,10 @@ function ProfileShifts() {
                     orderby: 'Shift/StartTime'
                 });
                 
-                const response = await api.get(`/api/v2/ShiftMembers${query}`);
+                const response = await api.get<ODataCollectionResponse<ODataShiftMember>>(`/api/v2/ShiftMembers${query}`);
                 
                 interface ODataShiftMember { ID: string; Shift?: { ID: string; StartTime: string; EndTime: string; Event?: { ID: string; Name: string; Location: string; Club?: { ID: string; Name: string; }; }; }; }
-                const shiftMembers = response.data.value || [];
+                const shiftMembers = parseODataCollection(response.data);
                 // Map OData response to match expected format
                 const mappedShifts = shiftMembers.map((sm: ODataShiftMember) => ({
                     id: sm.Shift?.ID || sm.ID,

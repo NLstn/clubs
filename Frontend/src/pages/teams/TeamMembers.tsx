@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import api from '../../utils/api';
 import { useT } from '../../hooks/useTranslation';
 import { Table, TableColumn } from '@/components/ui';
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 
 interface Member {
     id: string;
@@ -49,8 +50,8 @@ const TeamMembers = () => {
 
             try {
                 // OData v2: Use TeamMembers navigation with User expansion
-                const response = await api.get(`/api/v2/Teams('${teamId}')/TeamMembers?$expand=User&$orderby=Role,User/FirstName`);
-                const teamMembers = response.data.value || response.data;
+                const response = await api.get<ODataCollectionResponse<TeamMemberResponse>>(`/api/v2/Teams('${teamId}')/TeamMembers?$expand=User&$orderby=Role,User/FirstName`);
+                const teamMembers = parseODataCollection(response.data);
                 
                 // Transform TeamMember entities with nested User to flat structure
                 // Note: Server already sorts by Role,User/FirstName via $orderby

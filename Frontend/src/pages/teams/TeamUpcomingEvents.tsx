@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Button } from '../../components/ui';
 import api from '../../utils/api';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
-import { buildODataQuery, odataExpandWithOptions, ODataFilter } from '@/utils/odata';
+import { buildODataQuery, odataExpandWithOptions, ODataFilter, parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import '../../styles/events.css';
 
 interface Event {
@@ -42,10 +42,9 @@ const TeamUpcomingEvents = () => {
                 })
             });
             
-            const response = await api.get(`/api/v2/Teams('${encodedTeamId}')/Events${query}`);
-            const eventsData = response.data.value || response.data || [];
-            // Map OData response to expected format
+            const response = await api.get<ODataCollectionResponse<ODataEvent>>(`/api/v2/Teams('${encodedTeamId}')/Events${query}`);
             interface ODataEvent { ID: string; Name: string; Description: string; Location: string; StartTime: string; EndTime: string; EventRSVPs?: Array<{ Response: string; }>; }
+            const eventsData = parseODataCollection(response.data);
             const mappedEvents = eventsData.map((event: ODataEvent) => ({
                 id: event.ID,
                 name: event.Name,

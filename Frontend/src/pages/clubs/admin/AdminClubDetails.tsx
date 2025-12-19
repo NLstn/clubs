@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import api, { hardDeleteClub } from '../../../utils/api';
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import Layout from '../../../components/layout/Layout';
 import PageHeader from '../../../components/layout/PageHeader';
 import ClubNotFound from '../ClubNotFound';
@@ -76,13 +77,15 @@ const AdminClubDetails = () => {
         setStatsLoading(true);
         try {
             // OData v2: Fetch Members and Invites using OData queries
+            interface ODataMember { CreatedAt: string; }
+            interface ODataInvite { ID: string; }
             const [membersResponse, invitesResponse] = await Promise.all([
-                api.get(`/api/v2/Members?$select=CreatedAt&$filter=ClubID eq '${id}'`),
-                api.get(`/api/v2/Invites?$select=ID&$filter=ClubID eq '${id}'`),
+                api.get<ODataCollectionResponse<ODataMember>>(`/api/v2/Members?$select=CreatedAt&$filter=ClubID eq '${id}'`),
+                api.get<ODataCollectionResponse<ODataInvite>>(`/api/v2/Invites?$select=ID&$filter=ClubID eq '${id}'`),
             ]);
 
-            const members = membersResponse.data.value || [];
-            const invites = invitesResponse.data.value || [];
+            const members = parseODataCollection(membersResponse.data);
+            const invites = parseODataCollection(invitesResponse.data);
 
             // Calculate members joined in the last 30 days
             const thirtyDaysAgo = new Date();

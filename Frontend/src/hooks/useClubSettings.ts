@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
+import { parseODataCollection, type ODataCollectionResponse } from '../utils/odata';
 
 interface ClubSettings {
     ID: string;
@@ -36,8 +37,8 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
             try {
                 setLoading(true);
                 // OData v2: Query ClubSettings filtered by club ID
-                const response = await api.get(`/api/v2/ClubSettings?$filter=ClubID eq '${clubId}'`);
-                const settingsData = response.data.value || [];
+                const response = await api.get<ODataCollectionResponse<ClubSettings>>(`/api/v2/ClubSettings?$filter=ClubID eq '${clubId}'`);
+                const settingsData = parseODataCollection(response.data);
                 if (settingsData.length > 0) {
                     setSettings(settingsData[0]);
                 } else {
@@ -75,8 +76,8 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
         try {
             setLoading(true);
             // OData v2: Query ClubSettings filtered by club ID
-            const response = await api.get(`/api/v2/ClubSettings?$filter=ClubID eq '${clubId}'`);
-            const settingsData = response.data.value || [];
+            const response = await api.get<ODataCollectionResponse<ClubSettings>>(`/api/v2/ClubSettings?$filter=ClubID eq '${clubId}'`);
+            const settingsData = parseODataCollection(response.data);
             if (settingsData.length > 0) {
                 setSettings(settingsData[0]);
             } else{

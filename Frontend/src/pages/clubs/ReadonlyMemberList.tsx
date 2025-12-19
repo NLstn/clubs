@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import api from '../../utils/api';
 import { useT } from '../../hooks/useTranslation';
 import { Table, TableColumn } from '@/components/ui';
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import './ReadonlyMemberList.css';
 
 interface Member {
@@ -48,11 +49,11 @@ const ReadonlyMemberList = () => {
 
             try {
                 // OData v2: Query Members filtered by club ID with User expansion
-                const response = await api.get(
+                interface ODataMember { ID: string; Role: string; CreatedAt: string; UserID: string; User?: { FirstName: string; LastName: string; BirthDate?: string; }; }
+                const response = await api.get<ODataCollectionResponse<ODataMember>>(
                     `/api/v2/Members?$filter=ClubID eq '${clubId}'&$expand=User`
                 );
-                interface ODataMember { ID: string; Role: string; CreatedAt: string; UserID: string; User?: { FirstName: string; LastName: string; BirthDate?: string; }; }
-                const membersData = response.data.value || [];
+                const membersData = parseODataCollection(response.data);
                 // Map OData response to match expected format
                 const mappedMembers = membersData.map((member: ODataMember) => ({
                     id: member.ID,

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import { useT } from '../../../../hooks/useTranslation';
 import { Input, Modal, Button, Card } from '@/components/ui';
 import './AdminClubTeamList.css';
@@ -79,14 +80,14 @@ const AdminClubTeamList = () => {
     const fetchTeamMembers = useCallback(async (teamId: string) => {
         try {
             // OData v2: Use TeamMembers navigation with User expansion
-            const response = await api.get(`/api/v2/Teams('${teamId}')/TeamMembers?$expand=User&$orderby=Role,User/FirstName`);
-            const teamMembers = response.data.value || response.data;
+            const response = await api.get<ODataCollectionResponse<TeamMemberResponse>>(`/api/v2/Teams('${teamId}')/TeamMembers?$expand=User&$orderby=Role,User/FirstName`);
+            const teamMembers = parseODataCollection(response.data);
             
             // Transform TeamMember entities with nested User to flat structure expected by UI
             const transformedMembers = teamMembers.map((tm: TeamMemberResponse) => ({
                 id: tm.ID,
                 userId: tm.UserID,
-                role: tm.Role,
+                role: tm.Role as 'admin' | 'member',
                 joinedAt: tm.CreatedAt,
                 name: tm.User ? `${tm.User.FirstName} ${tm.User.LastName}` : 'Unknown'
             }));
@@ -191,8 +192,9 @@ const AdminClubTeamList = () => {
 
         try {
             // OData v2: Find TeamMember and update role
-            const tmResponse = await api.get(`/api/v2/TeamMembers?$filter=TeamID eq '${selectedTeam.id}' and MemberID eq '${memberId}'`);
-            const teamMember = tmResponse.data.value[0];
+            interface TeamMemberLookup { ID: string; }
+            const tmResponse = await api.get<ODataCollectionResponse<TeamMemberLookup>>(`/api/v2/TeamMembers?$filter=TeamID eq '${selectedTeam.id}' and MemberID eq '${memberId}'`);
+            const teamMember = parseODataCollection(tmResponse.data)[0];
             if (teamMember) {
                 await api.patch(`/api/v2/TeamMembers('${teamMember.ID}')`, {
                     Role: newRole
@@ -209,8 +211,9 @@ const AdminClubTeamList = () => {
 
         try {
             // OData v2: Find TeamMember and delete
-            const tmResponse = await api.get(`/api/v2/TeamMembers?$filter=TeamID eq '${selectedTeam.id}' and MemberID eq '${memberId}'`);
-            const teamMember = tmResponse.data.value[0];
+            interface TeamMemberLookup { ID: string; }
+            const tmResponse = await api.get<ODataCollectionResponse<TeamMemberLookup>>(`/api/v2/TeamMembers?$filter=TeamID eq '${selectedTeam.id}' and MemberID eq '${memberId}'`);
+            const teamMember = parseODataCollection(tmResponse.data)[0];
             if (teamMember) {
                 await api.delete(`/api/v2/TeamMembers('${teamMember.ID}')`);
             }

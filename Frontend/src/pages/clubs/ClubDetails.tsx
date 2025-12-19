@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
+import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import Layout from '../../components/layout/Layout';
 import PageHeader from '../../components/layout/PageHeader';
 import MyOpenClubFines from './MyOpenClubFines';
@@ -63,8 +64,8 @@ const ClubDetails = () => {
                 // Get user's role by fetching club members and finding current user
                 try {
                     interface ODataMember { UserID: string; Role: string; }
-                    const membersResponse = await api.get(`/api/v2/Members?$select=UserID,Role&$filter=ClubID eq '${id}'`);
-                    const members = membersResponse.data.value || [];
+                    const membersResponse = await api.get<ODataCollectionResponse<ODataMember>>(`/api/v2/Members?$select=UserID,Role&$filter=ClubID eq '${id}'`);
+                    const members = parseODataCollection(membersResponse.data);
                     const currentUserMember = members.find((member: ODataMember) => member.UserID === currentUser?.ID);
                     if (currentUserMember) {
                         setUserRole(currentUserMember.Role);
