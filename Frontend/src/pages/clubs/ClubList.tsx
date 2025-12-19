@@ -4,7 +4,6 @@ import Layout from '../../components/layout/Layout';
 import { Button, Card } from '../../components/ui';
 import api from '../../utils/api';
 import { addRecentClub } from '../../utils/recentClubs';
-import { useT } from '../../hooks/useTranslation';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import './ClubList.css';
 
@@ -50,16 +49,11 @@ interface ODataTeam {
 }
 
 const ClubList = () => {
-    const { t } = useT();
     const { user: currentUser } = useCurrentUser();
     const [clubs, setClubs] = useState<Club[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
-
-    const translateRole = (role: string): string => {
-        return t(`clubs.roles.${role}`);
-    };
 
     const fetchClubs = useCallback(async () => {
         try {
@@ -155,9 +149,6 @@ const ClubList = () => {
                                 >
                                     <div className="club-header">
                                         <h3>{club.name}</h3>
-                                        <span className={`role-badge ${club.user_role}`}>
-                                            {translateRole(club.user_role)}
-                                        </span>
                                     </div>
                                     <p className="club-description">{club.description}</p>
                                     {club.deleted && (
@@ -204,9 +195,6 @@ const ClubList = () => {
                                 >
                                     <div className="club-header">
                                         <h3>{club.name}</h3>
-                                        <span className={`role-badge ${club.user_role}`}>
-                                            {translateRole(club.user_role)}
-                                        </span>
                                     </div>
                                     <p className="club-description">{club.description}</p>
                                     {club.user_teams && club.user_teams.length > 0 && (
