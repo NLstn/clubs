@@ -40,6 +40,61 @@ func (a *APIKey) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
+// ODataBeforeReadCollection filters API keys to only those belonging to the user
+// This prevents users from enumerating all API keys in the system
+func (a APIKey) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user not authenticated")
+	}
+
+	// User can only see their own API keys
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id = ?", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to a specific API key record
+// Users can only read their own API keys
+func (a APIKey) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user not authenticated")
+	}
+
+	// User can only see their own API keys
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id = ?", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeCreate validates API key creation permissions
+func (a *APIKey) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	// Get authenticated user from context
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user not authenticated")
+	}
+
+	// Users can only create API keys for themselves
+	if a.UserID == "" {
+		a.UserID = userID
+	} else if a.UserID != userID {
+		return fmt.Errorf("forbidden: cannot create API keys for other users")
+	}
+
+	// Set CreatedAt and UpdatedAt
+	now := time.Now()
+	a.CreatedAt = now
+	a.UpdatedAt = now
+
+	return nil
+}
+
 // ODataBeforeUpdate validates API key update permissions
 func (a *APIKey) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 	// Get authenticated user from context
