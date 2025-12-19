@@ -225,6 +225,22 @@ func HashToken(token string) string {
 	return hex.EncodeToString(sum[:])
 }
 
+// getUserVisibilityScope returns a GORM scope that filters users to only those
+// visible to the authenticated user (themselves + members of shared clubs)
+func getUserVisibilityScope(userID string) func(*gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		// User can only see:
+		// 1. Themselves
+		// 2. Users who are members of clubs they belong to
+		// Using JOIN for better performance than nested subqueries
+		return db.Where(
+			"id = ? OR id IN (SELECT DISTINCT m2.user_id FROM members m1 JOIN members m2 ON m1.club_id = m2.club_id WHERE m1.user_id = ?)",
+			userID,
+			userID,
+		)
+	}
+}
+
 // ODataBeforeReadCollection filters users to only those in clubs shared with the current user
 // This prevents users from enumerating all users in the system
 func (u User) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
@@ -233,18 +249,7 @@ func (u User) ODataBeforeReadCollection(ctx context.Context, r *http.Request, op
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see:
-	// 1. Themselves
-	// 2. Users who are members of clubs they belong to
-	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where(
-			"id = ? OR id IN (SELECT DISTINCT user_id FROM members WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))",
-			userID,
-			userID,
-		)
-	}
-
-	return []func(*gorm.DB) *gorm.DB{scope}, nil
+	return []func(*gorm.DB) *gorm.DB{getUserVisibilityScope(userID)}, nil
 }
 
 // ODataBeforeReadEntity validates access to a specific user record
@@ -255,16 +260,7 @@ func (u User) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts i
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// Same logic as collection - user can see themselves and club members
-	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where(
-			"id = ? OR id IN (SELECT DISTINCT user_id FROM members WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))",
-			userID,
-			userID,
-		)
-	}
-
-	return []func(*gorm.DB) *gorm.DB{scope}, nil
+	return []func(*gorm.DB) *gorm.DB{getUserVisibilityScope(userID)}, nil
 }
 
 // ODataBeforeUpdate validates user update permissions
