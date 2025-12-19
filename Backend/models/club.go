@@ -28,11 +28,12 @@ type Club struct {
 	DeletedBy   *string    `json:"DeletedBy,omitempty" gorm:"type:uuid" odata:"nullable"`
 
 	// Navigation properties for OData
-	Members []Member `gorm:"foreignKey:ClubID" json:"Members,omitempty" odata:"nav"`
-	Teams   []Team   `gorm:"foreignKey:ClubID" json:"Teams,omitempty" odata:"nav"`
-	Events  []Event  `gorm:"foreignKey:ClubID" json:"Events,omitempty" odata:"nav"`
-	News    []News   `gorm:"foreignKey:ClubID" json:"News,omitempty" odata:"nav"`
-	Fines   []Fine   `gorm:"foreignKey:ClubID" json:"Fines,omitempty" odata:"nav"`
+	Members  []Member      `gorm:"foreignKey:ClubID" json:"Members,omitempty" odata:"nav"`
+	Teams    []Team        `gorm:"foreignKey:ClubID" json:"Teams,omitempty" odata:"nav"`
+	Events   []Event       `gorm:"foreignKey:ClubID" json:"Events,omitempty" odata:"nav"`
+	News     []News        `gorm:"foreignKey:ClubID" json:"News,omitempty" odata:"nav"`
+	Fines    []Fine        `gorm:"foreignKey:ClubID" json:"Fines,omitempty" odata:"nav"`
+	Settings *ClubSettings `gorm:"foreignKey:ClubID" json:"Settings,omitempty" odata:"nav"`
 }
 
 func GetAllClubs() ([]Club, error) {

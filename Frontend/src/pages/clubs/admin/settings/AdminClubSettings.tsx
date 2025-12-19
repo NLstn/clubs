@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
-import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import { useT } from '../../../../hooks/useTranslation';
 import { ToggleSwitch } from '@/components/ui';
 import './AdminClubSettings.css';
@@ -36,10 +35,9 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
         const fetchSettings = async () => {
             try {
                 setLoading(true);
-                const response = await api.get<ODataCollectionResponse<ClubSettings>>(`/api/v2/ClubSettings?$filter=ClubID eq '${id}'`);
-                const settingsData = parseODataCollection(response.data)[0];
-                if (settingsData) {
-                    setSettings(settingsData);
+                const response = await api.get<ClubSettings>(`/api/v2/Clubs('${id}')/Settings`);
+                if (response.data) {
+                    setSettings(response.data);
                 }
                 setError(null);
             } catch (err: unknown) {

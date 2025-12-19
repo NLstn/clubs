@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
-import { parseODataCollection, type ODataCollectionResponse } from '../utils/odata';
 
 interface ClubSettings {
     ID: string;
@@ -36,11 +35,10 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
 
             try {
                 setLoading(true);
-                // OData v2: Query ClubSettings filtered by club ID
-                const response = await api.get<ODataCollectionResponse<ClubSettings>>(`/api/v2/ClubSettings?$filter=ClubID eq '${clubId}'`);
-                const settingsData = parseODataCollection(response.data);
-                if (settingsData.length > 0) {
-                    setSettings(settingsData[0]);
+                // OData v2: Use navigation property from Club to Settings
+                const response = await api.get<ClubSettings>(`/api/v2/Clubs('${clubId}')/Settings`);
+                if (response.data) {
+                    setSettings(response.data);
                 } else {
                     // No settings found, use defaults
                     throw new Error('Settings not found');
@@ -75,11 +73,10 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
 
         try {
             setLoading(true);
-            // OData v2: Query ClubSettings filtered by club ID
-            const response = await api.get<ODataCollectionResponse<ClubSettings>>(`/api/v2/ClubSettings?$filter=ClubID eq '${clubId}'`);
-            const settingsData = parseODataCollection(response.data);
-            if (settingsData.length > 0) {
-                setSettings(settingsData[0]);
+            // OData v2: Use navigation property from Club to Settings
+            const response = await api.get<ClubSettings>(`/api/v2/Clubs('${clubId}')/Settings`);
+            if (response.data) {
+                setSettings(response.data);
             } else{
                 // No settings found, use defaults
                 throw new Error('Settings not found');
