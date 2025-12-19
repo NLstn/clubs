@@ -11,6 +11,7 @@ import (
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
 	"github.com/NLstn/clubs/models"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -295,5 +296,142 @@ func TestCalculateNextOccurrence(t *testing.T) {
 		next := calculateNextOccurrence(baseTime, "yearly", 1)
 		// Should return unchanged time for invalid pattern
 		assert.Equal(t, baseTime, next)
+	})
+}
+
+// TestGetRSVPCounts tests the RSVP count aggregation function
+func TestGetRSVPCounts(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+
+	// Create test user and club
+	user, _ := handlers.CreateTestUser(t, "user@example.com")
+	club := handlers.CreateTestClub(t, user, "Test Club")
+
+	// Create additional users for RSVPs
+	user2, _ := handlers.CreateTestUser(t, "user2@example.com")
+	user3, _ := handlers.CreateTestUser(t, "user3@example.com")
+	user4, _ := handlers.CreateTestUser(t, "user4@example.com")
+
+	// Add additional users to club
+	club.AddMember(user2.ID, "member")
+	club.AddMember(user3.ID, "member")
+	club.AddMember(user4.ID, "member")
+
+	// Initialize OData service
+	service := &Service{
+		db: database.Db,
+	}
+
+	t.Run("counts_rsvps_by_response_type", func(t *testing.T) {
+		// Create an event
+		event1 := models.Event{
+			ID:        uuid.New().String(),
+			ClubID:    club.ID,
+			Name:      "Test Event 1",
+			StartTime: time.Now(),
+			EndTime:   time.Now().Add(2 * time.Hour),
+			CreatedBy: user.ID,
+			UpdatedBy: user.ID,
+		}
+		err := database.Db.Create(&event1).Error
+		assert.NoError(t, err)
+
+		// Create RSVPs: 2 Yes, 1 No, 1 Maybe
+		rsvps := []models.EventRSVP{
+			{EventID: event1.ID, UserID: user.ID, Response: "yes"},
+			{EventID: event1.ID, UserID: user2.ID, Response: "yes"},
+			{EventID: event1.ID, UserID: user3.ID, Response: "no"},
+			{EventID: event1.ID, UserID: user4.ID, Response: "maybe"},
+		}
+
+		for _, rsvp := range rsvps {
+			err := database.Db.Create(&rsvp).Error
+			assert.NoError(t, err)
+		}
+
+		// Create request context with user ID
+		ctx := context.WithValue(context.Background(), auth.UserIDKey, user.ID)
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req = req.WithContext(ctx)
+
+		// Call the function
+		result, err := service.getRSVPCountsFunction(httptest.NewRecorder(), req, &event1, map[string]interface{}{})
+		assert.NoError(t, err)
+
+		// Verify results
+		counts, ok := result.(map[string]int64)
+		assert.True(t, ok)
+		assert.Equal(t, int64(2), counts["Yes"])
+		assert.Equal(t, int64(1), counts["No"])
+		assert.Equal(t, int64(1), counts["Maybe"])
+	})
+
+	t.Run("returns_zero_for_missing_response_types", func(t *testing.T) {
+		// Create a new event with only "yes" responses
+		event2 := models.Event{
+			ID:        uuid.New().String(),
+			ClubID:    club.ID,
+			Name:      "Test Event 2",
+			StartTime: time.Now().Add(24 * time.Hour),
+			EndTime:   time.Now().Add(26 * time.Hour),
+			CreatedBy: user.ID,
+			UpdatedBy: user.ID,
+		}
+		err := database.Db.Create(&event2).Error
+		assert.NoError(t, err)
+
+		// Only one RSVP for this specific event
+		rsvp := models.EventRSVP{
+			EventID:  event2.ID,
+			UserID:   user.ID,
+			Response: "yes",
+		}
+		err = database.Db.Create(&rsvp).Error
+		assert.NoError(t, err)
+
+		// Create request context
+		ctx := context.WithValue(context.Background(), auth.UserIDKey, user.ID)
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req = req.WithContext(ctx)
+
+		// Call the function for event2
+		result, err := service.getRSVPCountsFunction(httptest.NewRecorder(), req, &event2, map[string]interface{}{})
+		assert.NoError(t, err)
+
+		// Verify results - should have all response types even with zero count
+		counts, ok := result.(map[string]int64)
+		assert.True(t, ok)
+		assert.Equal(t, int64(1), counts["Yes"])
+		assert.Equal(t, int64(0), counts["No"])
+		assert.Equal(t, int64(0), counts["Maybe"])
+	})
+
+	t.Run("unauthorized_user_cannot_get_counts", func(t *testing.T) {
+		// Create event
+		event3 := models.Event{
+			ID:        uuid.New().String(),
+			ClubID:    club.ID,
+			Name:      "Test Event 3",
+			StartTime: time.Now().Add(48 * time.Hour),
+			EndTime:   time.Now().Add(50 * time.Hour),
+			CreatedBy: user.ID,
+			UpdatedBy: user.ID,
+		}
+		err := database.Db.Create(&event3).Error
+		assert.NoError(t, err)
+
+		// Create a user not in the club
+		outsider, _ := handlers.CreateTestUser(t, "outsider@example.com")
+
+		// Create request context with outsider user ID
+		ctx := context.WithValue(context.Background(), auth.UserIDKey, outsider.ID)
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req = req.WithContext(ctx)
+
+		// Call the function - should fail
+		_, err = service.getRSVPCountsFunction(httptest.NewRecorder(), req, &event3, map[string]interface{}{})
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "forbidden")
 	})
 }

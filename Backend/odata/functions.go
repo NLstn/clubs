@@ -64,6 +64,17 @@ func (s *Service) registerFunctions() error {
 		return fmt.Errorf("failed to register ExpandRecurrence function for Event: %w", err)
 	}
 
+	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
+		Name:       "GetRSVPCounts",
+		IsBound:    true,
+		EntitySet:  "Events",
+		Parameters: []odata.ParameterDefinition{},
+		ReturnType: reflect.TypeOf(map[string]int64{}),
+		Handler:    s.getRSVPCountsFunction,
+	}); err != nil {
+		return fmt.Errorf("failed to register GetRSVPCounts function for Event: %w", err)
+	}
+
 	// Unbound functions
 	if err := s.Service.RegisterFunction(odata.FunctionDefinition{
 		Name:    "SearchGlobal",
@@ -516,4 +527,69 @@ func (s *Service) getTeamOverviewFunction(w http.ResponseWriter, r *http.Request
 		UserRole: userRole,
 		IsAdmin:  team.IsAdmin(user),
 	}, nil
+}
+
+// getRSVPCountsFunction returns RSVP counts for an event without fetching all RSVPs
+// GET /api/v2/Events('{eventId}')/GetRSVPCounts()
+// Returns: {"Yes": 10, "No": 3, "Maybe": 5}
+func (s *Service) getRSVPCountsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
+	event := ctx.(*models.Event)
+
+	// Get user ID from request context
+	userID, ok := r.Context().Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: missing user id")
+	}
+
+	// Get user from database
+	var user models.User
+	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, fmt.Errorf("failed to find user: %w", err)
+	}
+
+	// Verify user has access to this event by checking club membership
+	club, err := models.GetClubByID(event.ClubID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find club: %w", err)
+	}
+
+	if !club.IsMember(user) {
+		return nil, fmt.Errorf("forbidden: user is not a member of this club")
+	}
+
+	// Count RSVPs by response type using SQL aggregation
+	type RSVPCount struct {
+		Response string
+		Count    int64
+	}
+
+	var counts []RSVPCount
+	if err := s.db.Table("event_rsvps").
+		Select("response, COUNT(*) as count").
+		Where("event_id = ?", event.ID).
+		Group("response").
+		Scan(&counts).Error; err != nil {
+		return nil, fmt.Errorf("failed to count RSVPs: %w", err)
+	}
+
+	// Build response map with PascalCase keys
+	result := make(map[string]int64)
+	for _, count := range counts {
+		// Capitalize first letter to match OData v2 convention
+		response := strings.ToUpper(count.Response[:1]) + strings.ToLower(count.Response[1:])
+		result[response] = count.Count
+	}
+
+	// Ensure all response types are present (even if zero)
+	if _, ok := result["Yes"]; !ok {
+		result["Yes"] = 0
+	}
+	if _, ok := result["No"]; !ok {
+		result["No"] = 0
+	}
+	if _, ok := result["Maybe"]; !ok {
+		result["Maybe"] = 0
+	}
+
+	return result, nil
 }

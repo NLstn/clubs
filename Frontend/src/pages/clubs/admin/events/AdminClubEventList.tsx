@@ -6,7 +6,7 @@ import EventRSVPList from "./EventRSVPList";
 import { Table, TableColumn, Button } from '@/components/ui';
 import api from "../../../../utils/api";
 import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
-import { calculateRSVPCounts, RSVPCounts } from "../../../../utils/eventUtils";
+import { RSVPCounts } from "../../../../utils/eventUtils";
 
 interface EventRSVP {
     Response: string;
@@ -46,20 +46,37 @@ const AdminClubEventList = () => {
         setLoading(true);
         setError(null);
         try {
-            // OData v2: Query Events for this club with expanded navigation properties
-            // This eliminates the N+1 query pattern by fetching related data in a single request
-            const response = await api.get<ODataCollectionResponse<Event>>(`/api/v2/Events?$filter=ClubID eq '${id}'&$expand=EventRSVPs,Shifts`);
+            // OData v2: Query Events for this club with expanded Shifts
+            // We no longer need to expand EventRSVPs since we'll use GetRSVPCounts function
+            const response = await api.get<ODataCollectionResponse<Event>>(`/api/v2/Events?$filter=ClubID eq '${id}'&$expand=Shifts`);
             const eventList = parseODataCollection(response.data);
             setEvents(eventList);
 
-            // Calculate RSVP counts from the expanded data
+            // Fetch RSVP counts using the server-side function (eliminates N+1 query pattern)
             const counts: Record<string, RSVPCounts> = {};
             const shifts: Record<string, Shift[]> = {};
             
+            // Fetch RSVP counts for all events in parallel
+            const countPromises = eventList.map(event =>
+                api.get<{ Yes: number; No: number; Maybe: number }>(
+                    `/api/v2/Events('${event.ID}')/GetRSVPCounts()`
+                ).then(res => ({ eventId: event.ID, counts: res.data }))
+            );
+            
+            const countResults = await Promise.all(countPromises);
+            
             for (const event of eventList) {
-                // Calculate RSVP counts from the expanded EventRSVPs
-                const rsvpList = event.EventRSVPs || [];
-                counts[event.ID] = calculateRSVPCounts(rsvpList);
+                // Transform PascalCase response to camelCase for frontend
+                const result = countResults.find(r => r.eventId === event.ID);
+                if (result) {
+                    counts[event.ID] = {
+                        yes: result.counts.Yes,
+                        no: result.counts.No,
+                        maybe: result.counts.Maybe
+                    };
+                } else {
+                    counts[event.ID] = { yes: 0, no: 0, maybe: 0 };
+                }
                 
                 // Store shifts from the expanded Shifts
                 shifts[event.ID] = event.Shifts || [];

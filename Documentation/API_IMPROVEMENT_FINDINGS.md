@@ -293,10 +293,13 @@ catch (err) {
 
 ### 1. GetRSVPCounts Bound Function
 
+**Status:** ✅ **RESOLVED** (December 19, 2024)
+
 **Purpose:** Avoid fetching all RSVPs just to count them.
 
+**Implementation:**
 ```go
-// Register in odata/functions.go
+// Registered in odata/functions.go (lines 67-76)
 {
     Name:       "GetRSVPCounts",
     IsBound:    true,
@@ -305,8 +308,32 @@ catch (err) {
     Handler:    s.getRSVPCountsFunction,
 }
 
-// Handler returns: {"Yes": 10, "No": 3, "Maybe": 5}
+// Handler implementation (lines 532-600)
+// Uses SQL aggregation: SELECT response, COUNT(*) FROM event_rsvps WHERE event_id = ? GROUP BY response
+// Returns: {"Yes": 10, "No": 3, "Maybe": 5}
 ```
+
+**Usage:**
+```typescript
+// GET /api/v2/Events('{eventId}')/GetRSVPCounts()
+const response = await api.get<{ Yes: number; No: number; Maybe: number }>(
+    `/api/v2/Events('${eventId}')/GetRSVPCounts()`
+);
+// Transform to frontend camelCase
+const counts = {
+    yes: response.data.Yes,
+    no: response.data.No,
+    maybe: response.data.Maybe
+};
+```
+
+**Resolution Notes:**
+- Implemented server-side SQL aggregation using GORM's `Table().Select().Group().Scan()`
+- Eliminates need to fetch all RSVP records just to count them
+- Returns zero values for response types with no RSVPs (guaranteed presence)
+- Includes authorization check via club membership verification
+- Updated AdminClubEventList and AdminEventDetails to use new function
+- Comprehensive test suite with 3 scenarios (all passing)
 
 ---
 
@@ -351,15 +378,15 @@ catch (err) {
 
 ## Priority Matrix
 
-| Issue | Impact | Effort | Priority |
-|-------|--------|--------|----------|
-| AdminClubEventList N+1 | High (performance) | Medium | **P1** |
-| Missing Shift navigation props | High (enables fixes) | Low | **P1** |
-| Event Shifts navigation | Medium | Low | **P2** |
-| GetRSVPCounts function | Medium | Low | **P2** |
-| MyTeams two-step query | Low | Low | **P3** |
-| Case transformation | Low | High | **P4** |
-| Batch request support | Medium | High | **P4** |
+| Issue | Impact | Effort | Priority | Status |
+|-------|--------|--------|----------|--------|
+| AdminClubEventList N+1 | High (performance) | Medium | **P1** | ✅ **RESOLVED** |
+| Missing Shift navigation props | High (enables fixes) | Low | **P1** | ✅ **RESOLVED** |
+| Event Shifts navigation | Medium | Low | **P2** | ✅ **RESOLVED** |
+| GetRSVPCounts function | Medium | Low | **P2** | ✅ **RESOLVED** |
+| MyTeams two-step query | Low | Low | **P3** | ✅ **RESOLVED** |
+| Case transformation | Low | High | **P4** | Open |
+| Batch request support | Medium | High | **P4** | Open |
 
 ---
 
@@ -370,8 +397,8 @@ catch (err) {
 - [x] ~~Add navigation properties to ShiftMember model~~ (Already implemented)
 - [x] ~~Add Shifts navigation to Event model~~ (Already implemented)
 - [x] ~~Add Team navigation to TeamMember model~~ (Completed December 19, 2024)
+- [x] ~~Implement GetRSVPCounts bound function~~ (Completed December 19, 2024)
 - [ ] Add Settings navigation to Club model
-- [ ] Implement GetRSVPCounts bound function
 - [ ] Implement GetMyTeams bound function
 - [ ] Consider GetEventDetails bound function
 
@@ -379,6 +406,8 @@ catch (err) {
 - [x] ~~Update AdminClubEventList to use $expand~~ (Completed December 19, 2024)
 - [x] ~~Update AdminEventDetails to use $expand~~ (Completed December 19, 2024)
 - [x] ~~Simplify MyTeams.tsx with better OData query~~ (Completed December 19, 2024)
+- [x] ~~Update AdminClubEventList to use GetRSVPCounts~~ (Completed December 19, 2024)
+- [x] ~~Update AdminEventDetails to use GetRSVPCounts~~ (Completed December 19, 2024)
 - [ ] Add $select to reduce payload sizes
 - [ ] Consider adopting PascalCase interfaces
 
