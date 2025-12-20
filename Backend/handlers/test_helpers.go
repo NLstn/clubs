@@ -15,6 +15,11 @@ import (
 // TestDatabase holds the test database instance
 var testDB *gorm.DB
 
+// GetDB returns the test database instance
+func GetDB() *gorm.DB {
+	return testDB
+}
+
 // SetupTestDB initializes an in-memory SQLite database for testing
 func SetupTestDB(t *testing.T) {
 	// Set test environment variable
@@ -309,12 +314,67 @@ func SetupTestDB(t *testing.T) {
 			updated_by TEXT
 		)
 	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS oauth_states (
+			id TEXT PRIMARY KEY,
+			state TEXT NOT NULL UNIQUE,
+			code_verifier TEXT NOT NULL,
+			expires_at DATETIME NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS scheduled_jobs (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL UNIQUE,
+			description TEXT,
+			job_handler TEXT NOT NULL,
+			enabled BOOLEAN DEFAULT TRUE,
+			interval_minutes INTEGER NOT NULL,
+			last_run_at DATETIME,
+			next_run_at DATETIME,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS job_executions (
+			id TEXT PRIMARY KEY,
+			scheduled_job_id TEXT NOT NULL,
+			started_at DATETIME NOT NULL,
+			completed_at DATETIME,
+			duration_ms INTEGER,
+			status TEXT NOT NULL,
+			error_message TEXT,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (scheduled_job_id) REFERENCES scheduled_jobs(id) ON DELETE CASCADE
+		)
+	`)
+	testDB.Exec(`
+		CREATE TABLE IF NOT EXISTS api_keys (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			key_hash TEXT NOT NULL UNIQUE,
+			club_id TEXT NOT NULL,
+			created_by TEXT NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			expires_at DATETIME,
+			last_used_at DATETIME,
+			revoked BOOLEAN DEFAULT FALSE,
+			revoked_at DATETIME,
+			revoked_by TEXT
+		)
+	`)
 }
 
 // TeardownTestDB cleans up the test database
 func TeardownTestDB(t *testing.T) {
 	if testDB != nil {
 		// Clear all data from tables to ensure clean state
+		testDB.Exec("DELETE FROM job_executions")
+		testDB.Exec("DELETE FROM scheduled_jobs")
+		testDB.Exec("DELETE FROM oauth_states")
+		testDB.Exec("DELETE FROM api_keys")
 		testDB.Exec("DELETE FROM activities")
 		testDB.Exec("DELETE FROM refresh_tokens")
 		testDB.Exec("DELETE FROM magic_links")
