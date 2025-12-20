@@ -56,7 +56,6 @@ func main() {
 		&models.MemberPrivacySettings{},
 		&models.Activity{},
 		&models.APIKey{},
-		&models.OAuthState{},
 		&models.ScheduledJob{},
 		&models.JobExecution{},
 	)
@@ -91,22 +90,22 @@ func main() {
 
 	// Initialize the job scheduler
 	jobScheduler := scheduler.NewScheduler(1 * time.Minute)
-	
+
 	// Register job handlers
 	jobScheduler.RegisterJob("cleanup_oauth_states", models.CleanupExpiredOAuthStates)
-	
+
 	// Initialize default jobs in the database
 	if err := scheduler.InitializeDefaultJobs(database.Db); err != nil {
 		log.Fatal("Could not initialize default jobs:", err)
 	}
-	
+
 	// Start the scheduler
 	jobScheduler.Start()
-	
+
 	// Setup graceful shutdown
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
-	
+
 	// Create HTTP server
 	mux := http.NewServeMux()
 
@@ -155,7 +154,7 @@ func main() {
 			serverErr <- err
 		}
 	}()
-	
+
 	// Wait for shutdown signal or server error
 	select {
 	case <-sigChan:
@@ -163,20 +162,20 @@ func main() {
 	case err := <-serverErr:
 		log.Printf("Server error: %v", err)
 	}
-	
+
 	// Create shutdown context with timeout
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer shutdownCancel()
-	
+
 	// Stop the scheduler gracefully
 	log.Println("Stopping scheduler...")
 	jobScheduler.Stop()
-	
+
 	// Shutdown HTTP server gracefully
 	log.Println("Shutting down HTTP server...")
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Printf("HTTP server shutdown error: %v", err)
 	}
-	
+
 	log.Println("Application shutdown complete")
 }
