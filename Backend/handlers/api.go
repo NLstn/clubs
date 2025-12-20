@@ -13,7 +13,6 @@ func Handler_v1() http.Handler {
 
 	registerAuthRoutes(mux)
 	registerKeycloakAuthRoutes(mux)
-	registerUserRoutes(mux)
 
 	return LoggingMiddleware(CorsMiddleware(mux))
 }
