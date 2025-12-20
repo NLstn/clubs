@@ -75,15 +75,15 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                 });
             }
             
-            // Update local state
-            const updatedSettings = {
-                finesEnabled: newSettings.FinesEnabled ?? settings.FinesEnabled,
-                shiftsEnabled: newSettings.ShiftsEnabled ?? settings.ShiftsEnabled,
-                teamsEnabled: newSettings.TeamsEnabled ?? settings.TeamsEnabled,
-                membersListVisible: newSettings.MembersListVisible ?? settings.MembersListVisible,
-                discoverableByNonMembers: newSettings.DiscoverableByNonMembers ?? settings.DiscoverableByNonMembers,
-            };
-            setSettings({ ...settings, ...updatedSettings });
+            // Update local state with PascalCase field names
+            setSettings({
+                ...settings,
+                FinesEnabled: newSettings.FinesEnabled ?? settings.FinesEnabled,
+                ShiftsEnabled: newSettings.ShiftsEnabled ?? settings.ShiftsEnabled,
+                TeamsEnabled: newSettings.TeamsEnabled ?? settings.TeamsEnabled,
+                MembersListVisible: newSettings.MembersListVisible ?? settings.MembersListVisible,
+                DiscoverableByNonMembers: newSettings.DiscoverableByNonMembers ?? settings.DiscoverableByNonMembers,
+            });
             setError(null);
             // Notify parent component that settings have been updated
             onSettingsUpdate?.();
