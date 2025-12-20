@@ -218,6 +218,131 @@ func TestInitializeDefaultJobs(t *testing.T) {
 	assert.Equal(t, int64(1), count, "Should have exactly one oauth_state_cleanup job")
 }
 
+func TestScheduler_RegisterJobWithSchedule(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+	
+	s := scheduler.NewScheduler(1 * time.Second)
+	
+	testJob := func() error {
+		return nil
+	}
+	
+	config := scheduler.JobConfig{
+		Name:            "test_combined_job",
+		Description:     "Test job registered with schedule",
+		IntervalMinutes: 30,
+	}
+	
+	// Register job with schedule
+	err := s.RegisterJobWithSchedule("test_combined_handler", testJob, config)
+	assert.NoError(t, err)
+	
+	// Verify database record was created
+	var job models.ScheduledJob
+	err = database.Db.Where("name = ?", "test_combined_job").First(&job).Error
+	assert.NoError(t, err)
+	assert.Equal(t, "test_combined_job", job.Name)
+	assert.Equal(t, "Test job registered with schedule", job.Description)
+	assert.Equal(t, "test_combined_handler", job.JobHandler)
+	assert.Equal(t, 30, job.IntervalMinutes)
+	assert.True(t, job.Enabled)
+}
+
+func TestScheduler_RegisterJobWithSchedule_Idempotent(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+	
+	s := scheduler.NewScheduler(1 * time.Second)
+	
+	testJob := func() error {
+		return nil
+	}
+	
+	config := scheduler.JobConfig{
+		Name:            "test_idempotent_job",
+		Description:     "Initial description",
+		IntervalMinutes: 15,
+	}
+	
+	// Register job with schedule first time
+	err := s.RegisterJobWithSchedule("test_idempotent_handler", testJob, config)
+	assert.NoError(t, err)
+	
+	// Register same job again with updated configuration
+	updatedConfig := scheduler.JobConfig{
+		Name:            "test_idempotent_job",
+		Description:     "Updated description",
+		IntervalMinutes: 45,
+	}
+	
+	err = s.RegisterJobWithSchedule("test_idempotent_handler_v2", testJob, updatedConfig)
+	assert.NoError(t, err)
+	
+	// Verify only one record exists
+	var count int64
+	database.Db.Model(&models.ScheduledJob{}).Where("name = ?", "test_idempotent_job").Count(&count)
+	assert.Equal(t, int64(1), count, "Should have exactly one job")
+	
+	// Verify the configuration was updated
+	var job models.ScheduledJob
+	err = database.Db.Where("name = ?", "test_idempotent_job").First(&job).Error
+	assert.NoError(t, err)
+	assert.Equal(t, "Updated description", job.Description)
+	assert.Equal(t, "test_idempotent_handler_v2", job.JobHandler)
+	assert.Equal(t, 45, job.IntervalMinutes)
+}
+
+func TestScheduler_RegisterJobWithSchedule_ExecutesCorrectly(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+	
+	s := scheduler.NewScheduler(500 * time.Millisecond)
+	
+	callCount := 0
+	testJob := func() error {
+		callCount++
+		return nil
+	}
+	
+	config := scheduler.JobConfig{
+		Name:            "test_execution_job",
+		Description:     "Test job execution",
+		IntervalMinutes: 1,
+	}
+	
+	// Register job with schedule
+	err := s.RegisterJobWithSchedule("test_execution_handler", testJob, config)
+	assert.NoError(t, err)
+	
+	// Start scheduler
+	s.Start()
+	
+	// Wait for job to execute
+	time.Sleep(2 * time.Second)
+	
+	// Stop scheduler
+	s.Stop()
+	
+	// Verify job was called
+	assert.Greater(t, callCount, 0, "Job should have been called at least once")
+	
+	// Verify job execution was recorded
+	var job models.ScheduledJob
+	err = database.Db.Where("name = ?", "test_execution_job").First(&job).Error
+	assert.NoError(t, err)
+	
+	var executions []models.JobExecution
+	err = database.Db.Where("scheduled_job_id = ?", job.ID).Find(&executions).Error
+	assert.NoError(t, err)
+	assert.Greater(t, len(executions), 0, "Should have at least one job execution")
+	
+	// Verify execution status
+	if len(executions) > 0 {
+		assert.Equal(t, models.JobStatusSuccess, executions[0].Status)
+	}
+}
+
 func TestScheduler_JobTimeout(t *testing.T) {
 	handlers.SetupTestDB(t)
 	defer handlers.TeardownTestDB(t)
