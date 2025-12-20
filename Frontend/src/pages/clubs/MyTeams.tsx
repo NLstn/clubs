@@ -38,12 +38,12 @@ const MyTeams = () => {
             }
 
             try {
-                // OData v2: Single query with $expand to get teams for this user and club
+                // OData v2: Use navigation pattern User → TeamMembers → Team
                 const encodedUserId = encodeURIComponent(currentUser.ID);
                 const encodedClubId = encodeURIComponent(clubId);
                 
                 const response = await api.get<ODataCollectionResponse<TeamMemberResponse>>(
-                    `/api/v2/TeamMembers?$filter=UserID eq '${encodedUserId}'&$expand=Team($filter=ClubID eq '${encodedClubId}')`
+                    `/api/v2/Users('${encodedUserId}')/TeamMembers?$expand=Team($filter=ClubID eq '${encodedClubId}')`
                 );
                 const teamMembersData = parseODataCollection(response.data);
                 
