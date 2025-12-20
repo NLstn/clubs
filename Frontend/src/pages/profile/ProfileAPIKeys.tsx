@@ -127,14 +127,14 @@ const ProfileAPIKeys = () => {
     },
     {
       key: 'KeyPrefix',
-      header: 'Key Prefix',
+      header: 'Key prefix',
       render: (apiKey: APIKey) => <code>{apiKey.KeyPrefix}</code>,
     },
     {
       key: 'IsActive',
       header: 'Status',
       render: (apiKey: APIKey) => (
-        <span style={{ color: apiKey.IsActive ? 'green' : 'red' }}>
+        <span className={apiKey.IsActive ? 'status-active' : 'status-inactive'}>
           {apiKey.IsActive ? 'Active' : 'Inactive'}
         </span>
       ),
@@ -147,29 +147,13 @@ const ProfileAPIKeys = () => {
       render: (apiKey: APIKey) => new Date(apiKey.CreatedAt).toLocaleDateString(),
     },
     {
-      key: 'LastUsedAt',
-      header: 'Last Used',
-      render: (apiKey: APIKey) => apiKey.LastUsedAt ? new Date(apiKey.LastUsedAt).toLocaleDateString() : 'Never',
-    },
-    {
-      key: 'ExpiresAt',
-      header: 'Expires',
-      render: (apiKey: APIKey) => apiKey.ExpiresAt ? new Date(apiKey.ExpiresAt).toLocaleDateString() : 'Never',
-    },
-    {
       key: 'actions',
       header: 'Actions',
       render: (apiKey: APIKey) => (
         <Button
+          variant="cancel"
+          size="sm"
           onClick={() => setKeyToDelete(apiKey.ID)}
-          style={{
-            padding: '0.5rem 1rem',
-            backgroundColor: '#dc3545',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
         >
           Delete
         </Button>
@@ -181,35 +165,16 @@ const ProfileAPIKeys = () => {
     <Layout title="API Keys">
       <ProfileContentLayout title="API Keys">
         <div className="profile-content">
-          <h2>API Keys</h2>
-          <p>Manage your API keys for programmatic access to the application.</p>
-
           {message && (
-            <div
-              style={{
-                padding: '1rem',
-                marginBottom: '1rem',
-                backgroundColor: message.includes('success') ? '#d4edda' : '#f8d7da',
-                border: `1px solid ${message.includes('success') ? '#c3e6cb' : '#f5c6cb'}`,
-                borderRadius: '4px',
-                color: message.includes('success') ? '#155724' : '#721c24',
-              }}
-            >
+            <div className={message.includes('success') ? 'success-message' : 'error-message'}>
               {message}
             </div>
           )}
 
           <Button
+            variant="primary"
             onClick={() => setShowCreateModal(true)}
-            style={{
-              marginBottom: '1.5rem',
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
+            style={{ marginBottom: '1.5rem' }}
           >
             Create New API Key
           </Button>
@@ -219,6 +184,10 @@ const ProfileAPIKeys = () => {
             columns={columns}
             keyExtractor={(key: APIKey) => key.ID}
             pageSize={10}
+            initialSortField="CreatedAt"
+            initialSortDirection="desc"
+            emptyMessage="No API keys found"
+            loadingMessage="Loading API keys..."
           />
 
           <Modal
@@ -255,34 +224,19 @@ const ProfileAPIKeys = () => {
 
               <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
                 <Button
+                  variant="secondary"
                   onClick={() => {
                     setShowCreateModal(false);
                     setCreateKeyName('');
                     setExpirationDays('');
                   }}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                  }}
                 >
                   Cancel
                 </Button>
                 <Button
+                  variant="accept"
                   onClick={handleCreateKey}
                   disabled={isCreating}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: isCreating ? 'not-allowed' : 'pointer',
-                    opacity: isCreating ? 0.6 : 1,
-                  }}
                 >
                   {isCreating ? 'Creating...' : 'Create Key'}
                 </Button>
@@ -337,30 +291,16 @@ const ProfileAPIKeys = () => {
 
               <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
                 <Button
+                  variant="primary"
                   onClick={handleCopyToClipboard}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                  }}
                 >
                   {copiedToClipboard ? '✓ Copied!' : 'Copy to Clipboard'}
                 </Button>
                 <Button
+                  variant="secondary"
                   onClick={() => {
                     setShowCreatedKeyModal(false);
                     refreshAPIKeys(); // Refresh after closing
-                  }}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
                   }}
                 >
                   Done
