@@ -126,11 +126,6 @@ const ProfileAPIKeys = () => {
       render: (apiKey: APIKey) => apiKey.Name,
     },
     {
-      key: 'KeyPrefix',
-      header: 'Key prefix',
-      render: (apiKey: APIKey) => <code>{apiKey.KeyPrefix}</code>,
-    },
-    {
       key: 'IsActive',
       header: 'Status',
       render: (apiKey: APIKey) => (
@@ -138,6 +133,13 @@ const ProfileAPIKeys = () => {
           {apiKey.IsActive ? 'Active' : 'Inactive'}
         </span>
       ),
+    },
+    {
+      key: 'ExpiresAt',
+      header: 'Expires On',
+      sortable: true,
+      sortField: 'ExpiresAt',
+      render: (apiKey: APIKey) => apiKey.ExpiresAt ? new Date(apiKey.ExpiresAt).toLocaleDateString() : 'Never',
     },
     {
       key: 'CreatedAt',
@@ -164,12 +166,11 @@ const ProfileAPIKeys = () => {
   return (
     <Layout title="API Keys">
       <ProfileContentLayout title="API Keys">
-        <div className="profile-content">
-          {message && (
-            <div className={message.includes('success') ? 'success-message' : 'error-message'}>
-              {message}
-            </div>
-          )}
+        {message && (
+          <div className={message.includes('success') ? 'success-message' : 'error-message'}>
+            {message}
+          </div>
+        )}
 
           <Button
             variant="primary"
@@ -317,7 +318,6 @@ const ProfileAPIKeys = () => {
             onClose={() => setKeyToDelete(null)}
             isLoading={isDeleting}
           />
-        </div>
       </ProfileContentLayout>
     </Layout>
   );
