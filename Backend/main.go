@@ -91,12 +91,18 @@ func main() {
 	// Initialize the job scheduler
 	jobScheduler := scheduler.NewScheduler(1 * time.Minute)
 
-	// Register job handlers
-	jobScheduler.RegisterJob("cleanup_oauth_states", models.CleanupExpiredOAuthStates)
-
-	// Initialize default jobs in the database
-	if err := scheduler.InitializeDefaultJobs(database.Db); err != nil {
-		log.Fatal("Could not initialize default jobs:", err)
+	// Register job handlers with schedule (combines in-memory registration and database setup)
+	err = jobScheduler.RegisterJobWithSchedule(
+		"cleanup_oauth_states",
+		models.CleanupExpiredOAuthStates,
+		scheduler.JobConfig{
+			Name:            "oauth_state_cleanup",
+			Description:     "Removes expired OAuth state records from the database",
+			IntervalMinutes: 60,
+		},
+	)
+	if err != nil {
+		log.Fatal("Could not register cleanup job:", err)
 	}
 
 	// Start the scheduler

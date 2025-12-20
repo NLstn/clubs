@@ -15,6 +15,13 @@ import (
 // JobFunc is a function that can be executed as a scheduled job
 type JobFunc func() error
 
+// JobConfig contains the configuration for a scheduled job
+type JobConfig struct {
+	Name            string
+	Description     string
+	IntervalMinutes int
+}
+
 // Scheduler manages periodic job execution
 type Scheduler struct {
 	jobs       map[string]JobFunc
@@ -50,6 +57,61 @@ func (s *Scheduler) RegisterJob(jobHandler string, jobFunc JobFunc) {
 	
 	s.jobs[jobHandler] = jobFunc
 	log.Printf("Registered job handler: %s", jobHandler)
+}
+
+// RegisterJobWithSchedule registers a job handler and creates/updates its database record
+// This method combines in-memory registration with database initialization in a single operation
+func (s *Scheduler) RegisterJobWithSchedule(handlerName string, jobFunc JobFunc, config JobConfig) error {
+	// Step 1: Register in-memory
+	s.jobsMutex.Lock()
+	s.jobs[handlerName] = jobFunc
+	s.jobsMutex.Unlock()
+	
+	log.Printf("Registered job handler: %s", handlerName)
+	
+	// Step 2: Create/update database record (idempotent)
+	var existing models.ScheduledJob
+	err := database.Db.Where("name = ?", config.Name).First(&existing).Error
+	
+	if err == gorm.ErrRecordNotFound {
+		// Create new job record
+		job := models.ScheduledJob{
+			Name:            config.Name,
+			Description:     config.Description,
+			JobHandler:      handlerName,
+			IntervalMinutes: config.IntervalMinutes,
+			Enabled:         true,
+		}
+		if err := database.Db.Create(&job).Error; err != nil {
+			return fmt.Errorf("failed to create scheduled job '%s': %w", config.Name, err)
+		}
+		log.Printf("Created scheduled job: %s", config.Name)
+	} else if err != nil {
+		return fmt.Errorf("failed to query scheduled job '%s': %w", config.Name, err)
+	} else {
+		// Update existing job if handler or interval changed
+		updates := make(map[string]interface{})
+		if existing.JobHandler != handlerName {
+			updates["job_handler"] = handlerName
+		}
+		if existing.IntervalMinutes != config.IntervalMinutes {
+			updates["interval_minutes"] = config.IntervalMinutes
+		}
+		if existing.Description != config.Description {
+			updates["description"] = config.Description
+		}
+		
+		if len(updates) > 0 {
+			if err := database.Db.Model(&existing).Updates(updates).Error; err != nil {
+				return fmt.Errorf("failed to update scheduled job '%s': %w", config.Name, err)
+			}
+			log.Printf("Updated scheduled job: %s", config.Name)
+		} else {
+			log.Printf("Scheduled job unchanged: %s", config.Name)
+		}
+	}
+	
+	return nil
 }
 
 // Start begins the scheduler's execution loop
