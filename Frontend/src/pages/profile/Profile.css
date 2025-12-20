@@ -360,27 +360,6 @@
   opacity: 1;
 }
 
-/* Status indicators for API Keys */
-.status-active {
-  color: var(--color-primary);
-  font-weight: 500;
-}
-
-.status-inactive {
-  color: var(--color-cancel);
-  font-weight: 500;
-}
-
-.status-paid {
-  color: var(--color-primary);
-  font-weight: 500;
-}
-
-.status-unpaid {
-  color: var(--color-cancel);
-  font-weight: 500;
-}
-
 /* Form field display styles */
 .form-field-display {
   padding: var(--space-sm) var(--space-md);
