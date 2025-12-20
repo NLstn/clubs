@@ -70,7 +70,7 @@ func handleKeycloakLogin(w http.ResponseWriter, r *http.Request) {
 	// Store the state nonce in database for one-time use validation
 	// Extract nonce from state token (first part before first dot)
 	nonceParts := strings.Split(state, ".")
-	if len(nonceParts) < 1 {
+	if len(nonceParts) != 3 {
 		http.Error(w, "Failed to generate authentication URL", http.StatusInternalServerError)
 		return
 	}
@@ -132,8 +132,8 @@ func handleKeycloakCallback(w http.ResponseWriter, r *http.Request) {
 	// Validate the signed state token
 	nonce, valid := csrf.ValidateStateToken(req.State, ipHash)
 	if !valid {
-		log.Printf("Invalid state token: signature verification failed or token expired")
-		http.Error(w, "Invalid or expired state parameter", http.StatusBadRequest)
+		log.Printf("Invalid state token")
+		http.Error(w, "Invalid state parameter", http.StatusBadRequest)
 		return
 	}
 
