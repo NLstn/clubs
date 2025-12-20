@@ -76,16 +76,16 @@ func handleKeycloakLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	nonce := nonceParts[0]
 
-	// Store state with nonce for replay protection
-	if err := models.CreateOAuthState(nonce, ipHash); err != nil {
-		log.Printf("Failed to store OAuth state: %v", err)
+	// Get the auth URL with PKCE parameters
+	authURL, codeVerifier, err := keycloakAuth.GetAuthURLWithPKCE(state)
+	if err != nil {
 		http.Error(w, "Failed to generate authentication URL", http.StatusInternalServerError)
 		return
 	}
 
-	// Get the auth URL with PKCE parameters
-	authURL, codeVerifier, err := keycloakAuth.GetAuthURLWithPKCE(state)
-	if err != nil {
+	// Store state with nonce and code verifier for replay protection and PKCE validation
+	if err := models.CreateOAuthState(nonce, codeVerifier); err != nil {
+		log.Printf("Failed to store OAuth state: %v", err)
 		http.Error(w, "Failed to generate authentication URL", http.StatusInternalServerError)
 		return
 	}
@@ -138,15 +138,24 @@ func handleKeycloakCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate and consume the state nonce (one-time use, prevents replay attacks)
-	consumed, err := models.ValidateAndConsumeOAuthState(nonce, ipHash)
-	if err != nil || !consumed {
-		if err != nil {
-			log.Printf("OAuth state validation error: %v", err)
-		} else {
-			log.Printf("OAuth state validation failed: state already used or invalid")
-		}
+	oauthState, err := models.GetOAuthStateByState(nonce)
+	if err != nil {
+		log.Printf("OAuth state validation error: %v", err)
 		http.Error(w, "Invalid or already used state parameter", http.StatusBadRequest)
 		return
+	}
+
+	// Verify the code verifier matches (prevents PKCE downgrade attacks)
+	if oauthState.CodeVerifier != req.CodeVerifier {
+		log.Printf("OAuth state validation failed: code verifier mismatch")
+		http.Error(w, "Invalid code verifier", http.StatusBadRequest)
+		return
+	}
+
+	// Delete the state (one-time use)
+	if err := models.DeleteOAuthState(nonce); err != nil {
+		log.Printf("Warning: Failed to delete OAuth state: %v", err)
+		// Continue anyway - state will be cleaned up by periodic job
 	}
 
 	keycloakAuth := auth.GetKeycloakAuth()
@@ -242,7 +251,7 @@ func handleKeycloakLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 // getClientIP extracts the client IP address from the request
-// 
+//
 // Security Note: This function trusts X-Forwarded-For and X-Real-IP headers.
 // In production environments behind a reverse proxy, ensure the proxy is configured
 // to set these headers correctly and that direct client access to the backend is blocked.
