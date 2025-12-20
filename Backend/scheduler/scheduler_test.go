@@ -2,6 +2,7 @@ package scheduler_test
 
 import (
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -215,4 +216,58 @@ func TestInitializeDefaultJobs(t *testing.T) {
 	var count int64
 	database.Db.Model(&models.ScheduledJob{}).Where("name = ?", "oauth_state_cleanup").Count(&count)
 	assert.Equal(t, int64(1), count, "Should have exactly one oauth_state_cleanup job")
+}
+
+func TestScheduler_PreventConcurrentExecution(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+	
+	s := scheduler.NewScheduler(100 * time.Millisecond)
+	
+	executionCount := 0
+	var mu sync.Mutex
+	
+	// Create a long-running job
+	longJob := func() error {
+		mu.Lock()
+		executionCount++
+		mu.Unlock()
+		time.Sleep(2 * time.Second) // Job takes longer than ticker interval
+		return nil
+	}
+	
+	s.RegisterJob("long_running_handler", longJob)
+	
+	// Create a scheduled job
+	job := models.ScheduledJob{
+		Name:            "test_job_long",
+		Description:     "Test long running job",
+		JobHandler:      "long_running_handler",
+		Enabled:         true,
+		IntervalMinutes: 1,
+	}
+	err := database.Db.Create(&job).Error
+	assert.NoError(t, err)
+	
+	// Start scheduler
+	s.Start()
+	
+	// Wait longer than the job duration but less than 3 seconds
+	// With 100ms ticker, we'd get many ticks, but job should only run once
+	time.Sleep(1500 * time.Millisecond)
+	
+	// Stop scheduler
+	s.Stop()
+	
+	// Verify job was called only once (no concurrent executions)
+	mu.Lock()
+	count := executionCount
+	mu.Unlock()
+	assert.Equal(t, 1, count, "Job should have been called exactly once (no concurrent execution)")
+	
+	// Verify only one job execution exists
+	var executions []models.JobExecution
+	err = database.Db.Where("scheduled_job_id = ?", job.ID).Find(&executions).Error
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(executions), "Should have exactly one job execution")
 }
