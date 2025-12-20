@@ -43,7 +43,7 @@ const MyTeams = () => {
                 const encodedClubId = encodeURIComponent(clubId);
                 
                 const response = await api.get<ODataCollectionResponse<TeamMemberResponse>>(
-                    `/api/v2/Users('${encodedUserId}')/TeamMembers?$expand=Team($filter=ClubID eq '${encodedClubId}')`
+                    `/api/v2/Users('${encodedUserId}')/TeamMembers?$filter=Team/ClubID eq '${encodedClubId}'&$expand=Team`
                 );
                 const teamMembersData = parseODataCollection(response.data);
                 

@@ -114,7 +114,7 @@ describe('MyTeams Component', () => {
     expect(screen.getByText('Marketing Team')).toBeInTheDocument();
     expect(screen.getByText('Team for marketing')).toBeInTheDocument();
 
-    expect(mockGet).toHaveBeenCalledWith("/api/v2/Users('test-user-id')/TeamMembers?$expand=Team($filter=ClubID eq 'test-club-id')");
+    expect(mockGet).toHaveBeenCalledWith("/api/v2/Users('test-user-id')/TeamMembers?$filter=Team/ClubID eq 'test-club-id'&$expand=Team");
   });
 
   it('does not render anything when user has no teams', async () => {
