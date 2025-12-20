@@ -61,7 +61,7 @@ const ProfilePrivacy = () => {
                     PrivacySettings?: { ID: string; ShareBirthDate: boolean; };
                 }
                 const membersResponse = await api.get<ODataCollectionResponse<ODataMember>>(
-                    `/api/v2/Users('${encodedUserId}')/Members?$select=ID&$expand=Club($select=ID,Name;$filter=Deleted eq false),PrivacySettings($select=ID,ShareBirthDate)`
+                    `/api/v2/Users('${encodedUserId}')/Members?$select=ID&$filter=Club/Deleted eq false&$expand=Club($select=ID,Name),PrivacySettings($select=ID,ShareBirthDate)`
                 );
                 const members = parseODataCollection(membersResponse.data);
                 
