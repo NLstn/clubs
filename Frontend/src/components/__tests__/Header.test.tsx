@@ -91,7 +91,7 @@ describe('Header', () => {
     const userIcon = screen.getByText('U')
     fireEvent.click(userIcon)
     
-    expect(screen.getByText('navigation.settings')).toBeInTheDocument()
+    expect(screen.getByText('Settings')).toBeInTheDocument()
     expect(screen.getByText('Create New Club')).toBeInTheDocument()
     expect(screen.getByText('Logout')).toBeInTheDocument()
   })
@@ -132,7 +132,7 @@ describe('Header', () => {
     const userIcon = screen.getByText('U')
     fireEvent.click(userIcon)
     
-    const settingsButton = screen.getByText('navigation.settings')
+    const settingsButton = screen.getByText('Settings')
     fireEvent.click(settingsButton)
     
     expect(mockNavigate).toHaveBeenCalledWith('/settings/profile')
@@ -200,12 +200,12 @@ describe('Header', () => {
     fireEvent.click(userIcon)
     
     // Dropdown should be open
-    expect(screen.getByText('navigation.settings')).toBeInTheDocument()
+    expect(screen.getByText('Settings')).toBeInTheDocument()
     
     // Click outside the dropdown
     fireEvent.mouseDown(document.body)
     
     // Dropdown should be closed
-    expect(screen.queryByText('navigation.settings')).not.toBeInTheDocument()
+    expect(screen.queryByText('Settings')).not.toBeInTheDocument()
   })
 })
