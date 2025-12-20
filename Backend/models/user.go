@@ -25,7 +25,8 @@ type User struct {
 	UpdatedAt  time.Time  `json:"UpdatedAt"`
 
 	// Navigation properties for OData
-	Members []Member `gorm:"foreignKey:UserID" json:"Members,omitempty" odata:"nav"`
+	Members     []Member     `gorm:"foreignKey:UserID" json:"Members,omitempty" odata:"nav"`
+	TeamMembers []TeamMember `gorm:"foreignKey:UserID" json:"TeamMembers,omitempty" odata:"nav"`
 }
 
 type RefreshToken struct {
