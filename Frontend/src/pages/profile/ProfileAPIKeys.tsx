@@ -9,7 +9,6 @@ interface APIKey {
   ID: string;
   Name: string;
   KeyPrefix: string;
-  IsActive: boolean;
   ExpiresAt?: string;
   CreatedAt: string;
   LastUsedAt?: string;
@@ -20,7 +19,6 @@ interface CreateAPIKeyResponse {
   Name: string;
   KeyPrefix: string;
   APIKey: string;
-  IsActive: boolean;
   ExpiresAt?: string;
   CreatedAt: string;
 }
@@ -124,15 +122,6 @@ const ProfileAPIKeys = () => {
       sortable: true,
       sortField: 'Name',
       render: (apiKey: APIKey) => apiKey.Name,
-    },
-    {
-      key: 'IsActive',
-      header: 'Status',
-      render: (apiKey: APIKey) => (
-        <span className={apiKey.IsActive ? 'status-active' : 'status-inactive'}>
-          {apiKey.IsActive ? 'Active' : 'Inactive'}
-        </span>
-      ),
     },
     {
       key: 'ExpiresAt',
