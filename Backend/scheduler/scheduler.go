@@ -50,15 +50,6 @@ func NewScheduler(tickerInterval time.Duration) *Scheduler {
 	}
 }
 
-// RegisterJob registers a job handler function with the scheduler
-func (s *Scheduler) RegisterJob(jobHandler string, jobFunc JobFunc) {
-	s.jobsMutex.Lock()
-	defer s.jobsMutex.Unlock()
-	
-	s.jobs[jobHandler] = jobFunc
-	log.Printf("Registered job handler: %s", jobHandler)
-}
-
 // RegisterJobWithSchedule registers a job handler and creates/updates its database record
 // This method combines in-memory registration with database initialization in a single operation
 func (s *Scheduler) RegisterJobWithSchedule(handlerName string, jobFunc JobFunc, config JobConfig) error {
@@ -292,28 +283,4 @@ func (s *Scheduler) Stop() {
 	case <-time.After(30 * time.Second):
 		log.Println("Scheduler stopped with timeout (some jobs may still be running)")
 	}
-}
-
-// InitializeDefaultJobs creates default job records in the database if they don't exist
-func InitializeDefaultJobs(db *gorm.DB) error {
-	// OAuth state cleanup job
-	var oauthCleanupJob models.ScheduledJob
-	err := db.Where("name = ?", "oauth_state_cleanup").First(&oauthCleanupJob).Error
-	if err == gorm.ErrRecordNotFound {
-		oauthCleanupJob = models.ScheduledJob{
-			Name:            "oauth_state_cleanup",
-			Description:     "Removes expired OAuth state records from the database",
-			JobHandler:      "cleanup_oauth_states",
-			Enabled:         true,
-			IntervalMinutes: 60, // Run every hour
-		}
-		if err := db.Create(&oauthCleanupJob).Error; err != nil {
-			return fmt.Errorf("failed to create oauth_state_cleanup job: %w", err)
-		}
-		log.Println("Created default job: oauth_state_cleanup")
-	} else if err != nil {
-		return fmt.Errorf("failed to query oauth_state_cleanup job: %w", err)
-	}
-	
-	return nil
 }
