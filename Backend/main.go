@@ -105,6 +105,20 @@ func main() {
 		log.Fatal("Could not register cleanup job:", err)
 	}
 
+	// Register API key cleanup job
+	err = jobScheduler.RegisterJobWithSchedule(
+		"cleanup_expired_api_keys",
+		models.CleanupExpiredAPIKeys,
+		scheduler.JobConfig{
+			Name:            "api_key_cleanup",
+			Description:     "Removes expired API keys from the database",
+			IntervalMinutes: 60,
+		},
+	)
+	if err != nil {
+		log.Fatal("Could not register API key cleanup job:", err)
+	}
+
 	// Start the scheduler
 	jobScheduler.Start()
 

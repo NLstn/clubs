@@ -237,7 +237,8 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 	// The simplest approach: try to match keys by trying bcrypt on all keys
 	// But for efficiency, we first filter by checking if the key starts with a known prefix pattern
 
-	// Query active API keys only
+	// Query all (non-deleted) API keys
+	// Expired keys will be cleaned up by the CleanupExpiredAPIKeys job
 	// Note: Rate limiting for failed authentication attempts is handled by the RateLimitMiddleware
 	// applied to OData endpoints via AuthMiddleware in handlers/middlewares.go
 	var keys []struct {
@@ -245,14 +246,12 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 		UserID      string
 		KeyHash     string
 		KeyPrefix   string
-		IsActive    bool
 		ExpiresAt   *time.Time
 		Permissions string
 	}
 
 	err := database.Db.Table("api_keys").
-		Select("id, user_id, key_hash, key_prefix, is_active, expires_at, permissions").
-		Where("is_active = ?", true).
+		Select("id, user_id, key_hash, key_prefix, expires_at, permissions").
 		Find(&keys).Error
 	if err != nil {
 		return "", nil, fmt.Errorf("database query failed: %w", err)
@@ -264,7 +263,6 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 		UserID      string
 		KeyHash     string
 		KeyPrefix   string
-		IsActive    bool
 		ExpiresAt   *time.Time
 		Permissions string
 	}
@@ -278,7 +276,6 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 	var result *struct {
 		ID          string
 		UserID      string
-		IsActive    bool
 		ExpiresAt   *time.Time
 		Permissions string
 	}
@@ -290,13 +287,11 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 			result = &struct {
 				ID          string
 				UserID      string
-				IsActive    bool
 				ExpiresAt   *time.Time
 				Permissions string
 			}{
 				ID:          key.ID,
 				UserID:      key.UserID,
-				IsActive:    key.IsActive,
 				ExpiresAt:   key.ExpiresAt,
 				Permissions: key.Permissions,
 			}
@@ -306,11 +301,6 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 
 	if result == nil {
 		return "", nil, errors.New("invalid API key")
-	}
-
-	// Check if the key is active (already checked in query, but double-check)
-	if !result.IsActive {
-		return "", nil, errors.New("API key is inactive")
 	}
 
 	// Check if the key has expired

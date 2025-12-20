@@ -75,49 +75,35 @@ func TestAPIKey_IsExpired(t *testing.T) {
 func TestAPIKey_IsValid(t *testing.T) {
 	tests := []struct {
 		name      string
-		isActive  bool
 		expiresAt *time.Time
 		want      bool
 	}{
 		{
-			name:      "Active and not expired",
-			isActive:  true,
+			name:      "Not expired",
 			expiresAt: nil,
 			want:      true,
 		},
 		{
-			name:     "Inactive but not expired",
-			isActive: false,
+			name: "Expired",
+			expiresAt: func() *time.Time {
+				t := time.Now().Add(-24 * time.Hour)
+				return &t
+			}(),
+			want: false,
+		},
+		{
+			name: "Not yet expired",
 			expiresAt: func() *time.Time {
 				t := time.Now().Add(24 * time.Hour)
 				return &t
 			}(),
-			want: false,
-		},
-		{
-			name:     "Active but expired",
-			isActive: true,
-			expiresAt: func() *time.Time {
-				t := time.Now().Add(-24 * time.Hour)
-				return &t
-			}(),
-			want: false,
-		},
-		{
-			name:     "Inactive and expired",
-			isActive: false,
-			expiresAt: func() *time.Time {
-				t := time.Now().Add(-24 * time.Hour)
-				return &t
-			}(),
-			want: false,
+			want: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			apiKey := &APIKey{
-				IsActive:  tt.isActive,
 				ExpiresAt: tt.expiresAt,
 			}
 			assert.Equal(t, tt.want, apiKey.IsValid())

@@ -900,10 +900,10 @@ func (s *Service) createAPIKeyAction(w http.ResponseWriter, r *http.Request, ctx
 		return fmt.Errorf("name is required")
 	}
 
-	// Check rate limit: max 10 active keys per user
+	// Check rate limit: max 10 keys per user
 	var keyCount int64
 	if err := s.db.Model(&models.APIKey{}).
-		Where("user_id = ? AND is_active = ?", userID, true).
+		Where("user_id = ?", userID).
 		Count(&keyCount).Error; err != nil {
 		return fmt.Errorf("failed to count user's API keys: %w", err)
 	}
@@ -926,7 +926,6 @@ func (s *Service) createAPIKeyAction(w http.ResponseWriter, r *http.Request, ctx
 		Name:      name,
 		KeyHash:   keyHash,
 		KeyPrefix: keyPrefix,
-		IsActive:  true,
 	}
 
 	// Handle optional expiresAt parameter
@@ -974,7 +973,6 @@ func (s *Service) createAPIKeyAction(w http.ResponseWriter, r *http.Request, ctx
 		"KeyPrefix":      apiKey.KeyPrefix,
 		"Permissions":    apiKey.GetPermissions(),
 		"ExpiresAt":      apiKey.ExpiresAt,
-		"IsActive":       apiKey.IsActive,
 		"CreatedAt":      apiKey.CreatedAt,
 		"UpdatedAt":      apiKey.UpdatedAt,
 	}
