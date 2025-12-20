@@ -1626,6 +1626,170 @@ Some endpoints may return JSON error objects for structured error handling.
 
 ---
 
+## Keycloak OAuth Authentication Endpoints
+
+### Keycloak Login
+**Endpoint:** `GET /api/v1/auth/keycloak/login`  
+**Authentication:** None required  
+**Rate Limit:** Auth limiter (5/min)
+
+**Description:** Initiates Keycloak OAuth/OIDC authentication flow with PKCE. Returns the authorization URL, CSRF-protected state token, and PKCE code verifier.
+
+**Security Features:**
+- PKCE (Proof Key for Code Exchange) for authorization code flow
+- HMAC-signed state token for CSRF protection
+- State token bound to client IP address
+- 10-minute expiration on state tokens
+- One-time use enforcement via database nonce tracking
+
+**Response:**
+```json
+{
+  "authURL": "https://keycloak.example.com/realms/clubs/protocol/openid-connect/auth?client_id=clubs&redirect_uri=http://frontend/auth/callback&response_type=code&scope=openid+profile+email&state=nonce.timestamp.signature&code_challenge=xyz&code_challenge_method=S256",
+  "state": "dGVzdG5vbmNl.1703074800.a1b2c3d4e5f6...",
+  "codeVerifier": "generated_pkce_verifier"
+}
+```
+
+**Response Fields:**
+- `authURL` (string) - Full Keycloak authorization URL to redirect user to
+- `state` (string) - CSRF protection state token (format: `nonce.timestamp.signature`)
+- `codeVerifier` (string) - PKCE code verifier for callback (store securely on client)
+
+**Responses:**
+- `200 OK` - Authorization URL and CSRF state generated successfully
+- `500 Internal Server Error` - Keycloak not initialized or failed to generate tokens
+
+**Usage Flow:**
+1. Client calls this endpoint to get authorization URL and state
+2. Client stores `state` and `codeVerifier` securely (e.g., sessionStorage)
+3. Client redirects user to `authURL`
+4. User authenticates with Keycloak
+5. Keycloak redirects back to client with `code` and `state`
+6. Client calls callback endpoint with `code`, `state`, and `codeVerifier`
+
+**See Also:** [CSRF Protection Documentation](CSRF.md)
+
+---
+
+### Keycloak Callback
+**Endpoint:** `POST /api/v1/auth/keycloak/callback`  
+**Authentication:** None required  
+**Rate Limit:** Auth limiter (5/min)
+
+**Description:** Completes Keycloak OAuth authentication by exchanging authorization code for tokens. Validates CSRF state token and PKCE verifier.
+
+**Security Validation:**
+- State token signature verification (HMAC-SHA256)
+- State token timestamp validation (10-minute expiry)
+- Client IP address validation (must match login IP)
+- One-time use nonce consumption (prevents replay)
+- PKCE code verifier validation
+
+**Request Body:**
+```json
+{
+  "code": "authorization_code_from_keycloak",
+  "state": "nonce.timestamp.signature",
+  "codeVerifier": "pkce_verifier_from_login"
+}
+```
+
+**Request Fields:**
+- `code` (string, required) - OAuth authorization code from Keycloak redirect
+- `state` (string, required) - CSRF state token from login response
+- `codeVerifier` (string, required) - PKCE code verifier from login response
+
+**Response:**
+```json
+{
+  "access": "application_jwt_access_token",
+  "refresh": "application_jwt_refresh_token",
+  "profileComplete": true,
+  "keycloakTokens": {
+    "accessToken": "keycloak_access_token",
+    "refreshToken": "keycloak_refresh_token",
+    "idToken": "keycloak_id_token",
+    "expiresIn": 1703078400
+  }
+}
+```
+
+**Response Fields:**
+- `access` (string) - Application JWT access token for API requests
+- `refresh` (string) - Application JWT refresh token
+- `profileComplete` (boolean) - Whether user profile is complete
+- `keycloakTokens` (object) - Original Keycloak tokens
+  - `accessToken` (string) - Keycloak access token
+  - `refreshToken` (string) - Keycloak refresh token
+  - `idToken` (string) - Keycloak ID token
+  - `expiresIn` (number) - Token expiration timestamp (Unix epoch)
+
+**Responses:**
+- `200 OK` - Authentication successful, returns tokens
+- `400 Bad Request` - Missing or invalid parameters (code, state, codeVerifier), or invalid/expired/tampered state token
+- `401 Unauthorized` - Keycloak authentication failed
+- `500 Internal Server Error` - Keycloak not initialized, database error, or token generation failed
+
+**Error Cases:**
+- `State parameter required` - Missing state token
+- `Invalid or expired state parameter` - State signature invalid or timestamp expired
+- `Invalid or already used state parameter` - State nonce not found, already consumed, or IP mismatch
+- `Code verifier required` - Missing PKCE code verifier
+- `Authorization code required` - Missing OAuth code
+
+**See Also:** [CSRF Protection Documentation](CSRF.md)
+
+---
+
+### Keycloak Logout
+**Endpoint:** `POST /api/v1/auth/keycloak/logout`  
+**Authentication:** Optional refresh token in Authorization header  
+**Rate Limit:** Auth limiter (5/min)
+
+**Description:** Generates Keycloak logout URL and optionally clears application refresh tokens.
+
+**Request Body:**
+```json
+{
+  "post_logout_redirect_uri": "http://frontend/login",
+  "id_token": "keycloak_id_token"
+}
+```
+
+**Request Fields:**
+- `post_logout_redirect_uri` (string, optional) - URL to redirect to after Keycloak logout
+- `id_token` (string, optional) - Keycloak ID token for logout hint
+
+**Headers (Optional):**
+- `Authorization: <refresh_token>` - If provided, clears all refresh tokens for the user
+
+**Response:**
+```json
+{
+  "logoutURL": "https://keycloak.example.com/realms/clubs/protocol/openid-connect/logout?post_logout_redirect_uri=http://frontend/login&id_token_hint=..."
+}
+```
+
+**Response Fields:**
+- `logoutURL` (string) - Keycloak end session URL to redirect user to
+
+**Responses:**
+- `200 OK` - Logout URL generated successfully
+- `401 Unauthorized` - Provided refresh token is invalid (if Authorization header present)
+- `404 Not Found` - User not found (if Authorization header present)
+- `500 Internal Server Error` - Keycloak not initialized or failed to delete tokens
+
+**Usage Flow:**
+1. Client calls this endpoint with optional ID token
+2. Backend generates Keycloak logout URL
+3. Backend clears application refresh tokens if Authorization header provided
+4. Client redirects user to returned `logoutURL`
+5. Keycloak ends SSO session
+6. Keycloak redirects to `post_logout_redirect_uri`
+
+---
+
 ## Notes
 
 1. All UUIDs must be valid UUID format
