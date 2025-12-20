@@ -98,9 +98,9 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
               </button>
               <button
                 className="dropdownItem"
-                onClick={() => navigate('/profile')}
+                onClick={() => navigate('/settings/profile')}
               >
-                {t('navigation.profile')}
+                {t('navigation.settings')}
               </button>
               <button 
                 className="dropdownItem" 

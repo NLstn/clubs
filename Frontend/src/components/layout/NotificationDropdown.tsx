@@ -65,7 +65,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
     // Navigate to appropriate page based on notification type
     if (notification.Type === 'invite_received') {
       setIsOpen(false); // Close the dropdown
-      navigate('/profile/invites');
+      navigate('/settings/invites');
     } else if (notification.Type === 'member_added' && notification.ClubID) {
       setIsOpen(false); // Close the dropdown
       // Add to recent clubs when navigating from notification
