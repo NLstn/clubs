@@ -13,7 +13,8 @@ import (
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/csrf"
-	"github.com/NLstn/clubs/models"
+	modelsauth "github.com/NLstn/clubs/models/auth"
+	"github.com/NLstn/clubs/models/core"
 )
 
 func registerKeycloakAuthRoutes(mux *http.ServeMux) {
@@ -84,7 +85,7 @@ func handleKeycloakLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store state with nonce and code verifier for replay protection and PKCE validation
-	if err := models.CreateOAuthState(nonce, codeVerifier); err != nil {
+	if err := modelsauth.CreateOAuthState(nonce, codeVerifier); err != nil {
 		log.Printf("Failed to store OAuth state: %v", err)
 		http.Error(w, "Failed to generate authentication URL", http.StatusInternalServerError)
 		return
@@ -138,7 +139,7 @@ func handleKeycloakCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate and consume the state nonce (one-time use, prevents replay attacks)
-	oauthState, err := models.GetOAuthStateByState(nonce)
+	oauthState, err := modelsauth.GetOAuthStateByState(nonce)
 	if err != nil {
 		log.Printf("OAuth state validation error: %v", err)
 		http.Error(w, "Invalid or already used state parameter", http.StatusBadRequest)
@@ -153,7 +154,7 @@ func handleKeycloakCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the state (one-time use)
-	if err := models.DeleteOAuthState(nonce); err != nil {
+	if err := modelsauth.DeleteOAuthState(nonce); err != nil {
 		log.Printf("Warning: Failed to delete OAuth state: %v", err)
 		// Continue anyway - state will be cleaned up by periodic job
 	}
@@ -172,7 +173,7 @@ func handleKeycloakCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find or create user in our database using Keycloak subject as user ID
-	user, err := models.FindOrCreateUserWithKeycloakID(keycloakUser.Sub, keycloakUser.Email, keycloakUser.Name)
+	user, err := core.FindOrCreateUserWithKeycloakID(keycloakUser.Sub, keycloakUser.Email, keycloakUser.Name)
 	if err != nil {
 		http.Error(w, "User error", http.StatusInternalServerError)
 		return
@@ -192,7 +193,7 @@ func handleKeycloakCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store refresh token in the database
-	userAgent, ipAddress := models.GetDeviceInfo(r)
+	userAgent, ipAddress := core.GetDeviceInfo(r)
 	if err := user.StoreRefreshToken(refreshToken, userAgent, ipAddress); err != nil {
 		http.Error(w, "Failed to store refresh token", http.StatusInternalServerError)
 		return
@@ -238,7 +239,7 @@ func handleKeycloakLogout(w http.ResponseWriter, r *http.Request) {
 	if refreshToken != "" {
 		userID, err := auth.ValidateRefreshToken(refreshToken)
 		if err == nil {
-			if user, err := models.GetUserByID(userID); err == nil {
+			if user, err := core.GetUserByID(userID); err == nil {
 				user.DeleteAllRefreshTokens()
 			}
 		}

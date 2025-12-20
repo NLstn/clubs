@@ -6,7 +6,8 @@ import (
 
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
+	modelsauth "github.com/NLstn/clubs/models/auth"
 	"github.com/NLstn/clubs/scheduler"
 	"github.com/stretchr/testify/assert"
 )
@@ -21,21 +22,21 @@ func TestSchedulerIntegration(t *testing.T) {
 	s := scheduler.NewScheduler(500 * time.Millisecond)
 
 	// Register the OAuth cleanup job
-	s.RegisterJob("cleanup_oauth_states", models.CleanupExpiredOAuthStates)
+	s.RegisterJob("cleanup_oauth_states", modelsauth.CleanupExpiredOAuthStates)
 
 	// Initialize default jobs
 	err := scheduler.InitializeDefaultJobs(database.Db)
 	assert.NoError(t, err)
 
 	// Create some OAuth states (expired and valid)
-	err = models.CreateOAuthState("valid-state-1", "verifier-1")
+	err = modelsauth.CreateOAuthState("valid-state-1", "verifier-1")
 	assert.NoError(t, err)
 
-	err = models.CreateOAuthState("valid-state-2", "verifier-2")
+	err = modelsauth.CreateOAuthState("valid-state-2", "verifier-2")
 	assert.NoError(t, err)
 
 	// Create expired states directly
-	expiredState1 := &models.OAuthState{
+	expiredState1 := &modelsauth.OAuthState{
 		State:        "expired-state-1",
 		CodeVerifier: "expired-verifier-1",
 		ExpiresAt:    time.Now().Add(-1 * time.Hour),
@@ -43,7 +44,7 @@ func TestSchedulerIntegration(t *testing.T) {
 	err = handlers.GetDB().Create(expiredState1).Error
 	assert.NoError(t, err)
 
-	expiredState2 := &models.OAuthState{
+	expiredState2 := &modelsauth.OAuthState{
 		State:        "expired-state-2",
 		CodeVerifier: "expired-verifier-2",
 		ExpiresAt:    time.Now().Add(-2 * time.Hour),
@@ -53,7 +54,7 @@ func TestSchedulerIntegration(t *testing.T) {
 
 	// Verify we have 4 states
 	var countBefore int64
-	handlers.GetDB().Model(&models.OAuthState{}).Count(&countBefore)
+	handlers.GetDB().Model(&modelsauth.OAuthState{}).Count(&countBefore)
 	assert.Equal(t, int64(4), countBefore)
 
 	// Start the scheduler
@@ -67,22 +68,22 @@ func TestSchedulerIntegration(t *testing.T) {
 
 	// Verify expired states were cleaned up
 	var countAfter int64
-	handlers.GetDB().Model(&models.OAuthState{}).Count(&countAfter)
+	handlers.GetDB().Model(&modelsauth.OAuthState{}).Count(&countAfter)
 	assert.Equal(t, int64(2), countAfter, "Should have 2 valid states remaining")
 
 	// Verify the job execution was recorded
-	var job models.ScheduledJob
+	var job core.ScheduledJob
 	err = database.Db.Where("name = ?", "oauth_state_cleanup").First(&job).Error
 	assert.NoError(t, err)
 
-	var executions []models.JobExecution
+	var executions []core.JobExecution
 	err = database.Db.Where("scheduled_job_id = ?", job.ID).Order("started_at DESC").Find(&executions).Error
 	assert.NoError(t, err)
 	assert.Greater(t, len(executions), 0, "Should have at least one job execution")
 
 	// Verify the execution was successful
 	if len(executions) > 0 {
-		assert.Equal(t, models.JobStatusSuccess, executions[0].Status)
+		assert.Equal(t, core.JobStatusSuccess, executions[0].Status)
 		assert.NotNil(t, executions[0].CompletedAt)
 		assert.NotNil(t, executions[0].DurationMs)
 	}

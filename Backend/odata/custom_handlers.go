@@ -9,7 +9,7 @@ import (
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/azure"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	"gorm.io/gorm"
 )
 
@@ -92,7 +92,7 @@ func (s *Service) handleUploadClubLogo(w http.ResponseWriter, r *http.Request, c
 	}
 
 	// Get user from database
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			http.Error(w, "User not found", http.StatusUnauthorized)
@@ -104,7 +104,7 @@ func (s *Service) handleUploadClubLogo(w http.ResponseWriter, r *http.Request, c
 	}
 
 	// Get club and verify it exists
-	club, err := models.GetClubByID(clubID)
+	club, err := core.GetClubByID(clubID)
 	if err == gorm.ErrRecordNotFound {
 		log.Printf("ERROR: Club not found: %s", clubID)
 		http.Error(w, "Club not found", http.StatusNotFound)

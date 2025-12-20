@@ -12,7 +12,7 @@ import (
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,18 +24,18 @@ import (
 type timelineTestContext struct {
 	service   *Service
 	handler   http.Handler
-	user1     *models.User
-	user2     *models.User
-	club1     *models.Club
-	club2     *models.Club
-	member1   *models.Member
-	member2   *models.Member
+	user1     *core.User
+	user2     *core.User
+	club1     *core.Club
+	club2     *core.Club
+	member1   *core.Member
+	member2   *core.Member
 	token1    string
 	token2    string
-	activity1 *models.Activity
-	event1    *models.Event
-	news1     *models.News
-	event2    *models.Event
+	activity1 *core.Activity
+	event1    *core.Event
+	news1     *core.News
+	event2    *core.Event
 }
 
 // setupTimelineTestContext creates a test environment with timeline test data
@@ -149,7 +149,7 @@ func setupTimelineTestContext(t *testing.T) *timelineTestContext {
 	)`)
 
 	// Create test users
-	user1 := &models.User{
+	user1 := &core.User{
 		ID:        uuid.New().String(),
 		Email:     "user1@example.com",
 		FirstName: "User",
@@ -157,7 +157,7 @@ func setupTimelineTestContext(t *testing.T) *timelineTestContext {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
-	user2 := &models.User{
+	user2 := &core.User{
 		ID:        uuid.New().String(),
 		Email:     "user2@example.com",
 		FirstName: "User",
@@ -169,7 +169,7 @@ func setupTimelineTestContext(t *testing.T) *timelineTestContext {
 	require.NoError(t, testDB.Create(user2).Error)
 
 	// Create test clubs
-	club1 := &models.Club{
+	club1 := &core.Club{
 		ID:        uuid.New().String(),
 		Name:      "Test Club 1",
 		CreatedAt: time.Now(),
@@ -178,7 +178,7 @@ func setupTimelineTestContext(t *testing.T) *timelineTestContext {
 		UpdatedBy: user1.ID,
 		Deleted:   false,
 	}
-	club2 := &models.Club{
+	club2 := &core.Club{
 		ID:        uuid.New().String(),
 		Name:      "Test Club 2",
 		CreatedAt: time.Now(),
@@ -191,7 +191,7 @@ func setupTimelineTestContext(t *testing.T) *timelineTestContext {
 	require.NoError(t, testDB.Create(club2).Error)
 
 	// Create memberships
-	member1 := &models.Member{
+	member1 := &core.Member{
 		ID:        uuid.New().String(),
 		UserID:    user1.ID,
 		ClubID:    club1.ID,
@@ -201,7 +201,7 @@ func setupTimelineTestContext(t *testing.T) *timelineTestContext {
 		UpdatedAt: time.Now(),
 		UpdatedBy: user1.ID,
 	}
-	member2 := &models.Member{
+	member2 := &core.Member{
 		ID:        uuid.New().String(),
 		UserID:    user2.ID,
 		ClubID:    club2.ID,
@@ -215,7 +215,7 @@ func setupTimelineTestContext(t *testing.T) *timelineTestContext {
 	require.NoError(t, testDB.Create(member2).Error)
 
 	// Create test activity
-	activity1 := &models.Activity{
+	activity1 := &core.Activity{
 		ID:        uuid.New().String(),
 		ClubID:    club1.ID,
 		Type:      "member_joined",
@@ -233,7 +233,7 @@ func setupTimelineTestContext(t *testing.T) *timelineTestContext {
 	endTime := startTime.Add(2 * time.Hour)
 	description := "Annual general meeting"
 	location := "Main Hall"
-	event1 := &models.Event{
+	event1 := &core.Event{
 		ID:          uuid.New().String(),
 		ClubID:      club1.ID,
 		Name:        "Annual Meeting",
@@ -247,7 +247,7 @@ func setupTimelineTestContext(t *testing.T) *timelineTestContext {
 	require.NoError(t, testDB.Create(event1).Error)
 
 	// Create RSVP for user1 to event1
-	rsvp := &models.EventRSVP{
+	rsvp := &core.EventRSVP{
 		ID:        uuid.New().String(),
 		EventID:   event1.ID,
 		UserID:    user1.ID,
@@ -258,7 +258,7 @@ func setupTimelineTestContext(t *testing.T) *timelineTestContext {
 	require.NoError(t, testDB.Create(rsvp).Error)
 
 	// Create another event for club2
-	event2 := &models.Event{
+	event2 := &core.Event{
 		ID:        uuid.New().String(),
 		ClubID:    club2.ID,
 		Name:      "Club 2 Event",
@@ -270,7 +270,7 @@ func setupTimelineTestContext(t *testing.T) *timelineTestContext {
 	require.NoError(t, testDB.Create(event2).Error)
 
 	// Create test news
-	news1 := &models.News{
+	news1 := &core.News{
 		ID:        uuid.New().String(),
 		ClubID:    club1.ID,
 		Title:     "Important Announcement",
@@ -328,7 +328,7 @@ func TestGetTimelineCollection_Success(t *testing.T) {
 
 	// Parse response
 	var response struct {
-		Value []models.TimelineItem `json:"value"`
+		Value []core.TimelineItem `json:"value"`
 	}
 	err := json.NewDecoder(w.Body).Decode(&response)
 	require.NoError(t, err)
@@ -376,7 +376,7 @@ func TestGetTimelineCollection_NoClubs(t *testing.T) {
 	ctx := setupTimelineTestContext(t)
 
 	// Create a user with no club memberships
-	user3 := &models.User{
+	user3 := &core.User{
 		ID:        uuid.New().String(),
 		Email:     "user3@example.com",
 		FirstName: "User",
@@ -402,7 +402,7 @@ func TestGetTimelineCollection_NoClubs(t *testing.T) {
 
 	// Parse response
 	var response struct {
-		Value []models.TimelineItem `json:"value"`
+		Value []core.TimelineItem `json:"value"`
 	}
 	err = json.NewDecoder(w.Body).Decode(&response)
 	require.NoError(t, err)
@@ -416,7 +416,7 @@ func TestGetTimelineCollection_MultipleClubs(t *testing.T) {
 	ctx := setupTimelineTestContext(t)
 
 	// Add user1 to club2 as well
-	member := &models.Member{
+	member := &core.Member{
 		ID:        uuid.New().String(),
 		UserID:    ctx.user1.ID,
 		ClubID:    ctx.club2.ID,
@@ -441,7 +441,7 @@ func TestGetTimelineCollection_MultipleClubs(t *testing.T) {
 
 	// Parse response
 	var response struct {
-		Value []models.TimelineItem `json:"value"`
+		Value []core.TimelineItem `json:"value"`
 	}
 	err := json.NewDecoder(w.Body).Decode(&response)
 	require.NoError(t, err)
@@ -477,7 +477,7 @@ func TestGetUserClubs_NoClubs(t *testing.T) {
 	ctx := setupTimelineTestContext(t)
 
 	// Create a user with no memberships
-	user3 := &models.User{
+	user3 := &core.User{
 		ID:        uuid.New().String(),
 		Email:     "user3@example.com",
 		FirstName: "User",
@@ -501,7 +501,7 @@ func TestTimelineRSVPBatchFetch(t *testing.T) {
 
 	// Create multiple events with RSVPs
 	for i := 0; i < 5; i++ {
-		event := &models.Event{
+		event := &core.Event{
 			ID:        uuid.New().String(),
 			ClubID:    ctx.club1.ID,
 			Name:      fmt.Sprintf("Event %d", i),
@@ -512,7 +512,7 @@ func TestTimelineRSVPBatchFetch(t *testing.T) {
 		}
 		require.NoError(t, database.Db.Create(event).Error)
 
-		rsvp := &models.EventRSVP{
+		rsvp := &core.EventRSVP{
 			ID:        uuid.New().String(),
 			EventID:   event.ID,
 			UserID:    ctx.user1.ID,
@@ -533,7 +533,7 @@ func TestTimelineRSVPBatchFetch(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var response struct {
-		Value []models.TimelineItem `json:"value"`
+		Value []core.TimelineItem `json:"value"`
 	}
 	err := json.NewDecoder(w.Body).Decode(&response)
 	require.NoError(t, err)

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 )
 
 func Handler_v1() http.Handler {
@@ -35,14 +35,14 @@ func extractPathParam(r *http.Request, param string) string {
 	return ""
 }
 
-func extractUser(r *http.Request) models.User {
+func extractUser(r *http.Request) core.User {
 	userID := r.Context().Value(auth.UserIDKey).(string)
 	if userID == "" {
-		return models.User{}
+		return core.User{}
 	}
-	user, err := models.GetUserByID(userID)
+	user, err := core.GetUserByID(userID)
 	if err != nil {
-		return models.User{}
+		return core.User{}
 	}
 	return user
 }

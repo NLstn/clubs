@@ -10,7 +10,7 @@ import (
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -94,7 +94,7 @@ func TestCreateClubForNewUser(t *testing.T) {
 	handler := http.StripPrefix("/api/v2", handlers.CompositeAuthMiddleware(odataV2Mux))
 
 	// Create a NEW user who has NO club memberships
-	newUser := &models.User{
+	newUser := &core.User{
 		ID:        uuid.New().String(),
 		Email:     "newuser@example.com",
 		FirstName: "New",
@@ -147,7 +147,7 @@ func TestCreateClubForNewUser(t *testing.T) {
 		assert.Equal(t, newUser.ID, created["CreatedBy"])
 
 		// Verify the user is now a member with owner role
-		var member models.Member
+		var member core.Member
 		err = database.Db.Where("user_id = ? AND club_id = ?", newUser.ID, created["ID"]).First(&member).Error
 		assert.NoError(t, err, "Owner member should be created")
 		assert.Equal(t, "owner", member.Role, "Creator should be owner")

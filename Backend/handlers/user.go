@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 )
 
 func registerUserRoutes(mux *http.ServeMux) {
@@ -46,7 +46,7 @@ func handleGetMySessions(w http.ResponseWriter, r *http.Request) {
 	currentRefreshToken := r.Header.Get("X-Refresh-Token")
 	var hashedCurrentRefreshToken string
 	if currentRefreshToken != "" {
-		hashedCurrentRefreshToken = models.HashToken(currentRefreshToken)
+		hashedCurrentRefreshToken = core.HashToken(currentRefreshToken)
 	}
 
 	// Transform sessions for response

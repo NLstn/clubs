@@ -1,4 +1,4 @@
-package core_test
+package core
 
 import (
 	"testing"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,7 +26,7 @@ func TestSearchEventsForUser(t *testing.T) {
 
 	// Create test user
 	keycloakID := userID + "-keycloak"
-	user := models.User{
+	user := User{
 		ID:         userID,
 		FirstName:  "Test",
 		LastName:   "User",
@@ -40,7 +39,7 @@ func TestSearchEventsForUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create test clubs
-	club1 := models.Club{
+	club1 := Club{
 		ID:          club1ID,
 		Name:        "Test Club 1",
 		Description: strPtr("First test club"),
@@ -49,7 +48,7 @@ func TestSearchEventsForUser(t *testing.T) {
 		CreatedBy:   userID,
 		UpdatedBy:   userID,
 	}
-	club2 := models.Club{
+	club2 := Club{
 		ID:          club2ID,
 		Name:        "Test Club 2",
 		Description: strPtr("Second test club"),
@@ -64,7 +63,7 @@ func TestSearchEventsForUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Add user as member of club1 only
-	member := models.Member{
+	member := Member{
 		ID:        uuid.New().String(),
 		UserID:    userID,
 		ClubID:    club1ID,
@@ -78,7 +77,7 @@ func TestSearchEventsForUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create events in both clubs
-	event1 := models.Event{
+	event1 := Event{
 		ID:          uuid.New().String(),
 		ClubID:      club1ID,
 		Name:        "Search Test Event",
@@ -91,7 +90,7 @@ func TestSearchEventsForUser(t *testing.T) {
 		CreatedBy:   userID,
 		UpdatedBy:   userID,
 	}
-	event2 := models.Event{
+	event2 := Event{
 		ID:          uuid.New().String(),
 		ClubID:      club1ID,
 		Name:        "Another Event",
@@ -104,7 +103,7 @@ func TestSearchEventsForUser(t *testing.T) {
 		CreatedBy:   userID,
 		UpdatedBy:   userID,
 	}
-	event3 := models.Event{
+	event3 := Event{
 		ID:          uuid.New().String(),
 		ClubID:      club2ID,
 		Name:        "Search Private Event",
@@ -126,7 +125,7 @@ func TestSearchEventsForUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	t.Run("SearchEventsUserIsMemberOf", func(t *testing.T) {
-		results, err := models.SearchEventsForUser(userID, "Search")
+		results, err := SearchEventsForUser(userID, "Search")
 		assert.NoError(t, err)
 
 		// Should find event1 (user is member of club1)
@@ -139,20 +138,20 @@ func TestSearchEventsForUser(t *testing.T) {
 	})
 
 	t.Run("SearchEventsNoMatch", func(t *testing.T) {
-		results, err := models.SearchEventsForUser(userID, "NonExistent")
+		results, err := SearchEventsForUser(userID, "NonExistent")
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(results))
 	})
 
 	t.Run("SearchEventsCaseInsensitive", func(t *testing.T) {
-		results, err := models.SearchEventsForUser(userID, "search")
+		results, err := SearchEventsForUser(userID, "search")
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(results))
 		assert.Equal(t, event1.ID, results[0].ID)
 	})
 
 	t.Run("SearchEventsPartialMatch", func(t *testing.T) {
-		results, err := models.SearchEventsForUser(userID, "Test")
+		results, err := SearchEventsForUser(userID, "Test")
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(results))
 		assert.Equal(t, event1.ID, results[0].ID)
@@ -162,7 +161,7 @@ func TestSearchEventsForUser(t *testing.T) {
 		// Create a new user who is not a member of any club
 		newUserID := uuid.New().String()
 		newKeycloakID := newUserID + "-keycloak"
-		newUser := models.User{
+		newUser := User{
 			ID:         newUserID,
 			FirstName:  "New",
 			LastName:   "User",
@@ -174,7 +173,7 @@ func TestSearchEventsForUser(t *testing.T) {
 		err := database.Db.Create(&newUser).Error
 		assert.NoError(t, err)
 
-		results, err := models.SearchEventsForUser(newUserID, "Search")
+		results, err := SearchEventsForUser(newUserID, "Search")
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(results))
 	})
@@ -184,7 +183,7 @@ func TestSearchEventsForUser(t *testing.T) {
 		err := database.Db.Model(&club1).Update("deleted", true).Error
 		assert.NoError(t, err)
 
-		results, err := models.SearchEventsForUser(userID, "Search")
+		results, err := SearchEventsForUser(userID, "Search")
 		assert.NoError(t, err)
 
 		// Should not find events from deleted clubs

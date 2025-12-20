@@ -14,7 +14,8 @@ import (
 	"github.com/NLstn/clubs/csrf"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
+	modelsauth "github.com/NLstn/clubs/models/auth"
+	"github.com/NLstn/clubs/models/core"
 	"github.com/NLstn/clubs/odata"
 	"github.com/NLstn/clubs/scheduler"
 	frontend "github.com/NLstn/clubs/tools"
@@ -32,32 +33,32 @@ func main() {
 
 	// FIXME: This should be in the database.go file, but importing the models there would result
 	//        in a circular dependency.
-	err = database.Db.AutoMigrate(&models.Club{},
-		&models.Member{},
-		&models.Team{},
-		&models.TeamMember{},
-		&models.MagicLink{},
-		&models.OAuthState{},
-		&models.User{},
-		&models.JoinRequest{},
-		&models.Invite{},
-		&models.RefreshToken{},
-		&models.Fine{},
-		&models.FineTemplate{},
-		&models.Shift{},
-		&models.ShiftMember{},
-		&models.Event{},
-		&models.EventRSVP{},
-		&models.News{},
-		&models.ClubSettings{},
-		&models.Notification{},
-		&models.UserNotificationPreferences{},
-		&models.UserPrivacySettings{},
-		&models.MemberPrivacySettings{},
-		&models.Activity{},
-		&models.APIKey{},
-		&models.ScheduledJob{},
-		&models.JobExecution{},
+	err = database.Db.AutoMigrate(&core.Club{},
+		&core.Member{},
+		&core.Team{},
+		&core.TeamMember{},
+		&modelsauth.MagicLink{},
+		&modelsauth.OAuthState{},
+		&core.User{},
+		&core.JoinRequest{},
+		&core.Invite{},
+		&core.RefreshToken{},
+		&core.Fine{},
+		&core.FineTemplate{},
+		&core.Shift{},
+		&core.ShiftMember{},
+		&core.Event{},
+		&core.EventRSVP{},
+		&core.News{},
+		&core.ClubSettings{},
+		&core.Notification{},
+		&core.UserNotificationPreferences{},
+		&core.UserPrivacySettings{},
+		&core.MemberPrivacySettings{},
+		&core.Activity{},
+		&modelsauth.APIKey{},
+		&core.ScheduledJob{},
+		&core.JobExecution{},
 	)
 	if err != nil {
 		log.Fatal("Could not migrate database:", err)
@@ -92,7 +93,7 @@ func main() {
 	jobScheduler := scheduler.NewScheduler(1 * time.Minute)
 
 	// Register job handlers
-	jobScheduler.RegisterJob("cleanup_oauth_states", models.CleanupExpiredOAuthStates)
+	jobScheduler.RegisterJob("cleanup_oauth_states", modelsauth.CleanupExpiredOAuthStates)
 
 	// Initialize default jobs in the database
 	if err := scheduler.InitializeDefaultJobs(database.Db); err != nil {

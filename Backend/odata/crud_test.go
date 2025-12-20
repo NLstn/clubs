@@ -15,7 +15,7 @@ import (
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,10 +27,10 @@ import (
 type testContext struct {
 	service    *Service
 	handler    http.Handler
-	testUser   *models.User
-	testUser2  *models.User
-	testClub   *models.Club
-	testMember *models.Member
+	testUser   *core.User
+	testUser2  *core.User
+	testClub   *core.Club
+	testMember *core.Member
 	token      string
 }
 
@@ -319,7 +319,7 @@ func setupTestContext(t *testing.T) *testContext {
 	handler := http.StripPrefix("/api/v2", handlers.CompositeAuthMiddleware(odataV2Mux))
 
 	// Create test users
-	testUser := &models.User{
+	testUser := &core.User{
 		ID:        uuid.New().String(),
 		Email:     "test@example.com",
 		FirstName: "Test",
@@ -327,7 +327,7 @@ func setupTestContext(t *testing.T) *testContext {
 	}
 	require.NoError(t, database.Db.Create(testUser).Error, "Failed to create test user")
 
-	testUser2 := &models.User{
+	testUser2 := &core.User{
 		ID:        uuid.New().String(),
 		Email:     "test2@example.com",
 		FirstName: "Test",
@@ -341,7 +341,7 @@ func setupTestContext(t *testing.T) *testContext {
 
 	// Create test club with member
 	description := "A test club"
-	testClub := &models.Club{
+	testClub := &core.Club{
 		ID:          uuid.New().String(),
 		Name:        "Test Club",
 		Description: &description,
@@ -351,7 +351,7 @@ func setupTestContext(t *testing.T) *testContext {
 	}
 	require.NoError(t, database.Db.Create(testClub).Error, "Failed to create test club")
 
-	testMember := &models.Member{
+	testMember := &core.Member{
 		ID:        uuid.New().String(),
 		ClubID:    testClub.ID,
 		UserID:    testUser.ID,
@@ -362,7 +362,7 @@ func setupTestContext(t *testing.T) *testContext {
 	require.NoError(t, database.Db.Create(testMember).Error, "Failed to create test member")
 
 	// Create club settings for the test club
-	testClubSettings := &models.ClubSettings{
+	testClubSettings := &core.ClubSettings{
 		ID:                       uuid.New().String(),
 		ClubID:                   testClub.ID,
 		FinesEnabled:             true,
@@ -543,7 +543,7 @@ func TestClubCRUD(t *testing.T) {
 	t.Run("DELETE mark club as deleted", func(t *testing.T) {
 		// Create a new club specifically for deletion test
 		desc := "Club for deletion test"
-		clubToDelete := &models.Club{
+		clubToDelete := &core.Club{
 			ID:          uuid.New().String(),
 			Name:        "Club To Delete",
 			Description: &desc,
@@ -554,7 +554,7 @@ func TestClubCRUD(t *testing.T) {
 		require.NoError(t, database.Db.Create(clubToDelete).Error)
 
 		// Create membership
-		memberForDelete := &models.Member{
+		memberForDelete := &core.Member{
 			ID:        uuid.New().String(),
 			ClubID:    clubToDelete.ID,
 			UserID:    ctx.testUser.ID,
@@ -572,7 +572,7 @@ func TestClubCRUD(t *testing.T) {
 			"Expected 200 or 204 for marking as deleted, got %d", resp.StatusCode)
 
 		// Verify club has deleted status in database (use Unscoped to query deleted records)
-		var club models.Club
+		var club core.Club
 		err := database.Db.Unscoped().Where("id = ?", clubToDelete.ID).First(&club).Error
 		if err != nil {
 			t.Logf("Could not verify deleted status: %v - skipping database check", err)
@@ -758,7 +758,7 @@ func TestEventCRUD(t *testing.T) {
 		// Create another event
 		desc2 := "Another event"
 		loc2 := "Another Location"
-		newEvent := &models.Event{
+		newEvent := &core.Event{
 			ID:          uuid.New().String(),
 			ClubID:      ctx.testClub.ID,
 			Name:        "Second Event",
@@ -799,7 +799,7 @@ func TestEventCRUD(t *testing.T) {
 		// First create an event
 		desc3 := "Original description"
 		loc3 := "Original Location"
-		event := &models.Event{
+		event := &core.Event{
 			ID:          uuid.New().String(),
 			ClubID:      ctx.testClub.ID,
 			Name:        "Event to Update",
@@ -860,7 +860,7 @@ func TestODataQueryFeatures(t *testing.T) {
 
 	// Create multiple clubs for testing
 	desc4 := "A soccer club"
-	club2 := &models.Club{
+	club2 := &core.Club{
 		ID:          uuid.New().String(),
 		Name:        "Soccer Club",
 		Description: &desc4,
@@ -871,7 +871,7 @@ func TestODataQueryFeatures(t *testing.T) {
 	require.NoError(t, database.Db.Create(club2).Error)
 
 	desc5 := "A chess club"
-	club3 := &models.Club{
+	club3 := &core.Club{
 		ID:          uuid.New().String(),
 		Name:        "Chess Club",
 		Description: &desc5,
@@ -882,7 +882,7 @@ func TestODataQueryFeatures(t *testing.T) {
 	require.NoError(t, database.Db.Create(club3).Error)
 
 	// Create members for all clubs
-	member2 := &models.Member{
+	member2 := &core.Member{
 		ID:        uuid.New().String(),
 		ClubID:    club2.ID,
 		UserID:    ctx.testUser.ID,
@@ -892,7 +892,7 @@ func TestODataQueryFeatures(t *testing.T) {
 	}
 	require.NoError(t, database.Db.Create(member2).Error)
 
-	member3 := &models.Member{
+	member3 := &core.Member{
 		ID:        uuid.New().String(),
 		ClubID:    club3.ID,
 		UserID:    ctx.testUser.ID,
@@ -1000,7 +1000,7 @@ func TestSoftDeleteFiltering(t *testing.T) {
 
 	// Create a club that we'll soft delete
 	desc6 := "This will be deleted"
-	clubToDelete := &models.Club{
+	clubToDelete := &core.Club{
 		ID:          uuid.New().String(),
 		Name:        "Club to Delete",
 		Description: &desc6,
@@ -1011,7 +1011,7 @@ func TestSoftDeleteFiltering(t *testing.T) {
 	require.NoError(t, database.Db.Create(clubToDelete).Error)
 
 	// Create member so user can access the club
-	memberToDelete := &models.Member{
+	memberToDelete := &core.Member{
 		ID:        uuid.New().String(),
 		ClubID:    clubToDelete.ID,
 		UserID:    ctx.testUser.ID,
@@ -1050,7 +1050,7 @@ func TestSoftDeleteFiltering(t *testing.T) {
 	})
 
 	t.Run("club is actually soft deleted in database", func(t *testing.T) {
-		var club models.Club
+		var club core.Club
 		err := database.Db.Unscoped().Where("id = ?", clubToDelete.ID).First(&club).Error
 		require.NoError(t, err)
 
@@ -1104,7 +1104,7 @@ func TestClubDiscoverability(t *testing.T) {
 
 	// Create a second club that is discoverable
 	discoverableClubDesc := "This club can be discovered by non-members"
-	discoverableClub := &models.Club{
+	discoverableClub := &core.Club{
 		ID:          uuid.New().String(),
 		Name:        "Discoverable Club",
 		Description: &discoverableClubDesc,
@@ -1116,7 +1116,7 @@ func TestClubDiscoverability(t *testing.T) {
 	require.NoError(t, database.Db.Create(discoverableClub).Error)
 
 	// Create settings with DiscoverableByNonMembers = true
-	discoverableSettings := &models.ClubSettings{
+	discoverableSettings := &core.ClubSettings{
 		ID:                       uuid.New().String(),
 		ClubID:                   discoverableClub.ID,
 		FinesEnabled:             true,
@@ -1130,7 +1130,7 @@ func TestClubDiscoverability(t *testing.T) {
 	require.NoError(t, database.Db.Create(discoverableSettings).Error)
 
 	// Create member relationship for testUser (owner)
-	discoverableMember := &models.Member{
+	discoverableMember := &core.Member{
 		ID:        uuid.New().String(),
 		ClubID:    discoverableClub.ID,
 		UserID:    ctx.testUser.ID,
@@ -1142,7 +1142,7 @@ func TestClubDiscoverability(t *testing.T) {
 
 	// Create a third club that is NOT discoverable
 	privateClubDesc := "This club cannot be discovered by non-members"
-	privateClub := &models.Club{
+	privateClub := &core.Club{
 		ID:          uuid.New().String(),
 		Name:        "Private Club",
 		Description: &privateClubDesc,
@@ -1154,7 +1154,7 @@ func TestClubDiscoverability(t *testing.T) {
 	require.NoError(t, database.Db.Create(privateClub).Error)
 
 	// Create settings with DiscoverableByNonMembers = false
-	privateSettings := &models.ClubSettings{
+	privateSettings := &core.ClubSettings{
 		ID:                       uuid.New().String(),
 		ClubID:                   privateClub.ID,
 		FinesEnabled:             true,
@@ -1168,7 +1168,7 @@ func TestClubDiscoverability(t *testing.T) {
 	require.NoError(t, database.Db.Create(privateSettings).Error)
 
 	// Create member relationship for testUser only (testUser2 is not a member)
-	privateMember := &models.Member{
+	privateMember := &core.Member{
 		ID:        uuid.New().String(),
 		ClubID:    privateClub.ID,
 		UserID:    ctx.testUser.ID,
@@ -1282,7 +1282,7 @@ func TestClubSettingsAccess(t *testing.T) {
 
 	// Create a club where testUser2 is NOT a member
 	otherClubDesc := "Club that testUser2 is not a member of"
-	otherClub := &models.Club{
+	otherClub := &core.Club{
 		ID:          uuid.New().String(),
 		Name:        "Other Club",
 		Description: &otherClubDesc,
@@ -1294,7 +1294,7 @@ func TestClubSettingsAccess(t *testing.T) {
 	require.NoError(t, database.Db.Create(otherClub).Error)
 
 	// Create settings for other club
-	otherSettings := &models.ClubSettings{
+	otherSettings := &core.ClubSettings{
 		ID:                       uuid.New().String(),
 		ClubID:                   otherClub.ID,
 		FinesEnabled:             true,
@@ -1308,7 +1308,7 @@ func TestClubSettingsAccess(t *testing.T) {
 	require.NoError(t, database.Db.Create(otherSettings).Error)
 
 	// testUser is owner
-	otherMember := &models.Member{
+	otherMember := &core.Member{
 		ID:        uuid.New().String(),
 		ClubID:    otherClub.ID,
 		UserID:    ctx.testUser.ID,
@@ -1405,7 +1405,7 @@ func TestClubSettingsAccess(t *testing.T) {
 	t.Run("Admin can update DiscoverableByNonMembers setting", func(t *testing.T) {
 		// Since ClubSettings OData direct access may not be fully configured,
 		// we'll test the Update method directly which is what the frontend uses via OData PATCH
-		var testSettings models.ClubSettings
+		var testSettings core.ClubSettings
 		err := database.Db.Where("club_id = ?", ctx.testClub.ID).First(&testSettings).Error
 		require.NoError(t, err)
 
@@ -1424,7 +1424,7 @@ func TestClubSettingsAccess(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify the update
-		var updated models.ClubSettings
+		var updated core.ClubSettings
 		err = database.Db.First(&updated, "id = ?", testSettings.ID).Error
 		require.NoError(t, err)
 		assert.True(t, updated.DiscoverableByNonMembers, "DiscoverableByNonMembers should be updated to true")
@@ -1433,7 +1433,7 @@ func TestClubSettingsAccess(t *testing.T) {
 	t.Run("OData hooks prevent non-members from accessing settings", func(t *testing.T) {
 		// This verifies the OData hooks work correctly by checking the database directly
 		// The hooks should prevent testUser2 (non-member) from seeing otherSettings
-		var settings models.ClubSettings
+		var settings core.ClubSettings
 		err := database.Db.Where("club_id = ?", otherClub.ID).First(&settings).Error
 		require.NoError(t, err, "Settings should exist in database")
 

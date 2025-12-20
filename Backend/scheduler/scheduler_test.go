@@ -8,7 +8,7 @@ import (
 
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	"github.com/NLstn/clubs/scheduler"
 	"github.com/stretchr/testify/assert"
 )
@@ -56,7 +56,7 @@ func TestScheduler_ExecuteJob(t *testing.T) {
 	s.RegisterJob("test_handler", testJob)
 	
 	// Create a scheduled job in the database
-	job := models.ScheduledJob{
+	job := core.ScheduledJob{
 		Name:            "test_job_exec",
 		Description:     "Test job",
 		JobHandler:      "test_handler",
@@ -79,14 +79,14 @@ func TestScheduler_ExecuteJob(t *testing.T) {
 	assert.Greater(t, callCount, 0, "Job should have been called at least once")
 	
 	// Verify job execution was recorded
-	var executions []models.JobExecution
+	var executions []core.JobExecution
 	err = database.Db.Where("scheduled_job_id = ?", job.ID).Find(&executions).Error
 	assert.NoError(t, err)
 	assert.Greater(t, len(executions), 0, "Should have at least one job execution")
 	
 	// Verify execution status
 	if len(executions) > 0 {
-		assert.Equal(t, models.JobStatusSuccess, executions[0].Status)
+		assert.Equal(t, core.JobStatusSuccess, executions[0].Status)
 		assert.NotNil(t, executions[0].CompletedAt)
 		assert.NotNil(t, executions[0].DurationMs)
 	}
@@ -106,7 +106,7 @@ func TestScheduler_JobFailure(t *testing.T) {
 	s.RegisterJob("failing_handler", failingJob)
 	
 	// Create a scheduled job in the database
-	job := models.ScheduledJob{
+	job := core.ScheduledJob{
 		Name:            "test_job_fail",
 		Description:     "Test failing job",
 		JobHandler:      "failing_handler",
@@ -126,14 +126,14 @@ func TestScheduler_JobFailure(t *testing.T) {
 	s.Stop()
 	
 	// Verify job execution was recorded with failure
-	var executions []models.JobExecution
+	var executions []core.JobExecution
 	err = database.Db.Where("scheduled_job_id = ?", job.ID).Find(&executions).Error
 	assert.NoError(t, err)
 	assert.Greater(t, len(executions), 0, "Should have at least one job execution")
 	
 	// Verify execution status
 	if len(executions) > 0 {
-		assert.Equal(t, models.JobStatusFailed, executions[0].Status)
+		assert.Equal(t, core.JobStatusFailed, executions[0].Status)
 		assert.NotNil(t, executions[0].ErrorMessage)
 		assert.Contains(t, *executions[0].ErrorMessage, "test error")
 	}
@@ -154,7 +154,7 @@ func TestScheduler_DisabledJob(t *testing.T) {
 	s.RegisterJob("test_handler_disabled", testJob)
 	
 	// Create a disabled scheduled job in the database
-	job := models.ScheduledJob{
+	job := core.ScheduledJob{
 		Name:            "test_job_disabled",
 		Description:     "Test disabled job",
 		JobHandler:      "test_handler_disabled",
@@ -169,7 +169,7 @@ func TestScheduler_DisabledJob(t *testing.T) {
 	assert.NoError(t, err)
 	
 	// Verify it was actually set to disabled
-	var verifyJob models.ScheduledJob
+	var verifyJob core.ScheduledJob
 	err = database.Db.Where("id = ?", job.ID).First(&verifyJob).Error
 	assert.NoError(t, err)
 	assert.False(t, verifyJob.Enabled, "Job should be disabled")
@@ -187,7 +187,7 @@ func TestScheduler_DisabledJob(t *testing.T) {
 	assert.Equal(t, 0, callCount, "Disabled job should not be called")
 	
 	// Verify no job execution was recorded
-	var executions []models.JobExecution
+	var executions []core.JobExecution
 	err = database.Db.Where("scheduled_job_id = ?", job.ID).Find(&executions).Error
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(executions), "Should have no job executions for disabled job")
@@ -201,7 +201,7 @@ func TestInitializeDefaultJobs(t *testing.T) {
 	assert.NoError(t, err)
 	
 	// Verify OAuth cleanup job was created
-	var job models.ScheduledJob
+	var job core.ScheduledJob
 	err = database.Db.Where("name = ?", "oauth_state_cleanup").First(&job).Error
 	assert.NoError(t, err)
 	assert.Equal(t, "oauth_state_cleanup", job.Name)
@@ -214,7 +214,7 @@ func TestInitializeDefaultJobs(t *testing.T) {
 	assert.NoError(t, err)
 	
 	var count int64
-	database.Db.Model(&models.ScheduledJob{}).Where("name = ?", "oauth_state_cleanup").Count(&count)
+	database.Db.Model(&core.ScheduledJob{}).Where("name = ?", "oauth_state_cleanup").Count(&count)
 	assert.Equal(t, int64(1), count, "Should have exactly one oauth_state_cleanup job")
 }
 
@@ -244,7 +244,7 @@ func TestScheduler_JobTimeout(t *testing.T) {
 	
 	s.RegisterJob("timeout_test_handler", longJob)
 	
-	job := models.ScheduledJob{
+	job := core.ScheduledJob{
 		Name:            "test_job_timeout",
 		Description:     "Test job timeout handling",
 		JobHandler:      "timeout_test_handler",
@@ -263,18 +263,18 @@ func TestScheduler_JobTimeout(t *testing.T) {
 	mu.Unlock()
 	
 	// Verify the job completed successfully (didn't timeout)
-	var executions []models.JobExecution
+	var executions []core.JobExecution
 	err = database.Db.Where("scheduled_job_id = ?", job.ID).Find(&executions).Error
 	assert.NoError(t, err)
 	assert.Greater(t, len(executions), 0)
 	
 	if len(executions) > 0 {
-		assert.NotEqual(t, models.JobStatusTimeout, executions[0].Status, "Job should not have timed out")
+		assert.NotEqual(t, core.JobStatusTimeout, executions[0].Status, "Job should not have timed out")
 		assert.False(t, didTimeout, "Timeout should not have occurred")
 	}
 	
 	// Verify next_run_at was updated even though job completed normally
-	var updatedJob models.ScheduledJob
+	var updatedJob core.ScheduledJob
 	err = database.Db.Where("id = ?", job.ID).First(&updatedJob).Error
 	assert.NoError(t, err)
 	assert.NotNil(t, updatedJob.LastRunAt, "LastRunAt should be set")
@@ -302,7 +302,7 @@ func TestScheduler_PreventConcurrentExecution(t *testing.T) {
 	s.RegisterJob("long_running_handler", longJob)
 	
 	// Create a scheduled job
-	job := models.ScheduledJob{
+	job := core.ScheduledJob{
 		Name:            "test_job_long",
 		Description:     "Test long running job",
 		JobHandler:      "long_running_handler",
@@ -329,7 +329,7 @@ func TestScheduler_PreventConcurrentExecution(t *testing.T) {
 	assert.Equal(t, 1, count, "Job should have been called exactly once (no concurrent execution)")
 	
 	// Verify only one job execution exists
-	var executions []models.JobExecution
+	var executions []core.JobExecution
 	err = database.Db.Where("scheduled_job_id = ?", job.ID).Find(&executions).Error
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(executions), "Should have exactly one job execution")

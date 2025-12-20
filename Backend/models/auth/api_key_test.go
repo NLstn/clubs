@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/NLstn/clubs/models/core"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -13,7 +14,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	assert.NoError(t, err)
 
-	err = db.AutoMigrate(&User{}, &APIKey{})
+	err = db.AutoMigrate(&core.User{}, &APIKey{})
 	assert.NoError(t, err)
 
 	return db

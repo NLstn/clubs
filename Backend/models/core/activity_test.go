@@ -1,4 +1,4 @@
-package core_test
+package core
 
 import (
 	"encoding/json"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
 )
 
 func TestCreateRoleChangeActivity(t *testing.T) {
@@ -32,12 +31,12 @@ func TestCreateRoleChangeActivity(t *testing.T) {
 			actorID := "actor-1"
 			clubName := "Test Club"
 
-			err := models.CreateRoleChangeActivity(clubID, userID, actorID, clubName, tc.oldRole, tc.newRole)
+			err := CreateRoleChangeActivity(clubID, userID, actorID, clubName, tc.oldRole, tc.newRole)
 			if err != nil {
 				t.Fatalf("CreateRoleChangeActivity returned error: %v", err)
 			}
 
-			var activity models.Activity
+			var activity Activity
 			if err := db.First(&activity).Error; err != nil {
 				t.Fatalf("failed to fetch activity: %v", err)
 			}
@@ -73,12 +72,12 @@ func TestCreateMemberJoinedActivity(t *testing.T) {
 	userID := "user-1"
 	clubName := "Test Club"
 
-	err := models.CreateMemberJoinedActivity(clubID, userID, clubName, nil)
+	err := CreateMemberJoinedActivity(clubID, userID, clubName, nil)
 	if err != nil {
 		t.Fatalf("CreateMemberJoinedActivity returned error: %v", err)
 	}
 
-	var activity models.Activity
+	var activity Activity
 	if err := db.First(&activity).Error; err != nil {
 		t.Fatalf("failed to fetch activity: %v", err)
 	}
@@ -130,7 +129,7 @@ func TestAddMemberCreatesActivity(t *testing.T) {
 	}
 
 	// Verify activity was created
-	var activities []models.Activity
+	var activities []Activity
 	err = db.Where("club_id = ? AND user_id = ? AND type = ?", club.ID, newMember.ID, "member_joined").Find(&activities).Error
 	if err != nil {
 		t.Fatalf("failed to fetch activities: %v", err)

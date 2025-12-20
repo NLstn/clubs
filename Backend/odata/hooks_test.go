@@ -7,7 +7,7 @@ import (
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
@@ -53,7 +53,7 @@ func TestAuthorizationQueryFiltering(t *testing.T) {
 		// Users should access their clubs via User -> Members -> Club navigation
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1.ID)
 
-		var clubs []models.Club
+		var clubs []core.Club
 		// Clubs are now filtered only by soft-delete status
 		query := database.Db.WithContext(ctx).Where(
 			"deleted = false",
@@ -77,7 +77,7 @@ func TestAuthorizationQueryFiltering(t *testing.T) {
 		// User1 should see members of clubs they're members of
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1.ID)
 
-		var members []models.Member
+		var members []core.Member
 		// Simulate authorization query:
 		// club_id IN (SELECT club_id FROM members WHERE user_id = ?)
 		query := database.Db.WithContext(ctx).Where(
@@ -97,7 +97,7 @@ func TestAuthorizationQueryFiltering(t *testing.T) {
 
 		// Simulate authorization query:
 		// user_id = ?
-		var notifications []models.Notification
+		var notifications []core.Notification
 		query := database.Db.WithContext(ctx).Where(
 			"user_id = ?",
 			user1.ID,
@@ -129,7 +129,7 @@ func TestAuthorizationQueryFiltering(t *testing.T) {
 
 		// User2 is a member (not admin) of Club1
 		// Query to check if user is admin:
-		var member models.Member
+		var member core.Member
 		query := database.Db.WithContext(ctx).Where(
 			"club_id = ? AND user_id = ? AND role IN ('admin', 'owner')",
 			club1.ID, user2.ID,
@@ -148,7 +148,7 @@ func TestAuthorizationQueryFiltering(t *testing.T) {
 		user3, _ := handlers.CreateTestUser(t, "user3@example.com")
 		handlers.CreateTestMember(t, user3, club2, "admin")
 
-		var members []models.Member
+		var members []core.Member
 		// Query for members of Club2 only
 		query := database.Db.WithContext(ctx).Where(
 			"club_id = ? AND club_id IN (SELECT club_id FROM members WHERE user_id = ?)",

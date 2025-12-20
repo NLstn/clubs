@@ -1,10 +1,9 @@
-package core_test
+package core
 
 import (
 	"testing"
 
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -177,7 +176,7 @@ func TestGetClubMembers(t *testing.T) {
 		assert.Len(t, members, 3) // owner + 2 additional members
 
 		// Check that all expected users are present
-		memberMap := make(map[string]models.Member)
+		memberMap := make(map[string]Member)
 		for _, member := range members {
 			memberMap[member.UserID] = member
 		}

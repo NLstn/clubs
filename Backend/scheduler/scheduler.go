@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/database"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	"gorm.io/gorm"
 )
 
@@ -78,7 +78,7 @@ func (s *Scheduler) Start() {
 
 // checkAndRunJobs queries the database for jobs that need to run
 func (s *Scheduler) checkAndRunJobs() {
-	var jobs []models.ScheduledJob
+	var jobs []core.ScheduledJob
 	now := time.Now()
 	
 	// Find all enabled jobs where next_run_at is in the past or null
@@ -95,8 +95,8 @@ func (s *Scheduler) checkAndRunJobs() {
 		err := database.Db.Transaction(func(tx *gorm.DB) error {
 			// Lock the row to prevent concurrent checks
 			var count int64
-			if err := tx.Model(&models.JobExecution{}).
-				Where("scheduled_job_id = ? AND status = ?", job.ID, models.JobStatusPending).
+			if err := tx.Model(&core.JobExecution{}).
+				Where("scheduled_job_id = ? AND status = ?", job.ID, core.JobStatusPending).
 				Count(&count).Error; err != nil {
 				return err
 			}
@@ -121,16 +121,16 @@ func (s *Scheduler) checkAndRunJobs() {
 }
 
 // executeJob executes a single job and records the execution
-func (s *Scheduler) executeJob(job models.ScheduledJob) {
+func (s *Scheduler) executeJob(job core.ScheduledJob) {
 	defer s.wg.Done()
 	
 	log.Printf("Starting job: %s (ID: %s)", job.Name, job.ID)
 	
 	// Create job execution record
-	execution := &models.JobExecution{
+	execution := &core.JobExecution{
 		ScheduledJobID: job.ID,
 		StartedAt:      time.Now(),
-		Status:         models.JobStatusPending,
+		Status:         core.JobStatusPending,
 	}
 	
 	if err := database.Db.Create(execution).Error; err != nil {
@@ -175,7 +175,7 @@ func (s *Scheduler) executeJob(job models.ScheduledJob) {
 		errMsg := "Job execution timeout"
 		log.Printf("Job %s timed out after %v", job.Name, timeout)
 		errMsgPtr := &errMsg
-		if err := execution.MarkCompleted(database.Db, models.JobStatusTimeout, errMsgPtr); err != nil {
+		if err := execution.MarkCompleted(database.Db, core.JobStatusTimeout, errMsgPtr); err != nil {
 			log.Printf("Error marking job execution as timeout: %v", err)
 		}
 	}
@@ -192,15 +192,15 @@ func (s *Scheduler) executeJob(job models.ScheduledJob) {
 }
 
 // markJobSuccess marks a job execution as successful
-func (s *Scheduler) markJobSuccess(execution *models.JobExecution) {
-	if err := execution.MarkCompleted(database.Db, models.JobStatusSuccess, nil); err != nil {
+func (s *Scheduler) markJobSuccess(execution *core.JobExecution) {
+	if err := execution.MarkCompleted(database.Db, core.JobStatusSuccess, nil); err != nil {
 		log.Printf("Error marking job execution as success: %v", err)
 	}
 }
 
 // markJobFailed marks a job execution as failed
-func (s *Scheduler) markJobFailed(execution *models.JobExecution, errorMessage string) {
-	if err := execution.MarkCompleted(database.Db, models.JobStatusFailed, &errorMessage); err != nil {
+func (s *Scheduler) markJobFailed(execution *core.JobExecution, errorMessage string) {
+	if err := execution.MarkCompleted(database.Db, core.JobStatusFailed, &errorMessage); err != nil {
 		log.Printf("Error marking job execution as failed: %v", err)
 	}
 }
@@ -235,10 +235,10 @@ func (s *Scheduler) Stop() {
 // InitializeDefaultJobs creates default job records in the database if they don't exist
 func InitializeDefaultJobs(db *gorm.DB) error {
 	// OAuth state cleanup job
-	var oauthCleanupJob models.ScheduledJob
+	var oauthCleanupJob core.ScheduledJob
 	err := db.Where("name = ?", "oauth_state_cleanup").First(&oauthCleanupJob).Error
 	if err == gorm.ErrRecordNotFound {
-		oauthCleanupJob = models.ScheduledJob{
+		oauthCleanupJob = core.ScheduledJob{
 			Name:            "oauth_state_cleanup",
 			Description:     "Removes expired OAuth state records from the database",
 			JobHandler:      "cleanup_oauth_states",

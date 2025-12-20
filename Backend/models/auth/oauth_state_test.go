@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/auth"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,11 +16,11 @@ func TestCreateOAuthState(t *testing.T) {
 	state := "test-state-123"
 	codeVerifier := "test-verifier-456"
 
-	err := models.CreateOAuthState(state, codeVerifier)
+	err := auth.CreateOAuthState(state, codeVerifier)
 	assert.NoError(t, err)
 
 	// Verify the state was created
-	oauthState, err := models.GetOAuthStateByState(state)
+	oauthState, err := auth.GetOAuthStateByState(state)
 	assert.NoError(t, err)
 	assert.Equal(t, state, oauthState.State)
 	assert.Equal(t, codeVerifier, oauthState.CodeVerifier)
@@ -36,23 +36,23 @@ func TestGetOAuthStateByState(t *testing.T) {
 		state := "valid-state"
 		codeVerifier := "valid-verifier"
 
-		err := models.CreateOAuthState(state, codeVerifier)
+		err := auth.CreateOAuthState(state, codeVerifier)
 		assert.NoError(t, err)
 
-		oauthState, err := models.GetOAuthStateByState(state)
+		oauthState, err := auth.GetOAuthStateByState(state)
 		assert.NoError(t, err)
 		assert.Equal(t, state, oauthState.State)
 		assert.Equal(t, codeVerifier, oauthState.CodeVerifier)
 	})
 
 	t.Run("non-existing state", func(t *testing.T) {
-		_, err := models.GetOAuthStateByState("non-existing-state")
+		_, err := auth.GetOAuthStateByState("non-existing-state")
 		assert.Error(t, err)
 	})
 
 	t.Run("expired state", func(t *testing.T) {
 		// Create an expired state directly in the database
-		expiredState := &models.OAuthState{
+		expiredState := &auth.OAuthState{
 			State:        "expired-state",
 			CodeVerifier: "expired-verifier",
 			ExpiresAt:    time.Now().Add(-1 * time.Hour),
@@ -61,7 +61,7 @@ func TestGetOAuthStateByState(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Should not be able to retrieve expired state
-		_, err = models.GetOAuthStateByState("expired-state")
+		_, err = auth.GetOAuthStateByState("expired-state")
 		assert.Error(t, err)
 	})
 }
@@ -73,20 +73,20 @@ func TestDeleteOAuthState(t *testing.T) {
 	state := "delete-state"
 	codeVerifier := "delete-verifier"
 
-	err := models.CreateOAuthState(state, codeVerifier)
+	err := auth.CreateOAuthState(state, codeVerifier)
 	assert.NoError(t, err)
 
 	// Verify it exists
-	oauthState, err := models.GetOAuthStateByState(state)
+	oauthState, err := auth.GetOAuthStateByState(state)
 	assert.NoError(t, err)
 	assert.NotNil(t, oauthState)
 
 	// Delete it
-	err = models.DeleteOAuthState(state)
+	err = auth.DeleteOAuthState(state)
 	assert.NoError(t, err)
 
 	// Verify it no longer exists
-	_, err = models.GetOAuthStateByState(state)
+	_, err = auth.GetOAuthStateByState(state)
 	assert.Error(t, err)
 }
 
@@ -96,15 +96,15 @@ func TestCleanupExpiredOAuthStates(t *testing.T) {
 
 	// Create some OAuth states
 	// Valid state 1
-	err := models.CreateOAuthState("valid-1", "verifier-1")
+	err := auth.CreateOAuthState("valid-1", "verifier-1")
 	assert.NoError(t, err)
 
 	// Valid state 2
-	err = models.CreateOAuthState("valid-2", "verifier-2")
+	err = auth.CreateOAuthState("valid-2", "verifier-2")
 	assert.NoError(t, err)
 
 	// Expired state 1
-	expiredState1 := &models.OAuthState{
+	expiredState1 := &auth.OAuthState{
 		State:        "expired-1",
 		CodeVerifier: "expired-verifier-1",
 		ExpiresAt:    time.Now().Add(-1 * time.Hour),
@@ -113,7 +113,7 @@ func TestCleanupExpiredOAuthStates(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Expired state 2
-	expiredState2 := &models.OAuthState{
+	expiredState2 := &auth.OAuthState{
 		State:        "expired-2",
 		CodeVerifier: "expired-verifier-2",
 		ExpiresAt:    time.Now().Add(-2 * time.Hour),
@@ -123,31 +123,31 @@ func TestCleanupExpiredOAuthStates(t *testing.T) {
 
 	// Verify we have 4 states total
 	var countBefore int64
-	handlers.GetDB().Model(&models.OAuthState{}).Count(&countBefore)
+	handlers.GetDB().Model(&auth.OAuthState{}).Count(&countBefore)
 	assert.Equal(t, int64(4), countBefore)
 
 	// Cleanup expired states
-	err = models.CleanupExpiredOAuthStates()
+	err = auth.CleanupExpiredOAuthStates()
 	assert.NoError(t, err)
 
 	// Verify we only have 2 valid states remaining
 	var countAfter int64
-	handlers.GetDB().Model(&models.OAuthState{}).Count(&countAfter)
+	handlers.GetDB().Model(&auth.OAuthState{}).Count(&countAfter)
 	assert.Equal(t, int64(2), countAfter)
 
 	// Verify the valid states still exist
-	_, err = models.GetOAuthStateByState("valid-1")
+	_, err = auth.GetOAuthStateByState("valid-1")
 	assert.NoError(t, err)
 
-	_, err = models.GetOAuthStateByState("valid-2")
+	_, err = auth.GetOAuthStateByState("valid-2")
 	assert.NoError(t, err)
 
 	// Verify the expired states are gone
-	var expired1 models.OAuthState
+	var expired1 auth.OAuthState
 	err = handlers.GetDB().Where("state = ?", "expired-1").First(&expired1).Error
 	assert.Error(t, err) // Should be record not found
 
-	var expired2 models.OAuthState
+	var expired2 auth.OAuthState
 	err = handlers.GetDB().Where("state = ?", "expired-2").First(&expired2).Error
 	assert.Error(t, err) // Should be record not found
 }
@@ -157,7 +157,7 @@ func TestOAuthStateBeforeCreate(t *testing.T) {
 	defer handlers.TeardownTestDB(t)
 
 	t.Run("auto-generates ID", func(t *testing.T) {
-		state := &models.OAuthState{
+		state := &auth.OAuthState{
 			State:        "test-state-id",
 			CodeVerifier: "test-verifier",
 			ExpiresAt:    time.Now().Add(10 * time.Minute),
@@ -168,7 +168,7 @@ func TestOAuthStateBeforeCreate(t *testing.T) {
 	})
 
 	t.Run("sets default expiration", func(t *testing.T) {
-		state := &models.OAuthState{
+		state := &auth.OAuthState{
 			State:        "test-state-expiry",
 			CodeVerifier: "test-verifier",
 		}

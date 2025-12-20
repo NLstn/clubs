@@ -6,7 +6,7 @@ import (
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	"github.com/google/uuid"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -406,14 +406,14 @@ func TeardownTestDB(t *testing.T) {
 }
 
 // CreateTestUser creates a test user and returns it with an access token
-func CreateTestUser(t *testing.T, email string) (models.User, string) {
+func CreateTestUser(t *testing.T, email string) (core.User, string) {
 	// Generate a UUID-like string for SQLite
 	userID := uuid.New().String()
 	keycloakID := uuid.New().String() // Generate unique KeycloakID for test users
 
 	// Create user directly in database
 	keycloakPtr := &keycloakID
-	user := models.User{
+	user := core.User{
 		ID:         userID,
 		Email:      email,
 		FirstName:  "Test",
@@ -434,11 +434,11 @@ func CreateTestUser(t *testing.T, email string) (models.User, string) {
 }
 
 // CreateTestClub creates a test club with the given user as owner
-func CreateTestClub(t *testing.T, user models.User, clubName string) models.Club {
+func CreateTestClub(t *testing.T, user core.User, clubName string) core.Club {
 	clubID := uuid.New().String()
 	description := "Test club description"
 
-	club := models.Club{
+	club := core.Club{
 		ID:          clubID,
 		Name:        clubName,
 		Description: &description,
@@ -450,7 +450,7 @@ func CreateTestClub(t *testing.T, user models.User, clubName string) models.Club
 
 	// Add the owner as a member with owner role
 	memberID := uuid.New().String()
-	member := models.Member{
+	member := core.Member{
 		ID:     memberID,
 		UserID: user.ID,
 		ClubID: club.ID,
@@ -464,10 +464,10 @@ func CreateTestClub(t *testing.T, user models.User, clubName string) models.Club
 }
 
 // CreateTestMember creates a test member directly in the database without notifications
-func CreateTestMember(t *testing.T, user models.User, club models.Club, role string) models.Member {
+func CreateTestMember(t *testing.T, user core.User, club core.Club, role string) core.Member {
 	memberID := uuid.New().String()
 
-	member := models.Member{
+	member := core.Member{
 		ID:        memberID,
 		UserID:    user.ID,
 		ClubID:    club.ID,

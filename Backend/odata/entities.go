@@ -3,50 +3,51 @@ package odata
 import (
 	"fmt"
 
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
+	"github.com/NLstn/clubs/models/auth"
 )
 
 // registerEntities registers all entity types with the OData service
 func (s *Service) registerEntities() error {
 	entities := []interface{}{
 		// Core entities
-		&models.User{},
-		&models.UserSession{},
-		&models.Club{},
-		&models.Member{},
+		&core.User{},
+		&core.UserSession{},
+		&core.Club{},
+		&core.Member{},
 
 		// Team entities
-		&models.Team{},
-		&models.TeamMember{},
+		&core.Team{},
+		&core.TeamMember{},
 
 		// Event entities
-		&models.Event{},
-		&models.EventRSVP{},
+		&core.Event{},
+		&core.EventRSVP{},
 
 		// Shift entities
-		&models.Shift{},
-		&models.ShiftMember{},
+		&core.Shift{},
+		&core.ShiftMember{},
 
 		// Fine entities
-		&models.Fine{},
-		&models.FineTemplate{},
+		&core.Fine{},
+		&core.FineTemplate{},
 
 		// Invite and join request entities
-		&models.Invite{},
-		&models.JoinRequest{},
+		&core.Invite{},
+		&core.JoinRequest{},
 
 		// News and notification entities
-		&models.News{},
-		&models.Notification{},
-		&models.UserNotificationPreferences{},
+		&core.News{},
+		&core.Notification{},
+		&core.UserNotificationPreferences{},
 
 		// Settings and privacy entities
-		&models.ClubSettings{},
-		&models.UserPrivacySettings{},
-		&models.MemberPrivacySettings{},
+		&core.ClubSettings{},
+		&core.UserPrivacySettings{},
+		&core.MemberPrivacySettings{},
 
 		// API Key entities
-		&models.APIKey{},
+		&auth.APIKey{},
 	}
 
 	for _, entity := range entities {
@@ -57,7 +58,7 @@ func (s *Service) registerEntities() error {
 
 	// Register virtual entities
 	virtualEntities := []interface{}{
-		&models.TimelineItem{},
+		&core.TimelineItem{},
 	}
 
 	for _, entity := range virtualEntities {

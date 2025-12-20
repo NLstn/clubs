@@ -1,11 +1,10 @@
-package core_test
+package core
 
 import (
 	"testing"
 	"time"
 
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +13,7 @@ func TestScheduledJobBeforeCreate(t *testing.T) {
 	defer handlers.TeardownTestDB(t)
 
 	t.Run("auto-generates ID", func(t *testing.T) {
-		job := &models.ScheduledJob{
+		job := &ScheduledJob{
 			Name:            "test-job-id",
 			JobHandler:      "test_handler",
 			IntervalMinutes: 60,
@@ -25,7 +24,7 @@ func TestScheduledJobBeforeCreate(t *testing.T) {
 	})
 
 	t.Run("sets default NextRunAt", func(t *testing.T) {
-		job := &models.ScheduledJob{
+		job := &ScheduledJob{
 			Name:            "test-job-next-run",
 			JobHandler:      "test_handler",
 			IntervalMinutes: 60,
@@ -41,7 +40,7 @@ func TestScheduledJobUpdateNextRunTime(t *testing.T) {
 	handlers.SetupTestDB(t)
 	defer handlers.TeardownTestDB(t)
 
-	job := &models.ScheduledJob{
+	job := &ScheduledJob{
 		Name:            "test-job-update",
 		JobHandler:      "test_handler",
 		IntervalMinutes: 60,
@@ -79,7 +78,7 @@ func TestJobExecutionBeforeCreate(t *testing.T) {
 	defer handlers.TeardownTestDB(t)
 
 	// Create a scheduled job first
-	job := &models.ScheduledJob{
+	job := &ScheduledJob{
 		Name:            "test-job-for-execution",
 		JobHandler:      "test_handler",
 		IntervalMinutes: 60,
@@ -87,10 +86,10 @@ func TestJobExecutionBeforeCreate(t *testing.T) {
 	err := handlers.GetDB().Create(job).Error
 	assert.NoError(t, err)
 
-	execution := &models.JobExecution{
+	execution := &JobExecution{
 		ScheduledJobID: job.ID,
 		StartedAt:      time.Now(),
-		Status:         models.JobStatusPending,
+		Status:         JobStatusPending,
 	}
 	err = handlers.GetDB().Create(execution).Error
 	assert.NoError(t, err)
@@ -102,7 +101,7 @@ func TestJobExecutionMarkCompleted(t *testing.T) {
 	defer handlers.TeardownTestDB(t)
 
 	// Create a scheduled job first
-	job := &models.ScheduledJob{
+	job := &ScheduledJob{
 		Name:            "test-job-for-completion",
 		JobHandler:      "test_handler",
 		IntervalMinutes: 60,
@@ -111,10 +110,10 @@ func TestJobExecutionMarkCompleted(t *testing.T) {
 	assert.NoError(t, err)
 
 	t.Run("mark as success", func(t *testing.T) {
-		execution := &models.JobExecution{
+		execution := &JobExecution{
 			ScheduledJobID: job.ID,
 			StartedAt:      time.Now(),
-			Status:         models.JobStatusPending,
+			Status:         JobStatusPending,
 		}
 		err := handlers.GetDB().Create(execution).Error
 		assert.NoError(t, err)
@@ -122,10 +121,10 @@ func TestJobExecutionMarkCompleted(t *testing.T) {
 		// Wait a bit to ensure duration is measurable
 		time.Sleep(10 * time.Millisecond)
 
-		err = execution.MarkCompleted(handlers.GetDB(), models.JobStatusSuccess, nil)
+		err = execution.MarkCompleted(handlers.GetDB(), JobStatusSuccess, nil)
 		assert.NoError(t, err)
 
-		assert.Equal(t, models.JobStatusSuccess, execution.Status)
+		assert.Equal(t, JobStatusSuccess, execution.Status)
 		assert.NotNil(t, execution.CompletedAt)
 		assert.NotNil(t, execution.DurationMs)
 		assert.Greater(t, *execution.DurationMs, 0)
@@ -133,10 +132,10 @@ func TestJobExecutionMarkCompleted(t *testing.T) {
 	})
 
 	t.Run("mark as failed with error", func(t *testing.T) {
-		execution := &models.JobExecution{
+		execution := &JobExecution{
 			ScheduledJobID: job.ID,
 			StartedAt:      time.Now(),
-			Status:         models.JobStatusPending,
+			Status:         JobStatusPending,
 		}
 		err := handlers.GetDB().Create(execution).Error
 		assert.NoError(t, err)
@@ -145,10 +144,10 @@ func TestJobExecutionMarkCompleted(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 
 		errorMsg := "test error message"
-		err = execution.MarkCompleted(handlers.GetDB(), models.JobStatusFailed, &errorMsg)
+		err = execution.MarkCompleted(handlers.GetDB(), JobStatusFailed, &errorMsg)
 		assert.NoError(t, err)
 
-		assert.Equal(t, models.JobStatusFailed, execution.Status)
+		assert.Equal(t, JobStatusFailed, execution.Status)
 		assert.NotNil(t, execution.CompletedAt)
 		assert.NotNil(t, execution.DurationMs)
 		assert.Greater(t, *execution.DurationMs, 0)
@@ -158,17 +157,17 @@ func TestJobExecutionMarkCompleted(t *testing.T) {
 }
 
 func TestJobStatusConstants(t *testing.T) {
-	assert.Equal(t, "pending", models.JobStatusPending)
-	assert.Equal(t, "success", models.JobStatusSuccess)
-	assert.Equal(t, "failed", models.JobStatusFailed)
-	assert.Equal(t, "timeout", models.JobStatusTimeout)
+	assert.Equal(t, "pending", JobStatusPending)
+	assert.Equal(t, "success", JobStatusSuccess)
+	assert.Equal(t, "failed", JobStatusFailed)
+	assert.Equal(t, "timeout", JobStatusTimeout)
 }
 
 func TestScheduledJobEnabledDefault(t *testing.T) {
 	handlers.SetupTestDB(t)
 	defer handlers.TeardownTestDB(t)
 
-	job := &models.ScheduledJob{
+	job := &ScheduledJob{
 		Name:            "test-job-enabled-default",
 		JobHandler:      "test_handler",
 		IntervalMinutes: 60,
@@ -177,7 +176,7 @@ func TestScheduledJobEnabledDefault(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Reload from database to check default value
-	var reloaded models.ScheduledJob
+	var reloaded ScheduledJob
 	err = handlers.GetDB().Where("id = ?", job.ID).First(&reloaded).Error
 	assert.NoError(t, err)
 	assert.True(t, reloaded.Enabled, "Enabled should default to true")

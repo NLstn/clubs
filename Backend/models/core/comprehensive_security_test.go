@@ -187,61 +187,6 @@ func TestIDORVulnerabilityInNews(t *testing.T) {
 	})
 }
 
-// TestAPIKeyAuthorizationIsolation tests that API keys properly isolate user access
-func TestAPIKeyAuthorizationIsolation(t *testing.T) {
-	setupComprehensiveSecurityTestDB(t)
-
-	// Create two users
-	user1ID := uuid.New().String()
-	user2ID := uuid.New().String()
-	
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
-		user1ID, "User", "One", "user1@test.com")
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
-		user2ID, "User", "Two", "user2@test.com")
-
-	// Create API key for user1
-	apiKey1ID := uuid.New().String()
-	database.Db.Exec("INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, is_active) VALUES (?, ?, ?, ?, ?, ?)", 
-		apiKey1ID, user1ID, "Test Key 1", "hash1", "sk_test", true)
-
-	// Create API key for user2
-	apiKey2ID := uuid.New().String()
-	database.Db.Exec("INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, is_active) VALUES (?, ?, ?, ?, ?, ?)", 
-		apiKey2ID, user2ID, "Test Key 2", "hash2", "sk_prod", true)
-
-	// Test: User1 tries to update User2's API key (should fail)
-	t.Run("User cannot update another user's API key", func(t *testing.T) {
-		apiKey := APIKey{
-			ID:     apiKey2ID,
-			UserID: user2ID, // This is user2's key
-			Name:   "Modified Name",
-		}
-		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1ID)
-		req := &http.Request{}
-
-		err := apiKey.ODataBeforeUpdate(ctx, req)
-		if err == nil {
-			t.Error("User1 should NOT be able to update User2's API key")
-		}
-	})
-
-	// Test: User1 tries to delete User2's API key (should fail)
-	t.Run("User cannot delete another user's API key", func(t *testing.T) {
-		apiKey := APIKey{
-			ID:     apiKey2ID,
-			UserID: user2ID,
-		}
-		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1ID)
-		req := &http.Request{}
-
-		err := apiKey.ODataBeforeDelete(ctx, req)
-		if err == nil {
-			t.Error("User1 should NOT be able to delete User2's API key")
-		}
-	})
-}
-
 // TestPrivacySettingsIsolation tests that users cannot access other users' privacy settings
 func TestPrivacySettingsIsolation(t *testing.T) {
 	setupComprehensiveSecurityTestDB(t)

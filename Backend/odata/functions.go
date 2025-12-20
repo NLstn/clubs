@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	odata "github.com/nlstn/go-odata"
 )
 
@@ -58,7 +58,7 @@ func (s *Service) registerFunctions() error {
 			{Name: "startDate", Type: reflect.TypeOf(time.Time{}), Required: true},
 			{Name: "endDate", Type: reflect.TypeOf(time.Time{}), Required: true},
 		},
-		ReturnType: reflect.TypeOf([]models.Event{}),
+		ReturnType: reflect.TypeOf([]core.Event{}),
 		Handler:    s.expandRecurrenceFunction,
 	}); err != nil {
 		return fmt.Errorf("failed to register ExpandRecurrence function for Event: %w", err)
@@ -121,27 +121,27 @@ type SearchResponse struct {
 }
 
 type TeamOverviewResponse struct {
-	Team     models.Team            `json:"Team"`
+	Team     core.Team            `json:"Team"`
 	Stats    map[string]interface{} `json:"Stats"`
 	UserRole string                 `json:"UserRole"`
 	IsAdmin  bool                   `json:"IsAdmin"`
 }
 
 type EventWithRSVP struct {
-	models.Event
-	UserRSVP *models.EventRSVP `json:"UserRSVP,omitempty"`
+	core.Event
+	UserRSVP *core.EventRSVP `json:"UserRSVP,omitempty"`
 }
 
 // isAdminFunction checks if the current user is an admin of the club
 // GET /api/v2/Clubs('{clubId}')/IsAdmin()
 func (s *Service) isAdminFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	club := ctx.(*models.Club)
+	club := ctx.(*core.Club)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	// Get user
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
@@ -154,7 +154,7 @@ func (s *Service) isAdminFunction(w http.ResponseWriter, r *http.Request, ctx in
 // getOwnerCountFunction returns the number of owners in the club
 // GET /api/v2/Clubs('{clubId}')/GetOwnerCount()
 func (s *Service) getOwnerCountFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	club := ctx.(*models.Club)
+	club := ctx.(*core.Club)
 
 	count, err := club.CountOwners()
 	if err != nil {
@@ -167,13 +167,13 @@ func (s *Service) getOwnerCountFunction(w http.ResponseWriter, r *http.Request, 
 // getInviteLinkFunction returns the invite link for the club
 // GET /api/v2/Clubs('{clubId}')/GetInviteLink()
 func (s *Service) getInviteLinkFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	club := ctx.(*models.Club)
+	club := ctx.(*core.Club)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	// Get user for authorization
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
@@ -196,7 +196,7 @@ func (s *Service) searchGlobalFunction(w http.ResponseWriter, r *http.Request, c
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	// Get user
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
@@ -228,8 +228,8 @@ func (s *Service) searchGlobalFunction(w http.ResponseWriter, r *http.Request, c
 	}, nil
 }
 
-func (s *Service) searchClubs(user models.User, query string) ([]SearchResult, error) {
-	clubs, err := models.GetAllClubsIncludingDeleted()
+func (s *Service) searchClubs(user core.User, query string) ([]SearchResult, error) {
+	clubs, err := core.GetAllClubsIncludingDeleted()
 	if err != nil {
 		return nil, err
 	}
@@ -269,13 +269,13 @@ func (s *Service) searchClubs(user models.User, query string) ([]SearchResult, e
 }
 
 // SearchClubsForTest exposes searchClubs for testing
-func (s *Service) SearchClubsForTest(user models.User, query string) ([]SearchResult, error) {
+func (s *Service) SearchClubsForTest(user core.User, query string) ([]SearchResult, error) {
 	return s.searchClubs(user, query)
 }
 
-func (s *Service) searchEvents(user models.User, query string) ([]SearchResult, error) {
+func (s *Service) searchEvents(user core.User, query string) ([]SearchResult, error) {
 	// Get events from clubs the user is a member of
-	clubs, err := models.GetAllClubs()
+	clubs, err := core.GetAllClubs()
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +326,7 @@ func (s *Service) searchEvents(user models.User, query string) ([]SearchResult, 
 }
 
 // SearchEventsForTest exposes searchEvents for testing
-func (s *Service) SearchEventsForTest(user models.User, query string) ([]SearchResult, error) {
+func (s *Service) SearchEventsForTest(user core.User, query string) ([]SearchResult, error) {
 	return s.searchEvents(user, query)
 }
 
@@ -346,7 +346,7 @@ func (s *Service) SearchEventsForTest(user models.User, query string) ([]SearchR
 //
 // Authorization: User must be a member of the club that owns the event
 func (s *Service) expandRecurrenceFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	event := ctx.(*models.Event)
+	event := ctx.(*core.Event)
 
 	// Extract parameters
 	startDate, ok := params["startDate"].(time.Time)
@@ -366,13 +366,13 @@ func (s *Service) expandRecurrenceFunction(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Get user from database
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
 
 	// Get club and verify user has access
-	club, err := models.GetClubByID(event.ClubID)
+	club, err := core.GetClubByID(event.ClubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find club: %w", err)
 	}
@@ -386,10 +386,10 @@ func (s *Service) expandRecurrenceFunction(w http.ResponseWriter, r *http.Reques
 		// If not recurring, just return the event itself if it falls within range
 		if (event.StartTime.After(startDate) || event.StartTime.Equal(startDate)) &&
 			(event.StartTime.Before(endDate) || event.StartTime.Equal(endDate)) {
-			return []models.Event{*event}, nil
+			return []core.Event{*event}, nil
 		}
 		// Event is outside the requested range
-		return []models.Event{}, nil
+		return []core.Event{}, nil
 	}
 
 	// Generate recurring instances
@@ -403,7 +403,7 @@ func (s *Service) expandRecurrenceFunction(w http.ResponseWriter, r *http.Reques
 }
 
 // generateRecurringInstances generates event instances from a recurring pattern
-func generateRecurringInstances(parentEvent *models.Event, startDate, endDate time.Time) ([]models.Event, error) {
+func generateRecurringInstances(parentEvent *core.Event, startDate, endDate time.Time) ([]core.Event, error) {
 	if parentEvent.RecurrencePattern == nil || *parentEvent.RecurrencePattern == "" {
 		return nil, fmt.Errorf("event has no recurrence pattern")
 	}
@@ -414,7 +414,7 @@ func generateRecurringInstances(parentEvent *models.Event, startDate, endDate ti
 		interval = 1
 	}
 
-	var instances []models.Event
+	var instances []core.Event
 	currentStart := parentEvent.StartTime
 	duration := parentEvent.EndTime.Sub(parentEvent.StartTime)
 
@@ -441,7 +441,7 @@ func generateRecurringInstances(parentEvent *models.Event, startDate, endDate ti
 			(currentStart.Before(endDate) || currentStart.Equal(endDate)) {
 
 			// Create instance (not saved to DB, just for response)
-			instance := models.Event{
+			instance := core.Event{
 				ID:            fmt.Sprintf("%s-%s", parentEvent.ID, currentStart.Format("20060102T150405")),
 				ClubID:        parentEvent.ClubID,
 				TeamID:        parentEvent.TeamID,
@@ -485,7 +485,7 @@ func calculateNextOccurrence(current time.Time, pattern string, interval int) ti
 // getTeamOverviewFunction returns team overview with stats and user role
 // GET /api/v2/Teams('{teamId}')/GetOverview()
 func (s *Service) getTeamOverviewFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	team := ctx.(*models.Team)
+	team := ctx.(*core.Team)
 
 	// Get user ID from request context
 	userID, ok := r.Context().Value(auth.UserIDKey).(string)
@@ -494,13 +494,13 @@ func (s *Service) getTeamOverviewFunction(w http.ResponseWriter, r *http.Request
 	}
 
 	// Get user from database
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
 
 	// Verify user is a member of the club
-	club, err := models.GetClubByID(team.ClubID)
+	club, err := core.GetClubByID(team.ClubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find club: %w", err)
 	}
@@ -533,7 +533,7 @@ func (s *Service) getTeamOverviewFunction(w http.ResponseWriter, r *http.Request
 // GET /api/v2/Events('{eventId}')/GetRSVPCounts()
 // Returns: {"Yes": 10, "No": 3, "Maybe": 5}
 func (s *Service) getRSVPCountsFunction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) (interface{}, error) {
-	event := ctx.(*models.Event)
+	event := ctx.(*core.Event)
 
 	// Get user ID from request context
 	userID, ok := r.Context().Value(auth.UserIDKey).(string)
@@ -542,13 +542,13 @@ func (s *Service) getRSVPCountsFunction(w http.ResponseWriter, r *http.Request, 
 	}
 
 	// Get user from database
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return nil, fmt.Errorf("failed to find user: %w", err)
 	}
 
 	// Verify user has access to this event by checking club membership
-	club, err := models.GetClubByID(event.ClubID)
+	club, err := core.GetClubByID(event.ClubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find club: %w", err)
 	}

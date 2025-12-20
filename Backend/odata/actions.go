@@ -10,7 +10,8 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
+	modelsauth "github.com/NLstn/clubs/models/auth"
 	"github.com/google/uuid"
 	odata "github.com/nlstn/go-odata"
 )
@@ -281,13 +282,13 @@ func (s *Service) registerActions() error {
 // acceptInviteAction handles the Accept action on Invite entity
 // POST /api/v2/Invites('{inviteId}')/Accept
 func (s *Service) acceptInviteAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	invite := ctx.(*models.Invite)
+	invite := ctx.(*core.Invite)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	// Verify the invite is for this user
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return fmt.Errorf("failed to find user: %w", err)
 	}
@@ -298,7 +299,7 @@ func (s *Service) acceptInviteAction(w http.ResponseWriter, r *http.Request, ctx
 	}
 
 	// Accept the invite using model function
-	if err := models.AcceptInvite(invite.ID, userID); err != nil {
+	if err := core.AcceptInvite(invite.ID, userID); err != nil {
 		return fmt.Errorf("failed to accept invite: %w", err)
 	}
 
@@ -310,13 +311,13 @@ func (s *Service) acceptInviteAction(w http.ResponseWriter, r *http.Request, ctx
 // rejectInviteAction handles the Reject action on Invite entity
 // POST /api/v2/Invites('{inviteId}')/Reject
 func (s *Service) rejectInviteAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	invite := ctx.(*models.Invite)
+	invite := ctx.(*core.Invite)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	// Verify the invite is for this user
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return fmt.Errorf("failed to find user: %w", err)
 	}
@@ -327,7 +328,7 @@ func (s *Service) rejectInviteAction(w http.ResponseWriter, r *http.Request, ctx
 	}
 
 	// Reject the invite using model function
-	if err := models.RejectInvite(invite.ID); err != nil {
+	if err := core.RejectInvite(invite.ID); err != nil {
 		return fmt.Errorf("failed to reject invite: %w", err)
 	}
 
@@ -339,13 +340,13 @@ func (s *Service) rejectInviteAction(w http.ResponseWriter, r *http.Request, ctx
 // acceptJoinRequestAction handles the Accept action on JoinRequest entity
 // POST /api/v2/JoinRequests('{requestId}')/Accept
 func (s *Service) acceptJoinRequestAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	joinRequest := ctx.(*models.JoinRequest)
+	joinRequest := ctx.(*core.JoinRequest)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	// Accept the join request using model function (it handles authorization internally)
-	if err := models.AcceptJoinRequest(joinRequest.ID, userID); err != nil {
+	if err := core.AcceptJoinRequest(joinRequest.ID, userID); err != nil {
 		return fmt.Errorf("failed to accept join request: %w", err)
 	}
 
@@ -357,13 +358,13 @@ func (s *Service) acceptJoinRequestAction(w http.ResponseWriter, r *http.Request
 // rejectJoinRequestAction handles the Reject action on JoinRequest entity
 // POST /api/v2/JoinRequests('{requestId}')/Reject
 func (s *Service) rejectJoinRequestAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	joinRequest := ctx.(*models.JoinRequest)
+	joinRequest := ctx.(*core.JoinRequest)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	// Reject the join request using model function (it handles authorization internally)
-	if err := models.RejectJoinRequest(joinRequest.ID, userID); err != nil {
+	if err := core.RejectJoinRequest(joinRequest.ID, userID); err != nil {
 		return fmt.Errorf("failed to reject join request: %w", err)
 	}
 
@@ -375,13 +376,13 @@ func (s *Service) rejectJoinRequestAction(w http.ResponseWriter, r *http.Request
 // leaveClubAction handles the Leave action on Club entity
 // POST /api/v2/Clubs('{clubId}')/Leave
 func (s *Service) leaveClubAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	club := ctx.(*models.Club)
+	club := ctx.(*core.Club)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	// Get user for authorization checks
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return fmt.Errorf("failed to find user: %w", err)
 	}
@@ -421,13 +422,13 @@ func (s *Service) leaveClubAction(w http.ResponseWriter, r *http.Request, ctx in
 // deleteLogoAction handles the DeleteLogo action on Club entity
 // POST /api/v2/Clubs('{clubId}')/DeleteLogo
 func (s *Service) deleteLogoAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	club := ctx.(*models.Club)
+	club := ctx.(*core.Club)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	// Get user for authorization checks
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return fmt.Errorf("failed to find user: %w", err)
 	}
@@ -451,13 +452,13 @@ func (s *Service) deleteLogoAction(w http.ResponseWriter, r *http.Request, ctx i
 // hardDeleteClubAction handles the HardDelete action on Club entity
 // POST /api/v2/Clubs('{clubId}')/HardDelete
 func (s *Service) hardDeleteClubAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	club := ctx.(*models.Club)
+	club := ctx.(*core.Club)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	// Get user for authorization checks
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return fmt.Errorf("failed to find user: %w", err)
 	}
@@ -480,7 +481,7 @@ func (s *Service) hardDeleteClubAction(w http.ResponseWriter, r *http.Request, c
 // markNotificationReadAction handles the MarkAsRead action on Notification entity
 // POST /api/v2/Notifications('{notificationId}')/MarkAsRead
 func (s *Service) markNotificationReadAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	notification := ctx.(*models.Notification)
+	notification := ctx.(*core.Notification)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
@@ -508,7 +509,7 @@ func (s *Service) markAllNotificationsReadAction(w http.ResponseWriter, r *http.
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	// Mark all notifications as read for this user
-	if err := s.db.Model(&models.Notification{}).
+	if err := s.db.Model(&core.Notification{}).
 		Where("user_id = ? AND read = ?", userID, false).
 		Update("read", true).Error; err != nil {
 		return fmt.Errorf("failed to mark all notifications as read: %w", err)
@@ -516,7 +517,7 @@ func (s *Service) markAllNotificationsReadAction(w http.ResponseWriter, r *http.
 
 	// Return the count of notifications marked as read
 	var count int64
-	s.db.Model(&models.Notification{}).
+	s.db.Model(&core.Notification{}).
 		Where("user_id = ? AND read = ?", userID, true).
 		Count(&count)
 
@@ -533,7 +534,7 @@ func (s *Service) markAllNotificationsReadAction(w http.ResponseWriter, r *http.
 // addRSVPAction handles the AddRSVP action on Event entity
 // POST /api/v2/Events('{eventId}')/AddRSVP
 func (s *Service) addRSVPAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	event := ctx.(*models.Event)
+	event := ctx.(*core.Event)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
@@ -551,12 +552,12 @@ func (s *Service) addRSVPAction(w http.ResponseWriter, r *http.Request, ctx inte
 	}
 
 	// Check if user is member of the club
-	var club models.Club
+	var club core.Club
 	if err := s.db.Where("id = ?", event.ClubID).First(&club).Error; err != nil {
 		return fmt.Errorf("failed to find club: %w", err)
 	}
 
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return fmt.Errorf("failed to find user: %w", err)
 	}
@@ -566,7 +567,7 @@ func (s *Service) addRSVPAction(w http.ResponseWriter, r *http.Request, ctx inte
 	}
 
 	// Check if RSVP already exists
-	var existingRSVP models.EventRSVP
+	var existingRSVP core.EventRSVP
 	result := s.db.Where("event_id = ? AND user_id = ?", event.ID, userID).First(&existingRSVP)
 
 	if result.Error == nil {
@@ -577,7 +578,7 @@ func (s *Service) addRSVPAction(w http.ResponseWriter, r *http.Request, ctx inte
 		}
 	} else {
 		// Create new RSVP
-		newRSVP := models.EventRSVP{
+		newRSVP := core.EventRSVP{
 			EventID:  event.ID,
 			UserID:   userID,
 			Response: response,
@@ -595,13 +596,13 @@ func (s *Service) addRSVPAction(w http.ResponseWriter, r *http.Request, ctx inte
 // joinClubAction handles the Join action on Club entity
 // POST /api/v2/Clubs('{clubId}')/Join
 func (s *Service) joinClubAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	club := ctx.(*models.Club)
+	club := ctx.(*core.Club)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
 
 	// Get user
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return fmt.Errorf("failed to find user: %w", err)
 	}
@@ -612,7 +613,7 @@ func (s *Service) joinClubAction(w http.ResponseWriter, r *http.Request, ctx int
 	}
 
 	// Create join request
-	joinRequest := models.JoinRequest{
+	joinRequest := core.JoinRequest{
 		ClubID: club.ID,
 		UserID: userID,
 	}
@@ -629,7 +630,7 @@ func (s *Service) joinClubAction(w http.ResponseWriter, r *http.Request, ctx int
 // createInviteAction handles the CreateInvite action on Club entity
 // POST /api/v2/Clubs('{clubId}')/CreateInvite
 func (s *Service) createInviteAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	club := ctx.(*models.Club)
+	club := ctx.(*core.Club)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
@@ -647,7 +648,7 @@ func (s *Service) createInviteAction(w http.ResponseWriter, r *http.Request, ctx
 	}
 
 	// Get user for authorization
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return fmt.Errorf("failed to find user: %w", err)
 	}
@@ -670,7 +671,7 @@ func (s *Service) createInviteAction(w http.ResponseWriter, r *http.Request, ctx
 // updateMemberRoleAction handles the UpdateRole action on Member entity
 // POST /api/v2/Members('{memberId}')/UpdateRole
 func (s *Service) updateMemberRoleAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	member := ctx.(*models.Member)
+	member := ctx.(*core.Member)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
@@ -688,13 +689,13 @@ func (s *Service) updateMemberRoleAction(w http.ResponseWriter, r *http.Request,
 	}
 
 	// Get club
-	var club models.Club
+	var club core.Club
 	if err := s.db.Where("id = ?", member.ClubID).First(&club).Error; err != nil {
 		return fmt.Errorf("failed to find club: %w", err)
 	}
 
 	// Get current user
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return fmt.Errorf("failed to find user: %w", err)
 	}
@@ -743,7 +744,7 @@ func (s *Service) updateMemberRoleAction(w http.ResponseWriter, r *http.Request,
 // addShiftMemberAction handles the AddMember action on Shift entity
 // POST /api/v2/Shifts('{shiftId}')/AddMember
 func (s *Service) addShiftMemberAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	shift := ctx.(*models.Shift)
+	shift := ctx.(*core.Shift)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
@@ -760,19 +761,19 @@ func (s *Service) addShiftMemberAction(w http.ResponseWriter, r *http.Request, c
 	}
 
 	// Get the event to find the club
-	var event models.Event
+	var event core.Event
 	if err := s.db.Where("id = ?", shift.EventID).First(&event).Error; err != nil {
 		return fmt.Errorf("failed to find event: %w", err)
 	}
 
 	// Get club
-	var club models.Club
+	var club core.Club
 	if err := s.db.Where("id = ?", event.ClubID).First(&club).Error; err != nil {
 		return fmt.Errorf("failed to find club: %w", err)
 	}
 
 	// Get current user
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return fmt.Errorf("failed to find user: %w", err)
 	}
@@ -783,20 +784,20 @@ func (s *Service) addShiftMemberAction(w http.ResponseWriter, r *http.Request, c
 	}
 
 	// Verify the member exists and is part of the club
-	var member models.Member
+	var member core.Member
 	if err := s.db.Where("id = ? AND club_id = ?", memberID, club.ID).First(&member).Error; err != nil {
 		return fmt.Errorf("member not found in club")
 	}
 
 	// Check if already assigned
-	var existing models.ShiftMember
+	var existing core.ShiftMember
 	result := s.db.Where("shift_id = ? AND member_id = ?", shift.ID, memberID).First(&existing)
 	if result.Error == nil {
 		return fmt.Errorf("member is already assigned to this shift")
 	}
 
 	// Create shift member assignment
-	shiftMember := models.ShiftMember{
+	shiftMember := core.ShiftMember{
 		ShiftID:   shift.ID,
 		UserID:    member.UserID,
 		CreatedBy: userID,
@@ -815,7 +816,7 @@ func (s *Service) addShiftMemberAction(w http.ResponseWriter, r *http.Request, c
 // removeShiftMemberAction handles the RemoveMember action on Shift entity
 // POST /api/v2/Shifts('{shiftId}')/RemoveMember
 func (s *Service) removeShiftMemberAction(w http.ResponseWriter, r *http.Request, ctx interface{}, params map[string]interface{}) error {
-	shift := ctx.(*models.Shift)
+	shift := ctx.(*core.Shift)
 
 	// Get user ID from request context
 	userID := r.Context().Value(auth.UserIDKey).(string)
@@ -832,19 +833,19 @@ func (s *Service) removeShiftMemberAction(w http.ResponseWriter, r *http.Request
 	}
 
 	// Get the event to find the club
-	var event models.Event
+	var event core.Event
 	if err := s.db.Where("id = ?", shift.EventID).First(&event).Error; err != nil {
 		return fmt.Errorf("failed to find event: %w", err)
 	}
 
 	// Get club
-	var club models.Club
+	var club core.Club
 	if err := s.db.Where("id = ?", event.ClubID).First(&club).Error; err != nil {
 		return fmt.Errorf("failed to find club: %w", err)
 	}
 
 	// Get current user
-	var user models.User
+	var user core.User
 	if err := s.db.Where("id = ?", userID).First(&user).Error; err != nil {
 		return fmt.Errorf("failed to find user: %w", err)
 	}
@@ -855,13 +856,13 @@ func (s *Service) removeShiftMemberAction(w http.ResponseWriter, r *http.Request
 	}
 
 	// Get the member to find their UserID
-	var member models.Member
+	var member core.Member
 	if err := s.db.Where("id = ? AND club_id = ?", memberID, club.ID).First(&member).Error; err != nil {
 		return fmt.Errorf("member not found in club")
 	}
 
 	// Delete the shift member assignment using UserID
-	result := s.db.Where("shift_id = ? AND user_id = ?", shift.ID, member.UserID).Delete(&models.ShiftMember{})
+	result := s.db.Where("shift_id = ? AND user_id = ?", shift.ID, member.UserID).Delete(&core.ShiftMember{})
 	if result.Error != nil {
 		return fmt.Errorf("failed to remove member from shift: %w", result.Error)
 	}
@@ -902,7 +903,7 @@ func (s *Service) createAPIKeyAction(w http.ResponseWriter, r *http.Request, ctx
 
 	// Check rate limit: max 10 active keys per user
 	var keyCount int64
-	if err := s.db.Model(&models.APIKey{}).
+	if err := s.db.Model(&modelsauth.APIKey{}).
 		Where("user_id = ? AND is_active = ?", userID, true).
 		Count(&keyCount).Error; err != nil {
 		return fmt.Errorf("failed to count user's API keys: %w", err)
@@ -920,7 +921,7 @@ func (s *Service) createAPIKeyAction(w http.ResponseWriter, r *http.Request, ctx
 	}
 
 	// Create API key model with explicit ID (for database compatibility)
-	apiKey := &models.APIKey{
+	apiKey := &modelsauth.APIKey{
 		ID:        uuid.New().String(),
 		UserID:    userID,
 		Name:      name,

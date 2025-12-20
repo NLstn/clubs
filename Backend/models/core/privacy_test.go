@@ -1,4 +1,4 @@
-package core_test
+package core
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +22,7 @@ func TestUserPrivacySettingsAuthorization(t *testing.T) {
 	user2, _ := handlers.CreateTestUser(t, "user2@example.com")
 
 	// Create privacy settings for user1
-	settings1 := models.UserPrivacySettings{
+	settings1 := UserPrivacySettings{
 		UserID:         user1.ID,
 		ShareBirthDate: true,
 	}
@@ -31,7 +30,7 @@ func TestUserPrivacySettingsAuthorization(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create privacy settings for user2
-	settings2 := models.UserPrivacySettings{
+	settings2 := UserPrivacySettings{
 		UserID:         user2.ID,
 		ShareBirthDate: false,
 	}
@@ -42,7 +41,7 @@ func TestUserPrivacySettingsAuthorization(t *testing.T) {
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1.ID)
 		req, _ := http.NewRequest("GET", "/api/v2/UserPrivacySettings", nil)
 
-		ups := models.UserPrivacySettings{}
+		ups := UserPrivacySettings{}
 		scopes, err := ups.ODataBeforeReadCollection(ctx, req, nil)
 		require.NoError(t, err)
 		require.Len(t, scopes, 1)
@@ -53,7 +52,7 @@ func TestUserPrivacySettingsAuthorization(t *testing.T) {
 			query = scope(query)
 		}
 
-		var results []models.UserPrivacySettings
+		var results []UserPrivacySettings
 		err = query.Find(&results).Error
 		require.NoError(t, err)
 
@@ -67,7 +66,7 @@ func TestUserPrivacySettingsAuthorization(t *testing.T) {
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1.ID)
 		req, _ := http.NewRequest("GET", "/api/v2/UserPrivacySettings", nil)
 
-		ups := models.UserPrivacySettings{}
+		ups := UserPrivacySettings{}
 		scopes, err := ups.ODataBeforeReadCollection(ctx, req, nil)
 		require.NoError(t, err)
 
@@ -77,7 +76,7 @@ func TestUserPrivacySettingsAuthorization(t *testing.T) {
 			query = scope(query)
 		}
 
-		var results []models.UserPrivacySettings
+		var results []UserPrivacySettings
 		err = query.Where("user_id = ?", user2.ID).Find(&results).Error
 		require.NoError(t, err)
 
@@ -90,7 +89,7 @@ func TestUserPrivacySettingsAuthorization(t *testing.T) {
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user3.ID)
 		req, _ := http.NewRequest("POST", "/api/v2/UserPrivacySettings", nil)
 
-		newSettings := models.UserPrivacySettings{
+		newSettings := UserPrivacySettings{
 			UserID:         user3.ID,
 			ShareBirthDate: true,
 		}
@@ -104,7 +103,7 @@ func TestUserPrivacySettingsAuthorization(t *testing.T) {
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1.ID)
 		req, _ := http.NewRequest("POST", "/api/v2/UserPrivacySettings", nil)
 
-		newSettings := models.UserPrivacySettings{
+		newSettings := UserPrivacySettings{
 			UserID:         user2.ID,
 			ShareBirthDate: true,
 		}
@@ -165,11 +164,11 @@ func TestMemberPrivacySettingsAuthorization(t *testing.T) {
 	club2 := handlers.CreateTestClub(t, user2, "Club 2")
 
 	// CreateTestClub already creates owner members, so just retrieve them
-	var member1 models.Member
+	var member1 Member
 	err := database.Db.Where("user_id = ? AND club_id = ?", user1.ID, club1.ID).First(&member1).Error
 	require.NoError(t, err)
 
-	var member2 models.Member
+	var member2 Member
 	err = database.Db.Where("user_id = ? AND club_id = ?", user2.ID, club2.ID).First(&member2).Error
 	require.NoError(t, err)
 
@@ -177,14 +176,14 @@ func TestMemberPrivacySettingsAuthorization(t *testing.T) {
 	member1InClub2 := handlers.CreateTestMember(t, user1, club2, "member")
 
 	// Create privacy settings for members
-	memberSettings1 := models.MemberPrivacySettings{
+	memberSettings1 := MemberPrivacySettings{
 		MemberID:       member1.ID,
 		ShareBirthDate: true,
 	}
 	err = database.Db.Create(&memberSettings1).Error
 	require.NoError(t, err)
 
-	memberSettings2 := models.MemberPrivacySettings{
+	memberSettings2 := MemberPrivacySettings{
 		MemberID:       member2.ID,
 		ShareBirthDate: false,
 	}
@@ -195,7 +194,7 @@ func TestMemberPrivacySettingsAuthorization(t *testing.T) {
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1.ID)
 		req, _ := http.NewRequest("GET", "/api/v2/MemberPrivacySettings", nil)
 
-		mps := models.MemberPrivacySettings{}
+		mps := MemberPrivacySettings{}
 		scopes, err := mps.ODataBeforeReadCollection(ctx, req, nil)
 		require.NoError(t, err)
 		require.Len(t, scopes, 1)
@@ -206,7 +205,7 @@ func TestMemberPrivacySettingsAuthorization(t *testing.T) {
 			query = scope(query)
 		}
 
-		var results []models.MemberPrivacySettings
+		var results []MemberPrivacySettings
 		err = query.Find(&results).Error
 		require.NoError(t, err)
 
@@ -220,7 +219,7 @@ func TestMemberPrivacySettingsAuthorization(t *testing.T) {
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1.ID)
 		req, _ := http.NewRequest("GET", "/api/v2/MemberPrivacySettings", nil)
 
-		mps := models.MemberPrivacySettings{}
+		mps := MemberPrivacySettings{}
 		scopes, err := mps.ODataBeforeReadCollection(ctx, req, nil)
 		require.NoError(t, err)
 
@@ -230,7 +229,7 @@ func TestMemberPrivacySettingsAuthorization(t *testing.T) {
 			query = scope(query)
 		}
 
-		var results []models.MemberPrivacySettings
+		var results []MemberPrivacySettings
 		err = query.Where("member_id = ?", member2.ID).Find(&results).Error
 		require.NoError(t, err)
 
@@ -242,7 +241,7 @@ func TestMemberPrivacySettingsAuthorization(t *testing.T) {
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1.ID)
 		req, _ := http.NewRequest("POST", "/api/v2/MemberPrivacySettings", nil)
 
-		newSettings := models.MemberPrivacySettings{
+		newSettings := MemberPrivacySettings{
 			MemberID:       member1InClub2.ID,
 			ShareBirthDate: true,
 		}
@@ -255,7 +254,7 @@ func TestMemberPrivacySettingsAuthorization(t *testing.T) {
 		ctx := context.WithValue(context.Background(), auth.UserIDKey, user1.ID)
 		req, _ := http.NewRequest("POST", "/api/v2/MemberPrivacySettings", nil)
 
-		newSettings := models.MemberPrivacySettings{
+		newSettings := MemberPrivacySettings{
 			MemberID:       member2.ID,
 			ShareBirthDate: true,
 		}
@@ -311,12 +310,12 @@ func TestGetEffectivePrivacySettings(t *testing.T) {
 	club1 := handlers.CreateTestClub(t, user1, "Club 1")
 
 	// CreateTestClub already creates a member for the owner, retrieve it
-	var member1 models.Member
+	var member1 Member
 	err := database.Db.Where("user_id = ? AND club_id = ?", user1.ID, club1.ID).First(&member1).Error
 	require.NoError(t, err)
 
 	// Create global privacy settings
-	globalSettings := models.UserPrivacySettings{
+	globalSettings := UserPrivacySettings{
 		UserID:         user1.ID,
 		ShareBirthDate: true,
 	}
@@ -324,14 +323,14 @@ func TestGetEffectivePrivacySettings(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("returns_global_setting_when_no_member_override", func(t *testing.T) {
-		shareBirthDate, err := models.GetEffectivePrivacySettings(user1.ID, club1.ID)
+		shareBirthDate, err := GetEffectivePrivacySettings(user1.ID, club1.ID)
 		require.NoError(t, err)
 		assert.True(t, shareBirthDate)
 	})
 
 	t.Run("returns_member_override_when_exists", func(t *testing.T) {
 		// Create member-specific override
-		memberSettings := models.MemberPrivacySettings{
+		memberSettings := MemberPrivacySettings{
 			ID:             "test-member-privacy-settings-id",
 			MemberID:       member1.ID,
 			ShareBirthDate: false, // Different from global
@@ -340,11 +339,11 @@ func TestGetEffectivePrivacySettings(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify it was created
-		var check models.MemberPrivacySettings
+		var check MemberPrivacySettings
 		err = database.Db.Where("member_id = ?", member1.ID).First(&check).Error
 		require.NoError(t, err, "Should find the member privacy settings we just created")
 
-		shareBirthDate, err := models.GetEffectivePrivacySettings(user1.ID, club1.ID)
+		shareBirthDate, err := GetEffectivePrivacySettings(user1.ID, club1.ID)
 		require.NoError(t, err)
 		assert.False(t, shareBirthDate) // Should use member override
 	})

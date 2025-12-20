@@ -1,4 +1,4 @@
-package core_test
+package core
 
 import (
 	"net/http"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -36,11 +35,11 @@ func TestHashToken(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := models.HashToken(tt.token)
+			result := HashToken(tt.token)
 			assert.Equal(t, 64, len(result), "Hash should be 64 characters long")
 			// Note: We don't test exact hash values as they may vary by system
 			// Instead we test that it's consistent
-			result2 := models.HashToken(tt.token)
+			result2 := HashToken(tt.token)
 			assert.Equal(t, result, result2, "Hash should be consistent")
 		})
 	}
@@ -53,7 +52,7 @@ func TestFindOrCreateUser(t *testing.T) {
 	t.Run("create new user", func(t *testing.T) {
 		email := "newuser@example.com"
 
-		user, err := models.FindOrCreateUser(email)
+		user, err := FindOrCreateUser(email)
 		assert.NoError(t, err)
 		assert.Equal(t, email, user.Email)
 		// Note: The function doesn't set ID properly in current implementation
@@ -65,11 +64,11 @@ func TestFindOrCreateUser(t *testing.T) {
 		email := "existing2@example.com"
 
 		// Create user first using FindOrCreateUserWithKeycloakID to avoid keycloak_id constraint
-		originalUser, err := models.FindOrCreateUserWithKeycloakID("test-keycloak-existing", email, "Test User")
+		originalUser, err := FindOrCreateUserWithKeycloakID("test-keycloak-existing", email, "Test User")
 		assert.NoError(t, err)
 
 		// Now FindOrCreateUser should find it by email (even though keycloak_id is different)
-		foundUser, err := models.FindOrCreateUser(email)
+		foundUser, err := FindOrCreateUser(email)
 		// This will fail because FindOrCreateUser creates a new user with empty keycloak_id
 		// when it should find by email first. This is a limitation of the current implementation.
 		if err != nil {
@@ -88,7 +87,7 @@ func TestFindOrCreateUserEdgeCases(t *testing.T) {
 		// Note: This test may fail due to keycloak_id unique constraint
 		// if there's already a user with empty keycloak_id from previous tests.
 		// The function doesn't handle this constraint properly.
-		user, err := models.FindOrCreateUser("")
+		user, err := FindOrCreateUser("")
 		// Since keycloak_id has unique constraint and defaults to empty string,
 		// this might fail if another user with empty keycloak_id exists
 		if err != nil {
@@ -108,7 +107,7 @@ func TestFindOrCreateUserWithKeycloakID(t *testing.T) {
 		keycloakID := "keycloak-123"
 		fullName := "John Doe"
 
-		user, err := models.FindOrCreateUserWithKeycloakID(keycloakID, email, fullName)
+		user, err := FindOrCreateUserWithKeycloakID(keycloakID, email, fullName)
 		assert.NoError(t, err)
 		assert.Equal(t, email, user.Email)
 		assert.NotNil(t, user.KeycloakID)
@@ -123,12 +122,12 @@ func TestFindOrCreateUserWithKeycloakID(t *testing.T) {
 		keycloakID := "keycloak-456"
 
 		// Create user first
-		originalUser, err := models.FindOrCreateUserWithKeycloakID(keycloakID, email, "Jane Smith")
+		originalUser, err := FindOrCreateUserWithKeycloakID(keycloakID, email, "Jane Smith")
 		assert.NoError(t, err)
 
 		// Find the same user with different keycloak ID (should update)
 		newKeycloakID := "keycloak-789"
-		foundUser, err := models.FindOrCreateUserWithKeycloakID(newKeycloakID, email, "Jane Updated")
+		foundUser, err := FindOrCreateUserWithKeycloakID(newKeycloakID, email, "Jane Updated")
 		assert.NoError(t, err)
 		assert.Equal(t, originalUser.Email, foundUser.Email)
 		assert.NotNil(t, foundUser.KeycloakID)
@@ -143,12 +142,12 @@ func TestFindOrCreateUserWithKeycloakID(t *testing.T) {
 		keycloakID := "keycloak-findby-123"
 
 		// Create user first
-		_, err := models.FindOrCreateUserWithKeycloakID(keycloakID, email, "Bob Johnson")
+		_, err := FindOrCreateUserWithKeycloakID(keycloakID, email, "Bob Johnson")
 		assert.NoError(t, err)
 
 		// Find the same user by keycloak ID with different email
 		newEmail := "updated-keycloak@example.com"
-		foundUser, err := models.FindOrCreateUserWithKeycloakID(keycloakID, newEmail, "Bob Updated")
+		foundUser, err := FindOrCreateUserWithKeycloakID(keycloakID, newEmail, "Bob Updated")
 		assert.NoError(t, err)
 		assert.NotNil(t, foundUser.KeycloakID)
 		assert.Equal(t, keycloakID, *foundUser.KeycloakID)
@@ -160,7 +159,7 @@ func TestFindOrCreateUserWithKeycloakID(t *testing.T) {
 		email := "noname@example.com"
 		keycloakID := "keycloak-noname"
 
-		user, err := models.FindOrCreateUserWithKeycloakID(keycloakID, email, "")
+		user, err := FindOrCreateUserWithKeycloakID(keycloakID, email, "")
 		assert.NoError(t, err)
 		assert.Equal(t, email, user.Email)
 		assert.NotNil(t, user.KeycloakID)
@@ -178,14 +177,14 @@ func TestGetUserByID(t *testing.T) {
 		// Create a user first
 		createdUser, _ := handlers.CreateTestUser(t, "testuser@example.com")
 
-		user, err := models.GetUserByID(createdUser.ID)
+		user, err := GetUserByID(createdUser.ID)
 		assert.NoError(t, err)
 		assert.Equal(t, createdUser.ID, user.ID)
 		assert.Equal(t, createdUser.Email, user.Email)
 	})
 
 	t.Run("non-existent user", func(t *testing.T) {
-		user, err := models.GetUserByID("non-existent-id")
+		user, err := GetUserByID("non-existent-id")
 		// The current implementation uses .Scan() which doesn't return "record not found" error
 		// It just returns an empty user
 		assert.NoError(t, err)
@@ -193,7 +192,7 @@ func TestGetUserByID(t *testing.T) {
 	})
 
 	t.Run("empty ID", func(t *testing.T) {
-		user, err := models.GetUserByID("")
+		user, err := GetUserByID("")
 		// Same as above - current implementation doesn't error on empty ID
 		assert.NoError(t, err)
 		assert.Equal(t, "", user.ID)
@@ -210,12 +209,12 @@ func TestGetUsersByIDs(t *testing.T) {
 		user3, _ := handlers.CreateTestUser(t, "user3@example.com")
 
 		ids := []string{user1.ID, user2.ID, user3.ID}
-		users, err := models.GetUsersByIDs(ids)
+		users, err := GetUsersByIDs(ids)
 		assert.NoError(t, err)
 		assert.Len(t, users, 3)
 
 		// Check that all users are returned
-		userMap := make(map[string]models.User)
+		userMap := make(map[string]User)
 		for _, user := range users {
 			userMap[user.ID] = user
 		}
@@ -228,20 +227,20 @@ func TestGetUsersByIDs(t *testing.T) {
 		user1, _ := handlers.CreateTestUser(t, "mixuser1@example.com")
 
 		ids := []string{user1.ID, "non-existent-1", "non-existent-2"}
-		users, err := models.GetUsersByIDs(ids)
+		users, err := GetUsersByIDs(ids)
 		assert.NoError(t, err)
 		assert.Len(t, users, 1)
 		assert.Equal(t, user1.ID, users[0].ID)
 	})
 
 	t.Run("empty slice", func(t *testing.T) {
-		users, err := models.GetUsersByIDs([]string{})
+		users, err := GetUsersByIDs([]string{})
 		assert.NoError(t, err)
 		assert.Len(t, users, 0)
 	})
 
 	t.Run("slice with empty strings", func(t *testing.T) {
-		users, err := models.GetUsersByIDs([]string{"", "", ""})
+		users, err := GetUsersByIDs([]string{"", "", ""})
 		assert.NoError(t, err)
 		assert.Len(t, users, 0)
 	})
@@ -258,7 +257,7 @@ func TestUpdateUserName(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Verify the update
-		updatedUser, err := models.GetUserByID(user.ID)
+		updatedUser, err := GetUserByID(user.ID)
 		assert.NoError(t, err)
 		assert.Equal(t, "UpdatedFirst", updatedUser.FirstName)
 		assert.Equal(t, "UpdatedLast", updatedUser.LastName)
@@ -271,7 +270,7 @@ func TestUpdateUserName(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Verify the update
-		updatedUser, err := models.GetUserByID(user.ID)
+		updatedUser, err := GetUserByID(user.ID)
 		assert.NoError(t, err)
 		assert.Equal(t, "", updatedUser.FirstName)
 		assert.Equal(t, "", updatedUser.LastName)
@@ -319,7 +318,7 @@ func TestUserGetFullName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			user := models.User{
+			user := User{
 				FirstName: tt.firstName,
 				LastName:  tt.lastName,
 			}
@@ -383,7 +382,7 @@ func TestUserIsProfileComplete(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			user := models.User{
+			user := User{
 				FirstName: tt.firstName,
 				LastName:  tt.lastName,
 				Email:     tt.email,
@@ -408,8 +407,8 @@ func TestStoreRefreshToken(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Verify token was stored
-		var refreshToken models.RefreshToken
-		err = database.Db.Where("user_id = ? AND token = ?", user.ID, models.HashToken(token)).First(&refreshToken).Error
+		var refreshToken RefreshToken
+		err = database.Db.Where("user_id = ? AND token = ?", user.ID, HashToken(token)).First(&refreshToken).Error
 		assert.NoError(t, err)
 		assert.Equal(t, user.ID, refreshToken.UserID)
 		assert.Equal(t, userAgent, refreshToken.UserAgent)
@@ -448,19 +447,19 @@ func TestStoreRefreshToken(t *testing.T) {
 		assert.Len(t, sessions, 2)
 
 		// Verify first token was deleted
-		var deletedToken models.RefreshToken
-		err = database.Db.Where("user_id = ? AND token = ?", user.ID, models.HashToken(token1)).First(&deletedToken).Error
+		var deletedToken RefreshToken
+		err = database.Db.Where("user_id = ? AND token = ?", user.ID, HashToken(token1)).First(&deletedToken).Error
 		assert.Error(t, err) // Should not exist
 
 		// Verify second token still exists (different IP)
-		var existingToken models.RefreshToken
-		err = database.Db.Where("user_id = ? AND token = ?", user.ID, models.HashToken(token2)).First(&existingToken).Error
+		var existingToken RefreshToken
+		err = database.Db.Where("user_id = ? AND token = ?", user.ID, HashToken(token2)).First(&existingToken).Error
 		assert.NoError(t, err)
 		assert.Equal(t, "192.168.1.200", existingToken.IPAddress)
 
 		// Verify third token exists (replaced first)
-		var newToken models.RefreshToken
-		err = database.Db.Where("user_id = ? AND token = ?", user.ID, models.HashToken(token3)).First(&newToken).Error
+		var newToken RefreshToken
+		err = database.Db.Where("user_id = ? AND token = ?", user.ID, HashToken(token3)).First(&newToken).Error
 		assert.NoError(t, err)
 		assert.Equal(t, ipAddress, newToken.IPAddress)
 		assert.Equal(t, "Safari/1.0", newToken.UserAgent)
@@ -499,8 +498,8 @@ func TestValidateRefreshToken(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Manually set expiration to past
-		err = database.Db.Model(&models.RefreshToken{}).
-			Where("user_id = ? AND token = ?", user.ID, models.HashToken(token)).
+		err = database.Db.Model(&RefreshToken{}).
+			Where("user_id = ? AND token = ?", user.ID, HashToken(token)).
 			Update("expires_at", time.Now().Add(-1*time.Hour)).Error
 		assert.NoError(t, err)
 
@@ -528,7 +527,7 @@ func TestDeleteRefreshToken(t *testing.T) {
 
 		// Verify token is deleted
 		var count int64
-		database.Db.Model(&models.RefreshToken{}).Where("token = ?", models.HashToken(token)).Count(&count)
+		database.Db.Model(&RefreshToken{}).Where("token = ?", HashToken(token)).Count(&count)
 		assert.Equal(t, int64(0), count)
 	})
 
@@ -559,7 +558,7 @@ func TestDeleteAllRefreshTokens(t *testing.T) {
 
 		// Verify all tokens are deleted
 		var count int64
-		database.Db.Model(&models.RefreshToken{}).Where("user_id = ?", user.ID).Count(&count)
+		database.Db.Model(&RefreshToken{}).Where("user_id = ?", user.ID).Count(&count)
 		assert.Equal(t, int64(0), count)
 	})
 }
@@ -639,7 +638,7 @@ func TestGetDeviceInfo(t *testing.T) {
 				req.Header.Set("X-Real-IP", tt.xRealIP)
 			}
 
-			userAgent, ipAddress := models.GetDeviceInfo(req)
+			userAgent, ipAddress := GetDeviceInfo(req)
 			assert.Equal(t, tt.expectedUserAgent, userAgent)
 			assert.Equal(t, tt.expectedIPAddress, ipAddress)
 		})
@@ -663,7 +662,7 @@ func TestUserGetFines(t *testing.T) {
 		club := handlers.CreateTestClub(t, user, "Test Club")
 
 		// Create some fines - we'll need to insert them directly since we're testing the model
-		fine1 := models.Fine{
+		fine1 := Fine{
 			ID:        "fine-1-id",
 			UserID:    user.ID,
 			ClubID:    club.ID,
@@ -673,7 +672,7 @@ func TestUserGetFines(t *testing.T) {
 			CreatedBy: user.ID,
 			UpdatedBy: user.ID,
 		}
-		fine2 := models.Fine{
+		fine2 := Fine{
 			ID:        "fine-2-id",
 			UserID:    user.ID,
 			ClubID:    club.ID,
@@ -702,7 +701,7 @@ func TestUserGetUnpaidFines(t *testing.T) {
 		club := handlers.CreateTestClub(t, user, "Test Club")
 
 		// Create mixed fines
-		unpaidFine := models.Fine{
+		unpaidFine := Fine{
 			ID:        "unpaid-fine-id",
 			UserID:    user.ID,
 			ClubID:    club.ID,
@@ -712,7 +711,7 @@ func TestUserGetUnpaidFines(t *testing.T) {
 			CreatedBy: user.ID,
 			UpdatedBy: user.ID,
 		}
-		paidFine := models.Fine{
+		paidFine := Fine{
 			ID:        "paid-fine-id",
 			UserID:    user.ID,
 			ClubID:    club.ID,
@@ -765,7 +764,7 @@ func TestUserGetActiveSessions(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Manually expire the token
-		err = database.Db.Model(&models.RefreshToken{}).
+		err = database.Db.Model(&RefreshToken{}).
 			Where("user_id = ?", user.ID).
 			Update("expires_at", time.Now().Add(-1*time.Hour)).Error
 		assert.NoError(t, err)
@@ -788,7 +787,7 @@ func TestUserDeleteSession(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Get the session ID
-		var session models.RefreshToken
+		var session RefreshToken
 		err = database.Db.Where("user_id = ?", user.ID).First(&session).Error
 		assert.NoError(t, err)
 
@@ -798,7 +797,7 @@ func TestUserDeleteSession(t *testing.T) {
 
 		// Verify it's deleted
 		var count int64
-		database.Db.Model(&models.RefreshToken{}).Where("id = ?", session.ID).Count(&count)
+		database.Db.Model(&RefreshToken{}).Where("id = ?", session.ID).Count(&count)
 		assert.Equal(t, int64(0), count)
 	})
 
@@ -857,7 +856,7 @@ func TestParseFullName(t *testing.T) {
 			email := "parsetest" + tt.name + "@example.com"
 			keycloakID := "keycloak-" + tt.name
 
-			user, err := models.FindOrCreateUserWithKeycloakID(keycloakID, email, tt.fullName)
+			user, err := FindOrCreateUserWithKeycloakID(keycloakID, email, tt.fullName)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedFirst, user.FirstName)
 			assert.Equal(t, tt.expectedLast, user.LastName)

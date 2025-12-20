@@ -6,7 +6,8 @@ import (
 	"net/http"
 
 	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
+	modelsauth "github.com/NLstn/clubs/models/auth"
 	frontend "github.com/NLstn/clubs/tools"
 )
 
@@ -60,7 +61,7 @@ func handleRequestMagicLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := models.CreateMagicLink(req.Email)
+	token, err := modelsauth.CreateMagicLink(req.Email)
 	if err != nil {
 		log.Printf("Failed to create magic link for email %s: %v", req.Email, err)
 		http.Error(w, "DB error", http.StatusInternalServerError)
@@ -87,7 +88,7 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	email, valid, err := models.VerifyMagicLink(token)
+	email, valid, err := modelsauth.VerifyMagicLink(token)
 	if err != nil || !valid {
 		if err != nil {
 			log.Printf("Magic link verification error: %v", err)
@@ -97,7 +98,7 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find or create user
-	user, err := models.FindOrCreateUser(email)
+	user, err := core.FindOrCreateUser(email)
 	if err != nil {
 		log.Printf("Failed to find or create user for email %s: %v", email, err)
 		http.Error(w, "User error", http.StatusInternalServerError)
@@ -120,7 +121,7 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store refresh token in the database
-	userAgent, ipAddress := models.GetDeviceInfo(r)
+	userAgent, ipAddress := core.GetDeviceInfo(r)
 	if err := user.StoreRefreshToken(refreshToken, userAgent, ipAddress); err != nil {
 		log.Printf("Failed to store refresh token for user %s: %v", user.ID, err)
 		http.Error(w, "Failed to store refresh token", http.StatusInternalServerError)
@@ -134,7 +135,7 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 		"profileComplete": user.IsProfileComplete(),
 	})
 
-	if err := models.DeleteMagicLink(token); err != nil {
+	if err := modelsauth.DeleteMagicLink(token); err != nil {
 		// Log the error for debugging and monitoring purposes
 		log.Printf("Failed to delete magic link after successful verification: %v", err)
 		http.Error(w, "Failed to delete magic link", http.StatusInternalServerError)
@@ -156,7 +157,7 @@ func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := models.GetUserByID(userID)
+	user, err := core.GetUserByID(userID)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -183,7 +184,7 @@ func handleRefreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store the new refresh token in the database
-	userAgent, ipAddress := models.GetDeviceInfo(r)
+	userAgent, ipAddress := core.GetDeviceInfo(r)
 	if err := user.StoreRefreshToken(newRefreshToken, userAgent, ipAddress); err != nil {
 		log.Printf("Failed to store new refresh token for user %s: %v", user.ID, err)
 		http.Error(w, "Failed to store refresh token", http.StatusInternalServerError)
@@ -218,7 +219,7 @@ func handleLogout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := models.GetUserByID(userID)
+	user, err := core.GetUserByID(userID)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return

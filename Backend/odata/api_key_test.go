@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/models"
+	modelsauth "github.com/NLstn/clubs/models/auth"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -64,7 +64,7 @@ func TestAPIKeyCreation(t *testing.T) {
 		assert.True(t, len(plainKey) > 20, "Key should be sufficiently long")
 
 		// Verify key is stored in database (hashed)
-		var apiKey models.APIKey
+		var apiKey modelsauth.APIKey
 		err = ctx.service.db.Where("id = ?", response["ID"]).First(&apiKey).Error
 		require.NoError(t, err)
 		assert.Equal(t, ctx.testUser.ID, apiKey.UserID)
@@ -203,7 +203,7 @@ func TestAPIKeyRetrieval(t *testing.T) {
 
 	// Create some API keys for testing
 	plainKey1, keyHash1, keyPrefix1, _ := auth.GenerateAPIKey("sk_live")
-	apiKey1 := &models.APIKey{
+	apiKey1 := &modelsauth.APIKey{
 		UserID:    ctx.testUser.ID,
 		Name:      "Key 1",
 		KeyHash:   keyHash1,
@@ -214,7 +214,7 @@ func TestAPIKeyRetrieval(t *testing.T) {
 
 	plainKey2, keyHash2, keyPrefix2, _ := auth.GenerateAPIKey("sk_live")
 	now := time.Now()
-	apiKey2 := &models.APIKey{
+	apiKey2 := &modelsauth.APIKey{
 		UserID:     ctx.testUser.ID,
 		Name:       "Key 2",
 		KeyHash:    keyHash2,
@@ -226,7 +226,7 @@ func TestAPIKeyRetrieval(t *testing.T) {
 
 	// Create key for another user (should not be visible)
 	_, keyHash3, keyPrefix3, _ := auth.GenerateAPIKey("sk_live")
-	apiKey3 := &models.APIKey{
+	apiKey3 := &modelsauth.APIKey{
 		UserID:    ctx.testUser2.ID,
 		Name:      "User2 Key",
 		KeyHash:   keyHash3,
@@ -367,7 +367,7 @@ func TestAPIKeyUpdate(t *testing.T) {
 
 	// Create API key with explicit UUID since SQLite doesn't support gen_random_uuid()
 	_, keyHash, keyPrefix, _ := auth.GenerateAPIKey("sk_live")
-	apiKey := &models.APIKey{
+	apiKey := &modelsauth.APIKey{
 		ID:        uuid.New().String(),
 		UserID:    ctx.testUser.ID,
 		Name:      "Original Name",
@@ -403,7 +403,7 @@ func TestAPIKeyUpdate(t *testing.T) {
 		assert.True(t, rec.Code == http.StatusOK || rec.Code == http.StatusNoContent, "Should return 200 or 204")
 
 		// Verify update in database
-		var updated models.APIKey
+		var updated modelsauth.APIKey
 		ctx.service.db.Where("id = ?", apiKey.ID).First(&updated)
 		assert.Equal(t, "Updated Name", updated.Name)
 	})
@@ -425,7 +425,7 @@ func TestAPIKeyUpdate(t *testing.T) {
 		assert.True(t, rec.Code == http.StatusOK || rec.Code == http.StatusNoContent, "Expected 200 or 204")
 
 		// Verify update in database
-		var updated models.APIKey
+		var updated modelsauth.APIKey
 		ctx.service.db.Where("id = ?", apiKey.ID).First(&updated)
 		assert.False(t, updated.IsActive)
 	})
@@ -461,7 +461,7 @@ func TestAPIKeyDeletion(t *testing.T) {
 
 	// Create API key with explicit UUID since SQLite doesn't support gen_random_uuid()
 	_, keyHash, keyPrefix, _ := auth.GenerateAPIKey("sk_live")
-	apiKey := &models.APIKey{
+	apiKey := &modelsauth.APIKey{
 		ID:        uuid.New().String(),
 		UserID:    ctx.testUser.ID,
 		Name:      "To Be Deleted",
@@ -482,7 +482,7 @@ func TestAPIKeyDeletion(t *testing.T) {
 
 		// Verify key is deleted from database
 		var count int64
-		ctx.service.db.Model(&models.APIKey{}).Where("id = ?", apiKey.ID).Count(&count)
+		ctx.service.db.Model(&modelsauth.APIKey{}).Where("id = ?", apiKey.ID).Count(&count)
 		assert.Equal(t, int64(0), count)
 	})
 
@@ -503,7 +503,7 @@ func TestAPIKeyExpansion(t *testing.T) {
 
 	// Create API key
 	_, keyHash, keyPrefix, _ := auth.GenerateAPIKey("sk_live")
-	apiKey := &models.APIKey{
+	apiKey := &modelsauth.APIKey{
 		UserID:    ctx.testUser.ID,
 		Name:      "Test Key",
 		KeyHash:   keyHash,
@@ -551,7 +551,7 @@ func TestAPIKeyAuthentication(t *testing.T) {
 
 	// Create API key
 	plainKey, keyHash, keyPrefix, _ := auth.GenerateAPIKey("sk_live")
-	apiKey := &models.APIKey{
+	apiKey := &modelsauth.APIKey{
 		UserID:    ctx.testUser.ID,
 		Name:      "Auth Test Key",
 		KeyHash:   keyHash,
@@ -585,7 +585,7 @@ func TestAPIKeyAuthentication(t *testing.T) {
 
 	t.Run("inactive_key_cannot_authenticate", func(t *testing.T) {
 		// Deactivate the key using user_id and name
-		ctx.service.db.Model(&models.APIKey{}).Where("user_id = ? AND name = ?", ctx.testUser.ID, "Auth Test Key").Update("is_active", false)
+		ctx.service.db.Model(&modelsauth.APIKey{}).Where("user_id = ? AND name = ?", ctx.testUser.ID, "Auth Test Key").Update("is_active", false)
 
 		req := httptest.NewRequest("GET", "/api/v2/Users", nil)
 		req.Header.Set("X-API-Key", plainKey)
@@ -596,13 +596,13 @@ func TestAPIKeyAuthentication(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
 
 		// Reactivate for other tests
-		ctx.service.db.Model(&models.APIKey{}).Where("user_id = ? AND name = ?", ctx.testUser.ID, "Auth Test Key").Update("is_active", true)
+		ctx.service.db.Model(&modelsauth.APIKey{}).Where("user_id = ? AND name = ?", ctx.testUser.ID, "Auth Test Key").Update("is_active", true)
 	})
 
 	t.Run("expired_key_cannot_authenticate", func(t *testing.T) {
 		// Set expiration to past
 		pastTime := time.Now().Add(-1 * time.Hour)
-		ctx.service.db.Model(&models.APIKey{}).Where("user_id = ? AND name = ?", ctx.testUser.ID, "Auth Test Key").Update("expires_at", pastTime)
+		ctx.service.db.Model(&modelsauth.APIKey{}).Where("user_id = ? AND name = ?", ctx.testUser.ID, "Auth Test Key").Update("expires_at", pastTime)
 
 		req := httptest.NewRequest("GET", "/api/v2/Users", nil)
 		req.Header.Set("X-API-Key", plainKey)
@@ -613,7 +613,7 @@ func TestAPIKeyAuthentication(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, rec.Code)
 
 		// Clear expiration for other tests
-		ctx.service.db.Model(&models.APIKey{}).Where("user_id = ? AND name = ?", ctx.testUser.ID, "Auth Test Key").Update("expires_at", nil)
+		ctx.service.db.Model(&modelsauth.APIKey{}).Where("user_id = ? AND name = ?", ctx.testUser.ID, "Auth Test Key").Update("expires_at", nil)
 	})
 
 	t.Run("invalid_key_cannot_authenticate", func(t *testing.T) {
@@ -630,7 +630,7 @@ func TestAPIKeyAuthentication(t *testing.T) {
 		t.Skip("Async LastUsedAt update is flaky in SQLite tests - works in production PostgreSQL")
 
 		// Record current LastUsedAt
-		var before models.APIKey
+		var before modelsauth.APIKey
 		ctx.service.db.Where("key_hash = ?", keyHash).First(&before)
 		beforeLastUsed := before.LastUsedAt
 
@@ -650,7 +650,7 @@ func TestAPIKeyAuthentication(t *testing.T) {
 		time.Sleep(200 * time.Millisecond)
 
 		// Check LastUsedAt was updated
-		var after models.APIKey
+		var after modelsauth.APIKey
 		ctx.service.db.Where("key_hash = ?", keyHash).First(&after)
 
 		assert.NotNil(t, after.LastUsedAt, "LastUsedAt should be set after first use")

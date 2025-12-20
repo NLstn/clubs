@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	odata "github.com/nlstn/go-odata"
 	"gorm.io/gorm"
 )
@@ -24,7 +24,7 @@ func (s *Service) registerTimelineHandlers() error {
 
 // getUserClubs fetches all clubs the user is a member of in a single query
 func (s *Service) getUserClubs(userID string) ([]string, map[string]string, error) {
-	var members []models.Member
+	var members []core.Member
 	if err := s.db.Where("user_id = ?", userID).Find(&members).Error; err != nil {
 		return nil, nil, fmt.Errorf("failed to get user memberships: %w", err)
 	}
@@ -40,7 +40,7 @@ func (s *Service) getUserClubs(userID string) ([]string, map[string]string, erro
 	}
 
 	// Fetch clubs in a single query
-	var clubs []models.Club
+	var clubs []core.Club
 	if err := s.db.Where("id IN ? AND deleted = false", clubIDs).Find(&clubs).Error; err != nil {
 		return nil, nil, fmt.Errorf("failed to get clubs: %w", err)
 	}
@@ -72,10 +72,10 @@ func (s *Service) getTimelineCollection(ctx *odata.OverwriteContext) (*odata.Col
 
 	if len(userClubIDs) == 0 {
 		// User is not a member of any clubs
-		return &odata.CollectionResult{Items: []models.TimelineItem{}}, nil
+		return &odata.CollectionResult{Items: []core.TimelineItem{}}, nil
 	}
 
-	var timelineItems []models.TimelineItem
+	var timelineItems []core.TimelineItem
 
 	// Fetch activities
 	activities, err := s.fetchActivities(userClubIDs, clubNameMap)
@@ -155,7 +155,7 @@ func (s *Service) getTimelineEntity(ctx *odata.OverwriteContext) (interface{}, e
 	// Fetch specific item based on type
 	switch itemType {
 	case "activity":
-		var activity models.Activity
+		var activity core.Activity
 		if err := s.db.Where("id = ?", itemID).First(&activity).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
 				return nil, fmt.Errorf("activity not found")
@@ -185,7 +185,7 @@ func (s *Service) getTimelineEntity(ctx *odata.OverwriteContext) (interface{}, e
 			actor = activity.ActorID
 		}
 
-		return models.TimelineItem{
+		return core.TimelineItem{
 			ID:        timelineID,
 			ClubID:    activity.ClubID,
 			ClubName:  clubNameMap[activity.ClubID],
@@ -201,7 +201,7 @@ func (s *Service) getTimelineEntity(ctx *odata.OverwriteContext) (interface{}, e
 		}, nil
 
 	case "event":
-		var event models.Event
+		var event core.Event
 		if err := s.db.Where("id = ?", itemID).First(&event).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
 				return nil, fmt.Errorf("event not found")
@@ -215,8 +215,8 @@ func (s *Service) getTimelineEntity(ctx *odata.OverwriteContext) (interface{}, e
 		}
 
 		// Get user's RSVP if available
-		var userRSVP *models.EventRSVP
-		var rsvp models.EventRSVP
+		var userRSVP *core.EventRSVP
+		var rsvp core.EventRSVP
 		if err := s.db.Where("event_id = ? AND user_id = ?", event.ID, userID).First(&rsvp).Error; err == nil {
 			userRSVP = &rsvp
 		}
@@ -229,7 +229,7 @@ func (s *Service) getTimelineEntity(ctx *odata.OverwriteContext) (interface{}, e
 			metadata["location"] = *event.Location
 		}
 
-		return models.TimelineItem{
+		return core.TimelineItem{
 			ID:        timelineID,
 			ClubID:    event.ClubID,
 			ClubName:  clubNameMap[event.ClubID],
@@ -247,7 +247,7 @@ func (s *Service) getTimelineEntity(ctx *odata.OverwriteContext) (interface{}, e
 		}, nil
 
 	case "news":
-		var news models.News
+		var news core.News
 		if err := s.db.Where("id = ?", itemID).First(&news).Error; err != nil {
 			if err == gorm.ErrRecordNotFound {
 				return nil, fmt.Errorf("news not found")
@@ -260,7 +260,7 @@ func (s *Service) getTimelineEntity(ctx *odata.OverwriteContext) (interface{}, e
 			return nil, fmt.Errorf("access denied: user is not a member of this club")
 		}
 
-		return models.TimelineItem{
+		return core.TimelineItem{
 			ID:        timelineID,
 			ClubID:    news.ClubID,
 			ClubName:  clubNameMap[news.ClubID],
@@ -279,17 +279,17 @@ func (s *Service) getTimelineEntity(ctx *odata.OverwriteContext) (interface{}, e
 }
 
 // fetchActivities fetches activities from the database and converts them to timeline items
-func (s *Service) fetchActivities(clubIDs []string, clubNameMap map[string]string) ([]models.TimelineItem, error) {
+func (s *Service) fetchActivities(clubIDs []string, clubNameMap map[string]string) ([]core.TimelineItem, error) {
 	if len(clubIDs) == 0 {
-		return []models.TimelineItem{}, nil
+		return []core.TimelineItem{}, nil
 	}
 
-	activities, err := models.GetRecentActivities(clubIDs, 30, 50)
+	activities, err := core.GetRecentActivities(clubIDs, 30, 50)
 	if err != nil {
 		return nil, err
 	}
 
-	var items []models.TimelineItem
+	var items []core.TimelineItem
 	for _, activity := range activities {
 		// Parse metadata if it exists
 		var metadata map[string]interface{}
@@ -310,7 +310,7 @@ func (s *Service) fetchActivities(clubIDs []string, clubNameMap map[string]strin
 			// Optionally fetch actor name if needed
 		}
 
-		item := models.TimelineItem{
+		item := core.TimelineItem{
 			ID:        fmt.Sprintf("activity-%s", activity.ID),
 			ClubID:    activity.ClubID,
 			ClubName:  clubNameMap[activity.ClubID],
@@ -332,12 +332,12 @@ func (s *Service) fetchActivities(clubIDs []string, clubNameMap map[string]strin
 }
 
 // fetchEvents fetches upcoming events from the database and converts them to timeline items
-func (s *Service) fetchEvents(clubIDs []string, clubNameMap map[string]string, userID string) ([]models.TimelineItem, error) {
+func (s *Service) fetchEvents(clubIDs []string, clubNameMap map[string]string, userID string) ([]core.TimelineItem, error) {
 	if len(clubIDs) == 0 {
-		return []models.TimelineItem{}, nil
+		return []core.TimelineItem{}, nil
 	}
 
-	var events []models.Event
+	var events []core.Event
 	now := time.Now()
 	err := s.db.Where("club_id IN ? AND start_time >= ?", clubIDs, now).
 		Order("start_time ASC").
@@ -354,7 +354,7 @@ func (s *Service) fetchEvents(clubIDs []string, clubNameMap map[string]string, u
 		eventIDs[i] = event.ID
 	}
 
-	var rsvps []models.EventRSVP
+	var rsvps []core.EventRSVP
 	if len(eventIDs) > 0 {
 		if err := s.db.Where("event_id IN ? AND user_id = ?", eventIDs, userID).Find(&rsvps).Error; err != nil {
 			s.logger.Warn("Failed to fetch RSVPs", "error", err)
@@ -362,16 +362,16 @@ func (s *Service) fetchEvents(clubIDs []string, clubNameMap map[string]string, u
 	}
 
 	// Build a map from event_id to RSVP for quick lookup
-	rsvpMap := make(map[string]*models.EventRSVP)
+	rsvpMap := make(map[string]*core.EventRSVP)
 	for i := range rsvps {
 		r := rsvps[i]
 		rsvpMap[r.EventID] = &r
 	}
 
-	var items []models.TimelineItem
+	var items []core.TimelineItem
 	for _, event := range events {
 		// Lookup user's RSVP if available
-		var userRSVP *models.EventRSVP
+		var userRSVP *core.EventRSVP
 		if rsvp, ok := rsvpMap[event.ID]; ok {
 			userRSVP = rsvp
 		}
@@ -384,7 +384,7 @@ func (s *Service) fetchEvents(clubIDs []string, clubNameMap map[string]string, u
 			metadata["location"] = *event.Location
 		}
 
-		item := models.TimelineItem{
+		item := core.TimelineItem{
 			ID:        fmt.Sprintf("event-%s", event.ID),
 			ClubID:    event.ClubID,
 			ClubName:  clubNameMap[event.ClubID],
@@ -408,12 +408,12 @@ func (s *Service) fetchEvents(clubIDs []string, clubNameMap map[string]string, u
 }
 
 // fetchNews fetches recent news from the database and converts them to timeline items
-func (s *Service) fetchNews(clubIDs []string, clubNameMap map[string]string) ([]models.TimelineItem, error) {
+func (s *Service) fetchNews(clubIDs []string, clubNameMap map[string]string) ([]core.TimelineItem, error) {
 	if len(clubIDs) == 0 {
-		return []models.TimelineItem{}, nil
+		return []core.TimelineItem{}, nil
 	}
 
-	var newsList []models.News
+	var newsList []core.News
 	err := s.db.Where("club_id IN ?", clubIDs).
 		Order("created_at DESC").
 		Limit(50).
@@ -423,9 +423,9 @@ func (s *Service) fetchNews(clubIDs []string, clubNameMap map[string]string) ([]
 		return nil, err
 	}
 
-	var items []models.TimelineItem
+	var items []core.TimelineItem
 	for _, news := range newsList {
-		item := models.TimelineItem{
+		item := core.TimelineItem{
 			ID:        fmt.Sprintf("news-%s", news.ID),
 			ClubID:    news.ClubID,
 			ClubName:  clubNameMap[news.ClubID],

@@ -11,7 +11,7 @@ import (
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -79,7 +79,7 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 	}()
 
 	// Create a test user
-	user := models.User{
+	user := core.User{
 		ID:    "test-user-middleware",
 		Email: "middleware@example.com",
 	}
@@ -219,7 +219,7 @@ func TestCompositeAuthMiddleware(t *testing.T) {
 	}()
 
 	// Create a test user
-	user := models.User{
+	user := core.User{
 		ID:    "test-user-composite",
 		Email: "composite@example.com",
 	}
@@ -354,7 +354,7 @@ func TestCompositeAuthMiddleware_ContextPropagation(t *testing.T) {
 		database.Db = oldDb
 	}()
 
-	user := models.User{
+	user := core.User{
 		ID:    "test-user-context",
 		Email: "context@example.com",
 	}

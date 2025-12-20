@@ -10,7 +10,7 @@ import (
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -36,7 +36,7 @@ func TestRecurringEvents_ExpandRecurrence(t *testing.T) {
 		recurrenceEnd := startTime.AddDate(0, 0, 28) // 4 weeks
 
 		pattern := "weekly"
-		event := models.Event{
+		event := core.Event{
 			ClubID:             club.ID,
 			Name:               "Weekly Meeting",
 			StartTime:          startTime,
@@ -71,7 +71,7 @@ func TestRecurringEvents_ExpandRecurrence(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Verify results
-		instances, ok := result.([]models.Event)
+		instances, ok := result.([]core.Event)
 		assert.True(t, ok)
 		assert.Len(t, instances, 5) // Parent + 4 weekly occurrences
 
@@ -101,7 +101,7 @@ func TestRecurringEvents_ExpandRecurrence(t *testing.T) {
 		recurrenceEnd := startTime.AddDate(0, 3, 0)
 
 		pattern := "monthly"
-		event := models.Event{
+		event := core.Event{
 			ClubID:             club.ID,
 			Name:               "Monthly Review",
 			StartTime:          startTime,
@@ -129,7 +129,7 @@ func TestRecurringEvents_ExpandRecurrence(t *testing.T) {
 		result, err := service.expandRecurrenceFunction(httptest.NewRecorder(), req, &event, params)
 		assert.NoError(t, err)
 
-		instances, ok := result.([]models.Event)
+		instances, ok := result.([]core.Event)
 		assert.True(t, ok)
 		assert.Len(t, instances, 4) // Parent + 3 monthly occurrences
 
@@ -145,7 +145,7 @@ func TestRecurringEvents_ExpandRecurrence(t *testing.T) {
 		startTime := time.Date(2024, 2, 1, 10, 0, 0, 0, time.UTC)
 		endTime := startTime.Add(1 * time.Hour)
 
-		event := models.Event{
+		event := core.Event{
 			ClubID:      club.ID,
 			Name:        "One-time Event",
 			StartTime:   startTime,
@@ -173,7 +173,7 @@ func TestRecurringEvents_ExpandRecurrence(t *testing.T) {
 		result, err := service.expandRecurrenceFunction(httptest.NewRecorder(), req, &event, params)
 		assert.NoError(t, err)
 
-		instances, ok := result.([]models.Event)
+		instances, ok := result.([]core.Event)
 		assert.True(t, ok)
 		assert.Len(t, instances, 1) // Just the event itself
 		assert.Equal(t, event.ID, instances[0].ID)
@@ -184,7 +184,7 @@ func TestRecurringEvents_ExpandRecurrence(t *testing.T) {
 		startTime := time.Date(2024, 3, 1, 10, 0, 0, 0, time.UTC)
 		endTime := startTime.Add(1 * time.Hour)
 
-		event := models.Event{
+		event := core.Event{
 			ClubID:      club.ID,
 			Name:        "Future Event",
 			StartTime:   startTime,
@@ -212,7 +212,7 @@ func TestRecurringEvents_ExpandRecurrence(t *testing.T) {
 		result, err := service.expandRecurrenceFunction(httptest.NewRecorder(), req, &event, params)
 		assert.NoError(t, err)
 
-		instances, ok := result.([]models.Event)
+		instances, ok := result.([]core.Event)
 		assert.True(t, ok)
 		assert.Len(t, instances, 0) // Event is outside range
 	})
@@ -224,7 +224,7 @@ func TestRecurringEvents_ExpandRecurrence(t *testing.T) {
 		recurrenceEnd := startTime.AddDate(0, 0, 14)
 
 		pattern := "weekly"
-		event := models.Event{
+		event := core.Event{
 			ClubID:             club.ID,
 			Name:               "Private Meeting",
 			StartTime:          startTime,
@@ -325,7 +325,7 @@ func TestGetRSVPCounts(t *testing.T) {
 
 	t.Run("counts_rsvps_by_response_type", func(t *testing.T) {
 		// Create an event
-		event1 := models.Event{
+		event1 := core.Event{
 			ID:        uuid.New().String(),
 			ClubID:    club.ID,
 			Name:      "Test Event 1",
@@ -338,7 +338,7 @@ func TestGetRSVPCounts(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Create RSVPs: 2 Yes, 1 No, 1 Maybe
-		rsvps := []models.EventRSVP{
+		rsvps := []core.EventRSVP{
 			{EventID: event1.ID, UserID: user.ID, Response: "yes"},
 			{EventID: event1.ID, UserID: user2.ID, Response: "yes"},
 			{EventID: event1.ID, UserID: user3.ID, Response: "no"},
@@ -369,7 +369,7 @@ func TestGetRSVPCounts(t *testing.T) {
 
 	t.Run("returns_zero_for_missing_response_types", func(t *testing.T) {
 		// Create a new event with only "yes" responses
-		event2 := models.Event{
+		event2 := core.Event{
 			ID:        uuid.New().String(),
 			ClubID:    club.ID,
 			Name:      "Test Event 2",
@@ -382,7 +382,7 @@ func TestGetRSVPCounts(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Only one RSVP for this specific event
-		rsvp := models.EventRSVP{
+		rsvp := core.EventRSVP{
 			EventID:  event2.ID,
 			UserID:   user.ID,
 			Response: "yes",
@@ -409,7 +409,7 @@ func TestGetRSVPCounts(t *testing.T) {
 
 	t.Run("unauthorized_user_cannot_get_counts", func(t *testing.T) {
 		// Create event
-		event3 := models.Event{
+		event3 := core.Event{
 			ID:        uuid.New().String(),
 			ClubID:    club.ID,
 			Name:      "Test Event 3",

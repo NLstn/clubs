@@ -6,7 +6,7 @@ import (
 
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/models/core"
 	"github.com/NLstn/clubs/odata"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -25,7 +25,7 @@ func TestSearchGlobal(t *testing.T) {
 	// Create test event in club
 	eventDesc := "Test event description"
 	eventLoc := "Test location"
-	event := models.Event{
+	event := core.Event{
 		ID:          uuid.New().String(),
 		ClubID:      club.ID,
 		Name:        "Test Event",
@@ -88,7 +88,7 @@ func TestSearchGlobal(t *testing.T) {
 
 	t.Run("SearchEventsOnlyUpcoming", func(t *testing.T) {
 		// Create a past event
-		pastEvent := models.Event{
+		pastEvent := core.Event{
 			ID:          uuid.New().String(),
 			ClubID:      club.ID,
 			Name:        "Past Test Event",

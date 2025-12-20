@@ -1,11 +1,10 @@
-package core_test
+package core
 
 import (
 	"testing"
 
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +13,7 @@ func TestGetAllClubs(t *testing.T) {
 	defer handlers.TeardownTestDB(t)
 
 	t.Run("no clubs", func(t *testing.T) {
-		clubs, err := models.GetAllClubs()
+		clubs, err := GetAllClubs()
 		assert.NoError(t, err)
 		assert.Len(t, clubs, 0)
 	})
@@ -24,12 +23,12 @@ func TestGetAllClubs(t *testing.T) {
 		club1 := handlers.CreateTestClub(t, user, "Club 1")
 		club2 := handlers.CreateTestClub(t, user, "Club 2")
 
-		clubs, err := models.GetAllClubs()
+		clubs, err := GetAllClubs()
 		assert.NoError(t, err)
 		assert.Len(t, clubs, 2)
 
 		// Check that both clubs are returned
-		clubMap := make(map[string]models.Club)
+		clubMap := make(map[string]Club)
 		for _, club := range clubs {
 			clubMap[club.ID] = club
 		}
@@ -45,7 +44,7 @@ func TestGetAllClubs(t *testing.T) {
 		err := club.SoftDelete(user.ID)
 		assert.NoError(t, err)
 
-		clubs, err := models.GetAllClubs()
+		clubs, err := GetAllClubs()
 		assert.NoError(t, err)
 
 		// Verify deleted club is not included
@@ -68,12 +67,12 @@ func TestGetAllClubsIncludingDeleted(t *testing.T) {
 		err := deletedClub.SoftDelete(user.ID)
 		assert.NoError(t, err)
 
-		clubs, err := models.GetAllClubsIncludingDeleted()
+		clubs, err := GetAllClubsIncludingDeleted()
 		assert.NoError(t, err)
 		assert.Len(t, clubs, 2)
 
 		// Check that both clubs are returned
-		clubMap := make(map[string]models.Club)
+		clubMap := make(map[string]Club)
 		for _, club := range clubs {
 			clubMap[club.ID] = club
 		}
@@ -90,20 +89,20 @@ func TestGetClubByID(t *testing.T) {
 		user, _ := handlers.CreateTestUser(t, "getclubuser@example.com")
 		createdClub := handlers.CreateTestClub(t, user, "Test Club")
 
-		club, err := models.GetClubByID(createdClub.ID)
+		club, err := GetClubByID(createdClub.ID)
 		assert.NoError(t, err)
 		assert.Equal(t, createdClub.ID, club.ID)
 		assert.Equal(t, createdClub.Name, club.Name)
 	})
 
 	t.Run("non-existent club", func(t *testing.T) {
-		club, err := models.GetClubByID("non-existent-id")
+		club, err := GetClubByID("non-existent-id")
 		assert.Error(t, err)
 		assert.Equal(t, "", club.ID)
 	})
 
 	t.Run("empty ID", func(t *testing.T) {
-		club, err := models.GetClubByID("")
+		club, err := GetClubByID("")
 		assert.Error(t, err)
 		assert.Equal(t, "", club.ID)
 	})
@@ -120,12 +119,12 @@ func TestGetClubsByIDs(t *testing.T) {
 		club3 := handlers.CreateTestClub(t, user, "Club 3")
 
 		ids := []string{club1.ID, club2.ID, club3.ID}
-		clubs, err := models.GetClubsByIDs(ids)
+		clubs, err := GetClubsByIDs(ids)
 		assert.NoError(t, err)
 		assert.Len(t, clubs, 3)
 
 		// Check that all clubs are returned
-		clubMap := make(map[string]models.Club)
+		clubMap := make(map[string]Club)
 		for _, club := range clubs {
 			clubMap[club.ID] = club
 		}
@@ -139,14 +138,14 @@ func TestGetClubsByIDs(t *testing.T) {
 		club1 := handlers.CreateTestClub(t, user, "Existing Club")
 
 		ids := []string{club1.ID, "non-existent-1", "non-existent-2"}
-		clubs, err := models.GetClubsByIDs(ids)
+		clubs, err := GetClubsByIDs(ids)
 		assert.NoError(t, err)
 		assert.Len(t, clubs, 1)
 		assert.Equal(t, club1.ID, clubs[0].ID)
 	})
 
 	t.Run("empty slice", func(t *testing.T) {
-		clubs, err := models.GetClubsByIDs([]string{})
+		clubs, err := GetClubsByIDs([]string{})
 		assert.NoError(t, err)
 		assert.Len(t, clubs, 0)
 	})
@@ -159,7 +158,7 @@ func TestCreateClub(t *testing.T) {
 	t.Run("create valid club", func(t *testing.T) {
 		user, _ := handlers.CreateTestUser(t, "createclubuser@example.com")
 
-		club, err := models.CreateClub("New Test Club", "Test Description", user.ID)
+		club, err := CreateClub("New Test Club", "Test Description", user.ID)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, club.ID)
 		assert.Equal(t, "New Test Club", club.Name)
@@ -169,7 +168,7 @@ func TestCreateClub(t *testing.T) {
 		assert.NotZero(t, club.CreatedAt)
 
 		// Verify club was actually saved to database
-		var dbClub models.Club
+		var dbClub Club
 		err = database.Db.Where("id = ?", club.ID).First(&dbClub).Error
 		assert.NoError(t, err)
 		assert.Equal(t, club.Name, dbClub.Name)
@@ -178,13 +177,13 @@ func TestCreateClub(t *testing.T) {
 	t.Run("create club with empty name", func(t *testing.T) {
 		user, _ := handlers.CreateTestUser(t, "emptyclubuser@example.com")
 
-		club, err := models.CreateClub("", "Description", user.ID)
+		club, err := CreateClub("", "Description", user.ID)
 		assert.NoError(t, err) // Empty name should still work at model level
 		assert.Equal(t, "", club.Name)
 	})
 
 	t.Run("create club with non-existent owner", func(t *testing.T) {
-		club, err := models.CreateClub("Orphan Club", "Description", "non-existent-user-id")
+		club, err := CreateClub("Orphan Club", "Description", "non-existent-user-id")
 		// The current implementation doesn't validate owner existence, so it succeeds
 		assert.NoError(t, err)
 		assert.NotEqual(t, "", club.ID)
@@ -204,7 +203,7 @@ func TestClubUpdate(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Verify update in database
-		var dbClub models.Club
+		var dbClub Club
 		err = database.Db.Where("id = ?", club.ID).First(&dbClub).Error
 		assert.NoError(t, err)
 		assert.Equal(t, "Updated Name", dbClub.Name)
@@ -213,7 +212,7 @@ func TestClubUpdate(t *testing.T) {
 	})
 
 	t.Run("update non-existent club", func(t *testing.T) {
-		club := models.Club{
+		club := Club{
 			ID:   "non-existent-id",
 			Name: "Non-existent Club",
 		}
@@ -236,7 +235,7 @@ func TestClubSoftDelete(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Verify club is marked as deleted
-		var dbClub models.Club
+		var dbClub Club
 		err = database.Db.Unscoped().Where("id = ?", club.ID).First(&dbClub).Error
 		assert.NoError(t, err)
 		assert.True(t, dbClub.Deleted)
@@ -244,13 +243,13 @@ func TestClubSoftDelete(t *testing.T) {
 
 		// Verify club is not returned by normal queries
 		// Note: GetClubByID doesn't filter soft-deleted clubs in current implementation
-		retrievedClub, err := models.GetClubByID(club.ID)
+		retrievedClub, err := GetClubByID(club.ID)
 		assert.NoError(t, err)                // Will still find the club
 		assert.True(t, retrievedClub.Deleted) // But it should be marked as deleted
 	})
 
 	t.Run("soft delete non-existent club", func(t *testing.T) {
-		club := models.Club{
+		club := Club{
 			ID: "non-existent-id",
 		}
 		// The current implementation doesn't validate club existence before soft delete
@@ -273,12 +272,12 @@ func TestDeleteClubPermanently(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Then permanently delete
-		err = models.DeleteClubPermanently(club.ID)
+		err = DeleteClubPermanently(club.ID)
 		assert.NoError(t, err)
 
 		// Verify club is completely gone
 		var count int64
-		database.Db.Unscoped().Model(&models.Club{}).Where("id = ?", club.ID).Count(&count)
+		database.Db.Unscoped().Model(&Club{}).Where("id = ?", club.ID).Count(&count)
 		assert.Equal(t, int64(0), count)
 	})
 
@@ -288,18 +287,18 @@ func TestDeleteClubPermanently(t *testing.T) {
 
 		// The current implementation doesn't check if club is soft-deleted first
 		// It just permanently deletes any club, so this will succeed
-		err := models.DeleteClubPermanently(club.ID)
+		err := DeleteClubPermanently(club.ID)
 		assert.NoError(t, err)
 
 		// Verify club is gone (permanently deleted)
-		_, err = models.GetClubByID(club.ID)
+		_, err = GetClubByID(club.ID)
 		assert.Error(t, err) // Should not be found
 	})
 
 	t.Run("permanently delete non-existent club", func(t *testing.T) {
 		// The current implementation doesn't validate club existence before deletion
 		// So this will succeed (no rows affected but no error)
-		err := models.DeleteClubPermanently("non-existent-id")
+		err := DeleteClubPermanently("non-existent-id")
 		assert.NoError(t, err)
 	})
 }
