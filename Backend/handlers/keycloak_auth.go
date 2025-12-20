@@ -6,10 +6,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/NLstn/clubs/auth"
+	"github.com/NLstn/clubs/csrf"
 	"github.com/NLstn/clubs/models"
 )
 
@@ -50,8 +53,35 @@ func handleKeycloakLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate a random state for CSRF protection
-	state := generateRandomState()
+	// Get client IP for state validation
+	clientIP := getClientIP(r)
+	ipHash := csrf.HashIP(clientIP)
+
+	// Generate a cryptographically signed state token with HMAC
+	// Format: nonce.timestamp.signature
+	// This provides CSRF protection without requiring server-side storage
+	state, err := csrf.GenerateStateToken(ipHash)
+	if err != nil {
+		log.Printf("Failed to generate state token: %v", err)
+		http.Error(w, "Failed to generate authentication URL", http.StatusInternalServerError)
+		return
+	}
+
+	// Store the state nonce in database for one-time use validation
+	// Extract nonce from state token (first part before first dot)
+	nonceParts := strings.Split(state, ".")
+	if len(nonceParts) < 1 {
+		http.Error(w, "Failed to generate authentication URL", http.StatusInternalServerError)
+		return
+	}
+	nonce := nonceParts[0]
+
+	// Store state with nonce for replay protection
+	if err := models.CreateOAuthState(nonce, ipHash); err != nil {
+		log.Printf("Failed to store OAuth state: %v", err)
+		http.Error(w, "Failed to generate authentication URL", http.StatusInternalServerError)
+		return
+	}
 
 	// Get the auth URL with PKCE parameters
 	authURL, codeVerifier, err := keycloakAuth.GetAuthURLWithPKCE(state)
@@ -95,10 +125,29 @@ func handleKeycloakCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Security Note: State parameter validation for CSRF protection
-	// Currently, we only verify the state parameter is present. For enhanced security,
-	// consider implementing stateful validation using a secure session store or
-	// signed/encrypted state tokens that can be verified server-side.
+	// CSRF Protection: Validate state token with HMAC signature and timestamp
+	clientIP := getClientIP(r)
+	ipHash := csrf.HashIP(clientIP)
+
+	// Validate the signed state token
+	nonce, valid := csrf.ValidateStateToken(req.State, ipHash)
+	if !valid {
+		log.Printf("Invalid state token: signature verification failed or token expired")
+		http.Error(w, "Invalid or expired state parameter", http.StatusBadRequest)
+		return
+	}
+
+	// Validate and consume the state nonce (one-time use, prevents replay attacks)
+	consumed, err := models.ValidateAndConsumeOAuthState(nonce, ipHash)
+	if err != nil || !consumed {
+		if err != nil {
+			log.Printf("OAuth state validation error: %v", err)
+		} else {
+			log.Printf("OAuth state validation failed: state already used or invalid")
+		}
+		http.Error(w, "Invalid or already used state parameter", http.StatusBadRequest)
+		return
+	}
 
 	keycloakAuth := auth.GetKeycloakAuth()
 	if keycloakAuth == nil {
@@ -192,6 +241,36 @@ func handleKeycloakLogout(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// getClientIP extracts the client IP address from the request
+// Checks X-Forwarded-For header first, then falls back to RemoteAddr
+func getClientIP(r *http.Request) string {
+	// Check X-Forwarded-For header first (common in proxied environments)
+	forwarded := r.Header.Get("X-Forwarded-For")
+	if forwarded != "" {
+		// X-Forwarded-For can contain multiple IPs, take the first one
+		ips := strings.Split(forwarded, ",")
+		if len(ips) > 0 {
+			return strings.TrimSpace(ips[0])
+		}
+	}
+
+	// Check X-Real-IP header
+	realIP := r.Header.Get("X-Real-IP")
+	if realIP != "" {
+		return strings.TrimSpace(realIP)
+	}
+
+	// Fall back to RemoteAddr
+	// RemoteAddr is in format "IP:port", extract just the IP
+	ip := r.RemoteAddr
+	if idx := strings.LastIndex(ip, ":"); idx != -1 {
+		ip = ip[:idx]
+	}
+	return ip
+}
+
+// generateRandomState generates a random state parameter
+// Deprecated: Use csrf.GenerateStateToken for CSRF-protected state tokens
 func generateRandomState() string {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {

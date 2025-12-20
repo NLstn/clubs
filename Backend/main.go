@@ -11,6 +11,7 @@ import (
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/azure"
+	"github.com/NLstn/clubs/csrf"
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
 	"github.com/NLstn/clubs/models"
@@ -36,6 +37,7 @@ func main() {
 		&models.Team{},
 		&models.TeamMember{},
 		&models.MagicLink{},
+		&models.OAuthState{},
 		&models.User{},
 		&models.JoinRequest{},
 		&models.Invite{},
@@ -60,6 +62,11 @@ func main() {
 	)
 	if err != nil {
 		log.Fatal("Could not migrate database:", err)
+	}
+
+	err = csrf.Init()
+	if err != nil {
+		log.Fatal("Could not initialize CSRF protection:", err)
 	}
 
 	err = azure.Init()
