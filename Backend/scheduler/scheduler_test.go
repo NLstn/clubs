@@ -249,6 +249,18 @@ func TestScheduler_RegisterJobWithSchedule_Idempotent(t *testing.T) {
 	assert.Equal(t, "Updated description", job.Description)
 	assert.Equal(t, "test_idempotent_handler_v2", job.JobHandler)
 	assert.Equal(t, 45, job.IntervalMinutes)
+	
+	// Verify the in-memory handler was also updated to the new handler name
+	// We can test this indirectly by creating a job execution and seeing if it uses the new handler
+	s.Start()
+	time.Sleep(1 * time.Second)
+	s.Stop()
+	
+	var executions []models.JobExecution
+	err = database.Db.Where("scheduled_job_id = ?", job.ID).Find(&executions).Error
+	assert.NoError(t, err)
+	// Job should have executed with the new handler (testJob function)
+	assert.Greater(t, len(executions), 0, "Job should have executed with updated handler")
 }
 
 func TestScheduler_RegisterJobWithSchedule_ExecutesCorrectly(t *testing.T) {
@@ -299,6 +311,62 @@ func TestScheduler_RegisterJobWithSchedule_ExecutesCorrectly(t *testing.T) {
 	if len(executions) > 0 {
 		assert.Equal(t, models.JobStatusSuccess, executions[0].Status)
 	}
+}
+
+func TestScheduler_RegisterJobWithSchedule_ValidationErrors(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+	
+	s := scheduler.NewScheduler(1 * time.Second)
+	
+	testJob := func() error {
+		return nil
+	}
+	
+	// Test empty job name
+	err := s.RegisterJobWithSchedule("handler", testJob, scheduler.JobConfig{
+		Name:            "",
+		Description:     "Test",
+		IntervalMinutes: 10,
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "job name cannot be empty")
+	
+	// Test empty handler name
+	err = s.RegisterJobWithSchedule("", testJob, scheduler.JobConfig{
+		Name:            "test_job",
+		Description:     "Test",
+		IntervalMinutes: 10,
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "handler name cannot be empty")
+	
+	// Test nil job function
+	err = s.RegisterJobWithSchedule("handler", nil, scheduler.JobConfig{
+		Name:            "test_job",
+		Description:     "Test",
+		IntervalMinutes: 10,
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "job function cannot be nil")
+	
+	// Test zero interval minutes
+	err = s.RegisterJobWithSchedule("handler", testJob, scheduler.JobConfig{
+		Name:            "test_job",
+		Description:     "Test",
+		IntervalMinutes: 0,
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "interval minutes must be positive")
+	
+	// Test negative interval minutes
+	err = s.RegisterJobWithSchedule("handler", testJob, scheduler.JobConfig{
+		Name:            "test_job",
+		Description:     "Test",
+		IntervalMinutes: -5,
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "interval minutes must be positive")
 }
 
 func TestScheduler_JobTimeout(t *testing.T) {
