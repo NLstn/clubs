@@ -20,11 +20,16 @@ func TestSchedulerIntegration(t *testing.T) {
 	// Create scheduler
 	s := scheduler.NewScheduler(500 * time.Millisecond)
 
-	// Register the OAuth cleanup job
-	s.RegisterJob("cleanup_oauth_states", models.CleanupExpiredOAuthStates)
-
-	// Initialize default jobs
-	err := scheduler.InitializeDefaultJobs(database.Db)
+	// Register the OAuth cleanup job with schedule
+	err := s.RegisterJobWithSchedule(
+		"cleanup_oauth_states",
+		models.CleanupExpiredOAuthStates,
+		scheduler.JobConfig{
+			Name:            "oauth_state_cleanup",
+			Description:     "Removes expired OAuth state records from the database",
+			IntervalMinutes: 60,
+		},
+	)
 	assert.NoError(t, err)
 
 	// Create some OAuth states (expired and valid)
