@@ -153,20 +153,24 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, rr.Code)
 	})
 
-	t.Run("Inactive API key", func(t *testing.T) {
-		// Create an inactive key
-		inactiveKey, inactiveHash, inactivePrefix, err := auth.GenerateAPIKey("sk_live")
+	t.Run("deleted API key", func(t *testing.T) {
+		// Create a key and then verify deleted keys cannot authenticate
+		deletedKey, deletedHash, deletedPrefix, err := auth.GenerateAPIKey("sk_live")
 		assert.NoError(t, err)
 
-		// Insert directly with SQL to ensure boolean is set correctly in SQLite
+		// Insert key then delete it immediately
 		err = db.Exec(`
-			INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, is_active, created_at, updated_at)
-			VALUES (?, ?, ?, ?, ?, 0, ?, ?)
-		`, "test-key-inactive-mw", user.ID, "Inactive Key", inactiveHash, inactivePrefix, time.Now(), time.Now()).Error
+			INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?)
+		`, "test-key-deleted-mw", user.ID, "Deleted Key", deletedHash, deletedPrefix, time.Now(), time.Now()).Error
+		assert.NoError(t, err)
+
+		// Now delete the key
+		err = db.Exec(`DELETE FROM api_keys WHERE id = ?`, "test-key-deleted-mw").Error
 		assert.NoError(t, err)
 
 		req := httptest.NewRequest("GET", "/test", nil)
-		req.Header.Set("X-API-Key", inactiveKey)
+		req.Header.Set("X-API-Key", deletedKey)
 		rr := httptest.NewRecorder()
 
 		handler := APIKeyAuthMiddleware(testHandler)

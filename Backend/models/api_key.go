@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/NLstn/clubs/auth"
+	"github.com/NLstn/clubs/database"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +23,6 @@ type APIKey struct {
 	Permissions string     `json:"-" gorm:"type:text"` // Stored as JSON string
 	LastUsedAt  *time.Time `json:"LastUsedAt,omitempty" gorm:"type:timestamp" odata:"nullable"`
 	ExpiresAt   *time.Time `json:"ExpiresAt,omitempty" gorm:"type:timestamp" odata:"nullable"`
-	IsActive    bool       `json:"IsActive" gorm:"default:true" odata:"required"`
 	CreatedAt   time.Time  `json:"CreatedAt" odata:"immutable"`
 	UpdatedAt   time.Time  `json:"UpdatedAt"`
 }
@@ -137,9 +137,9 @@ func (a *APIKey) IsExpired() bool {
 	return time.Now().After(*a.ExpiresAt)
 }
 
-// IsValid checks if the API key is valid (active and not expired)
+// IsValid checks if the API key is valid (not expired)
 func (a *APIKey) IsValid() bool {
-	return a.IsActive && !a.IsExpired()
+	return !a.IsExpired()
 }
 
 // GetPermissions returns the permissions as a string slice
@@ -164,4 +164,13 @@ func (a *APIKey) SetPermissions(perms []string) error {
 	}
 	a.Permissions = string(data)
 	return nil
+}
+
+// CleanupExpiredAPIKeys removes expired API keys from the database
+// This should be called periodically to prevent the table from growing indefinitely
+// Expired keys are hard-deleted rather than being marked inactive
+func CleanupExpiredAPIKeys() error {
+	var db gorm.DB = *database.Db
+	result := db.Where("expires_at IS NOT NULL AND expires_at < ?", time.Now()).Delete(&APIKey{})
+	return result.Error
 }

@@ -230,7 +230,6 @@ func TestAPIKeyCreateAuthorization(t *testing.T) {
 			Name:      "Test Key",
 			KeyHash:   "testhash",
 			KeyPrefix: "sk_test",
-			IsActive:  true,
 		}
 
 		err := apiKey.ODataBeforeCreate(ctx, req)
@@ -252,7 +251,6 @@ func TestAPIKeyCreateAuthorization(t *testing.T) {
 			Name:      "Test Key 2",
 			KeyHash:   "testhash2",
 			KeyPrefix: "sk_test",
-			IsActive:  true,
 		}
 
 		err := apiKey.ODataBeforeCreate(ctx, req)
@@ -270,7 +268,6 @@ func TestAPIKeyCreateAuthorization(t *testing.T) {
 			Name:      "Malicious Key",
 			KeyHash:   "testhash3",
 			KeyPrefix: "sk_test",
-			IsActive:  true,
 		}
 
 		err := apiKey.ODataBeforeCreate(ctx, req)
@@ -287,7 +284,6 @@ func TestAPIKeyCreateAuthorization(t *testing.T) {
 			Name:      "Test Key",
 			KeyHash:   "testhash",
 			KeyPrefix: "sk_test",
-			IsActive:  true,
 		}
 
 		err := apiKey.ODataBeforeCreate(ctx, req)
@@ -315,7 +311,7 @@ func TestAPIKeyUpdateAuthorization(t *testing.T) {
 
 	// Create API key for user2
 	apiKeyID := uuid.New().String()
-	err = database.Db.Exec("INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",
+	err = database.Db.Exec("INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, created_at, updated_at) VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))",
 		apiKeyID, user2ID, "User2 Key", "hash2", "sk_test").Error
 	require.NoError(t, err)
 
@@ -325,7 +321,6 @@ func TestAPIKeyUpdateAuthorization(t *testing.T) {
 		Name:      "User2 Key",
 		KeyHash:   "hash2",
 		KeyPrefix: "sk_test",
-		IsActive:  true,
 	}
 
 	// Test 1: User1 cannot update User2's API key
@@ -377,7 +372,7 @@ func TestAPIKeyDeleteAuthorization(t *testing.T) {
 
 	// Create API key for user2
 	apiKeyID := uuid.New().String()
-	err = database.Db.Exec("INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",
+	err = database.Db.Exec("INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, created_at, updated_at) VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'))",
 		apiKeyID, user2ID, "User2 Key", "hash2", "sk_test").Error
 	require.NoError(t, err)
 
@@ -387,7 +382,6 @@ func TestAPIKeyDeleteAuthorization(t *testing.T) {
 		Name:      "User2 Key",
 		KeyHash:   "hash2",
 		KeyPrefix: "sk_test",
-		IsActive:  true,
 	}
 
 	// Test 1: User1 cannot delete User2's API key
