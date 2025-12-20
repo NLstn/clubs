@@ -230,7 +230,10 @@ ORDER BY je.started_at DESC;
 
 ### Job Success Rate
 
+**Note:** This query uses PostgreSQL-specific syntax (INTERVAL). For SQLite or other databases, adjust the date arithmetic accordingly.
+
 ```sql
+-- PostgreSQL
 SELECT 
     sj.name,
     COUNT(*) as total_executions,
@@ -240,6 +243,18 @@ SELECT
 FROM job_executions je
 JOIN scheduled_jobs sj ON sj.id = je.scheduled_job_id
 WHERE je.completed_at > NOW() - INTERVAL '7 days'
+GROUP BY sj.name;
+
+-- SQLite alternative
+SELECT 
+    sj.name,
+    COUNT(*) as total_executions,
+    SUM(CASE WHEN je.status = 'success' THEN 1 ELSE 0 END) as successful,
+    SUM(CASE WHEN je.status = 'failed' THEN 1 ELSE 0 END) as failed,
+    AVG(je.duration_ms) as avg_duration_ms
+FROM job_executions je
+JOIN scheduled_jobs sj ON sj.id = je.scheduled_job_id
+WHERE je.completed_at > datetime('now', '-7 days')
 GROUP BY sj.name;
 ```
 
