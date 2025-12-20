@@ -29,6 +29,7 @@ testI18n
             clubs: "Clubs",
             myClubs: "My Clubs",
             profile: "Profile",
+            settings: "Settings",
             adminPanel: "Admin Panel",
             createNewClub: "Create New Club",
             logout: "Logout",
