@@ -17,9 +17,24 @@ type JobFunc func() error
 
 // JobConfig contains the configuration for a scheduled job
 type JobConfig struct {
-	Name            string
-	Description     string
+	// Name is a unique identifier for the job in the database
+	Name string
+	// Description provides a human-readable summary of what the job does
+	Description string
+	// IntervalMinutes specifies how often the job should run, in minutes.
+	// Must be a positive integer value representing the interval between executions.
 	IntervalMinutes int
+}
+
+// Validate checks if the JobConfig has valid values
+func (c JobConfig) Validate() error {
+	if c.Name == "" {
+		return fmt.Errorf("job name cannot be empty")
+	}
+	if c.IntervalMinutes <= 0 {
+		return fmt.Errorf("interval minutes must be positive, got %d", c.IntervalMinutes)
+	}
+	return nil
 }
 
 // Scheduler manages periodic job execution
@@ -53,14 +68,18 @@ func NewScheduler(tickerInterval time.Duration) *Scheduler {
 // RegisterJobWithSchedule registers a job handler and creates/updates its database record
 // This method combines in-memory registration with database initialization in a single operation
 func (s *Scheduler) RegisterJobWithSchedule(handlerName string, jobFunc JobFunc, config JobConfig) error {
-	// Step 1: Register in-memory
-	s.jobsMutex.Lock()
-	s.jobs[handlerName] = jobFunc
-	s.jobsMutex.Unlock()
+	// Validate input parameters
+	if handlerName == "" {
+		return fmt.Errorf("handler name cannot be empty")
+	}
+	if jobFunc == nil {
+		return fmt.Errorf("job function cannot be nil")
+	}
+	if err := config.Validate(); err != nil {
+		return fmt.Errorf("invalid job config: %w", err)
+	}
 	
-	log.Printf("Registered job handler: %s", handlerName)
-	
-	// Step 2: Create/update database record (idempotent)
+	// Step 1: Create/update database record first (for atomicity)
 	var existing models.ScheduledJob
 	err := database.Db.Where("name = ?", config.Name).First(&existing).Error
 	
@@ -101,6 +120,13 @@ func (s *Scheduler) RegisterJobWithSchedule(handlerName string, jobFunc JobFunc,
 			log.Printf("Scheduled job unchanged: %s", config.Name)
 		}
 	}
+	
+	// Step 2: Register in-memory only after successful database operation
+	s.jobsMutex.Lock()
+	s.jobs[handlerName] = jobFunc
+	s.jobsMutex.Unlock()
+	
+	log.Printf("Registered job handler: %s", handlerName)
 	
 	return nil
 }
