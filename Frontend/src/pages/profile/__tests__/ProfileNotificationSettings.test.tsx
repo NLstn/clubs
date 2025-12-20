@@ -73,15 +73,15 @@ describe('ProfileNotificationSettings', () => {
       </MemoryRouter>
     );
 
+    let toggles: HTMLElement[];
     await waitFor(() => {
       // Check that the toggles are rendered
-      const toggles = screen.getAllByTestId('toggle-switch');
+      toggles = screen.getAllByTestId('toggle-switch');
       expect(toggles.length).toBeGreaterThan(0);
     });
 
     // Verify the component can access PascalCase fields correctly
     // The first toggle should be for MemberAddedInApp, which is true
-    const toggles = screen.getAllByTestId('toggle-switch');
     expect(toggles[0]).toBeChecked();
     
     // The second toggle should be for MemberAddedEmail, which is false
@@ -105,13 +105,13 @@ describe('ProfileNotificationSettings', () => {
       </MemoryRouter>
     );
 
+    let toggles: HTMLElement[];
     await waitFor(() => {
-      const toggles = screen.getAllByTestId('toggle-switch');
+      toggles = screen.getAllByTestId('toggle-switch');
       expect(toggles.length).toBeGreaterThan(0);
     });
 
     // Click the first toggle (MemberAddedInApp)
-    const toggles = screen.getAllByTestId('toggle-switch');
     toggles[0].click();
 
     await waitFor(() => {
