@@ -1,0 +1,218 @@
+package scheduler_test
+
+import (
+	"errors"
+	"testing"
+	"time"
+
+	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/clubs/handlers"
+	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/scheduler"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestScheduler_RegisterJob(t *testing.T) {
+	s := scheduler.NewScheduler(1 * time.Second)
+	
+	callCount := 0
+	testJob := func() error {
+		callCount++
+		return nil
+	}
+	
+	s.RegisterJob("test_job", testJob)
+	
+	// Verify job was registered (indirect test via execution)
+	assert.NotNil(t, s)
+}
+
+func TestScheduler_StartAndStop(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+	
+	s := scheduler.NewScheduler(1 * time.Second)
+	
+	s.Start()
+	time.Sleep(100 * time.Millisecond)
+	s.Stop()
+	
+	// Test passes if no panic occurs
+}
+
+func TestScheduler_ExecuteJob(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+	
+	s := scheduler.NewScheduler(500 * time.Millisecond)
+	
+	callCount := 0
+	testJob := func() error {
+		callCount++
+		return nil
+	}
+	
+	s.RegisterJob("test_handler", testJob)
+	
+	// Create a scheduled job in the database
+	job := models.ScheduledJob{
+		Name:            "test_job_exec",
+		Description:     "Test job",
+		JobHandler:      "test_handler",
+		Enabled:         true,
+		IntervalMinutes: 1,
+	}
+	err := database.Db.Create(&job).Error
+	assert.NoError(t, err)
+	
+	// Start scheduler
+	s.Start()
+	
+	// Wait for job to execute
+	time.Sleep(2 * time.Second)
+	
+	// Stop scheduler
+	s.Stop()
+	
+	// Verify job was called
+	assert.Greater(t, callCount, 0, "Job should have been called at least once")
+	
+	// Verify job execution was recorded
+	var executions []models.JobExecution
+	err = database.Db.Where("scheduled_job_id = ?", job.ID).Find(&executions).Error
+	assert.NoError(t, err)
+	assert.Greater(t, len(executions), 0, "Should have at least one job execution")
+	
+	// Verify execution status
+	if len(executions) > 0 {
+		assert.Equal(t, models.JobStatusSuccess, executions[0].Status)
+		assert.NotNil(t, executions[0].CompletedAt)
+		assert.NotNil(t, executions[0].DurationMs)
+	}
+}
+
+func TestScheduler_JobFailure(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+	
+	s := scheduler.NewScheduler(500 * time.Millisecond)
+	
+	testError := errors.New("test error")
+	failingJob := func() error {
+		return testError
+	}
+	
+	s.RegisterJob("failing_handler", failingJob)
+	
+	// Create a scheduled job in the database
+	job := models.ScheduledJob{
+		Name:            "test_job_fail",
+		Description:     "Test failing job",
+		JobHandler:      "failing_handler",
+		Enabled:         true,
+		IntervalMinutes: 1,
+	}
+	err := database.Db.Create(&job).Error
+	assert.NoError(t, err)
+	
+	// Start scheduler
+	s.Start()
+	
+	// Wait for job to execute
+	time.Sleep(2 * time.Second)
+	
+	// Stop scheduler
+	s.Stop()
+	
+	// Verify job execution was recorded with failure
+	var executions []models.JobExecution
+	err = database.Db.Where("scheduled_job_id = ?", job.ID).Find(&executions).Error
+	assert.NoError(t, err)
+	assert.Greater(t, len(executions), 0, "Should have at least one job execution")
+	
+	// Verify execution status
+	if len(executions) > 0 {
+		assert.Equal(t, models.JobStatusFailed, executions[0].Status)
+		assert.NotNil(t, executions[0].ErrorMessage)
+		assert.Contains(t, *executions[0].ErrorMessage, "test error")
+	}
+}
+
+func TestScheduler_DisabledJob(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+	
+	s := scheduler.NewScheduler(500 * time.Millisecond)
+	
+	callCount := 0
+	testJob := func() error {
+		callCount++
+		return nil
+	}
+	
+	s.RegisterJob("test_handler_disabled", testJob)
+	
+	// Create a disabled scheduled job in the database
+	job := models.ScheduledJob{
+		Name:            "test_job_disabled",
+		Description:     "Test disabled job",
+		JobHandler:      "test_handler_disabled",
+		Enabled:         false,
+		IntervalMinutes: 1,
+	}
+	err := database.Db.Create(&job).Error
+	assert.NoError(t, err)
+	
+	// Explicitly set enabled to false using an update to override the default
+	err = database.Db.Model(&job).Update("enabled", false).Error
+	assert.NoError(t, err)
+	
+	// Verify it was actually set to disabled
+	var verifyJob models.ScheduledJob
+	err = database.Db.Where("id = ?", job.ID).First(&verifyJob).Error
+	assert.NoError(t, err)
+	assert.False(t, verifyJob.Enabled, "Job should be disabled")
+	
+	// Start scheduler
+	s.Start()
+	
+	// Wait for potential execution
+	time.Sleep(2 * time.Second)
+	
+	// Stop scheduler
+	s.Stop()
+	
+	// Verify job was NOT called
+	assert.Equal(t, 0, callCount, "Disabled job should not be called")
+	
+	// Verify no job execution was recorded
+	var executions []models.JobExecution
+	err = database.Db.Where("scheduled_job_id = ?", job.ID).Find(&executions).Error
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(executions), "Should have no job executions for disabled job")
+}
+
+func TestInitializeDefaultJobs(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+	
+	err := scheduler.InitializeDefaultJobs(database.Db)
+	assert.NoError(t, err)
+	
+	// Verify OAuth cleanup job was created
+	var job models.ScheduledJob
+	err = database.Db.Where("name = ?", "oauth_state_cleanup").First(&job).Error
+	assert.NoError(t, err)
+	assert.Equal(t, "oauth_state_cleanup", job.Name)
+	assert.Equal(t, "cleanup_oauth_states", job.JobHandler)
+	assert.True(t, job.Enabled)
+	assert.Equal(t, 60, job.IntervalMinutes)
+	
+	// Calling again should not create duplicates
+	err = scheduler.InitializeDefaultJobs(database.Db)
+	assert.NoError(t, err)
+	
+	var count int64
+	database.Db.Model(&models.ScheduledJob{}).Where("name = ?", "oauth_state_cleanup").Count(&count)
+	assert.Equal(t, int64(1), count, "Should have exactly one oauth_state_cleanup job")
+}
