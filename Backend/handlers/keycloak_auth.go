@@ -132,7 +132,7 @@ func handleKeycloakCallback(w http.ResponseWriter, r *http.Request) {
 	// Validate the signed state token
 	nonce, valid := csrf.ValidateStateToken(req.State, ipHash)
 	if !valid {
-		log.Printf("Invalid state token")
+		log.Printf("Invalid state token: signature verification failed or token expired")
 		http.Error(w, "Invalid state parameter", http.StatusBadRequest)
 		return
 	}
@@ -242,7 +242,16 @@ func handleKeycloakLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 // getClientIP extracts the client IP address from the request
-// Checks X-Forwarded-For header first, then falls back to RemoteAddr
+// 
+// Security Note: This function trusts X-Forwarded-For and X-Real-IP headers.
+// In production environments behind a reverse proxy, ensure the proxy is configured
+// to set these headers correctly and that direct client access to the backend is blocked.
+// If X-Forwarded-For can be spoofed by clients, IP-based validation can be bypassed.
+//
+// For enhanced security in untrusted environments:
+// - Configure your reverse proxy to strip/override client-provided headers
+// - Use RemoteAddr only (comment out X-Forwarded-For logic)
+// - Consider making IP validation optional via configuration
 func getClientIP(r *http.Request) string {
 	// Check X-Forwarded-For header first (common in proxied environments)
 	forwarded := r.Header.Get("X-Forwarded-For")

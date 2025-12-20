@@ -224,9 +224,16 @@ go test ./models/... -run OAuth -v
   - Mitigation: 10-minute token expiry provides reasonable window
   - Consider: Relaxing IP validation for mobile users if needed
 
-⚠️**Shared IPs**: Users behind NAT/proxy with same IP
+⚠️ **Shared IPs**: Users behind NAT/proxy with same IP
   - Mitigation: Nonce uniqueness still provides protection
   - Impact: Multiple users from same network can each have their own states
+
+⚠️ **X-Forwarded-For Header Trust**: IP validation relies on X-Forwarded-For header
+  - **Security Risk**: This header can be spoofed by clients if backend is directly accessible
+  - **Mitigation**: Ensure backend is only accessible through a trusted reverse proxy
+  - **Best Practice**: Configure proxy to strip/override client-provided X-Forwarded-For headers
+  - **Alternative**: Use RemoteAddr only (requires removing X-Forwarded-For logic in getClientIP)
+  - **Note**: The `getClientIP()` function includes security warnings in code comments
 
 ✅ **No Cookie-Based CSRF**: Application uses JWT in headers, not cookies
   - No SameSite attribute needed
