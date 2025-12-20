@@ -9,29 +9,29 @@ import (
 
 // ScheduledJob represents a job that should be executed periodically
 type ScheduledJob struct {
-	ID              string    `json:"ID" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	Name            string    `json:"Name" gorm:"type:varchar(255);unique;not null"`
-	Description     string    `json:"Description" gorm:"type:text"`
-	JobHandler      string    `json:"JobHandler" gorm:"type:varchar(255);not null"` // function identifier
-	Enabled         bool      `json:"Enabled" gorm:"default:true"`
-	IntervalMinutes int       `json:"IntervalMinutes" gorm:"not null"`
+	ID              string     `json:"ID" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	Name            string     `json:"Name" gorm:"type:varchar(255);unique;not null"`
+	Description     string     `json:"Description" gorm:"type:text"`
+	JobHandler      string     `json:"JobHandler" gorm:"type:varchar(255);not null"` // function identifier
+	Enabled         bool       `json:"Enabled" gorm:"default:true"`
+	IntervalMinutes int        `json:"IntervalMinutes" gorm:"not null"`
 	LastRunAt       *time.Time `json:"LastRunAt"`
-	NextRunAt       *time.Time `json:"NextRunAt"`
-	CreatedAt       time.Time `json:"CreatedAt" gorm:"autoCreateTime"`
-	UpdatedAt       time.Time `json:"UpdatedAt" gorm:"autoUpdateTime"`
+	NextRunAt       *time.Time `json:"NextRunAt" gorm:"index:idx_scheduled_jobs_next_run_at"`
+	CreatedAt       time.Time  `json:"CreatedAt" gorm:"autoCreateTime"`
+	UpdatedAt       time.Time  `json:"UpdatedAt" gorm:"autoUpdateTime"`
 }
 
 // JobExecution represents a single execution of a scheduled job
 type JobExecution struct {
-	ID              string    `json:"ID" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	ScheduledJobID  string    `json:"ScheduledJobID" gorm:"type:uuid;not null"`
-	ScheduledJob    *ScheduledJob `json:"ScheduledJob,omitempty" gorm:"foreignKey:ScheduledJobID;constraint:OnDelete:CASCADE"`
-	StartedAt       time.Time `json:"StartedAt" gorm:"not null"`
-	CompletedAt     *time.Time `json:"CompletedAt"`
-	DurationMs      *int      `json:"DurationMs"`
-	Status          string    `json:"Status" gorm:"type:varchar(50);not null"` // 'pending', 'success', 'failed', 'timeout'
-	ErrorMessage    *string   `json:"ErrorMessage" gorm:"type:text"`
-	CreatedAt       time.Time `json:"CreatedAt" gorm:"autoCreateTime"`
+	ID             string        `json:"ID" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
+	ScheduledJobID string        `json:"ScheduledJobID" gorm:"type:uuid;not null;index:idx_job_executions_scheduled_job_id"`
+	ScheduledJob   *ScheduledJob `json:"ScheduledJob,omitempty" gorm:"foreignKey:ScheduledJobID;constraint:OnDelete:CASCADE"`
+	StartedAt      time.Time     `json:"StartedAt" gorm:"not null"`
+	CompletedAt    *time.Time    `json:"CompletedAt"`
+	DurationMs     *int          `json:"DurationMs"`
+	Status         string        `json:"Status" gorm:"type:varchar(50);not null"` // 'pending', 'success', 'failed', 'timeout'
+	ErrorMessage   *string       `json:"ErrorMessage" gorm:"type:text"`
+	CreatedAt      time.Time     `json:"CreatedAt" gorm:"autoCreateTime"`
 }
 
 // JobStatus constants

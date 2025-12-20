@@ -90,8 +90,25 @@ func (s *Scheduler) checkAndRunJobs() {
 	
 	for _, job := range jobs {
 		// Check if this job is already running (has a pending execution)
+		// Use a transaction to prevent race conditions
 		var pendingCount int64
-		database.Db.Model(&models.JobExecution{}).Where("scheduled_job_id = ? AND status = ?", job.ID, models.JobStatusPending).Count(&pendingCount)
+		err := database.Db.Transaction(func(tx *gorm.DB) error {
+			// Lock the row to prevent concurrent checks
+			var count int64
+			if err := tx.Model(&models.JobExecution{}).
+				Where("scheduled_job_id = ? AND status = ?", job.ID, models.JobStatusPending).
+				Count(&count).Error; err != nil {
+				return err
+			}
+			pendingCount = count
+			return nil
+		})
+		
+		if err != nil {
+			log.Printf("Error checking pending executions for job %s: %v", job.Name, err)
+			continue
+		}
+		
 		if pendingCount > 0 {
 			log.Printf("Skipping job %s - already running", job.Name)
 			continue
@@ -141,28 +158,36 @@ func (s *Scheduler) executeJob(job models.ScheduledJob) {
 	
 	// Wait for job completion with timeout (5 minutes default)
 	timeout := 5 * time.Minute
+	var jobErr error
+	timedOut := false
+	
 	select {
-	case err := <-done:
-		if err != nil {
-			log.Printf("Job %s failed: %v", job.Name, err)
-			s.markJobFailed(execution, err.Error())
+	case jobErr = <-done:
+		if jobErr != nil {
+			log.Printf("Job %s failed: %v", job.Name, jobErr)
+			s.markJobFailed(execution, jobErr.Error())
 		} else {
 			log.Printf("Job %s completed successfully", job.Name)
 			s.markJobSuccess(execution)
 		}
 	case <-time.After(timeout):
+		timedOut = true
 		errMsg := "Job execution timeout"
 		log.Printf("Job %s timed out after %v", job.Name, timeout)
 		errMsgPtr := &errMsg
 		if err := execution.MarkCompleted(database.Db, models.JobStatusTimeout, errMsgPtr); err != nil {
 			log.Printf("Error marking job execution as timeout: %v", err)
 		}
-		return
 	}
 	
-	// Update the job's next run time
+	// Update the job's next run time regardless of outcome
 	if err := job.UpdateNextRunTime(database.Db); err != nil {
 		log.Printf("Error updating next run time for job %s: %v", job.Name, err)
+	}
+	
+	// If timed out, the job goroutine is still running but we return
+	if timedOut {
+		log.Printf("Job %s goroutine may still be running after timeout", job.Name)
 	}
 }
 

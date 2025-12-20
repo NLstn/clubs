@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -99,54 +100,76 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 	
+	// Create HTTP server
+	mux := http.NewServeMux()
+
+	// Add health check at root level for container monitoring
+	mux.HandleFunc("/health", handlers.HealthCheck)
+
+	mux.Handle("/api/v1/", handlers.Handler_v1())
+
+	// Mount OData v2 API (Phase 2: With authentication and authorization)
+	odataService, err := odata.NewService(database.Db)
+	if err != nil {
+		log.Fatal("Could not initialize OData service:", err)
+	}
+
+	// Get JWT secret for OData authentication middleware
+	jwtSecret := []byte(auth.GetJWTSecret())
+
+	// Create a submux for /api/v2/ to handle both OData and custom routes
+	odataV2Mux := http.NewServeMux()
+
+	// Register custom handlers (e.g., file uploads) that don't fit standard OData patterns
+	odataService.RegisterCustomHandlers(odataV2Mux)
+
+	// Register the OData service as the default handler
+	odataV2Mux.Handle("/", odataService)
+
+	// Wrap OData v2 service with authentication middleware
+	// This enforces JWT token validation on all /api/v2/ endpoints
+	// except for metadata and service document endpoints
+	odataWithAuth := http.StripPrefix("/api/v2", odata.AuthMiddleware(jwtSecret)(odataV2Mux))
+	mux.Handle("/api/v2/", odataWithAuth)
+
+	handler := handlers.CorsMiddleware(mux)
+	handlerWithLogging := handlers.LoggingMiddleware(handler)
+
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: handlerWithLogging,
+	}
+
 	// Start HTTP server in a goroutine
+	serverErr := make(chan error, 1)
 	go func() {
-		mux := http.NewServeMux()
-
-		// Add health check at root level for container monitoring
-		mux.HandleFunc("/health", handlers.HealthCheck)
-
-		mux.Handle("/api/v1/", handlers.Handler_v1())
-
-		// Mount OData v2 API (Phase 2: With authentication and authorization)
-		odataService, err := odata.NewService(database.Db)
-		if err != nil {
-			log.Fatal("Could not initialize OData service:", err)
-		}
-
-		// Get JWT secret for OData authentication middleware
-		jwtSecret := []byte(auth.GetJWTSecret())
-
-		// Create a submux for /api/v2/ to handle both OData and custom routes
-		odataV2Mux := http.NewServeMux()
-
-		// Register custom handlers (e.g., file uploads) that don't fit standard OData patterns
-		odataService.RegisterCustomHandlers(odataV2Mux)
-
-		// Register the OData service as the default handler
-		odataV2Mux.Handle("/", odataService)
-
-		// Wrap OData v2 service with authentication middleware
-		// This enforces JWT token validation on all /api/v2/ endpoints
-		// except for metadata and service document endpoints
-		odataWithAuth := http.StripPrefix("/api/v2", odata.AuthMiddleware(jwtSecret)(odataV2Mux))
-		mux.Handle("/api/v2/", odataWithAuth)
-
-		handler := handlers.CorsMiddleware(mux)
-		handlerWithLogging := handlers.LoggingMiddleware(handler)
-
 		log.Println("Starting server on :8080")
-		if err := http.ListenAndServe(":8080", handlerWithLogging); err != nil {
-			log.Fatal(err)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			serverErr <- err
 		}
 	}()
 	
-	// Wait for shutdown signal
-	<-sigChan
-	log.Println("Shutdown signal received, stopping scheduler...")
+	// Wait for shutdown signal or server error
+	select {
+	case <-sigChan:
+		log.Println("Shutdown signal received")
+	case err := <-serverErr:
+		log.Printf("Server error: %v", err)
+	}
+	
+	// Create shutdown context with timeout
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
 	
 	// Stop the scheduler gracefully
+	log.Println("Stopping scheduler...")
 	jobScheduler.Stop()
+	
+	// Shutdown HTTP server gracefully
+	log.Println("Shutting down HTTP server...")
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Printf("HTTP server shutdown error: %v", err)
+	}
 	
 	log.Println("Application shutdown complete")
 }

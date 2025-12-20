@@ -371,6 +371,7 @@ func SetupTestDB(t *testing.T) {
 func TeardownTestDB(t *testing.T) {
 	if testDB != nil {
 		// Clear all data from tables to ensure clean state
+		// Order matters: delete child tables before parent tables to respect foreign keys
 		testDB.Exec("DELETE FROM job_executions")
 		testDB.Exec("DELETE FROM scheduled_jobs")
 		testDB.Exec("DELETE FROM oauth_states")
@@ -382,9 +383,18 @@ func TeardownTestDB(t *testing.T) {
 		testDB.Exec("DELETE FROM user_privacy_settings")
 		testDB.Exec("DELETE FROM member_privacy_settings")
 		testDB.Exec("DELETE FROM notifications")
+		testDB.Exec("DELETE FROM event_rsvps")
+		testDB.Exec("DELETE FROM shift_members")
+		testDB.Exec("DELETE FROM shifts")
 		testDB.Exec("DELETE FROM fines")
-		testDB.Exec("DELETE FROM members")
+		testDB.Exec("DELETE FROM fine_templates")
+		testDB.Exec("DELETE FROM team_members")
+		testDB.Exec("DELETE FROM teams")
 		testDB.Exec("DELETE FROM events")
+		testDB.Exec("DELETE FROM invites")
+		testDB.Exec("DELETE FROM join_requests")
+		testDB.Exec("DELETE FROM members")
+		testDB.Exec("DELETE FROM club_settings")
 		testDB.Exec("DELETE FROM clubs")
 		testDB.Exec("DELETE FROM users")
 
