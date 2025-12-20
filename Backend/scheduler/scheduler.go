@@ -89,6 +89,14 @@ func (s *Scheduler) checkAndRunJobs() {
 	}
 	
 	for _, job := range jobs {
+		// Check if this job is already running (has a pending execution)
+		var pendingCount int64
+		database.Db.Model(&models.JobExecution{}).Where("scheduled_job_id = ? AND status = ?", job.ID, models.JobStatusPending).Count(&pendingCount)
+		if pendingCount > 0 {
+			log.Printf("Skipping job %s - already running", job.Name)
+			continue
+		}
+		
 		// Run each job in a separate goroutine to avoid blocking
 		s.wg.Add(1)
 		go s.executeJob(job)
@@ -145,7 +153,6 @@ func (s *Scheduler) executeJob(job models.ScheduledJob) {
 	case <-time.After(timeout):
 		errMsg := "Job execution timeout"
 		log.Printf("Job %s timed out after %v", job.Name, timeout)
-		execution.Status = models.JobStatusTimeout
 		errMsgPtr := &errMsg
 		if err := execution.MarkCompleted(database.Db, models.JobStatusTimeout, errMsgPtr); err != nil {
 			log.Printf("Error marking job execution as timeout: %v", err)
