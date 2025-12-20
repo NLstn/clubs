@@ -91,7 +91,7 @@ describe('Header', () => {
     const userIcon = screen.getByText('U')
     fireEvent.click(userIcon)
     
-    expect(screen.getByText('Profile')).toBeInTheDocument()
+    expect(screen.getByText('navigation.settings')).toBeInTheDocument()
     expect(screen.getByText('Create New Club')).toBeInTheDocument()
     expect(screen.getByText('Logout')).toBeInTheDocument()
   })
@@ -126,16 +126,16 @@ describe('Header', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/clubs/123/admin')
   })
 
-  it('navigates to profile when profile is clicked', () => {
+  it('navigates to settings when settings is clicked', () => {
     renderWithRouter(<Header />)
     
     const userIcon = screen.getByText('U')
     fireEvent.click(userIcon)
     
-    const profileButton = screen.getByText('Profile')
-    fireEvent.click(profileButton)
+    const settingsButton = screen.getByText('navigation.settings')
+    fireEvent.click(settingsButton)
     
-    expect(mockNavigate).toHaveBeenCalledWith('/profile')
+    expect(mockNavigate).toHaveBeenCalledWith('/settings/profile')
   })
 
   it('navigates to create club when create new club is clicked', () => {
@@ -200,12 +200,12 @@ describe('Header', () => {
     fireEvent.click(userIcon)
     
     // Dropdown should be open
-    expect(screen.getByText('Profile')).toBeInTheDocument()
+    expect(screen.getByText('navigation.settings')).toBeInTheDocument()
     
     // Click outside the dropdown
     fireEvent.mouseDown(document.body)
     
     // Dropdown should be closed
-    expect(screen.queryByText('Profile')).not.toBeInTheDocument()
+    expect(screen.queryByText('navigation.settings')).not.toBeInTheDocument()
   })
 })

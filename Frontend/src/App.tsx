@@ -179,50 +179,50 @@ function App() {
                             }
                         />
 
-                        <Route path="/profile" element={
+                        <Route path="/settings/profile" element={
                             <ProtectedRoute>
                                 <Profile />
                             </ProtectedRoute>
                         } />
 
-                        <Route path="/profile/preferences" element={
+                        <Route path="/settings/preferences" element={
                             <ProtectedRoute>
                                 <ProfilePreferences />
                             </ProtectedRoute>
                         } />
 
-                        <Route path="/profile/privacy" element={
+                        <Route path="/settings/privacy" element={
                             <ProtectedRoute>
                                 <ProfilePrivacy />
                             </ProtectedRoute>
                         } />
 
-                        <Route path="/profile/invites" element={
+                        <Route path="/settings/invites" element={
                             <ProtectedRoute>
                                 <ProfileInvites />
                             </ProtectedRoute>
                         } />
-                        <Route path="/profile/fines" element={
+                        <Route path="/settings/fines" element={
                             <ProtectedRoute>
                                 <ProfileFines />
                             </ProtectedRoute>
                         } />
-                        <Route path="/profile/shifts" element={
+                        <Route path="/settings/shifts" element={
                             <ProtectedRoute>
                                 <ProfileShifts />
                             </ProtectedRoute>
                         } />
-                        <Route path="/profile/sessions" element={
+                        <Route path="/settings/sessions" element={
                             <ProtectedRoute>
                                 <ProfileSessions />
                             </ProtectedRoute>
                         } />
-                        <Route path="/profile/api-keys" element={
+                        <Route path="/settings/api-keys" element={
                             <ProtectedRoute>
                                 <ProfileAPIKeys />
                             </ProtectedRoute>
                         } />
-                        <Route path="/profile/notifications" element={
+                        <Route path="/settings/notifications" element={
                             <ProtectedRoute>
                                 <ProfileNotificationSettings />
                             </ProtectedRoute>

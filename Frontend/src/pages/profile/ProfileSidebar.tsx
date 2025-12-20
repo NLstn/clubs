@@ -8,15 +8,15 @@ interface ProfileNavItem {
 }
 
 const navItems: ProfileNavItem[] = [
-  { label: 'Profile', path: '/profile' },
-  { label: 'Preferences', path: '/profile/preferences' },
-  { label: 'Privacy', path: '/profile/privacy' },
-  { label: 'Invites', path: '/profile/invites' },
-  { label: 'Fines', path: '/profile/fines' },
-  { label: 'Shifts', path: '/profile/shifts' },
-  { label: 'Sessions', path: '/profile/sessions' },
-  { label: 'API Keys', path: '/profile/api-keys' },
-  { label: 'Notifications', path: '/profile/notifications' }
+  { label: 'Profile', path: '/settings/profile' },
+  { label: 'Preferences', path: '/settings/preferences' },
+  { label: 'Privacy', path: '/settings/privacy' },
+  { label: 'Invites', path: '/settings/invites' },
+  { label: 'Fines', path: '/settings/fines' },
+  { label: 'Shifts', path: '/settings/shifts' },
+  { label: 'Sessions', path: '/settings/sessions' },
+  { label: 'API Keys', path: '/settings/api-keys' },
+  { label: 'Notifications', path: '/settings/notifications' }
 ];
 
 const ProfileSidebar = () => {

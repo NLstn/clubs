@@ -85,7 +85,7 @@ const JoinClub: React.FC = () => {
         setMessage('Join request sent successfully! An admin will review your request.');
         // Redirect to profile invites page after a delay
         setTimeout(() => {
-          navigate('/profile/invites');
+          navigate('/settings/invites');
         }, 2000);
       }
     } catch (error: unknown) {
@@ -177,7 +177,7 @@ const JoinClub: React.FC = () => {
             </div>
             <div className="join-actions">
               <Button 
-                onClick={() => navigate('/profile/invites')} 
+                onClick={() => navigate('/settings/invites')} 
                 variant="accept"
               >
                 View Invitations
