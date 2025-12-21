@@ -22,6 +22,12 @@ type UserPrivacySettings struct {
 	UpdatedAt      time.Time `json:"UpdatedAt"`
 }
 
+// EntitySetName returns the custom entity set name for the UserPrivacySettings entity.
+// By default, "UserPrivacySettings" would be pluralized to "UserPrivacySettingses", so we override it.
+func (UserPrivacySettings) EntitySetName() string {
+	return "UserPrivacySettings"
+}
+
 // MemberPrivacySettings stores club-specific privacy settings (overrides for global settings)
 // When present, these settings take precedence over UserPrivacySettings for the specific club
 type MemberPrivacySettings struct {
@@ -33,6 +39,12 @@ type MemberPrivacySettings struct {
 
 	// Navigation property for OData
 	Member *Member `gorm:"foreignKey:MemberID" json:"Member,omitempty" odata:"nav"`
+}
+
+// EntitySetName returns the custom entity set name for the MemberPrivacySettings entity.
+// By default, "MemberPrivacySettings" would be pluralized to "MemberPrivacySettingses", so we override it.
+func (MemberPrivacySettings) EntitySetName() string {
+	return "MemberPrivacySettings"
 }
 
 // GetUserGlobalPrivacySettings returns global privacy settings for a user
