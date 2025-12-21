@@ -68,11 +68,13 @@ func TestCreateDefaultClubSettings(t *testing.T) {
 		user, _ := handlers.CreateTestUser(t, "defaultsettings@example.com")
 		club := handlers.CreateTestClub(t, user, "Default Settings Club")
 
-		// Delete the settings created by test helper
-		handlers.GetDB().Exec("DELETE FROM club_settings WHERE club_id = ?", club.ID)
+		// Delete the settings created by test helper and ensure deletion succeeds
+		db := handlers.GetDB().Exec("DELETE FROM club_settings WHERE club_id = ?", club.ID)
+		assert.NoError(t, db.Error)
+		assert.NotZero(t, db.RowsAffected, "expected at least one club_settings row to be deleted")
 
-		// Create default settings
-		settings, err := models.CreateDefaultClubSettings(club.ID)
+		// Create default settings with proper user ID for audit trail
+		settings, err := models.CreateDefaultClubSettings(club.ID, user.ID)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, settings.ID)
 
@@ -82,5 +84,9 @@ func TestCreateDefaultClubSettings(t *testing.T) {
 		assert.False(t, settings.TeamsEnabled)
 		assert.False(t, settings.MembersListVisible)
 		assert.False(t, settings.DiscoverableByNonMembers)
+		
+		// Verify audit fields are correct
+		assert.Equal(t, user.ID, settings.CreatedBy)
+		assert.Equal(t, user.ID, settings.UpdatedBy)
 	})
 }

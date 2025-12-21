@@ -39,13 +39,16 @@ func GetClubSettings(clubID string) (ClubSettings, error) {
 	var settings ClubSettings
 	result := database.Db.First(&settings, "club_id = ?", clubID)
 	if result.Error == gorm.ErrRecordNotFound {
-		// Create default settings if none exist
-		return CreateDefaultClubSettings(clubID)
+		// Settings should always exist for a club. If they don't, this is an error.
+		// This fallback is only for edge cases with old data or direct database manipulation.
+		return ClubSettings{}, fmt.Errorf("club settings not found for club %s", clubID)
 	}
 	return settings, result.Error
 }
 
-func CreateDefaultClubSettings(clubID string) (ClubSettings, error) {
+// createClubSettingsWithTransaction creates club settings within a transaction
+// This is a helper function to avoid code duplication
+func createClubSettingsWithTransaction(tx *gorm.DB, clubID, userID string, now time.Time) error {
 	settings := ClubSettings{
 		ID:                       uuid.New().String(),
 		ClubID:                   clubID,
@@ -54,8 +57,28 @@ func CreateDefaultClubSettings(clubID string) (ClubSettings, error) {
 		TeamsEnabled:             false,
 		MembersListVisible:       false,
 		DiscoverableByNonMembers: false,
-		CreatedBy:                clubID, // Using clubID as default since we don't have user context here
-		UpdatedBy:                clubID,
+		CreatedAt:                now,
+		CreatedBy:                userID,
+		UpdatedAt:                now,
+		UpdatedBy:                userID,
+	}
+	return tx.Create(&settings).Error
+}
+
+func CreateDefaultClubSettings(clubID, userID string) (ClubSettings, error) {
+	now := time.Now()
+	settings := ClubSettings{
+		ID:                       uuid.New().String(),
+		ClubID:                   clubID,
+		FinesEnabled:             false,
+		ShiftsEnabled:            false,
+		TeamsEnabled:             false,
+		MembersListVisible:       false,
+		DiscoverableByNonMembers: false,
+		CreatedAt:                now,
+		CreatedBy:                userID,
+		UpdatedAt:                now,
+		UpdatedBy:                userID,
 	}
 	err := database.Db.Create(&settings).Error
 	return settings, err

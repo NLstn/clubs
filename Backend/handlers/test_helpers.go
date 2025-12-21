@@ -3,6 +3,7 @@ package handlers
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
@@ -440,11 +441,16 @@ func CreateTestUser(t *testing.T, email string) (models.User, string) {
 func CreateTestClub(t *testing.T, user models.User, clubName string) models.Club {
 	clubID := uuid.New().String()
 	description := "Test club description"
+	now := time.Now()
 
 	club := models.Club{
 		ID:          clubID,
 		Name:        clubName,
 		Description: &description,
+		CreatedAt:   now,
+		CreatedBy:   user.ID,
+		UpdatedAt:   now,
+		UpdatedBy:   user.ID,
 	}
 
 	if err := testDB.Create(&club).Error; err != nil {
@@ -454,10 +460,14 @@ func CreateTestClub(t *testing.T, user models.User, clubName string) models.Club
 	// Add the owner as a member with owner role
 	memberID := uuid.New().String()
 	member := models.Member{
-		ID:     memberID,
-		UserID: user.ID,
-		ClubID: club.ID,
-		Role:   "owner",
+		ID:        memberID,
+		UserID:    user.ID,
+		ClubID:    club.ID,
+		Role:      "owner",
+		CreatedAt: now,
+		CreatedBy: user.ID,
+		UpdatedAt: now,
+		UpdatedBy: user.ID,
 	}
 	if err := testDB.Create(&member).Error; err != nil {
 		t.Fatalf("Failed to add owner as member: %v", err)
@@ -473,7 +483,9 @@ func CreateTestClub(t *testing.T, user models.User, clubName string) models.Club
 		TeamsEnabled:             false,
 		MembersListVisible:       false,
 		DiscoverableByNonMembers: false,
+		CreatedAt:                now,
 		CreatedBy:                user.ID,
+		UpdatedAt:                now,
 		UpdatedBy:                user.ID,
 	}
 	if err := testDB.Create(&settings).Error; err != nil {

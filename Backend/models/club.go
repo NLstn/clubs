@@ -75,31 +75,28 @@ func CreateClub(name, description, ownerID string) (Club, error) {
 		if dbErr := tx.Create(&club).Error; dbErr != nil {
 			return dbErr
 		}
-		var member Member
-		member.ID = uuid.New().String()
-		member.ClubID = club.ID
-		member.UserID = ownerID
-		member.Role = "owner"
-		member.CreatedBy = ownerID
-		member.UpdatedBy = ownerID
+		
+		// Create member record with owner role
+		now := time.Now()
+		member := Member{
+			ID:        uuid.New().String(),
+			ClubID:    club.ID,
+			UserID:    ownerID,
+			Role:      "owner",
+			CreatedAt: now,
+			CreatedBy: ownerID,
+			UpdatedAt: now,
+			UpdatedBy: ownerID,
+		}
 		if dbErr := tx.Create(&member).Error; dbErr != nil {
 			return dbErr
 		}
+		
 		// Create default club settings with all features disabled
-		settings := ClubSettings{
-			ID:                       uuid.New().String(),
-			ClubID:                   club.ID,
-			FinesEnabled:             false,
-			ShiftsEnabled:            false,
-			TeamsEnabled:             false,
-			MembersListVisible:       false,
-			DiscoverableByNonMembers: false,
-			CreatedBy:                ownerID,
-			UpdatedBy:                ownerID,
-		}
-		if dbErr := tx.Create(&settings).Error; dbErr != nil {
+		if dbErr := createClubSettingsWithTransaction(tx, club.ID, ownerID, now); dbErr != nil {
 			return dbErr
 		}
+		
 		return nil
 	})
 	if err != nil {
@@ -207,21 +204,7 @@ func (c *Club) ODataAfterCreate(ctx context.Context, r *http.Request) error {
 	}
 
 	// Create default club settings with all features disabled
-	settings := ClubSettings{
-		ID:                       uuid.New().String(),
-		ClubID:                   c.ID,
-		FinesEnabled:             false,
-		ShiftsEnabled:            false,
-		TeamsEnabled:             false,
-		MembersListVisible:       false,
-		DiscoverableByNonMembers: false,
-		CreatedAt:                now,
-		CreatedBy:                c.CreatedBy,
-		UpdatedAt:                now,
-		UpdatedBy:                c.CreatedBy,
-	}
-
-	if err := tx.Create(&settings).Error; err != nil {
+	if err := createClubSettingsWithTransaction(tx, c.ID, c.CreatedBy, now); err != nil {
 		return fmt.Errorf("failed to create default club settings: %w", err)
 	}
 
