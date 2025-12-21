@@ -1,3 +1,13 @@
+<div align="center">
+  <img src="../../assets/logo.png" alt="Clubs Logo" width="120"/>
+  
+  # ConfirmDialog Component
+  
+  **Confirmation dialogs for destructive actions**
+</div>
+
+---
+
 # ConfirmDialog Component
 
 A reusable confirmation dialog built on top of the Modal component. Used to confirm destructive or important actions before they are executed.

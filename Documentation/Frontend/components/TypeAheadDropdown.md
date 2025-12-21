@@ -1,3 +1,13 @@
+<div align="center">
+  <img src="../../assets/logo.png" alt="Clubs Logo" width="120"/>
+  
+  # TypeAheadDropdown Component
+  
+  **Autocomplete dropdown with search functionality**
+</div>
+
+---
+
 # TypeAheadDropdown Component
 
 A reusable type-ahead dropdown component that provides search functionality with autocomplete suggestions.

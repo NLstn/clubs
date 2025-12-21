@@ -1,3 +1,13 @@
+<div align="center">
+  <img src="../../assets/logo.png" alt="Clubs Logo" width="120"/>
+  
+  # Modal Component
+  
+  **Accessible modal dialogs with enhanced design**
+</div>
+
+---
+
 # Modal Component Documentation
 
 The Modal component is a reusable, enhanced modal system based on the style from the Add Fine modal. It provides a consistent, accessible, and beautiful modal experience across the application.

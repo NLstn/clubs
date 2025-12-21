@@ -30,7 +30,12 @@ Clubs is a full-stack club management application designed to help organizations
 
 ## 🚀 Getting Started
 
-For detailed setup instructions, see [Local Development Guide](Documentation/LocalDev.md).
+For detailed setup instructions, see our comprehensive guides:
+
+- 🚀 [**Quick Start Guide**](Documentation/QUICK_START.md) - Get running in 5 minutes
+- 📖 [**User Guide**](Documentation/USER_GUIDE.md) - Complete user documentation
+- 💻 [**Local Development**](Documentation/LocalDev.md) - Development environment setup
+- 🏗️ [**Architecture Overview**](Documentation/ARCHITECTURE.md) - System design and architecture
 
 ### Quick Start
 
@@ -39,12 +44,24 @@ For detailed setup instructions, see [Local Development Guide](Documentation/Loc
 3. Wait for the container to build and start
 4. Access the application at `http://localhost:5173`
 
+Default test credentials:
+- **Username**: `testuser`
+- **Password**: `testpass`
+
 ## 📚 Documentation
 
-- [Local Development Setup](Documentation/LocalDev.md)
-- [Backend API Documentation](Documentation/Backend/API.md)
-- [Frontend Design System](Documentation/Frontend/README.md)
-- [Adding New Tables](Documentation/Backend/AddNewTable.md)
+### For Users
+- [📖 User Guide](Documentation/USER_GUIDE.md) - Complete guide to using the application
+- [🚀 Quick Start](Documentation/QUICK_START.md) - Get started in 5 minutes
+
+### For Developers
+- [💻 Local Development Setup](Documentation/LocalDev.md) - Development environment
+- [🏗️ Architecture Overview](Documentation/ARCHITECTURE.md) - System design
+- [🔌 Backend API Documentation](Documentation/Backend/API.md) - REST API reference
+- [🎨 Frontend Design System](Documentation/Frontend/README.md) - UI guidelines
+- [💾 Adding New Tables](Documentation/Backend/AddNewTable.md) - Database schema guide
+- [🔐 CSRF Protection](Documentation/Backend/CSRF.md) - Security implementation
+- [⏰ Job Scheduler](Documentation/Backend/JobScheduler.md) - Background tasks
 
 ## 🛠️ Technology Stack
 

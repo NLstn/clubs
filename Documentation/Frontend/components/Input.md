@@ -1,3 +1,13 @@
+<div align="center">
+  <img src="../../assets/logo.png" alt="Clubs Logo" width="120"/>
+  
+  # Input Component
+  
+  **Reusable form input with consistent styling**
+</div>
+
+---
+
 # Input Component
 
 A reusable input component that can be used across the application. This component provides consistent styling and behavior for text inputs.

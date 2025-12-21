@@ -1,3 +1,13 @@
+<div align="center">
+  <img src="../../assets/logo.png" alt="Clubs Logo" width="120"/>
+  
+  # Table Component
+  
+  **Flexible data table with custom rendering**
+</div>
+
+---
+
 # Table Component
 
 A flexible, reusable table component with support for custom rendering, loading states, error handling, and responsive design.

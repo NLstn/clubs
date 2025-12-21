@@ -1,3 +1,13 @@
+<div align="center">
+  <img src="../../assets/logo.png" alt="Clubs Logo" width="120"/>
+  
+  # ODataTable Component
+  
+  **Server-side pagination and sorting with OData v4**
+</div>
+
+---
+
 # ODataTable Component
 
 A table component with **server-side pagination and sorting** via OData v4 queries. This component extends the base Table component to automatically handle OData query construction and response parsing.

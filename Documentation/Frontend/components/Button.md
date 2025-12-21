@@ -1,3 +1,13 @@
+<div align="center">
+  <img src="../../assets/logo.png" alt="Clubs Logo" width="120"/>
+  
+  # Button Component
+  
+  **Enhanced button component with loading, success, and error states**
+</div>
+
+---
+
 # Button Component
 
 ## Overview
