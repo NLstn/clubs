@@ -5,6 +5,8 @@ site_url: https://nlstn.github.io/clubs/
 
 theme:
   name: material
+  logo: assets/logo.png
+  favicon: assets/logo.png
   palette:
     # Palette toggle for dark mode (default)
     - scheme: slate
