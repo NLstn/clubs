@@ -38,6 +38,7 @@ const ClubDetails = () => {
     const [userRole, setUserRole] = useState<string | null>(null);
     const [showLeaveConfirmation, setShowLeaveConfirmation] = useState(false);
     const [isLeavingClub, setIsLeavingClub] = useState(false);
+    const [leaveClubError, setLeaveClubError] = useState<string | null>(null);
     const { settings: clubSettings } = useClubSettings(id);
 
     useEffect(() => {
@@ -112,6 +113,7 @@ const ClubDetails = () => {
     }, [id, t, currentUser?.ID]);
 
     const handleLeaveClub = () => {
+        setLeaveClubError(null);
         setShowLeaveConfirmation(true);
     };
 
@@ -119,6 +121,7 @@ const ClubDetails = () => {
         if (!id) return;
 
         setIsLeavingClub(true);
+        setLeaveClubError(null);
         try {
             // OData v2: Use Leave action on Club entity
             await api.post(`/api/v2/Clubs('${id}')/Leave`);
@@ -128,20 +131,48 @@ const ClubDetails = () => {
             navigate('/clubs');
         } catch (error) {
             console.error('Error leaving club:', error);
+            
+            // Parse OData error response
+            let errorMessage = t('clubs.errors.leaveClubGeneric');
+            
             if (error && typeof error === 'object' && 'response' in error) {
-                const axiosError = error as { response?: { data?: string } };
-                const errorMessage = axiosError.response?.data || 'Failed to leave club';
-                alert(errorMessage);
-            } else {
-                alert('Failed to leave club. Please try again.');
+                const axiosError = error as { 
+                    response?: { 
+                        data?: { 
+                            error?: { 
+                                message?: string;
+                                details?: Array<{ message?: string }>;
+                            } 
+                        } 
+                    } 
+                };
+                
+                // Extract error message from OData error response
+                const odataError = axiosError.response?.data?.error;
+                if (odataError) {
+                    // Check if it's the "last owner" error
+                    const errorText = odataError.message || 
+                                    odataError.details?.[0]?.message || 
+                                    '';
+                    
+                    if (errorText.toLowerCase().includes('last owner') || 
+                        errorText.toLowerCase().includes('only owner')) {
+                        errorMessage = t('clubs.errors.leaveClubLastOwner');
+                    } else if (errorText) {
+                        // Use the specific error message from the backend
+                        errorMessage = errorText;
+                    }
+                }
             }
+            
+            setLeaveClubError(errorMessage);
         } finally {
             setIsLeavingClub(false);
-            setShowLeaveConfirmation(false);
         }
     };
 
     const cancelLeaveClub = () => {
+        setLeaveClubError(null);
         setShowLeaveConfirmation(false);
     };
 
@@ -170,7 +201,7 @@ const ClubDetails = () => {
                                     variant="cancel"
                                     onClick={handleLeaveClub}
                                 >
-                                    Leave Club
+                                    {t('clubs.leaveClub.button')}
                                 </Button>
                             )}
                         </>
@@ -226,12 +257,13 @@ const ClubDetails = () => {
             <Modal 
                 isOpen={showLeaveConfirmation} 
                 onClose={cancelLeaveClub} 
-                title="Leave Club"
+                title={t('clubs.leaveClub.confirmTitle')}
                 maxWidth="450px"
             >
+                <Modal.Error error={leaveClubError} />
                 <Modal.Body>
-                    <p>Are you sure you want to leave "{club.name}"?</p>
-                    <p>You will no longer have access to club content and will need to request to join again if you want to return.</p>
+                    <p>{t('clubs.leaveClub.confirmMessage', { clubName: club.name })}</p>
+                    <p>{t('clubs.leaveClub.confirmWarning')}</p>
                 </Modal.Body>
                 <Modal.Actions>
                     <Button 
@@ -243,10 +275,10 @@ const ClubDetails = () => {
                         {isLeavingClub ? (
                             <>
                                 <Modal.LoadingSpinner />
-                                Leaving...
+                                {t('clubs.leaveClub.leaving')}
                             </>
                         ) : (
-                            'Leave Club'
+                            t('clubs.leaveClub.button')
                         )}
                     </Button>
                     <Button 
@@ -254,7 +286,7 @@ const ClubDetails = () => {
                         onClick={cancelLeaveClub}
                         disabled={isLeavingClub}
                     >
-                        Cancel
+                        {t('common.cancel')}
                     </Button>
                 </Modal.Actions>
             </Modal>
