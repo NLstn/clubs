@@ -1660,35 +1660,24 @@ func TestTeamCRUD(t *testing.T) {
 		assert.NotEmpty(t, created["UpdatedAt"])
 	})
 
-	t.Run("POST create team with explicit audit fields should be ignored", func(t *testing.T) {
-		// With odata:"auto" tags, the OData library should ignore or override client-provided audit fields
-		// However, the actual behavior depends on the OData library implementation
-		// If it rejects them, that's acceptable since clients shouldn't provide them
-		// If it accepts and overrides them, that's also acceptable
+	t.Run("POST create team with explicit audit fields should be rejected", func(t *testing.T) {
+		// Security test: Fields marked with odata:"auto" should not be accepted from client
+		// The OData library (v0.7.4) rejects fields marked as "auto" when provided by clients
+		// This test verifies that behavior - protecting audit trail integrity
 		fakeUserID := uuid.New().String()
 		newTeam := map[string]interface{}{
 			"ClubID":      ctx.testClub.ID,
 			"Name":        "Security Test Team",
 			"Description": "Testing audit field override",
-			"CreatedBy":   fakeUserID, // Should be ignored or rejected
-			"UpdatedBy":   fakeUserID, // Should be ignored or rejected
+			"CreatedBy":   fakeUserID, // Should be rejected (odata:"auto" fields)
+			"UpdatedBy":   fakeUserID, // Should be rejected (odata:"auto" fields)
 		}
 
 		resp := ctx.makeAuthenticatedRequest(t, "POST", "/Teams", newTeam)
 		
-		// Accept either 201 (created, fields overridden) or 400 (bad request, fields rejected)
-		// Both are acceptable security behaviors
-		if resp.StatusCode == http.StatusCreated {
-			var created map[string]interface{}
-			parseJSONResponse(t, resp, &created)
-
-			// If created, verify that server-side audit fields override client-provided values
-			assert.Equal(t, ctx.testUser.ID, created["CreatedBy"], "CreatedBy should be set from authenticated user, not client payload")
-			assert.Equal(t, ctx.testUser.ID, created["UpdatedBy"], "UpdatedBy should be set from authenticated user, not client payload")
-		} else {
-			// If rejected, that's also a valid security posture
-			assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Client-provided audit fields should be rejected")
-		}
+		// The OData library rejects auto fields provided by clients with 400 Bad Request
+		// This is the correct security behavior - audit fields must only be set server-side
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Client-provided audit fields should be rejected")
 	})
 
 	t.Run("PATCH update team without UpdatedBy", func(t *testing.T) {
