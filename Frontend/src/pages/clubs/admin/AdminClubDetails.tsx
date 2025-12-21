@@ -194,7 +194,7 @@ const AdminClubDetails = () => {
 
     const handleEdit = () => {
         if (club) {
-            setEditForm({ name: club.Name, description: club.Description || '' });
+            setEditForm({ name: club.Name, description: club.Description ?? '' });
             setIsEditing(true);
         }
     };
