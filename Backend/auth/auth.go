@@ -20,6 +20,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 var jwtSecret []byte
@@ -196,14 +197,19 @@ func ValidateRefreshToken(tokenStr string) (string, error) {
 	return userID, nil
 }
 
+func hashAPIKey(keyStr string) string {
+	sum := sha256.Sum256([]byte(keyStr))
+	return hex.EncodeToString(sum[:])
+}
+
 // GenerateAPIKey creates a new API key with the specified prefix
-// Returns: plainKey (shown once), keyHash (for storage), keyPrefix (for identification), error
-func GenerateAPIKey(prefix string) (string, string, string, error) {
+// Returns: plainKey (shown once), keyHash (for storage), keyPrefix (for identification), keyHashSHA256 (for lookup), error
+func GenerateAPIKey(prefix string) (string, string, string, string, error) {
 	// Generate 32 bytes of cryptographically secure random data
 	randomBytes := make([]byte, 32)
 	_, err := rand.Read(randomBytes)
 	if err != nil {
-		return "", "", "", fmt.Errorf("failed to generate random bytes: %w", err)
+		return "", "", "", "", fmt.Errorf("failed to generate random bytes: %w", err)
 	}
 
 	// Encode to base64 for URL-safe string
@@ -217,21 +223,68 @@ func GenerateAPIKey(prefix string) (string, string, string, error) {
 	// Generate bcrypt hash for storage (cost 12)
 	hashBytes, err := bcrypt.GenerateFromPassword([]byte(plainKey), 12)
 	if err != nil {
-		return "", "", "", fmt.Errorf("failed to hash API key: %w", err)
+		return "", "", "", "", fmt.Errorf("failed to hash API key: %w", err)
 	}
 	keyHash := string(hashBytes)
+
+	keyHashSHA256 := hashAPIKey(plainKey)
 
 	// The keyPrefix is just the prefix part before the underscore
 	// This is used to quickly filter candidates in ValidateAPIKey
 	keyPrefix := prefix
 
-	return plainKey, keyHash, keyPrefix, nil
+	return plainKey, keyHash, keyPrefix, keyHashSHA256, nil
 }
 
 // ValidateAPIKey validates an API key and returns the associated user ID and permissions
 func ValidateAPIKey(keyStr string) (string, []string, error) {
 	if keyStr == "" {
 		return "", nil, errors.New("API key is empty")
+	}
+
+	keyHashSHA256 := hashAPIKey(keyStr)
+
+	var key struct {
+		ID            string
+		UserID        string
+		KeyHash       string
+		KeyHashSHA256 *string
+		ExpiresAt     *time.Time
+		Permissions   string
+	}
+
+	err := database.Db.Table("api_keys").
+		Select("id, user_id, key_hash, key_hash_sha256, expires_at, permissions").
+		Where("key_hash_sha256 = ?", keyHashSHA256).
+		First(&key).Error
+	if err == nil {
+		if key.ExpiresAt != nil && time.Now().After(*key.ExpiresAt) {
+			return "", nil, errors.New("API key has expired")
+		}
+
+		var permissions []string
+		if key.Permissions != "" {
+			_ = json.Unmarshal([]byte(key.Permissions), &permissions)
+		}
+
+		db := database.Db
+		go func() {
+			now := time.Now()
+			if key.ID != "" {
+				db.Table("api_keys").
+					Where("id = ?", key.ID).
+					Update("last_used_at", now)
+				return
+			}
+			db.Table("api_keys").
+				Where("key_hash_sha256 = ?", keyHashSHA256).
+				Update("last_used_at", now)
+		}()
+
+		return key.UserID, permissions, nil
+	}
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return "", nil, fmt.Errorf("database query failed: %w", err)
 	}
 
 	// Extract prefix from the key to find candidates
@@ -255,8 +308,9 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 		Permissions string
 	}
 
-	err := database.Db.Table("api_keys").
+	err = database.Db.Table("api_keys").
 		Select("id, user_id, key_hash, key_prefix, expires_at, permissions").
+		Where("key_hash_sha256 IS NULL OR key_hash_sha256 = ''").
 		Find(&keys).Error
 	if err != nil {
 		return "", nil, fmt.Errorf("database query failed: %w", err)
@@ -283,6 +337,7 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 		UserID      string
 		ExpiresAt   *time.Time
 		Permissions string
+		KeyHash     string
 	}
 
 	for _, key := range candidates {
@@ -294,11 +349,13 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 				UserID      string
 				ExpiresAt   *time.Time
 				Permissions string
+				KeyHash     string
 			}{
 				ID:          key.ID,
 				UserID:      key.UserID,
 				ExpiresAt:   key.ExpiresAt,
 				Permissions: key.Permissions,
+				KeyHash:     key.KeyHash,
 			}
 			break
 		}
@@ -326,12 +383,20 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 	db := database.Db
 	go func() {
 		now := time.Now()
+		updates := map[string]interface{}{
+			"last_used_at":    now,
+			"key_hash_sha256": keyHashSHA256,
+		}
 		// Update by user_id and key_hash since ID might be empty in SQLite
 		if result.ID != "" {
 			db.Table("api_keys").
 				Where("id = ?", result.ID).
-				Update("last_used_at", now)
+				Updates(updates)
+			return
 		}
+		db.Table("api_keys").
+			Where("key_hash = ?", result.KeyHash).
+			Updates(updates)
 	}()
 
 	return result.UserID, permissions, nil

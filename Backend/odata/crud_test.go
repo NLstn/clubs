@@ -274,6 +274,7 @@ func setupTestContext(t *testing.T) *testContext {
 		user_id TEXT NOT NULL,
 		name TEXT NOT NULL,
 		key_hash TEXT NOT NULL UNIQUE,
+		key_hash_sha256 TEXT UNIQUE,
 		key_prefix TEXT NOT NULL,
 		permissions TEXT,
 		last_used_at DATETIME,
@@ -1537,7 +1538,7 @@ func TestUserTeamMembersNavigation(t *testing.T) {
 		for _, tmInterface := range teamMembers {
 			tm := tmInterface.(map[string]interface{})
 			assert.Contains(t, tm, "Team", "Team should be expanded")
-			
+
 			team := tm["Team"].(map[string]interface{})
 			assert.Contains(t, team, "ID")
 			assert.Contains(t, team, "Name")
@@ -1560,7 +1561,7 @@ func TestUserTeamMembersNavigation(t *testing.T) {
 
 		tm := teamMembers[0].(map[string]interface{})
 		assert.Equal(t, "admin", tm["Role"])
-		
+
 		team := tm["Team"].(map[string]interface{})
 		assert.Equal(t, "Development Team", team["Name"])
 	})
@@ -1587,26 +1588,26 @@ func TestUserTeamMembersNavigation(t *testing.T) {
 
 	t.Run("Navigation respects user visibility scope", func(t *testing.T) {
 		// This test verifies that the navigation still respects the User entity's visibility scope
-		// testUser2 is not a member of any club, so based on getUserVisibilityScope, 
+		// testUser2 is not a member of any club, so based on getUserVisibilityScope,
 		// they should not be able to see testUser's entity or navigate through it.
 		// However, if the OData service allows the navigation, the TeamMembers collection
 		// should still respect authorization (only team members from clubs user is in).
 		path := fmt.Sprintf("/Users('%s')/TeamMembers", ctx.testUser.ID)
-		
+
 		// Generate token for testUser2
 		token2, err := auth.GenerateAccessToken(ctx.testUser2.ID)
 		require.NoError(t, err)
-		
+
 		// Make request as testUser2
 		var bodyBytes []byte
 		bodyURL, _ := url.Parse("http://example.com/api/v2" + path)
 		req := httptest.NewRequest("GET", bodyURL.String(), bytes.NewReader(bodyBytes))
 		req.Header.Set("Authorization", "Bearer "+token2)
-		
+
 		w := httptest.NewRecorder()
 		ctx.handler.ServeHTTP(w, req)
 		resp := w.Result()
-		
+
 		// The navigation should either:
 		// 1. Return 403/404 because testUser2 cannot see testUser (getUserVisibilityScope)
 		// 2. Return 200 with empty results if navigation bypasses entity-level checks

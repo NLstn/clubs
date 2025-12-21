@@ -47,6 +47,7 @@ func setupMiddlewareTestDB(t *testing.T) *gorm.DB {
 			user_id TEXT NOT NULL,
 			name TEXT NOT NULL,
 			key_hash TEXT UNIQUE NOT NULL,
+			key_hash_sha256 TEXT UNIQUE,
 			key_prefix TEXT NOT NULL,
 			permissions TEXT,
 			last_used_at DATETIME,
@@ -87,7 +88,7 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Generate a valid API key
-	plainKey, keyHash, keyPrefix, err := auth.GenerateAPIKey("sk_live")
+	plainKey, keyHash, keyPrefix, _, err := auth.GenerateAPIKey("sk_live")
 	assert.NoError(t, err)
 
 	// Create API key in database using raw SQL
@@ -155,7 +156,7 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 
 	t.Run("deleted API key", func(t *testing.T) {
 		// Create a key and then verify deleted keys cannot authenticate
-		deletedKey, deletedHash, deletedPrefix, err := auth.GenerateAPIKey("sk_live")
+		deletedKey, deletedHash, deletedPrefix, _, err := auth.GenerateAPIKey("sk_live")
 		assert.NoError(t, err)
 
 		// Insert key then delete it immediately
@@ -181,7 +182,7 @@ func TestAPIKeyAuthMiddleware(t *testing.T) {
 
 	t.Run("Expired API key", func(t *testing.T) {
 		// Create an expired key
-		expiredKey, expiredHash, expiredPrefix, err := auth.GenerateAPIKey("sk_live")
+		expiredKey, expiredHash, expiredPrefix, _, err := auth.GenerateAPIKey("sk_live")
 		assert.NoError(t, err)
 
 		pastExpiry := time.Now().Add(-24 * time.Hour)
@@ -231,7 +232,7 @@ func TestCompositeAuthMiddleware(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Generate a valid API key
-	plainKey, keyHash, keyPrefix, err := auth.GenerateAPIKey("sk_live")
+	plainKey, keyHash, keyPrefix, _, err := auth.GenerateAPIKey("sk_live")
 	assert.NoError(t, err)
 
 	// Create API key in database using raw SQL
@@ -365,7 +366,7 @@ func TestCompositeAuthMiddleware_ContextPropagation(t *testing.T) {
 	err = db.Create(&user).Error
 	assert.NoError(t, err)
 
-	plainKey, keyHash, keyPrefix, err := auth.GenerateAPIKey("sk_live")
+	plainKey, keyHash, keyPrefix, _, err := auth.GenerateAPIKey("sk_live")
 	assert.NoError(t, err)
 
 	// Create API key in database using raw SQL

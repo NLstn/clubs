@@ -201,35 +201,38 @@ func TestAPIKeyRetrieval(t *testing.T) {
 	ctx := setupTestContext(t)
 
 	// Create some API keys for testing
-	plainKey1, keyHash1, keyPrefix1, _ := auth.GenerateAPIKey("sk_live")
+	plainKey1, keyHash1, keyPrefix1, keyHashSHA256_1, _ := auth.GenerateAPIKey("sk_live")
 	apiKey1 := &models.APIKey{
-		UserID:    ctx.testUser.ID,
-		Name:      "Key 1",
-		KeyHash:   keyHash1,
-		KeyPrefix: keyPrefix1,
+		UserID:        ctx.testUser.ID,
+		Name:          "Key 1",
+		KeyHash:       keyHash1,
+		KeyHashSHA256: &keyHashSHA256_1,
+		KeyPrefix:     keyPrefix1,
 	}
 	ctx.service.db.Create(apiKey1)
 
-	plainKey2, keyHash2, keyPrefix2, _ := auth.GenerateAPIKey("sk_live")
+	plainKey2, keyHash2, keyPrefix2, keyHashSHA256_2, _ := auth.GenerateAPIKey("sk_live")
 	now := time.Now()
 	futureTime := now.Add(-24 * time.Hour) // Expired key - will be cleaned up by scheduled job
 	apiKey2 := &models.APIKey{
-		UserID:     ctx.testUser.ID,
-		Name:       "Key 2",
-		KeyHash:    keyHash2,
-		KeyPrefix:  keyPrefix2,
-		ExpiresAt:  &futureTime,
-		LastUsedAt: &now,
+		UserID:        ctx.testUser.ID,
+		Name:          "Key 2",
+		KeyHash:       keyHash2,
+		KeyHashSHA256: &keyHashSHA256_2,
+		KeyPrefix:     keyPrefix2,
+		ExpiresAt:     &futureTime,
+		LastUsedAt:    &now,
 	}
 	ctx.service.db.Create(apiKey2)
 
 	// Create key for another user (should not be visible)
-	_, keyHash3, keyPrefix3, _ := auth.GenerateAPIKey("sk_live")
+	_, keyHash3, keyPrefix3, keyHashSHA256_3, _ := auth.GenerateAPIKey("sk_live")
 	apiKey3 := &models.APIKey{
-		UserID:    ctx.testUser2.ID,
-		Name:      "User2 Key",
-		KeyHash:   keyHash3,
-		KeyPrefix: keyPrefix3,
+		UserID:        ctx.testUser2.ID,
+		Name:          "User2 Key",
+		KeyHash:       keyHash3,
+		KeyHashSHA256: &keyHashSHA256_3,
+		KeyPrefix:     keyPrefix3,
 	}
 	ctx.service.db.Create(apiKey3)
 
@@ -363,13 +366,14 @@ func TestAPIKeyUpdate(t *testing.T) {
 	ctx := setupTestContext(t)
 
 	// Create API key with explicit UUID since SQLite doesn't support gen_random_uuid()
-	_, keyHash, keyPrefix, _ := auth.GenerateAPIKey("sk_live")
+	_, keyHash, keyPrefix, keyHashSHA256, _ := auth.GenerateAPIKey("sk_live")
 	apiKey := &models.APIKey{
-		ID:        uuid.New().String(),
-		UserID:    ctx.testUser.ID,
-		Name:      "Original Name",
-		KeyHash:   keyHash,
-		KeyPrefix: keyPrefix,
+		ID:            uuid.New().String(),
+		UserID:        ctx.testUser.ID,
+		Name:          "Original Name",
+		KeyHash:       keyHash,
+		KeyHashSHA256: &keyHashSHA256,
+		KeyPrefix:     keyPrefix,
 	}
 	ctx.service.db.Create(apiKey)
 
@@ -440,13 +444,14 @@ func TestAPIKeyDeletion(t *testing.T) {
 	ctx := setupTestContext(t)
 
 	// Create API key with explicit UUID since SQLite doesn't support gen_random_uuid()
-	_, keyHash, keyPrefix, _ := auth.GenerateAPIKey("sk_live")
+	_, keyHash, keyPrefix, keyHashSHA256, _ := auth.GenerateAPIKey("sk_live")
 	apiKey := &models.APIKey{
-		ID:        uuid.New().String(),
-		UserID:    ctx.testUser.ID,
-		Name:      "To Be Deleted",
-		KeyHash:   keyHash,
-		KeyPrefix: keyPrefix,
+		ID:            uuid.New().String(),
+		UserID:        ctx.testUser.ID,
+		Name:          "To Be Deleted",
+		KeyHash:       keyHash,
+		KeyHashSHA256: &keyHashSHA256,
+		KeyPrefix:     keyPrefix,
 	}
 	ctx.service.db.Create(apiKey)
 
@@ -481,12 +486,13 @@ func TestAPIKeyExpansion(t *testing.T) {
 	ctx := setupTestContext(t)
 
 	// Create API key
-	_, keyHash, keyPrefix, _ := auth.GenerateAPIKey("sk_live")
+	_, keyHash, keyPrefix, keyHashSHA256, _ := auth.GenerateAPIKey("sk_live")
 	apiKey := &models.APIKey{
-		UserID:    ctx.testUser.ID,
-		Name:      "Test Key",
-		KeyHash:   keyHash,
-		KeyPrefix: keyPrefix,
+		UserID:        ctx.testUser.ID,
+		Name:          "Test Key",
+		KeyHash:       keyHash,
+		KeyHashSHA256: &keyHashSHA256,
+		KeyPrefix:     keyPrefix,
 	}
 	ctx.service.db.Create(apiKey)
 
@@ -528,12 +534,13 @@ func TestAPIKeyAuthentication(t *testing.T) {
 	ctx := setupTestContext(t)
 
 	// Create API key
-	plainKey, keyHash, keyPrefix, _ := auth.GenerateAPIKey("sk_live")
+	plainKey, keyHash, keyPrefix, keyHashSHA256, _ := auth.GenerateAPIKey("sk_live")
 	apiKey := &models.APIKey{
-		UserID:    ctx.testUser.ID,
-		Name:      "Auth Test Key",
-		KeyHash:   keyHash,
-		KeyPrefix: keyPrefix,
+		UserID:        ctx.testUser.ID,
+		Name:          "Auth Test Key",
+		KeyHash:       keyHash,
+		KeyHashSHA256: &keyHashSHA256,
+		KeyPrefix:     keyPrefix,
 	}
 	err := ctx.service.db.Create(apiKey).Error
 	require.NoError(t, err)
