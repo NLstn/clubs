@@ -1,3 +1,13 @@
+<div align="center">
+  <img src="assets/logo.png" alt="Clubs Logo" width="120"/>
+  
+  # API Usage Improvement Findings
+  
+  **Opportunities to optimize frontend API usage**
+</div>
+
+---
+
 # API Usage Improvement Findings
 
 This document identifies opportunities to improve the frontend's usage of backend APIs by leveraging OData features, adding navigation properties, and refactoring frontend components.

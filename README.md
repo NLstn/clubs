@@ -18,6 +18,8 @@ Clubs is a full-stack club management application designed to help organizations
 
 ## ✨ Key Features
 
+For a complete feature list, see [**Features Overview**](Documentation/FEATURES.md).
+
 - 🏢 **Club Management**: Create and manage multiple clubs with customizable settings
 - 👥 **Member Management**: Handle member registration, roles, and permissions
 - 📅 **Event Scheduling**: Create and manage events with recurring event support
@@ -51,6 +53,7 @@ Default test credentials:
 ## 📚 Documentation
 
 ### For Users
+- [✨ Features Overview](Documentation/FEATURES.md) - Complete feature reference
 - [📖 User Guide](Documentation/USER_GUIDE.md) - Complete guide to using the application
 - [🚀 Quick Start](Documentation/QUICK_START.md) - Get started in 5 minutes
 
