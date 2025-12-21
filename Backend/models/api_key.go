@@ -19,7 +19,7 @@ type APIKey struct {
 	User          User       `json:"User,omitempty" gorm:"foreignKey:UserID" odata:"navigationProperty"`
 	Name          string     `json:"Name" gorm:"not null" odata:"required"`
 	KeyHash       string     `json:"-" gorm:"uniqueIndex;not null"`      // Never exposed via API
-	KeyHashSHA256 *string    `json:"-" gorm:"uniqueIndex;type:char(64)"` // Indexed lookup hash for API key
+	KeyHashSHA256 *string    `json:"-" gorm:"uniqueIndex;type:char(64)"` // Indexed lookup hash for API key (SHA-256: 32 bytes -> 64 hex chars, hence char(64))
 	KeyPrefix     string     `json:"KeyPrefix" gorm:"not null" odata:"immutable"`
 	Permissions   string     `json:"-" gorm:"type:text"` // Stored as JSON string
 	LastUsedAt    *time.Time `json:"LastUsedAt,omitempty" gorm:"type:timestamp" odata:"nullable"`

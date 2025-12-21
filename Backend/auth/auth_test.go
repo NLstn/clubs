@@ -110,6 +110,9 @@ func TestGenerateAPIKey(t *testing.T) {
 		assert.True(t, strings.HasPrefix(keyHash, "$2a$"), "Hash should be bcrypt format")
 		assert.Greater(t, len(keyHash), 50, "Bcrypt hash should be at least 50 characters")
 
+		// Verify SHA-256 hash is exactly 64 characters (hex-encoded SHA-256)
+		assert.Equal(t, 64, len(keyHashSHA256), "SHA-256 hash should be exactly 64 characters")
+
 		// Verify prefix is just the prefix part
 		assert.Equal(t, "sk_live", keyPrefix)
 	})
