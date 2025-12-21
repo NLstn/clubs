@@ -1623,6 +1623,131 @@ func TestUserTeamMembersNavigation(t *testing.T) {
 	})
 }
 
+// TestTeamCRUD tests CRUD operations on Teams, especially verifying audit fields are set server-side
+func TestTeamCRUD(t *testing.T) {
+	ctx := setupTestContext(t)
+
+	t.Run("POST create new team without audit fields", func(t *testing.T) {
+		// Create a team without providing CreatedBy/UpdatedBy - they should be set server-side
+		newTeam := map[string]interface{}{
+			"ClubID":      ctx.testClub.ID,
+			"Name":        "Playwright Team",
+			"Description": "Created via API",
+			// CreatedBy and UpdatedBy are auto-generated server-side from the authenticated user
+		}
+
+		resp := ctx.makeAuthenticatedRequest(t, "POST", "/Teams", newTeam)
+
+		// If status is not 201, print the error response
+		if resp.StatusCode != http.StatusCreated {
+			var errResp map[string]interface{}
+			json.NewDecoder(resp.Body).Decode(&errResp)
+			t.Logf("POST failed with status %d: %+v", resp.StatusCode, errResp)
+		}
+
+		assert.Equal(t, http.StatusCreated, resp.StatusCode, "Team creation should succeed without providing audit fields")
+
+		var created map[string]interface{}
+		parseJSONResponse(t, resp, &created)
+
+		assert.NotEmpty(t, created["ID"])
+		assert.Equal(t, ctx.testClub.ID, created["ClubID"])
+		assert.Equal(t, "Playwright Team", created["Name"])
+		assert.Equal(t, "Created via API", created["Description"])
+		assert.Equal(t, ctx.testUser.ID, created["CreatedBy"], "CreatedBy should be set from authenticated user")
+		assert.Equal(t, ctx.testUser.ID, created["UpdatedBy"], "UpdatedBy should be set from authenticated user")
+		assert.NotEmpty(t, created["CreatedAt"])
+		assert.NotEmpty(t, created["UpdatedAt"])
+	})
+
+	t.Run("POST create team with explicit audit fields should be ignored", func(t *testing.T) {
+		// With odata:"auto" tags, the OData library should ignore or override client-provided audit fields
+		// However, the actual behavior depends on the OData library implementation
+		// If it rejects them, that's acceptable since clients shouldn't provide them
+		// If it accepts and overrides them, that's also acceptable
+		fakeUserID := uuid.New().String()
+		newTeam := map[string]interface{}{
+			"ClubID":      ctx.testClub.ID,
+			"Name":        "Security Test Team",
+			"Description": "Testing audit field override",
+			"CreatedBy":   fakeUserID, // Should be ignored or rejected
+			"UpdatedBy":   fakeUserID, // Should be ignored or rejected
+		}
+
+		resp := ctx.makeAuthenticatedRequest(t, "POST", "/Teams", newTeam)
+		
+		// Accept either 201 (created, fields overridden) or 400 (bad request, fields rejected)
+		// Both are acceptable security behaviors
+		if resp.StatusCode == http.StatusCreated {
+			var created map[string]interface{}
+			parseJSONResponse(t, resp, &created)
+
+			// If created, verify that server-side audit fields override client-provided values
+			assert.Equal(t, ctx.testUser.ID, created["CreatedBy"], "CreatedBy should be set from authenticated user, not client payload")
+			assert.Equal(t, ctx.testUser.ID, created["UpdatedBy"], "UpdatedBy should be set from authenticated user, not client payload")
+		} else {
+			// If rejected, that's also a valid security posture
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Client-provided audit fields should be rejected")
+		}
+	})
+
+	t.Run("PATCH update team without UpdatedBy", func(t *testing.T) {
+		// Create a team first
+		team := &models.Team{
+			ID:          uuid.New().String(),
+			ClubID:      ctx.testClub.ID,
+			Name:        "Update Test Team",
+			Description: stringPtr("Original description"),
+			CreatedAt:   time.Now(),
+			CreatedBy:   ctx.testUser.ID,
+			UpdatedAt:   time.Now(),
+			UpdatedBy:   ctx.testUser.ID,
+		}
+		require.NoError(t, database.Db.Create(team).Error)
+
+		// Update team without providing UpdatedBy
+		update := map[string]interface{}{
+			"Name":        "Updated Team Name",
+			"Description": "Updated description",
+		}
+
+		path := fmt.Sprintf("/Teams(%s)", team.ID)
+		resp := ctx.makeAuthenticatedRequest(t, "PATCH", path, update)
+
+		// PATCH may return 204 No Content on success
+		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+			var errResp map[string]interface{}
+			json.NewDecoder(resp.Body).Decode(&errResp)
+			t.Logf("PATCH failed with status %d: %+v", resp.StatusCode, errResp)
+		}
+
+		assert.True(t, resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent)
+
+		// Verify the update by fetching the entity
+		getResp := ctx.makeAuthenticatedRequest(t, "GET", path, nil)
+		assert.Equal(t, http.StatusOK, getResp.StatusCode)
+
+		var updated map[string]interface{}
+		parseJSONResponse(t, getResp, &updated)
+
+		assert.Equal(t, "Updated Team Name", updated["Name"])
+		assert.Equal(t, "Updated description", updated["Description"])
+		assert.Equal(t, ctx.testUser.ID, updated["UpdatedBy"], "UpdatedBy should be set automatically")
+	})
+
+	t.Run("GET list teams in user's club", func(t *testing.T) {
+		resp := ctx.makeAuthenticatedRequest(t, "GET", "/Teams", nil)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var result map[string]interface{}
+		parseJSONResponse(t, resp, &result)
+
+		assert.Contains(t, result, "value")
+		teams := result["value"].([]interface{})
+		assert.GreaterOrEqual(t, len(teams), 1, "Should have at least one team")
+	})
+}
+
 // Helper function to create string pointers
 func stringPtr(s string) *string {
 	return &s

@@ -22,10 +22,10 @@ type Team struct {
 	ClubID      string    `json:"ClubID" gorm:"type:uuid;not null" odata:"required"`
 	Name        string    `json:"Name" gorm:"not null" odata:"required"`
 	Description *string   `json:"Description,omitempty" odata:"nullable"`
-	CreatedAt   time.Time `json:"CreatedAt" odata:"immutable"`
-	CreatedBy   string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
-	UpdatedAt   time.Time `json:"UpdatedAt"`
-	UpdatedBy   string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
+	CreatedAt   time.Time `json:"CreatedAt" odata:"auto,immutable"`
+	CreatedBy   string    `json:"CreatedBy" gorm:"type:uuid" odata:"auto,immutable"`
+	UpdatedAt   time.Time `json:"UpdatedAt" odata:"auto"`
+	UpdatedBy   string    `json:"UpdatedBy" gorm:"type:uuid" odata:"auto"`
 
 	// Navigation properties for OData
 	Events      []Event      `gorm:"foreignKey:TeamID" json:"Events,omitempty" odata:"nav"`
@@ -38,10 +38,10 @@ type TeamMember struct {
 	TeamID    string    `json:"TeamID" gorm:"type:uuid;not null" odata:"required"`
 	UserID    string    `json:"UserID" gorm:"type:uuid;not null" odata:"required"`
 	Role      string    `json:"Role" gorm:"default:member" odata:"required"` // admin, member
-	CreatedAt time.Time `json:"CreatedAt" odata:"immutable"`
-	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
-	UpdatedAt time.Time `json:"UpdatedAt"`
-	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
+	CreatedAt time.Time `json:"CreatedAt" odata:"auto,immutable"`
+	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"auto,immutable"`
+	UpdatedAt time.Time `json:"UpdatedAt" odata:"auto"`
+	UpdatedBy string    `json:"UpdatedBy" gorm:"type:uuid" odata:"auto"`
 
 	// Navigation properties for OData
 	Team *Team `gorm:"foreignKey:TeamID" json:"Team,omitempty" odata:"nav"`
