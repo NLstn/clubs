@@ -1,3 +1,13 @@
+<div align="center">
+  <img src="../assets/logo.png" alt="Clubs Logo" width="150"/>
+  
+  # Frontend Design System & Component Library
+  
+  **UI Guidelines for the Clubs Management Application**
+</div>
+
+---
+
 # Frontend Design System & Component Library
 
 ## Overview

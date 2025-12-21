@@ -1,3 +1,13 @@
+<div align="center">
+  <img src="../assets/logo.png" alt="Clubs Logo" width="150"/>
+  
+  # CSRF Protection
+  
+  **Cross-Site Request Forgery protection mechanisms**
+</div>
+
+---
+
 # CSRF Protection
 
 This document describes the Cross-Site Request Forgery (CSRF) protection mechanisms implemented in the Clubs backend API.

@@ -1,3 +1,13 @@
+<div align="center">
+  <img src="../assets/logo.png" alt="Clubs Logo" width="150"/>
+  
+  # Job Scheduler Documentation
+  
+  **Database-backed background task scheduling**
+</div>
+
+---
+
 # Job Scheduler Documentation
 
 ## Overview

@@ -1,4 +1,16 @@
-# Club Management API Documentation
+<div align="center">
+  <img src="../assets/logo.png" alt="Clubs Logo" width="150"/>
+  
+  # Club Management API Documentation
+  
+  **RESTful API for the Clubs Management Application**
+</div>
+
+---
+
+## 📋 Overview
+
+This document provides comprehensive documentation for the Clubs Management API. The API follows RESTful principles and uses JWT-based authentication.
 
 ## Base URL
 All API endpoints are prefixed with `/api/v1/`
