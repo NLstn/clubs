@@ -39,12 +39,13 @@ func (c JobConfig) Validate() error {
 
 // Scheduler manages periodic job execution
 type Scheduler struct {
-	jobs       map[string]JobFunc
-	jobsMutex  sync.RWMutex
-	ticker     *time.Ticker
-	ctx        context.Context
-	cancel     context.CancelFunc
-	wg         sync.WaitGroup
+	jobs           map[string]JobFunc
+	jobsMutex      sync.RWMutex
+	registeredJobs []string // Track registered job names for startup logging
+	ticker         *time.Ticker
+	ctx            context.Context
+	cancel         context.CancelFunc
+	wg             sync.WaitGroup
 	tickerInterval time.Duration
 }
 
@@ -59,6 +60,7 @@ func NewScheduler(tickerInterval time.Duration) *Scheduler {
 	
 	return &Scheduler{
 		jobs:           make(map[string]JobFunc),
+		registeredJobs: make([]string, 0),
 		ctx:            ctx,
 		cancel:         cancel,
 		tickerInterval: tickerInterval,
@@ -95,7 +97,6 @@ func (s *Scheduler) RegisterJobWithSchedule(handlerName string, jobFunc JobFunc,
 		if err := database.Db.Create(&job).Error; err != nil {
 			return fmt.Errorf("failed to create scheduled job '%s': %w", config.Name, err)
 		}
-		log.Printf("Created scheduled job: %s", config.Name)
 	} else if err != nil {
 		return fmt.Errorf("failed to query scheduled job '%s': %w", config.Name, err)
 	} else {
@@ -115,18 +116,25 @@ func (s *Scheduler) RegisterJobWithSchedule(handlerName string, jobFunc JobFunc,
 			if err := database.Db.Model(&existing).Updates(updates).Error; err != nil {
 				return fmt.Errorf("failed to update scheduled job '%s': %w", config.Name, err)
 			}
-			log.Printf("Updated scheduled job: %s", config.Name)
-		} else {
-			log.Printf("Scheduled job unchanged: %s", config.Name)
 		}
 	}
 	
 	// Step 2: Register in-memory only after successful database operation
 	s.jobsMutex.Lock()
 	s.jobs[handlerName] = jobFunc
-	s.jobsMutex.Unlock()
 	
-	log.Printf("Registered job handler: %s", handlerName)
+	// Add to registered jobs list if not already present
+	found := false
+	for _, name := range s.registeredJobs {
+		if name == config.Name {
+			found = true
+			break
+		}
+	}
+	if !found {
+		s.registeredJobs = append(s.registeredJobs, config.Name)
+	}
+	s.jobsMutex.Unlock()
 	
 	return nil
 }
@@ -138,7 +146,20 @@ func (s *Scheduler) Start() {
 	
 	go func() {
 		defer s.wg.Done()
-		log.Println("Scheduler started")
+		
+		// Log all initialized jobs
+		s.jobsMutex.RLock()
+		jobCount := len(s.registeredJobs)
+		jobNames := make([]string, len(s.registeredJobs))
+		copy(jobNames, s.registeredJobs)
+		s.jobsMutex.RUnlock()
+		
+		if jobCount > 0 {
+			log.Printf("Initialized %d scheduled job(s): %v", jobCount, jobNames)
+		} else {
+			log.Printf("No scheduled jobs initialized")
+		}
+		log.Println("Scheduler started successfully")
 		
 		// Run immediately on start to catch any overdue jobs
 		s.checkAndRunJobs()
