@@ -5,7 +5,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -189,11 +191,11 @@ func (UserSession) ODataAfterReadEntity(ctx context.Context, r *http.Request, op
 func (s *UserSession) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
-		fmt.Printf("DEBUG: BeforeDelete - userID not found in context, ok=%v, userID=%v\n", ok, userID)
+		logUserSessionDeleteDebug("missing_user_context")
 		return fmt.Errorf("unauthorized")
 	}
 
-	fmt.Printf("DEBUG: BeforeDelete - userID from context: %s, session.ID: %s, session.UserID: %s\n", userID, s.ID, s.UserID)
+	logUserSessionDeleteDebug("context_user_present")
 
 	// The ID field is already populated by OData framework
 	// We just need to verify it belongs to the current user by checking UserID
@@ -203,21 +205,31 @@ func (s *UserSession) ODataBeforeDelete(ctx context.Context, r *http.Request) er
 		// If UserID is not populated, query it from database
 		var session UserSession
 		if err := database.Db.Where("id = ?", s.ID).First(&session).Error; err != nil {
-			fmt.Printf("DEBUG: BeforeDelete - session not found in DB for ID: %s, error: %v\n", s.ID, err)
+			logUserSessionDeleteDebug("session_lookup_failed")
 			return fmt.Errorf("session not found")
 		}
 		s.UserID = session.UserID
-		fmt.Printf("DEBUG: BeforeDelete - loaded UserID from DB: %s\n", s.UserID)
+		logUserSessionDeleteDebug("session_user_loaded")
 	}
 
 	// Verify the session belongs to the current user
 	if s.UserID != userID {
-		fmt.Printf("DEBUG: BeforeDelete - user mismatch: session.UserID=%s, contextUserID=%s\n", s.UserID, userID)
+		logUserSessionDeleteDebug("user_mismatch")
 		return fmt.Errorf("cannot delete another user's session")
 	}
 
-	fmt.Printf("DEBUG: BeforeDelete - authorization successful for session %s\n", s.ID)
+	logUserSessionDeleteDebug("authorized")
 	return nil
+}
+
+func logUserSessionDeleteDebug(status string) {
+	if isDebugLoggingEnabled() {
+		log.Printf("level=debug event=user_session_before_delete status=%s", status)
+	}
+}
+
+func isDebugLoggingEnabled() bool {
+	return strings.EqualFold(os.Getenv("LOG_LEVEL"), "debug")
 }
 
 // HashToken returns a sha256 hash of the provided token encoded as hex.
