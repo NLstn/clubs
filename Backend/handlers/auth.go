@@ -133,13 +133,6 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 		"refresh":         refreshToken,
 		"profileComplete": user.IsProfileComplete(),
 	})
-
-	if err := models.DeleteMagicLink(token); err != nil {
-		// Log the error for debugging and monitoring purposes
-		log.Printf("Failed to delete magic link after successful verification: %v", err)
-		http.Error(w, "Failed to delete magic link", http.StatusInternalServerError)
-		return
-	}
 }
 
 // endpoint: POST /api/v1/auth/refresh

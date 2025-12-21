@@ -26,15 +26,19 @@ func CreateMagicLink(email string) (string, error) {
 
 func VerifyMagicLink(token string) (string, bool, error) {
 	var result struct {
-		Email     string
-		ExpiresAt time.Time
+		Email string
 	}
 
-	err := database.Db.Raw(`SELECT email, expires_at FROM magic_links WHERE token = ?`, token).
-		Scan(&result).Error
-
-	if err != nil || time.Now().After(result.ExpiresAt) {
-		return "", false, err
+	tx := database.Db.Raw(
+		`DELETE FROM magic_links WHERE token = ? AND expires_at > ? RETURNING email`,
+		token,
+		time.Now(),
+	).Scan(&result)
+	if tx.Error != nil {
+		return "", false, tx.Error
+	}
+	if tx.RowsAffected == 0 {
+		return "", false, nil
 	}
 
 	return result.Email, true, nil
