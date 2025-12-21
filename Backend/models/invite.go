@@ -2,8 +2,10 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/NLstn/clubs/auth"
@@ -30,6 +32,10 @@ func (c *Club) CreateInvite(email, createdBy string) error {
 	if result.Error == nil {
 		return fmt.Errorf("invite already exists for this email")
 	}
+	// Check for database errors other than "not found"
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return fmt.Errorf("failed to check existing invite: %w", result.Error)
+	}
 
 	// Check if user with this email is already a member
 	var existingMember Member
@@ -38,6 +44,10 @@ func (c *Club) CreateInvite(email, createdBy string) error {
 		First(&existingMember)
 	if result.Error == nil {
 		return fmt.Errorf("user is already a member of this club")
+	}
+	// Check for database errors other than "not found"
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return fmt.Errorf("failed to check existing member: %w", result.Error)
 	}
 
 	// Check rate limit for admin (10 invites per hour)
@@ -58,7 +68,13 @@ func (c *Club) CreateInvite(email, createdBy string) error {
 	}
 	err := database.Db.Create(invite).Error
 	if err != nil {
-		return err
+		// Handle unique constraint violation gracefully
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") || 
+		   strings.Contains(err.Error(), "duplicate key") ||
+		   strings.Contains(err.Error(), "unique constraint") {
+			return fmt.Errorf("invite already exists for this email")
+		}
+		return fmt.Errorf("failed to create invite: %w", err)
 	}
 
 	// Send invite notification to the user
