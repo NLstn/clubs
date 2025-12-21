@@ -1,6 +1,7 @@
 package models_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/NLstn/clubs/handlers"
@@ -79,7 +80,7 @@ func TestCreateInvite_AdminRateLimit(t *testing.T) {
 
 		// Create 10 invites (should succeed)
 		for i := 0; i < 10; i++ {
-			email := "invitee" + string(rune('0'+i)) + "@example.com"
+			email := fmt.Sprintf("invitee%d@example.com", i)
 			err := club.CreateInvite(email, owner.ID)
 			assert.NoError(t, err, "Invite %d should succeed", i)
 		}
@@ -99,7 +100,7 @@ func TestCreateInvite_AdminRateLimit(t *testing.T) {
 
 		// Owner creates 10 invites
 		for i := 0; i < 10; i++ {
-			email := "owner-invite" + string(rune('0'+i)) + "@example.com"
+			email := fmt.Sprintf("owner-invite%d@example.com", i)
 			err := club.CreateInvite(email, owner.ID)
 			assert.NoError(t, err)
 		}
@@ -133,7 +134,7 @@ func TestCreateInvite_ClubRateLimit(t *testing.T) {
 		admins := []models.User{owner, admin1, admin2, admin3, admin4}
 		for adminIdx, admin := range admins {
 			for i := 0; i < 10; i++ {
-				email := "club-invite-a" + string(rune('0'+adminIdx)) + "-i" + string(rune('0'+i)) + "@example.com"
+				email := fmt.Sprintf("club-invite-a%d-i%d@example.com", adminIdx, i)
 				err := club.CreateInvite(email, admin.ID)
 				assert.NoError(t, err, "Admin %d invite %d should succeed", adminIdx, i)
 			}
@@ -154,7 +155,7 @@ func TestCreateInvite_ClubRateLimit(t *testing.T) {
 
 		// Club1 creates 10 invites
 		for i := 0; i < 10; i++ {
-			email := "club1-invite" + string(rune('0'+i)) + "@example.com"
+			email := fmt.Sprintf("club1-invite%d@example.com", i)
 			err := club1.CreateInvite(email, owner1.ID)
 			assert.NoError(t, err)
 		}
@@ -178,7 +179,7 @@ func TestCreateInvite_RateLimitReset(t *testing.T) {
 
 		// Create 10 invites
 		for i := 0; i < 10; i++ {
-			email := "sliding-window" + string(rune('0'+i)) + "@example.com"
+			email := fmt.Sprintf("sliding-window%d@example.com", i)
 			err := club.CreateInvite(email, owner.ID)
 			assert.NoError(t, err)
 		}
@@ -219,7 +220,7 @@ func TestCreateInvite_CombinedValidations(t *testing.T) {
 
 		// 4. Can continue creating new invites until rate limit
 		for i := 0; i < 9; i++ {
-			email := "more-invites" + string(rune('0'+i)) + "@example.com"
+			email := fmt.Sprintf("more-invites%d@example.com", i)
 			err = club.CreateInvite(email, owner.ID)
 			assert.NoError(t, err, "Invite %d should succeed", i)
 		}
