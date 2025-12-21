@@ -85,6 +85,21 @@ func CreateClub(name, description, ownerID string) (Club, error) {
 		if dbErr := tx.Create(&member).Error; dbErr != nil {
 			return dbErr
 		}
+		// Create default club settings with all features disabled
+		settings := ClubSettings{
+			ID:                       uuid.New().String(),
+			ClubID:                   club.ID,
+			FinesEnabled:             false,
+			ShiftsEnabled:            false,
+			TeamsEnabled:             false,
+			MembersListVisible:       false,
+			DiscoverableByNonMembers: false,
+			CreatedBy:                ownerID,
+			UpdatedBy:                ownerID,
+		}
+		if dbErr := tx.Create(&settings).Error; dbErr != nil {
+			return dbErr
+		}
 		return nil
 	})
 	if err != nil {
@@ -166,7 +181,7 @@ func (c *Club) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 	return nil
 }
 
-// ODataAfterCreate OData hook - creates the creator as an owner member of the club
+// ODataAfterCreate OData hook - creates the creator as an owner member of the club and default settings
 func (c *Club) ODataAfterCreate(ctx context.Context, r *http.Request) error {
 	// Get transaction from context
 	tx, ok := odata.TransactionFromContext(ctx)
@@ -189,6 +204,25 @@ func (c *Club) ODataAfterCreate(ctx context.Context, r *http.Request) error {
 
 	if err := tx.Create(&member).Error; err != nil {
 		return fmt.Errorf("failed to create owner member: %w", err)
+	}
+
+	// Create default club settings with all features disabled
+	settings := ClubSettings{
+		ID:                       uuid.New().String(),
+		ClubID:                   c.ID,
+		FinesEnabled:             false,
+		ShiftsEnabled:            false,
+		TeamsEnabled:             false,
+		MembersListVisible:       false,
+		DiscoverableByNonMembers: false,
+		CreatedAt:                now,
+		CreatedBy:                c.CreatedBy,
+		UpdatedAt:                now,
+		UpdatedBy:                c.CreatedBy,
+	}
+
+	if err := tx.Create(&settings).Error; err != nil {
+		return fmt.Errorf("failed to create default club settings: %w", err)
 	}
 
 	return nil
