@@ -1,30 +1,63 @@
 package models_test
 
 import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/NLstn/clubs/handlers"
 	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/odata"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestClubSettingsCreatedWithClub(t *testing.T) {
 	handlers.SetupTestDB(t)
 	defer handlers.TeardownTestDB(t)
 
-	t.Run("settings created automatically when club is created", func(t *testing.T) {
-		user, _ := handlers.CreateTestUser(t, "clubsettingstest@example.com")
+	// Set up OData service for testing
+	service, err := odata.NewService(handlers.GetDB())
+	require.NoError(t, err, "Failed to create OData service")
 
-		// Create a club using the CreateClub function
-		club, err := models.CreateClub("Test Club", "Test Description", user.ID)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, club.ID)
+	odataV2Mux := http.NewServeMux()
+	service.RegisterCustomHandlers(odataV2Mux)
+	odataV2Mux.Handle("/", service)
+	handler := http.StripPrefix("/api/v2", handlers.CompositeAuthMiddleware(odataV2Mux))
+
+	t.Run("settings created automatically when club is created via OData", func(t *testing.T) {
+		user, token := handlers.CreateTestUser(t, "clubsettingstest@example.com")
+
+		// Create a club via OData API
+		clubData := map[string]interface{}{
+			"Name":        "Test Club",
+			"Description": "Test Description",
+		}
+		body, err := json.Marshal(clubData)
+		require.NoError(t, err)
+
+		req := httptest.NewRequest("POST", "/api/v2/Clubs", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		resp := rec.Result()
+
+		assert.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		var created map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&created)
+		require.NoError(t, err)
+		clubID := created["ID"].(string)
+		assert.NotEmpty(t, clubID)
 
 		// Verify that settings were created automatically
-		settings, err := models.GetClubSettings(club.ID)
+		settings, err := models.GetClubSettings(clubID)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, settings.ID)
-		assert.Equal(t, club.ID, settings.ClubID)
+		assert.Equal(t, clubID, settings.ClubID)
 
 		// Verify all settings are disabled by default
 		assert.False(t, settings.FinesEnabled, "FinesEnabled should be false by default")

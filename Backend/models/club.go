@@ -54,58 +54,6 @@ func GetClubByID(id string) (Club, error) {
 	return club, result.Error
 }
 
-func GetClubsByIDs(clubIDs []string) ([]Club, error) {
-	var clubs []Club
-	if len(clubIDs) == 0 {
-		return clubs, nil
-	}
-	err := database.Db.Where("id IN ?", clubIDs).Find(&clubs).Error
-	return clubs, err
-}
-
-func CreateClub(name, description, ownerID string) (Club, error) {
-	var club Club
-	club.ID = uuid.New().String()
-	club.Name = name
-	club.Description = &description
-	club.CreatedBy = ownerID
-	club.UpdatedBy = ownerID
-
-	err := database.Db.Transaction(func(tx *gorm.DB) error {
-		if dbErr := tx.Create(&club).Error; dbErr != nil {
-			return dbErr
-		}
-		
-		// Create member record with owner role
-		now := time.Now()
-		member := Member{
-			ID:        uuid.New().String(),
-			ClubID:    club.ID,
-			UserID:    ownerID,
-			Role:      "owner",
-			CreatedAt: now,
-			CreatedBy: ownerID,
-			UpdatedAt: now,
-			UpdatedBy: ownerID,
-		}
-		if dbErr := tx.Create(&member).Error; dbErr != nil {
-			return dbErr
-		}
-		
-		// Create default club settings with all features disabled
-		if dbErr := createClubSettingsWithTransaction(tx, club.ID, ownerID, now); dbErr != nil {
-			return dbErr
-		}
-		
-		return nil
-	})
-	if err != nil {
-		return Club{}, err
-	}
-
-	return club, nil
-}
-
 func (c *Club) Update(name, description, updatedBy string) error {
 	return database.Db.Model(c).Updates(map[string]interface{}{
 		"name":        name,
@@ -128,12 +76,6 @@ func (c *Club) SoftDelete(deletedBy string) error {
 		"deleted_at": &now,
 		"deleted_by": &deletedBy,
 	}).Error
-}
-
-func DeleteClubPermanently(clubID string) error {
-	// This will permanently delete the club and all related data
-	// Note: This should cascade delete related records if foreign keys are set up properly
-	return database.Db.Unscoped().Delete(&Club{}, "id = ?", clubID).Error
 }
 
 // GetAdminsAndOwners returns all users who are admins or owners of the club

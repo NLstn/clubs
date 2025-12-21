@@ -1,12 +1,18 @@
 package models_test
 
 import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/NLstn/clubs/database"
 	"github.com/NLstn/clubs/handlers"
 	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/clubs/odata"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetAllClubs(t *testing.T) {
@@ -109,46 +115,83 @@ func TestGetClubByID(t *testing.T) {
 	})
 }
 
-func TestGetClubsByIDs(t *testing.T) {
+func TestGetClubsByFilter(t *testing.T) {
 	handlers.SetupTestDB(t)
 	defer handlers.TeardownTestDB(t)
 
-	t.Run("multiple existing clubs", func(t *testing.T) {
-		user, _ := handlers.CreateTestUser(t, "multiclubuser@example.com")
+	// Set up OData service for testing
+	service, err := odata.NewService(database.Db)
+	require.NoError(t, err, "Failed to create OData service")
+
+	odataV2Mux := http.NewServeMux()
+	service.RegisterCustomHandlers(odataV2Mux)
+	odataV2Mux.Handle("/", service)
+	handler := http.StripPrefix("/api/v2", handlers.CompositeAuthMiddleware(odataV2Mux))
+
+	t.Run("get multiple clubs via OData", func(t *testing.T) {
+		user, token := handlers.CreateTestUser(t, "multiclubuser@example.com")
 		club1 := handlers.CreateTestClub(t, user, "Club 1")
 		club2 := handlers.CreateTestClub(t, user, "Club 2")
 		club3 := handlers.CreateTestClub(t, user, "Club 3")
 
-		ids := []string{club1.ID, club2.ID, club3.ID}
-		clubs, err := models.GetClubsByIDs(ids)
-		assert.NoError(t, err)
-		assert.Len(t, clubs, 3)
+		// Get all clubs via OData
+		req := httptest.NewRequest("GET", "/api/v2/Clubs", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		resp := rec.Result()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var result map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&result)
+		require.NoError(t, err)
+
+		clubs := result["value"].([]interface{})
+		assert.GreaterOrEqual(t, len(clubs), 3, "Should have at least 3 clubs")
 
 		// Check that all clubs are returned
-		clubMap := make(map[string]models.Club)
-		for _, club := range clubs {
-			clubMap[club.ID] = club
+		clubIDs := make(map[string]bool)
+		for _, c := range clubs {
+			clubMap := c.(map[string]interface{})
+			clubIDs[clubMap["ID"].(string)] = true
 		}
-		assert.Contains(t, clubMap, club1.ID)
-		assert.Contains(t, clubMap, club2.ID)
-		assert.Contains(t, clubMap, club3.ID)
+		assert.True(t, clubIDs[club1.ID], "Club 1 should be in results")
+		assert.True(t, clubIDs[club2.ID], "Club 2 should be in results")
+		assert.True(t, clubIDs[club3.ID], "Club 3 should be in results")
 	})
 
-	t.Run("mix of existing and non-existing clubs", func(t *testing.T) {
-		user, _ := handlers.CreateTestUser(t, "mixclubuser@example.com")
+	t.Run("get club by ID via OData", func(t *testing.T) {
+		user, token := handlers.CreateTestUser(t, "getclubuser@example.com")
 		club1 := handlers.CreateTestClub(t, user, "Existing Club")
 
-		ids := []string{club1.ID, "non-existent-1", "non-existent-2"}
-		clubs, err := models.GetClubsByIDs(ids)
-		assert.NoError(t, err)
-		assert.Len(t, clubs, 1)
-		assert.Equal(t, club1.ID, clubs[0].ID)
+		// Get specific club via OData
+		req := httptest.NewRequest("GET", "/api/v2/Clubs("+club1.ID+")", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		resp := rec.Result()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var club map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&club)
+		require.NoError(t, err)
+
+		assert.Equal(t, club1.ID, club["ID"])
+		assert.Equal(t, club1.Name, club["Name"])
 	})
 
-	t.Run("empty slice", func(t *testing.T) {
-		clubs, err := models.GetClubsByIDs([]string{})
-		assert.NoError(t, err)
-		assert.Len(t, clubs, 0)
+	t.Run("get non-existent club via OData", func(t *testing.T) {
+		_, token := handlers.CreateTestUser(t, "nonexistuser@example.com")
+
+		req := httptest.NewRequest("GET", "/api/v2/Clubs(non-existent-id)", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		resp := rec.Result()
+
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
 }
 
@@ -156,39 +199,83 @@ func TestCreateClub(t *testing.T) {
 	handlers.SetupTestDB(t)
 	defer handlers.TeardownTestDB(t)
 
-	t.Run("create valid club", func(t *testing.T) {
-		user, _ := handlers.CreateTestUser(t, "createclubuser@example.com")
+	// Set up OData service for testing
+	service, err := odata.NewService(database.Db)
+	require.NoError(t, err, "Failed to create OData service")
 
-		club, err := models.CreateClub("New Test Club", "Test Description", user.ID)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, club.ID)
-		assert.Equal(t, "New Test Club", club.Name)
-		assert.NotNil(t, club.Description)
-		assert.Equal(t, "Test Description", *club.Description)
-		assert.Equal(t, user.ID, club.CreatedBy)
-		assert.NotZero(t, club.CreatedAt)
+	odataV2Mux := http.NewServeMux()
+	service.RegisterCustomHandlers(odataV2Mux)
+	odataV2Mux.Handle("/", service)
+	handler := http.StripPrefix("/api/v2", handlers.CompositeAuthMiddleware(odataV2Mux))
+
+	t.Run("create valid club via OData", func(t *testing.T) {
+		user, token := handlers.CreateTestUser(t, "createclubuser@example.com")
+
+		// Create club via OData POST
+		clubData := map[string]interface{}{
+			"Name":        "New Test Club",
+			"Description": "Test Description",
+		}
+		body, err := json.Marshal(clubData)
+		require.NoError(t, err)
+
+		req := httptest.NewRequest("POST", "/api/v2/Clubs", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		resp := rec.Result()
+
+		assert.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		var created map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&created)
+		require.NoError(t, err)
+
+		assert.NotEmpty(t, created["ID"])
+		assert.Equal(t, "New Test Club", created["Name"])
+		assert.Equal(t, "Test Description", created["Description"])
+		assert.Equal(t, user.ID, created["CreatedBy"])
+		assert.NotEmpty(t, created["CreatedAt"])
 
 		// Verify club was actually saved to database
 		var dbClub models.Club
-		err = database.Db.Where("id = ?", club.ID).First(&dbClub).Error
+		err = database.Db.Where("id = ?", created["ID"]).First(&dbClub).Error
 		assert.NoError(t, err)
-		assert.Equal(t, club.Name, dbClub.Name)
+		assert.Equal(t, "New Test Club", dbClub.Name)
+
+		// Verify owner member was created
+		var member models.Member
+		err = database.Db.Where("user_id = ? AND club_id = ?", user.ID, created["ID"]).First(&member).Error
+		assert.NoError(t, err)
+		assert.Equal(t, "owner", member.Role)
+
+		// Verify club settings were created
+		var settings models.ClubSettings
+		err = database.Db.Where("club_id = ?", created["ID"]).First(&settings).Error
+		assert.NoError(t, err)
 	})
 
-	t.Run("create club with empty name", func(t *testing.T) {
-		user, _ := handlers.CreateTestUser(t, "emptyclubuser@example.com")
+	t.Run("create club with empty name via OData", func(t *testing.T) {
+		_, token := handlers.CreateTestUser(t, "emptyclubuser@example.com")
 
-		club, err := models.CreateClub("", "Description", user.ID)
-		assert.NoError(t, err) // Empty name should still work at model level
-		assert.Equal(t, "", club.Name)
-	})
+		clubData := map[string]interface{}{
+			"Name":        "",
+			"Description": "Description",
+		}
+		body, err := json.Marshal(clubData)
+		require.NoError(t, err)
 
-	t.Run("create club with non-existent owner", func(t *testing.T) {
-		club, err := models.CreateClub("Orphan Club", "Description", "non-existent-user-id")
-		// The current implementation doesn't validate owner existence, so it succeeds
-		assert.NoError(t, err)
-		assert.NotEqual(t, "", club.ID)
-		assert.Equal(t, "Orphan Club", club.Name)
+		req := httptest.NewRequest("POST", "/api/v2/Clubs", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		resp := rec.Result()
+
+		// OData allows empty name since Name is not marked as required
+		// This is different from the old direct function behavior
+		assert.Equal(t, http.StatusCreated, resp.StatusCode)
 	})
 }
 
@@ -260,46 +347,74 @@ func TestClubSoftDelete(t *testing.T) {
 	})
 }
 
-func TestDeleteClubPermanently(t *testing.T) {
+func TestSoftDeleteClub(t *testing.T) {
 	handlers.SetupTestDB(t)
 	defer handlers.TeardownTestDB(t)
 
-	t.Run("permanently delete soft-deleted club", func(t *testing.T) {
-		user, _ := handlers.CreateTestUser(t, "harddeleteuser@example.com")
-		club := handlers.CreateTestClub(t, user, "To Hard Delete")
+	// Set up OData service for testing
+	service, err := odata.NewService(database.Db)
+	require.NoError(t, err, "Failed to create OData service")
 
-		// First soft delete
-		err := club.SoftDelete(user.ID)
+	odataV2Mux := http.NewServeMux()
+	service.RegisterCustomHandlers(odataV2Mux)
+	odataV2Mux.Handle("/", service)
+	handler := http.StripPrefix("/api/v2", handlers.CompositeAuthMiddleware(odataV2Mux))
+
+	t.Run("soft delete club via OData PATCH", func(t *testing.T) {
+		user, token := handlers.CreateTestUser(t, "softdeleteuser@example.com")
+		club := handlers.CreateTestClub(t, user, "To Soft Delete")
+
+		// Soft delete via OData PATCH
+		deleteData := map[string]interface{}{
+			"Deleted": true,
+		}
+		body, err := json.Marshal(deleteData)
+		require.NoError(t, err)
+
+		req := httptest.NewRequest("PATCH", "/api/v2/Clubs("+club.ID+")", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		resp := rec.Result()
+
+		assert.True(t, resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent)
+
+		// Verify club is marked as deleted
+		var dbClub models.Club
+		err = database.Db.Unscoped().Where("id = ?", club.ID).First(&dbClub).Error
 		assert.NoError(t, err)
+		assert.True(t, dbClub.Deleted)
+		assert.NotNil(t, dbClub.DeletedAt)
+		assert.NotNil(t, dbClub.DeletedBy)
+		assert.Equal(t, user.ID, *dbClub.DeletedBy)
 
-		// Then permanently delete
-		err = models.DeleteClubPermanently(club.ID)
-		assert.NoError(t, err)
+		// Verify club is not returned by OData GET
+		req = httptest.NewRequest("GET", "/api/v2/Clubs("+club.ID+")", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec = httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		resp = rec.Result()
 
-		// Verify club is completely gone
-		var count int64
-		database.Db.Unscoped().Model(&models.Club{}).Where("id = ?", club.ID).Count(&count)
-		assert.Equal(t, int64(0), count)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
 
-	t.Run("permanently delete non-soft-deleted club should fail", func(t *testing.T) {
-		user, _ := handlers.CreateTestUser(t, "activeharddelete@example.com")
-		club := handlers.CreateTestClub(t, user, "Active Club")
+	t.Run("soft delete non-existent club via OData", func(t *testing.T) {
+		_, token := handlers.CreateTestUser(t, "nonexistdelete@example.com")
 
-		// The current implementation doesn't check if club is soft-deleted first
-		// It just permanently deletes any club, so this will succeed
-		err := models.DeleteClubPermanently(club.ID)
-		assert.NoError(t, err)
+		deleteData := map[string]interface{}{
+			"Deleted": true,
+		}
+		body, err := json.Marshal(deleteData)
+		require.NoError(t, err)
 
-		// Verify club is gone (permanently deleted)
-		_, err = models.GetClubByID(club.ID)
-		assert.Error(t, err) // Should not be found
-	})
+		req := httptest.NewRequest("PATCH", "/api/v2/Clubs(non-existent-id)", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		resp := rec.Result()
 
-	t.Run("permanently delete non-existent club", func(t *testing.T) {
-		// The current implementation doesn't validate club existence before deletion
-		// So this will succeed (no rows affected but no error)
-		err := models.DeleteClubPermanently("non-existent-id")
-		assert.NoError(t, err)
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
 }
