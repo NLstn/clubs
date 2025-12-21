@@ -52,6 +52,8 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
     const [showInviteLink, setShowInviteLink] = useState(false);
     const [inviteLink, setInviteLink] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [inviteLinkError, setInviteLinkError] = useState<string | null>(null);
+    const [sendInviteError, setSendInviteError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [joinRequestCount, setJoinRequestCount] = useState<number>(0);
     const [memberActions, setMemberActions] = useState<Record<string, ButtonState>>({});
@@ -130,6 +132,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
     }, [id]);
 
     const handleShowInviteLink = async () => {
+        setInviteLinkError(null); // Clear any previous errors
         try {
             // OData v2: Use GetInviteLink function on Club
             const response = await api.get(`/api/v2/Clubs('${id}')/GetInviteLink()`);
@@ -138,8 +141,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             setShowInviteLink(true);
         } catch (error) {
             console.error("Error fetching invite link:", error);
-            // Don't set global error - just log it
-            alert('Failed to generate invite link. Please try again.');
+            setInviteLinkError('Failed to generate invite link. Please try again.');
         }
     };
 
@@ -246,6 +248,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
     };
 
     const sendInvite = async (email: string) => {
+        setSendInviteError(null); // Clear any previous errors
         try {
             // OData v2: Use CreateInvite action on Club entity
             await api.post(`/api/v2/Clubs('${id}')/CreateInvite`, { email });
@@ -253,8 +256,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             // Keep the modal open but refresh the pending invites list
             // The pending invites list will automatically refresh due to useEffect
         } catch {
-            // Don't set global error - just show an alert
-            alert('Failed to send invite. Please try again.');
+            setSendInviteError('Failed to send invite. Please try again.');
         }
     };
 
@@ -441,6 +443,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                     onClose={() => setShowManageInvites(false)}
                     title="Manage Invites"
                 >
+                    <Modal.Error error={sendInviteError} />
                     <Modal.Body>
                         {/* Invite Member Section */}
                         <div style={{ marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #e0e0e0' }}>
@@ -483,6 +486,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                     onClose={() => setShowInviteLink(false)}
                     title="Club Invitation Link"
                 >
+                    <Modal.Error error={inviteLinkError} />
                     <Modal.Body>
                         <p>Share this link with people you want to invite to the club:</p>
                         <div className="invite-link-container" style={{ 
