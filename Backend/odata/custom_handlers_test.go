@@ -73,8 +73,8 @@ func TestCustomHandlers_UploadClubLogo(t *testing.T) {
 		// assert.Equal(t, http.StatusOK, w.Code)
 		// var response map[string]string
 		// json.NewDecoder(w.Body).Decode(&response)
-		// assert.NotEmpty(t, response["logo_url"])
-		// assert.Equal(t, "Logo uploaded successfully", response["message"])
+		// assert.NotEmpty(t, response["LogoURL"])
+		// assert.Equal(t, "Logo uploaded successfully", response["Message"])
 	})
 
 	t.Run("upload_logo_not_admin", func(t *testing.T) {
