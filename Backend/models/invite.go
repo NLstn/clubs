@@ -15,8 +15,8 @@ import (
 // Invite represents an admin invitation to a user to join a club
 type Invite struct {
 	ID        string    `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
-	ClubID    string    `json:"ClubID" gorm:"type:uuid" odata:"required"`
-	Email     string    `json:"Email" odata:"required"`
+	ClubID    string    `json:"ClubID" gorm:"type:uuid;uniqueIndex:idx_club_email" odata:"required"`
+	Email     string    `json:"Email" gorm:"uniqueIndex:idx_club_email" odata:"required"`
 	CreatedAt time.Time `json:"CreatedAt" odata:"immutable"`
 	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
 	UpdatedAt time.Time `json:"UpdatedAt"`
@@ -24,6 +24,32 @@ type Invite struct {
 
 // CreateInvite creates a new invitation from an admin to a user
 func (c *Club) CreateInvite(email, createdBy string) error {
+	// Check if invite already exists for this club and email
+	var existingInvite Invite
+	result := database.Db.Where("club_id = ? AND email = ?", c.ID, email).First(&existingInvite)
+	if result.Error == nil {
+		return fmt.Errorf("invite already exists for this email")
+	}
+
+	// Check if user with this email is already a member
+	var existingMember Member
+	result = database.Db.Joins("JOIN users ON users.id = members.user_id").
+		Where("members.club_id = ? AND users.email = ?", c.ID, email).
+		First(&existingMember)
+	if result.Error == nil {
+		return fmt.Errorf("user is already a member of this club")
+	}
+
+	// Check rate limit for admin (10 invites per hour)
+	if err := checkAdminInviteRateLimit(c.ID, createdBy); err != nil {
+		return err
+	}
+
+	// Check rate limit for club (50 invites per hour)
+	if err := checkClubInviteRateLimit(c.ID); err != nil {
+		return err
+	}
+
 	invite := &Invite{
 		ID:        uuid.New().String(),
 		ClubID:    c.ID,
@@ -37,6 +63,49 @@ func (c *Club) CreateInvite(email, createdBy string) error {
 
 	// Send invite notification to the user
 	SendInviteReceivedNotifications(email, c.ID, c.Name, invite.ID)
+
+	return nil
+}
+
+// checkAdminInviteRateLimit checks if an admin has exceeded the invite rate limit
+// Limit: 10 invites per hour per admin
+func checkAdminInviteRateLimit(clubID, adminID string) error {
+	oneHourAgo := time.Now().Add(-1 * time.Hour)
+
+	var count int64
+	err := database.Db.Model(&Invite{}).
+		Where("club_id = ? AND created_by = ? AND created_at > ?",
+			clubID, adminID, oneHourAgo).
+		Count(&count).Error
+
+	if err != nil {
+		return fmt.Errorf("failed to check admin rate limit: %w", err)
+	}
+
+	if count >= 10 {
+		return fmt.Errorf("rate limit exceeded: maximum 10 invites per hour per admin")
+	}
+
+	return nil
+}
+
+// checkClubInviteRateLimit checks if a club has exceeded the invite rate limit
+// Limit: 50 invites per hour per club
+func checkClubInviteRateLimit(clubID string) error {
+	oneHourAgo := time.Now().Add(-1 * time.Hour)
+
+	var count int64
+	err := database.Db.Model(&Invite{}).
+		Where("club_id = ? AND created_at > ?", clubID, oneHourAgo).
+		Count(&count).Error
+
+	if err != nil {
+		return fmt.Errorf("failed to check club rate limit: %w", err)
+	}
+
+	if count >= 50 {
+		return fmt.Errorf("rate limit exceeded: maximum 50 invites per hour per club")
+	}
 
 	return nil
 }
