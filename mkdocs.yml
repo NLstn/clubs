@@ -6,20 +6,20 @@ site_url: https://nlstn.github.io/clubs/
 theme:
   name: material
   palette:
-    # Palette toggle for light mode
-    - scheme: default
-      primary: indigo
-      accent: indigo
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    # Palette toggle for dark mode
+    # Palette toggle for dark mode (default)
     - scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: green
+      accent: blue
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+    # Palette toggle for light mode
+    - scheme: default
+      primary: green
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
   features:
     - navigation.instant
     - navigation.tracking
@@ -64,3 +64,6 @@ markdown_extensions:
       alternate_style: true
   - attr_list
   - md_in_html
+
+extra_css:
+  - stylesheets/custom.css
