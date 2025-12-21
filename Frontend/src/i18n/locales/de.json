@@ -101,7 +101,20 @@
       "settingsNotFound": "Einstellungen nicht gefunden",
       "failedToLoadSettings": "Vereinseinstellungen konnten nicht geladen werden",
       "failedToUpdateSettings": "Einstellungen konnten nicht aktualisiert werden",
-      "loadingNews": "Fehler beim Laden der Nachrichten: {{error}}"
+      "loadingNews": "Fehler beim Laden der Nachrichten: {{error}}",
+      "loadingClub": "Fehler beim Laden der Vereinsdetails",
+      "leaveClubFailed": "Verlassen des Vereins fehlgeschlagen",
+      "leaveClubLastOwner": "Sie können diesen Verein nicht verlassen, da Sie der einzige Besitzer sind. Bitte übertragen Sie das Eigentum an ein anderes Mitglied oder löschen Sie den Verein zuerst.",
+      "leaveClubGeneric": "Beim Verlassen des Vereins ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+    },
+    "leaveClub": {
+      "title": "Verein verlassen",
+      "button": "Verein verlassen",
+      "confirmTitle": "Verein verlassen",
+      "confirmMessage": "Möchten Sie wirklich \"{{clubName}}\" verlassen?",
+      "confirmWarning": "Sie haben keinen Zugriff mehr auf Vereinsinhalte und müssen erneut eine Beitrittsanfrage stellen, wenn Sie zurückkehren möchten.",
+      "leaving": "Verlassen...",
+      "success": "Sie haben den Verein erfolgreich verlassen"
     }
   },
   "teams": {

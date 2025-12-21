@@ -110,7 +110,19 @@
       "failedToLoadSettings": "Failed to load club settings",
       "failedToUpdateSettings": "Failed to update settings",
       "loadingNews": "Error loading news: {{error}}",
-      "loadingClub": "Error loading club details"
+      "loadingClub": "Error loading club details",
+      "leaveClubFailed": "Failed to leave club",
+      "leaveClubLastOwner": "You cannot leave this club because you are the only owner. Please transfer ownership to another member or delete the club first.",
+      "leaveClubGeneric": "An error occurred while trying to leave the club. Please try again."
+    },
+    "leaveClub": {
+      "title": "Leave Club",
+      "button": "Leave Club",
+      "confirmTitle": "Leave Club",
+      "confirmMessage": "Are you sure you want to leave \"{{clubName}}\"?",
+      "confirmWarning": "You will no longer have access to club content and will need to request to join again if you want to return.",
+      "leaving": "Leaving...",
+      "success": "You have left the club successfully"
     },
     "joined": "Joined",
     "birthDate": "Birth Date",
