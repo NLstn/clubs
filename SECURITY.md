@@ -72,6 +72,7 @@ All models implement OData authorization hooks:
 | **Team** | Club members | Club Admin/Owner | Club Admin/Owner or Team Admin | Club Admin/Owner |
 | **Event** | Club members | Admin/Owner | Admin/Owner | Admin/Owner |
 | **Fine** | Club members | Admin/Owner | Admin/Owner | Admin/Owner |
+| **FineTemplate** | Club members | Admin/Owner | Admin/Owner | Admin/Owner |
 | **News** | Club members | Admin/Owner | Admin/Owner | Admin/Owner |
 | **Shift** | Club members | Admin/Owner | Admin/Owner | Admin/Owner |
 | **EventRSVP** | Club members | Self only | Self only | Self or Admin/Owner |
@@ -81,7 +82,31 @@ All models implement OData authorization hooks:
 
 ## Security Fixes Applied
 
-### 1. CORS Wildcard Vulnerability (CRITICAL)
+### 1. FineTemplate Missing Authorization (CRITICAL)
+**Date Fixed**: December 21, 2024
+
+**Issue**: The `FineTemplate` model was exposed via OData API without any authorization hooks, allowing unauthorized access.
+
+**Impact**:
+- Any authenticated user could read fine templates from any club
+- Users could potentially create, update, or delete fine templates without proper authorization
+- Cross-club data leakage vulnerability
+- Potential for unauthorized modification of club financial data
+
+**Fix**: Added comprehensive OData authorization hooks:
+- `ODataBeforeReadCollection`: Filters templates to clubs user belongs to
+- `ODataBeforeReadEntity`: Validates access to individual templates
+- `ODataBeforeCreate`: Requires admin/owner role for creation
+- `ODataBeforeUpdate`: Requires admin/owner role, enforces ClubID immutability
+- `ODataBeforeDelete`: Requires admin/owner role for deletion
+
+**Testing**: Added comprehensive security test suite in `fine_template_security_test.go`:
+- IDOR (Insecure Direct Object Reference) vulnerability tests
+- Authorization level tests (owner/admin/member/outsider)
+- Club isolation tests
+- ClubID immutability tests
+
+### 2. CORS Wildcard Vulnerability (CRITICAL)
 **Date Fixed**: December 19, 2024
 
 **Issue**: The CORS middleware used `Access-Control-Allow-Origin: *` which allows any website to make requests to the API, creating a significant security vulnerability.
@@ -107,7 +132,7 @@ if origin == allowedOrigin {
 
 **Configuration Required**: Set `FRONTEND_URL` environment variable to your frontend domain (e.g., `https://app.example.com`)
 
-### 2. X-Forwarded-For Trust Issue (HIGH)
+### 3. X-Forwarded-For Trust Issue (HIGH)
 **Date Fixed**: December 19, 2024
 
 **Issue**: Rate limiting blindly trusted the `X-Forwarded-For` header, allowing attackers to bypass rate limits by spoofing IP addresses.
@@ -145,7 +170,7 @@ if ip == "" {
 
 **Deployment Note**: Ensure your reverse proxy (nginx, load balancer, etc.) sets `X-Real-IP` header.
 
-### 3. Team Authorization Enhancement (MEDIUM)
+### 4. Team Authorization Enhancement (MEDIUM)
 **Date Fixed**: December 19, 2024
 
 **Issue**: `Team.ODataBeforeUpdate` only checked for club admin/owner permissions, not team admin permissions.
@@ -156,7 +181,7 @@ if ip == "" {
 
 **Fix**: Updated to use existing `CanUserEditTeam()` method which properly checks both club admins/owners AND team admins.
 
-### 4. ClubSettings Audit Trail (MEDIUM)
+### 5. ClubSettings Audit Trail (MEDIUM)
 **Date Fixed**: December 19, 2024
 
 **Issue**: `ClubSettings.ODataBeforeUpdate` didn't set the `UpdatedBy` and `UpdatedAt` audit fields.
