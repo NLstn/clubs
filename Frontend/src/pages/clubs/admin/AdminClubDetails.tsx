@@ -20,11 +20,11 @@ import '@/components/ui/Tabs.css';
 import './AdminClubDetails.css';
 
 interface Club {
-    id: string;
-    name: string;
-    description: string;
-    logo_url?: string;
-    deleted?: boolean;
+    ID: string;
+    Name: string;
+    Description?: string;
+    LogoURL?: string;
+    Deleted?: boolean;
 }
 
 interface MemberStats {
@@ -194,7 +194,7 @@ const AdminClubDetails = () => {
 
     const handleEdit = () => {
         if (club) {
-            setEditForm({ name: club.name, description: club.description });
+            setEditForm({ name: club.Name, description: club.Description || '' });
             setIsEditing(true);
         }
     };
@@ -231,10 +231,10 @@ const AdminClubDetails = () => {
         if (!club) return;
 
         try {
-            await hardDeleteClub(club.id);
+            await hardDeleteClub(club.ID);
             
             // Remove the club from recent clubs since it no longer exists
-            removeRecentClub(club.id);
+            removeRecentClub(club.ID);
             
             // Show success message and navigate back to clubs list
             alert(t('clubs.hardDeleteSuccess'));
@@ -276,7 +276,7 @@ const AdminClubDetails = () => {
 
             // Update the club state with the new logo URL
             if (club) {
-                setClub({ ...club, logo_url: response.data.LogoURL });
+                setClub({ ...club, LogoURL: response.data.LogoURL });
             }
         } catch (err: unknown) {
             console.error('Error uploading logo:', err);
@@ -289,7 +289,7 @@ const AdminClubDetails = () => {
     };
 
     const handleLogoDelete = async () => {
-        if (!club?.logo_url) return;
+        if (!club?.LogoURL) return;
 
         setLogoUploading(true);
         setLogoError(null);
@@ -299,7 +299,7 @@ const AdminClubDetails = () => {
             await api.post(`/api/v2/Clubs('${id}')/DeleteLogo`, {});
             
             // Update the club state to remove logo URL
-            setClub({ ...club, logo_url: undefined });
+            setClub({ ...club, LogoURL: undefined });
         } catch (err: unknown) {
             console.error('Error deleting logo:', err);
             setLogoError('Failed to delete logo');
@@ -314,7 +314,7 @@ const AdminClubDetails = () => {
     if (!club) return <div>Club not found</div>;
 
     return (
-        <Layout title={`${club.name} - Admin`}>
+        <Layout title={`${club.Name} - Admin`}>
             <div>
                 <div className="tabs-container">
                     <nav className="tabs-nav">
@@ -397,7 +397,7 @@ const AdminClubDetails = () => {
                                     <PageHeader
                                         actions={
                                             <>
-                                                {!club.deleted && (
+                                                {!club.Deleted && (
                                                     <>
                                                         <Button variant="accept" onClick={handleEdit}>{t('clubs.editClub')}</Button>
                                                         {isOwner && (
@@ -410,7 +410,7 @@ const AdminClubDetails = () => {
                                                         )}
                                                     </>
                                                 )}
-                                                {club.deleted && isOwner && (
+                                                {club.Deleted && isOwner && (
                                                     <Button 
                                                         variant="cancel"
                                                         onClick={handleHardDeleteClub}
@@ -424,7 +424,7 @@ const AdminClubDetails = () => {
                                     >
                                         <div className="club-logo-section">
                                             {/* Single file input for both logo states */}
-                                            {!club.deleted && (
+                                            {!club.Deleted && (
                                                 <input
                                                     ref={fileInputRef}
                                                     type="file"
@@ -433,14 +433,14 @@ const AdminClubDetails = () => {
                                                     style={{ display: 'none' }}
                                                 />
                                             )}
-                                            {club.logo_url ? (
+                                            {club.LogoURL ? (
                                                 <div className="club-logo-container">
                                                     <img 
-                                                        src={club.logo_url} 
-                                                        alt={`${club.name} logo`}
+                                                        src={club.LogoURL} 
+                                                        alt={`${club.Name} logo`}
                                                         className="club-logo"
                                                     />
-                                                    {!club.deleted && (
+                                                    {!club.Deleted && (
                                                         <div className="logo-actions">
                                                             <Button
                                                                 size="sm"
@@ -465,16 +465,16 @@ const AdminClubDetails = () => {
                                                 <div className="club-logo-placeholder">
                                                     <div 
                                                         className="logo-placeholder"
-                                                        onClick={!club.deleted ? () => fileInputRef.current?.click() : undefined}
+                                                        onClick={!club.Deleted ? () => fileInputRef.current?.click() : undefined}
                                                     >
-                                                        {!club.deleted ? 'Click to upload logo' : 'No logo'}
+                                                        {!club.Deleted ? 'Click to upload logo' : 'No logo'}
                                                     </div>
                                                 </div>
                                             )}
                                         </div>
                                         <div className="club-details">
-                                            <h2>{club.name}</h2>
-                                            <p>{club.description}</p>
+                                            <h2>{club.Name}</h2>
+                                            <p>{club.Description}</p>
                                             {logoError && (
                                                 <div className="logo-error">
                                                     {logoError}
@@ -482,7 +482,7 @@ const AdminClubDetails = () => {
                                             )}
                                         </div>
                                     </PageHeader>
-                                    {club.deleted && (
+                                    {club.Deleted && (
                                         <div className="club-deleted-notice" style={{ 
                                             backgroundColor: '#f44336', 
                                             color: 'white', 
@@ -555,7 +555,7 @@ const AdminClubDetails = () => {
                 maxWidth="450px"
             >
                 <Modal.Body>
-                    <p>{t('clubs.deleteConfirmation', { clubName: club?.name })}</p>
+                    <p>{t('clubs.deleteConfirmation', { clubName: club?.Name })}</p>
                 </Modal.Body>
                 <Modal.Actions>
                     <Button 
@@ -581,7 +581,7 @@ const AdminClubDetails = () => {
                 maxWidth="450px"
             >
                 <Modal.Body>
-                    <p>{t('clubs.hardDeleteConfirmation', { clubName: club?.name })}</p>
+                    <p>{t('clubs.hardDeleteConfirmation', { clubName: club?.Name })}</p>
                 </Modal.Body>
                 <Modal.Actions>
                     <Button 
