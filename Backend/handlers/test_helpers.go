@@ -110,7 +110,8 @@ func SetupTestDB(t *testing.T) {
 			email TEXT NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			created_by TEXT NOT NULL,
-			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(club_id, email)
 		)
 	`)
 	testDB.Exec(`
