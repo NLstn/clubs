@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/NLstn/clubs/auth"
@@ -222,14 +223,22 @@ func (s *UserSession) ODataBeforeDelete(ctx context.Context, r *http.Request) er
 	return nil
 }
 
+var (
+	debugLoggingEnabled     bool
+	debugLoggingEnabledOnce sync.Once
+)
+
 func logUserSessionDeleteDebug(status string) {
 	if isDebugLoggingEnabled() {
-		log.Printf("level=debug event=user_session_before_delete status=%s", status)
+		log.Printf("event=user_session_before_delete status=%s", status)
 	}
 }
 
 func isDebugLoggingEnabled() bool {
-	return strings.EqualFold(os.Getenv("LOG_LEVEL"), "debug")
+	debugLoggingEnabledOnce.Do(func() {
+		debugLoggingEnabled = strings.EqualFold(os.Getenv("LOG_LEVEL"), "debug")
+	})
+	return debugLoggingEnabled
 }
 
 // HashToken returns a sha256 hash of the provided token encoded as hex.
