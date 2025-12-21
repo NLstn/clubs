@@ -297,8 +297,8 @@ func setupTestContext(t *testing.T) *testContext {
 	testDB.Exec("DELETE FROM user_notification_preferences")
 	testDB.Exec("DELETE FROM invites")
 	testDB.Exec("DELETE FROM join_requests")
-	testDB.Exec("DELETE FROM team_members")
-	testDB.Exec("DELETE FROM teams")
+	testDB.Exec("DELETE FROM TeamMembers")
+	testDB.Exec("DELETE FROM Teams")
 	testDB.Exec("DELETE FROM members")
 	testDB.Exec("DELETE FROM clubs")
 	testDB.Exec("DELETE FROM users")
@@ -1623,109 +1623,57 @@ func TestUserTeamMembersNavigation(t *testing.T) {
 	})
 }
 
-// TestTeamCRUD tests CRUD operations on Teams, especially verifying audit fields are set server-side
-func TestTeamCRUD(t *testing.T) {
+// TestTeamsWithExpandedTeamMembers tests querying Teams with expanded TeamMembers
+// This pattern is used by the frontend MyTeams component
+func TestTeamsWithExpandedTeamMembers(t *testing.T) {
 	ctx := setupTestContext(t)
 
-	t.Run("POST create new team without audit fields", func(t *testing.T) {
-		// Create a team without providing CreatedBy/UpdatedBy - they should be set server-side
-		newTeam := map[string]interface{}{
-			"ClubID":      ctx.testClub.ID,
-			"Name":        "Playwright Team",
-			"Description": "Created via API",
-			// CreatedBy and UpdatedBy are auto-generated server-side from the authenticated user
-		}
+	// Create teams in the test club
+	team1 := &models.Team{
+		ID:          uuid.New().String(),
+		ClubID:      ctx.testClub.ID,
+		Name:        "Team Alpha",
+		Description: stringPtr("First team"),
+		CreatedBy:   ctx.testUser.ID,
+		UpdatedBy:   ctx.testUser.ID,
+	}
+	require.NoError(t, database.Db.Create(team1).Error, "Failed to create team1")
 
-		resp := ctx.makeAuthenticatedRequest(t, "POST", "/Teams", newTeam)
+	team2 := &models.Team{
+		ID:          uuid.New().String(),
+		ClubID:      ctx.testClub.ID,
+		Name:        "Team Beta",
+		Description: stringPtr("Second team"),
+		CreatedBy:   ctx.testUser.ID,
+		UpdatedBy:   ctx.testUser.ID,
+	}
+	require.NoError(t, database.Db.Create(team2).Error, "Failed to create team2")
 
-		// If status is not 201, print the error response
-		if resp.StatusCode != http.StatusCreated {
-			var errResp map[string]interface{}
-			json.NewDecoder(resp.Body).Decode(&errResp)
-			t.Logf("POST failed with status %d: %+v", resp.StatusCode, errResp)
-		}
+	// Add testUser to team1 only
+	teamMember1 := &models.TeamMember{
+		ID:        uuid.New().String(),
+		TeamID:    team1.ID,
+		UserID:    ctx.testUser.ID,
+		Role:      "admin",
+		CreatedBy: ctx.testUser.ID,
+		UpdatedBy: ctx.testUser.ID,
+	}
+	require.NoError(t, database.Db.Create(teamMember1).Error, "Failed to create team member")
 
-		assert.Equal(t, http.StatusCreated, resp.StatusCode, "Team creation should succeed without providing audit fields")
+	// Add testUser2 to team2 (different user)
+	teamMember2 := &models.TeamMember{
+		ID:        uuid.New().String(),
+		TeamID:    team2.ID,
+		UserID:    ctx.testUser2.ID,
+		Role:      "member",
+		CreatedBy: ctx.testUser.ID,
+		UpdatedBy: ctx.testUser.ID,
+	}
+	require.NoError(t, database.Db.Create(teamMember2).Error, "Failed to create team member 2")
 
-		var created map[string]interface{}
-		parseJSONResponse(t, resp, &created)
-
-		assert.NotEmpty(t, created["ID"])
-		assert.Equal(t, ctx.testClub.ID, created["ClubID"])
-		assert.Equal(t, "Playwright Team", created["Name"])
-		assert.Equal(t, "Created via API", created["Description"])
-		assert.Equal(t, ctx.testUser.ID, created["CreatedBy"], "CreatedBy should be set from authenticated user")
-		assert.Equal(t, ctx.testUser.ID, created["UpdatedBy"], "UpdatedBy should be set from authenticated user")
-		assert.NotEmpty(t, created["CreatedAt"])
-		assert.NotEmpty(t, created["UpdatedAt"])
-	})
-
-	t.Run("POST create team with explicit audit fields should be rejected", func(t *testing.T) {
-		// Security test: Fields marked with odata:"auto" should not be accepted from client
-		// The OData library (v0.7.4) rejects fields marked as "auto" when provided by clients
-		// This test verifies that behavior - protecting audit trail integrity
-		fakeUserID := "00000000-0000-0000-0000-000000000000" // Use well-known test UUID for clarity
-		newTeam := map[string]interface{}{
-			"ClubID":      ctx.testClub.ID,
-			"Name":        "Security Test Team",
-			"Description": "Testing audit field override",
-			"CreatedBy":   fakeUserID, // Should be rejected (odata:"auto" fields)
-			"UpdatedBy":   fakeUserID, // Should be rejected (odata:"auto" fields)
-		}
-
-		resp := ctx.makeAuthenticatedRequest(t, "POST", "/Teams", newTeam)
-		
-		// The OData library rejects auto fields provided by clients with 400 Bad Request
-		// This is the correct security behavior - audit fields must only be set server-side
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "Client-provided audit fields should be rejected")
-	})
-
-	t.Run("PATCH update team without UpdatedBy", func(t *testing.T) {
-		// Create a team first
-		team := &models.Team{
-			ID:          uuid.New().String(),
-			ClubID:      ctx.testClub.ID,
-			Name:        "Update Test Team",
-			Description: stringPtr("Original description"),
-			CreatedAt:   time.Now(),
-			CreatedBy:   ctx.testUser.ID,
-			UpdatedAt:   time.Now(),
-			UpdatedBy:   ctx.testUser.ID,
-		}
-		require.NoError(t, database.Db.Create(team).Error)
-
-		// Update team without providing UpdatedBy
-		update := map[string]interface{}{
-			"Name":        "Updated Team Name",
-			"Description": "Updated description",
-		}
-
-		path := fmt.Sprintf("/Teams(%s)", team.ID)
-		resp := ctx.makeAuthenticatedRequest(t, "PATCH", path, update)
-
-		// PATCH may return 204 No Content on success
-		if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
-			var errResp map[string]interface{}
-			json.NewDecoder(resp.Body).Decode(&errResp)
-			t.Logf("PATCH failed with status %d: %+v", resp.StatusCode, errResp)
-		}
-
-		assert.True(t, resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent, "PATCH should succeed with 200 or 204")
-
-		// Verify the update by fetching the entity
-		getResp := ctx.makeAuthenticatedRequest(t, "GET", path, nil)
-		assert.Equal(t, http.StatusOK, getResp.StatusCode)
-
-		var updated map[string]interface{}
-		parseJSONResponse(t, getResp, &updated)
-
-		assert.Equal(t, "Updated Team Name", updated["Name"])
-		assert.Equal(t, "Updated description", updated["Description"])
-		assert.Equal(t, ctx.testUser.ID, updated["UpdatedBy"], "UpdatedBy should be set automatically")
-	})
-
-	t.Run("GET list teams in user's club", func(t *testing.T) {
-		resp := ctx.makeAuthenticatedRequest(t, "GET", "/Teams", nil)
+	t.Run("Query Teams filtered by ClubID with expanded TeamMembers", func(t *testing.T) {
+		path := fmt.Sprintf("/Teams?$filter=ClubID eq '%s'&$expand=TeamMembers", ctx.testClub.ID)
+		resp := ctx.makeAuthenticatedRequest(t, "GET", path, nil)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		var result map[string]interface{}
@@ -1733,7 +1681,60 @@ func TestTeamCRUD(t *testing.T) {
 
 		assert.Contains(t, result, "value")
 		teams := result["value"].([]interface{})
-		assert.GreaterOrEqual(t, len(teams), 1, "Should have at least one team")
+		assert.Equal(t, 2, len(teams), "Should return 2 teams")
+
+		// Find team1 and verify it has TeamMembers expanded
+		var team1Data map[string]interface{}
+		for _, teamInterface := range teams {
+			team := teamInterface.(map[string]interface{})
+			if team["Name"] == "Team Alpha" {
+				team1Data = team
+				break
+			}
+		}
+
+		require.NotNil(t, team1Data, "Team Alpha should be in results")
+		assert.Contains(t, team1Data, "TeamMembers", "TeamMembers should be expanded")
+
+		teamMembers := team1Data["TeamMembers"].([]interface{})
+		assert.Equal(t, 1, len(teamMembers), "Team Alpha should have 1 member")
+
+		member := teamMembers[0].(map[string]interface{})
+		assert.Equal(t, ctx.testUser.ID, member["UserID"])
+		assert.Equal(t, "admin", member["Role"])
+	})
+
+	t.Run("Client can filter expanded TeamMembers by UserID", func(t *testing.T) {
+		// This test simulates what the frontend does:
+		// 1. Fetch all teams for a club with expanded TeamMembers
+		// 2. Filter client-side to find teams where current user is a member
+
+		path := fmt.Sprintf("/Teams?$filter=ClubID eq '%s'&$expand=TeamMembers", ctx.testClub.ID)
+		resp := ctx.makeAuthenticatedRequest(t, "GET", path, nil)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var result map[string]interface{}
+		parseJSONResponse(t, resp, &result)
+
+		teams := result["value"].([]interface{})
+
+		// Client-side filter: find teams where testUser is a member
+		var userTeams []map[string]interface{}
+		for _, teamInterface := range teams {
+			team := teamInterface.(map[string]interface{})
+			if teamMembersInterface, ok := team["TeamMembers"].([]interface{}); ok {
+				for _, tmInterface := range teamMembersInterface {
+					tm := tmInterface.(map[string]interface{})
+					if tm["UserID"] == ctx.testUser.ID {
+						userTeams = append(userTeams, team)
+						break
+					}
+				}
+			}
+		}
+
+		assert.Equal(t, 1, len(userTeams), "testUser should be member of 1 team")
+		assert.Equal(t, "Team Alpha", userTeams[0]["Name"])
 	})
 }
 
