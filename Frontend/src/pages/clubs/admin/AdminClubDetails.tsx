@@ -276,7 +276,7 @@ const AdminClubDetails = () => {
 
             // Update the club state with the new logo URL
             if (club) {
-                setClub({ ...club, logo_url: response.data.logo_url });
+                setClub({ ...club, logo_url: response.data.LogoURL });
             }
         } catch (err: unknown) {
             console.error('Error uploading logo:', err);

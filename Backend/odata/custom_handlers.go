@@ -73,7 +73,7 @@ func parseClubCustomRoute(path string) (clubID, action string) {
 // For proper OData media entities, see: https://www.odata.org/getting-started/advanced-tutorial/#media
 //
 // Request: multipart/form-data with "logo" field containing image file
-// Response: 200 OK with JSON containing logo_url
+// Response: 200 OK with JSON containing LogoURL
 //
 // Authorization: User must be admin or owner of the club
 func (s *Service) handleUploadClubLogo(w http.ResponseWriter, r *http.Request, clubID string) {
@@ -175,8 +175,8 @@ func (s *Service) handleUploadClubLogo(w http.ResponseWriter, r *http.Request, c
 
 	response := map[string]string{
 		"@odata.context": "/api/v2/$metadata#Clubs/$entity",
-		"logo_url":       logoURL,
-		"message":        "Logo uploaded successfully",
+		"LogoURL":        logoURL,
+		"Message":        "Logo uploaded successfully",
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
