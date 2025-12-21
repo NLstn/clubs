@@ -94,7 +94,7 @@ func setupTestContext(t *testing.T) *testContext {
 		updated_by TEXT
 	)`)
 
-	testDB.Exec(`CREATE TABLE IF NOT EXISTS teams (
+	testDB.Exec(`CREATE TABLE IF NOT EXISTS Teams (
 		id TEXT PRIMARY KEY,
 		club_id TEXT NOT NULL,
 		name TEXT,
@@ -108,7 +108,7 @@ func setupTestContext(t *testing.T) *testContext {
 		deleted_by TEXT
 	)`)
 
-	testDB.Exec(`CREATE TABLE IF NOT EXISTS team_members (
+	testDB.Exec(`CREATE TABLE IF NOT EXISTS TeamMembers (
 		id TEXT PRIMARY KEY,
 		team_id TEXT NOT NULL,
 		user_id TEXT NOT NULL,
@@ -1457,6 +1457,37 @@ func TestClubSettingsAccess(t *testing.T) {
 	})
 }
 
+// TestCreateTeamSetsAuditFieldsFromContext verifies audit fields are server managed on team creation
+func TestCreateTeamSetsAuditFieldsFromContext(t *testing.T) {
+	ctx := setupTestContext(t)
+
+	newTeam := map[string]interface{}{
+		"ClubID":      ctx.testClub.ID,
+		"Name":        "Audit Team",
+		"Description": "Created without audit fields",
+	}
+
+	resp := ctx.makeAuthenticatedRequest(t, "POST", "/Teams", newTeam)
+
+	if resp.StatusCode != http.StatusCreated {
+		var errResp map[string]interface{}
+		_ = json.NewDecoder(resp.Body).Decode(&errResp)
+		t.Fatalf("expected status %d, got %d with response %+v", http.StatusCreated, resp.StatusCode, errResp)
+	}
+
+	var created map[string]interface{}
+	parseJSONResponse(t, resp, &created)
+
+	assert.NotEmpty(t, created["ID"])
+	assert.Equal(t, ctx.testClub.ID, created["ClubID"])
+	assert.Equal(t, "Audit Team", created["Name"])
+	assert.Equal(t, "Created without audit fields", created["Description"])
+	assert.Equal(t, ctx.testUser.ID, created["CreatedBy"])
+	assert.Equal(t, ctx.testUser.ID, created["UpdatedBy"])
+	assert.NotEmpty(t, created["CreatedAt"])
+	assert.NotEmpty(t, created["UpdatedAt"])
+}
+
 // TestUserTeamMembersNavigation tests the User->TeamMembers navigation pattern
 func TestUserTeamMembersNavigation(t *testing.T) {
 	ctx := setupTestContext(t)
@@ -1735,6 +1766,26 @@ func TestTeamsWithExpandedTeamMembers(t *testing.T) {
 
 		assert.Equal(t, 1, len(userTeams), "testUser should be member of 1 team")
 		assert.Equal(t, "Team Alpha", userTeams[0]["Name"])
+	})
+
+	t.Run("Server can filter TeamMembers via lambda any", func(t *testing.T) {
+		path := fmt.Sprintf("/Teams?$filter=ClubID eq '%s' and TeamMembers/any(tm: tm/UserID eq '%s')&$expand=TeamMembers", ctx.testClub.ID, ctx.testUser.ID)
+		resp := ctx.makeAuthenticatedRequest(t, "GET", path, nil)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var result map[string]interface{}
+		parseJSONResponse(t, resp, &result)
+
+		teams := result["value"].([]interface{})
+		assert.Equal(t, 1, len(teams), "Only teams with matching member should be returned")
+
+		team := teams[0].(map[string]interface{})
+		assert.Equal(t, "Team Alpha", team["Name"])
+
+		members := team["TeamMembers"].([]interface{})
+		assert.Equal(t, 1, len(members))
+		member := members[0].(map[string]interface{})
+		assert.Equal(t, ctx.testUser.ID, member["UserID"])
 	})
 }
 

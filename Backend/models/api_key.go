@@ -28,11 +28,6 @@ type APIKey struct {
 	UpdatedAt     time.Time  `json:"UpdatedAt"`
 }
 
-// TableName specifies the table name for the APIKey model
-func (APIKey) TableName() string {
-	return "api_keys"
-}
-
 // BeforeCreate hook to ensure user ID is set
 func (a *APIKey) BeforeCreate(tx *gorm.DB) error {
 	if a.UserID == "" {
