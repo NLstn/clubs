@@ -89,13 +89,6 @@ func (c *Club) GetTeams() ([]Team, error) {
 	return teams, err
 }
 
-// GetTeamByID returns a team by ID
-func GetTeamByID(teamID string) (Team, error) {
-	var team Team
-	err := database.Db.Where("id = ?", teamID).First(&team).Error
-	return team, err
-}
-
 // Update updates team information
 func (t *Team) Update(name, description, updatedBy string) error {
 	return database.Db.Model(t).Updates(map[string]interface{}{
@@ -302,21 +295,6 @@ func (t *Team) GetUserRole(user User) (string, error) {
 		return "", err
 	}
 	return teamMember.Role, nil
-}
-
-// GetUserTeams returns all teams a user belongs to within a specific club
-func GetUserTeams(userID, clubID string) ([]Team, error) {
-	var teams []Team
-
-	query := `
-		SELECT DISTINCT t.* 
-		FROM teams t
-		JOIN team_members tm ON t.id = tm.team_id
-		WHERE tm.user_id = ? AND t.club_id = ? AND t.deleted = false
-	`
-
-	err := database.Db.Raw(query, userID, clubID).Find(&teams).Error
-	return teams, err
 }
 
 // CanUserCreateTeam checks if a user can create teams in a club

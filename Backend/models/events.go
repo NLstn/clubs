@@ -233,38 +233,6 @@ func (u *User) CreateOrUpdateRSVP(eventID string, response string) error {
 	}
 }
 
-// GetEventRSVPs returns all RSVPs for an event
-func GetEventRSVPs(eventID string) ([]EventRSVP, error) {
-	var rsvps []EventRSVP
-	err := database.Db.Where("event_id = ?", eventID).Preload("User").Find(&rsvps).Error
-	return rsvps, err
-}
-
-// GetEventRSVPCounts returns RSVP counts for an event
-func GetEventRSVPCounts(eventID string) (map[string]int, error) {
-	var results []struct {
-		Response string
-		Count    int
-	}
-
-	err := database.Db.Table("event_rsvps").
-		Select("response, COUNT(*) as count").
-		Where("event_id = ?", eventID).
-		Group("response").
-		Scan(&results).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	counts := make(map[string]int)
-	for _, result := range results {
-		counts[result.Response] = result.Count
-	}
-
-	return counts, nil
-}
-
 // GetUserRSVP returns a user's RSVP for an event
 func (u *User) GetUserRSVP(eventID string) (*EventRSVP, error) {
 	var rsvp EventRSVP
@@ -294,29 +262,6 @@ func (u *User) GetUserRSVPsByEventIDs(eventIDs []string) (map[string]*EventRSVP,
 	}
 
 	return rsvpMap, nil
-}
-
-// EventWithClub represents an event with its associated club name
-type EventWithClub struct {
-	Event
-	ClubName string `json:"ClubName"`
-}
-
-// SearchEventsForUser searches for events in clubs where the user is a member
-func SearchEventsForUser(userID, query string) ([]EventWithClub, error) {
-	var events []EventWithClub
-
-	// Query events from clubs where user is a member and event name contains the query
-	err := database.Db.Table("events e").
-		Select("e.*, c.name as club_name").
-		Joins("JOIN clubs c ON e.club_id = c.id").
-		Joins("JOIN members m ON m.club_id = c.id").
-		Where("m.user_id = ? AND LOWER(e.name) LIKE LOWER(?)", userID, "%"+query+"%").
-		Where("c.deleted = false"). // Only from non-deleted clubs
-		Order("e.start_time DESC").
-		Scan(&events).Error
-
-	return events, err
 }
 
 // CreateEvent creates a new event for the team

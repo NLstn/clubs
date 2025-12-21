@@ -49,51 +49,6 @@ func (c *Club) GetFineTemplates() ([]FineTemplate, error) {
 	return templates, nil
 }
 
-func GetFineTemplateByID(templateID string) (FineTemplate, error) {
-	var template FineTemplate
-	err := database.Db.Where("id = ?", templateID).First(&template).Error
-	if err != nil {
-		return FineTemplate{}, err
-	}
-	return template, nil
-}
-
-func (c *Club) UpdateFineTemplate(templateID, description string, amount float64, updatedBy string) (FineTemplate, error) {
-	template, err := GetFineTemplateByID(templateID)
-	if err != nil {
-		return FineTemplate{}, err
-	}
-
-	if template.ClubID != c.ID {
-		return FineTemplate{}, fmt.Errorf("template does not belong to this club")
-	}
-
-	template.Description = description
-	template.Amount = amount
-	template.UpdatedBy = updatedBy
-
-	err = database.Db.Save(&template).Error
-	if err != nil {
-		return FineTemplate{}, err
-	}
-
-	return template, nil
-}
-
-func (c *Club) DeleteFineTemplate(templateID, deletedBy string) error {
-	template, err := GetFineTemplateByID(templateID)
-	if err != nil {
-		return err
-	}
-
-	if template.ClubID != c.ID {
-		return fmt.Errorf("template does not belong to this club")
-	}
-
-	err = database.Db.Delete(&template).Error
-	return err
-}
-
 // ODataBeforeReadCollection filters fine templates to only those in clubs the user belongs to
 func (ft FineTemplate) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
