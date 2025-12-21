@@ -45,10 +45,12 @@ type contextKey string
 
 const UserIDKey contextKey = "userID"
 
-func GenerateToken() string {
+func GenerateToken() (string, error) {
 	b := make([]byte, 32)
-	rand.Read(b)
-	return base64.URLEncoding.EncodeToString(b)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("failed to generate token: %w", err)
+	}
+	return base64.URLEncoding.EncodeToString(b), nil
 }
 
 func SendMagicLinkEmail(email, link string) error {
@@ -65,7 +67,10 @@ func generateJWT(userID string, expiration time.Duration) (string, error) {
 		return "", fmt.Errorf("cannot generate JWT with empty userID")
 	}
 
-	tokenID := GenerateToken()
+	tokenID, err := GenerateToken()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate token ID: %w", err)
+	}
 
 	claims := jwt.MapClaims{
 		"user_id": userID,
