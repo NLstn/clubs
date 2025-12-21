@@ -914,18 +914,19 @@ func (s *Service) createAPIKeyAction(w http.ResponseWriter, r *http.Request, ctx
 	}
 
 	// Generate API key
-	plainKey, keyHash, keyPrefix, err := auth.GenerateAPIKey("sk_live")
+	plainKey, keyHash, keyPrefix, keyHashSHA256, err := auth.GenerateAPIKey("sk_live")
 	if err != nil {
 		return fmt.Errorf("failed to generate API key: %w", err)
 	}
 
 	// Create API key model with explicit ID (for database compatibility)
 	apiKey := &models.APIKey{
-		ID:        uuid.New().String(),
-		UserID:    userID,
-		Name:      name,
-		KeyHash:   keyHash,
-		KeyPrefix: keyPrefix,
+		ID:            uuid.New().String(),
+		UserID:        userID,
+		Name:          name,
+		KeyHash:       keyHash,
+		KeyHashSHA256: &keyHashSHA256,
+		KeyPrefix:     keyPrefix,
 	}
 
 	// Handle optional expiresAt parameter

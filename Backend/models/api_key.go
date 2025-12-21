@@ -14,17 +14,18 @@ import (
 
 // APIKey represents a long-lived API key for programmatic access
 type APIKey struct {
-	ID          string     `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
-	UserID      string     `json:"UserID" gorm:"type:uuid;not null" odata:"required"`
-	User        User       `json:"User,omitempty" gorm:"foreignKey:UserID" odata:"navigationProperty"`
-	Name        string     `json:"Name" gorm:"not null" odata:"required"`
-	KeyHash     string     `json:"-" gorm:"uniqueIndex;not null"` // Never exposed via API
-	KeyPrefix   string     `json:"KeyPrefix" gorm:"not null" odata:"immutable"`
-	Permissions string     `json:"-" gorm:"type:text"` // Stored as JSON string
-	LastUsedAt  *time.Time `json:"LastUsedAt,omitempty" gorm:"type:timestamp" odata:"nullable"`
-	ExpiresAt   *time.Time `json:"ExpiresAt,omitempty" gorm:"type:timestamp" odata:"nullable"`
-	CreatedAt   time.Time  `json:"CreatedAt" odata:"immutable"`
-	UpdatedAt   time.Time  `json:"UpdatedAt"`
+	ID            string     `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
+	UserID        string     `json:"UserID" gorm:"type:uuid;not null" odata:"required"`
+	User          User       `json:"User,omitempty" gorm:"foreignKey:UserID" odata:"navigationProperty"`
+	Name          string     `json:"Name" gorm:"not null" odata:"required"`
+	KeyHash       string     `json:"-" gorm:"uniqueIndex;not null"`      // Never exposed via API
+	KeyHashSHA256 *string    `json:"-" gorm:"uniqueIndex;type:char(64)"` // Indexed lookup hash for API key
+	KeyPrefix     string     `json:"KeyPrefix" gorm:"not null" odata:"immutable"`
+	Permissions   string     `json:"-" gorm:"type:text"` // Stored as JSON string
+	LastUsedAt    *time.Time `json:"LastUsedAt,omitempty" gorm:"type:timestamp" odata:"nullable"`
+	ExpiresAt     *time.Time `json:"ExpiresAt,omitempty" gorm:"type:timestamp" odata:"nullable"`
+	CreatedAt     time.Time  `json:"CreatedAt" odata:"immutable"`
+	UpdatedAt     time.Time  `json:"UpdatedAt"`
 }
 
 // TableName specifies the table name for the APIKey model

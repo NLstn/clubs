@@ -69,6 +69,7 @@ func setupComprehensiveSecurityTestDB(t *testing.T) {
 			user_id TEXT NOT NULL,
 			name TEXT NOT NULL,
 			key_hash TEXT NOT NULL UNIQUE,
+			key_hash_sha256 TEXT UNIQUE,
 			key_prefix TEXT NOT NULL,
 			permissions TEXT,
 			last_used_at DATETIME,
@@ -106,29 +107,29 @@ func TestIDORVulnerabilityInNews(t *testing.T) {
 	// Create test users
 	user1ID := uuid.New().String()
 	user2ID := uuid.New().String()
-	
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		user1ID, "User", "One", "user1@test.com")
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		user2ID, "User", "Two", "user2@test.com")
 
 	// Create two clubs
 	club1ID := uuid.New().String()
 	club2ID := uuid.New().String()
-	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)",
 		club1ID, "Club 1", user1ID, user1ID)
-	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)",
 		club2ID, "Club 2", user2ID, user2ID)
 
 	// Add users to their respective clubs
-	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		uuid.New().String(), club1ID, user1ID, "owner", user1ID, user1ID)
-	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		uuid.New().String(), club2ID, user2ID, "owner", user2ID, user2ID)
 
 	// Create news in Club 1
 	newsID := uuid.New().String()
-	database.Db.Exec("INSERT INTO news (id, club_id, title, content, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO news (id, club_id, title, content, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		newsID, club1ID, "News 1", "Content 1", user1ID, user1ID)
 
 	// Test 1: User2 tries to read news from Club 1 (should fail)
@@ -194,20 +195,20 @@ func TestAPIKeyAuthorizationIsolation(t *testing.T) {
 	// Create two users
 	user1ID := uuid.New().String()
 	user2ID := uuid.New().String()
-	
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		user1ID, "User", "One", "user1@test.com")
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		user2ID, "User", "Two", "user2@test.com")
 
 	// Create API key for user1
 	apiKey1ID := uuid.New().String()
-	database.Db.Exec("INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, is_active) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, is_active) VALUES (?, ?, ?, ?, ?, ?)",
 		apiKey1ID, user1ID, "Test Key 1", "hash1", "sk_test", true)
 
 	// Create API key for user2
 	apiKey2ID := uuid.New().String()
-	database.Db.Exec("INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, is_active) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, is_active) VALUES (?, ?, ?, ?, ?, ?)",
 		apiKey2ID, user2ID, "Test Key 2", "hash2", "sk_prod", true)
 
 	// Test: User1 tries to update User2's API key (should fail)
@@ -249,15 +250,15 @@ func TestPrivacySettingsIsolation(t *testing.T) {
 	// Create two users
 	user1ID := uuid.New().String()
 	user2ID := uuid.New().String()
-	
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		user1ID, "User", "One", "user1@test.com")
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		user2ID, "User", "Two", "user2@test.com")
 
 	// Create privacy settings for user1
 	privacy1ID := uuid.New().String()
-	database.Db.Exec("INSERT INTO user_privacy_settings (id, user_id, share_birth_date) VALUES (?, ?, ?)", 
+	database.Db.Exec("INSERT INTO user_privacy_settings (id, user_id, share_birth_date) VALUES (?, ?, ?)",
 		privacy1ID, user1ID, false)
 
 	// Test 1: User2 tries to read User1's privacy settings (should fail)
@@ -323,28 +324,28 @@ func TestMemberPrivacySettingsIsolation(t *testing.T) {
 	// Create two users
 	user1ID := uuid.New().String()
 	user2ID := uuid.New().String()
-	
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		user1ID, "User", "One", "user1@test.com")
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		user2ID, "User", "Two", "user2@test.com")
 
 	// Create a club
 	clubID := uuid.New().String()
-	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)",
 		clubID, "Test Club", user1ID, user1ID)
 
 	// Add both users as members
 	member1ID := uuid.New().String()
 	member2ID := uuid.New().String()
-	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		member1ID, clubID, user1ID, "owner", user1ID, user1ID)
-	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		member2ID, clubID, user2ID, "member", user1ID, user1ID)
 
 	// Create member privacy settings for member1
 	privacy1ID := uuid.New().String()
-	database.Db.Exec("INSERT INTO member_privacy_settings (id, member_id, share_birth_date) VALUES (?, ?, ?)", 
+	database.Db.Exec("INSERT INTO member_privacy_settings (id, member_id, share_birth_date) VALUES (?, ?, ?)",
 		privacy1ID, member1ID, false)
 
 	// Test: User2 tries to update User1's member privacy settings (should fail)
@@ -386,23 +387,23 @@ func TestMemberCannotPromoteThemselves(t *testing.T) {
 	// Create users
 	ownerID := uuid.New().String()
 	memberID := uuid.New().String()
-	
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		ownerID, "Owner", "User", "owner@test.com")
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		memberID, "Member", "User", "member@test.com")
 
 	// Create club
 	clubID := uuid.New().String()
-	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)",
 		clubID, "Test Club", ownerID, ownerID)
 
 	// Add members
 	ownerMemberID := uuid.New().String()
 	regularMemberID := uuid.New().String()
-	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		ownerMemberID, clubID, ownerID, "owner", ownerID, ownerID)
-	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		regularMemberID, clubID, memberID, "member", ownerID, ownerID)
 
 	// Test: Regular member tries to promote themselves to admin (should fail)
@@ -431,35 +432,35 @@ func TestClubIsolationInMemberQueries(t *testing.T) {
 	user1ID := uuid.New().String()
 	user2ID := uuid.New().String()
 	user3ID := uuid.New().String()
-	
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		user1ID, "User", "One", "user1@test.com")
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		user2ID, "User", "Two", "user2@test.com")
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		user3ID, "User", "Three", "user3@test.com")
 
 	// Create two clubs
 	club1ID := uuid.New().String()
 	club2ID := uuid.New().String()
-	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)",
 		club1ID, "Club 1", user1ID, user1ID)
-	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)",
 		club2ID, "Club 2", user2ID, user2ID)
 
 	// user1 is member of club1
 	member1ID := uuid.New().String()
-	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		member1ID, club1ID, user1ID, "owner", user1ID, user1ID)
 
 	// user2 is member of club2
 	member2ID := uuid.New().String()
-	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		member2ID, club2ID, user2ID, "owner", user2ID, user2ID)
 
 	// user3 is member of club2
 	member3ID := uuid.New().String()
-	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		member3ID, club2ID, user3ID, "member", user2ID, user2ID)
 
 	// Test: user1 tries to read member list (should only see club1 members)
@@ -505,27 +506,27 @@ func TestNewsCreationClubAuthorization(t *testing.T) {
 	adminID := uuid.New().String()
 	memberID := uuid.New().String()
 	outsiderID := uuid.New().String()
-	
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		ownerID, "Owner", "User", "owner@test.com")
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		adminID, "Admin", "User", "admin@test.com")
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		memberID, "Member", "User", "member@test.com")
-	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO users (id, first_name, last_name, email) VALUES (?, ?, ?, ?)",
 		outsiderID, "Outsider", "User", "outsider@test.com")
 
 	// Create club
 	clubID := uuid.New().String()
-	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)",
 		clubID, "Test Club", ownerID, ownerID)
 
 	// Add members with different roles
-	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		uuid.New().String(), clubID, ownerID, "owner", ownerID, ownerID)
-	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		uuid.New().String(), clubID, adminID, "admin", ownerID, ownerID)
-	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)", 
+	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		uuid.New().String(), clubID, memberID, "member", ownerID, ownerID)
 	// outsiderID is NOT added to the club
 

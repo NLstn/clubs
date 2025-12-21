@@ -37,6 +37,7 @@ func setupAPIKeyTestDB(t *testing.T) {
 			user_id TEXT NOT NULL,
 			name TEXT NOT NULL,
 			key_hash TEXT NOT NULL UNIQUE,
+			key_hash_sha256 TEXT UNIQUE,
 			key_prefix TEXT NOT NULL,
 			permissions TEXT,
 			last_used_at DATETIME,
@@ -59,11 +60,11 @@ func TestAPIKeyReadAuthorization(t *testing.T) {
 	// Create test users
 	user1ID := uuid.New().String()
 	user2ID := uuid.New().String()
-	
+
 	err := database.Db.Exec("INSERT INTO users (id, first_name, last_name, email, created_at, updated_at) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
 		user1ID, "Test", "User1", "user1@test.com").Error
 	require.NoError(t, err)
-	
+
 	err = database.Db.Exec("INSERT INTO users (id, first_name, last_name, email, created_at, updated_at) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
 		user2ID, "Test", "User2", "user2@test.com").Error
 	require.NoError(t, err)
@@ -71,11 +72,11 @@ func TestAPIKeyReadAuthorization(t *testing.T) {
 	// Create API keys for both users
 	apiKey1ID := uuid.New().String()
 	apiKey2ID := uuid.New().String()
-	
+
 	err = database.Db.Exec("INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",
 		apiKey1ID, user1ID, "User1 Key", "hash1", "sk_test").Error
 	require.NoError(t, err)
-	
+
 	err = database.Db.Exec("INSERT INTO api_keys (id, user_id, name, key_hash, key_prefix, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 1, datetime('now'), datetime('now'))",
 		apiKey2ID, user2ID, "User2 Key", "hash2", "sk_test").Error
 	require.NoError(t, err)
@@ -175,7 +176,7 @@ func TestAPIKeyReadAuthorization(t *testing.T) {
 			query = scope(query)
 		}
 		err = query.First(&key).Error
-		
+
 		// Should fail with record not found
 		assert.Error(t, err)
 		assert.Equal(t, gorm.ErrRecordNotFound, err)
@@ -212,11 +213,11 @@ func TestAPIKeyCreateAuthorization(t *testing.T) {
 	// Create test users
 	user1ID := uuid.New().String()
 	user2ID := uuid.New().String()
-	
+
 	err := database.Db.Exec("INSERT INTO users (id, first_name, last_name, email, created_at, updated_at) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
 		user1ID, "Test", "User1", "user1@test.com").Error
 	require.NoError(t, err)
-	
+
 	err = database.Db.Exec("INSERT INTO users (id, first_name, last_name, email, created_at, updated_at) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
 		user2ID, "Test", "User2", "user2@test.com").Error
 	require.NoError(t, err)
@@ -300,11 +301,11 @@ func TestAPIKeyUpdateAuthorization(t *testing.T) {
 	// Create test users
 	user1ID := uuid.New().String()
 	user2ID := uuid.New().String()
-	
+
 	err := database.Db.Exec("INSERT INTO users (id, first_name, last_name, email, created_at, updated_at) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
 		user1ID, "Test", "User1", "user1@test.com").Error
 	require.NoError(t, err)
-	
+
 	err = database.Db.Exec("INSERT INTO users (id, first_name, last_name, email, created_at, updated_at) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
 		user2ID, "Test", "User2", "user2@test.com").Error
 	require.NoError(t, err)
@@ -361,11 +362,11 @@ func TestAPIKeyDeleteAuthorization(t *testing.T) {
 	// Create test users
 	user1ID := uuid.New().String()
 	user2ID := uuid.New().String()
-	
+
 	err := database.Db.Exec("INSERT INTO users (id, first_name, last_name, email, created_at, updated_at) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
 		user1ID, "Test", "User1", "user1@test.com").Error
 	require.NoError(t, err)
-	
+
 	err = database.Db.Exec("INSERT INTO users (id, first_name, last_name, email, created_at, updated_at) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
 		user2ID, "Test", "User2", "user2@test.com").Error
 	require.NoError(t, err)

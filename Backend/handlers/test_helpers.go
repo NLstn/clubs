@@ -355,6 +355,7 @@ func SetupTestDB(t *testing.T) {
 			id TEXT PRIMARY KEY,
 			name TEXT NOT NULL,
 			key_hash TEXT NOT NULL UNIQUE,
+			key_hash_sha256 TEXT UNIQUE,
 			club_id TEXT NOT NULL,
 			created_by TEXT NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

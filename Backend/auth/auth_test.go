@@ -93,12 +93,13 @@ func TestAuth(t *testing.T) {
 
 func TestGenerateAPIKey(t *testing.T) {
 	t.Run("Valid key generation with sk_live prefix", func(t *testing.T) {
-		plainKey, keyHash, keyPrefix, err := GenerateAPIKey("sk_live")
+		plainKey, keyHash, keyPrefix, keyHashSHA256, err := GenerateAPIKey("sk_live")
 
 		assert.NoError(t, err)
 		assert.NotEmpty(t, plainKey)
 		assert.NotEmpty(t, keyHash)
 		assert.NotEmpty(t, keyPrefix)
+		assert.NotEmpty(t, keyHashSHA256)
 
 		// Verify key format
 		assert.Contains(t, plainKey, "sk_live_")
@@ -113,23 +114,25 @@ func TestGenerateAPIKey(t *testing.T) {
 	})
 
 	t.Run("Valid key generation with sk_test prefix", func(t *testing.T) {
-		plainKey, keyHash, keyPrefix, err := GenerateAPIKey("sk_test")
+		plainKey, keyHash, keyPrefix, keyHashSHA256, err := GenerateAPIKey("sk_test")
 
 		assert.NoError(t, err)
 		assert.Contains(t, plainKey, "sk_test_")
 		assert.NotEmpty(t, keyHash)
 		assert.NotEmpty(t, keyPrefix)
+		assert.NotEmpty(t, keyHashSHA256)
 	})
 
 	t.Run("Keys should be unique", func(t *testing.T) {
-		key1, hash1, _, err := GenerateAPIKey("sk_live")
+		key1, hash1, _, sha1, err := GenerateAPIKey("sk_live")
 		assert.NoError(t, err)
 
-		key2, hash2, _, err := GenerateAPIKey("sk_live")
+		key2, hash2, _, sha2, err := GenerateAPIKey("sk_live")
 		assert.NoError(t, err)
 
 		// Keys should be different
 		assert.NotEqual(t, key1, key2)
 		assert.NotEqual(t, hash1, hash2)
+		assert.NotEqual(t, sha1, sha2)
 	})
 }
