@@ -1,0 +1,41 @@
+/* Custom styling to match Clubs app design system */
+
+:root {
+  /* Override Material theme colors to match app design */
+  /* Primary Green - #4CAF50 */
+  --md-primary-fg-color: #4CAF50;
+  --md-primary-fg-color--light: #5cb860;
+  --md-primary-fg-color--dark: #45a049;
+  
+  /* Secondary/Accent Blue - #646cff */
+  --md-accent-fg-color: #646cff;
+  --md-accent-fg-color--transparent: rgba(100, 108, 255, 0.1);
+}
+
+/* Dark mode (slate scheme) specific colors */
+[data-md-color-scheme="slate"] {
+  /* Primary Green adjustments for dark theme */
+  --md-primary-fg-color: #4CAF50;
+  --md-primary-fg-color--light: #5cb860;
+  --md-primary-fg-color--dark: #45a049;
+  
+  /* Secondary/Accent Blue for dark theme */
+  --md-accent-fg-color: #646cff;
+  --md-accent-fg-color--transparent: rgba(100, 108, 255, 0.1);
+  
+  /* Background colors to better match app */
+  --md-default-bg-color: #242424;
+  --md-default-fg-color: rgba(255, 255, 255, 0.87);
+}
+
+/* Light mode (default scheme) specific colors */
+[data-md-color-scheme="default"] {
+  /* Primary Green for light theme */
+  --md-primary-fg-color: #4CAF50;
+  --md-primary-fg-color--light: #5cb860;
+  --md-primary-fg-color--dark: #45a049;
+  
+  /* Secondary/Accent Blue for light theme */
+  --md-accent-fg-color: #646cff;
+  --md-accent-fg-color--transparent: rgba(100, 108, 255, 0.1);
+}
