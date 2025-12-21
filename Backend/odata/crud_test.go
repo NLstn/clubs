@@ -1664,7 +1664,7 @@ func TestTeamCRUD(t *testing.T) {
 		// Security test: Fields marked with odata:"auto" should not be accepted from client
 		// The OData library (v0.7.4) rejects fields marked as "auto" when provided by clients
 		// This test verifies that behavior - protecting audit trail integrity
-		fakeUserID := uuid.New().String()
+		fakeUserID := "00000000-0000-0000-0000-000000000000" // Use well-known test UUID for clarity
 		newTeam := map[string]interface{}{
 			"ClubID":      ctx.testClub.ID,
 			"Name":        "Security Test Team",
@@ -1710,7 +1710,7 @@ func TestTeamCRUD(t *testing.T) {
 			t.Logf("PATCH failed with status %d: %+v", resp.StatusCode, errResp)
 		}
 
-		assert.True(t, resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent)
+		assert.True(t, resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusNoContent, "PATCH should succeed with 200 or 204")
 
 		// Verify the update by fetching the entity
 		getResp := ctx.makeAuthenticatedRequest(t, "GET", path, nil)
