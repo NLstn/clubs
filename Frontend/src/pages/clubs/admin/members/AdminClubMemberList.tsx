@@ -138,7 +138,8 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             setShowInviteLink(true);
         } catch (error) {
             console.error("Error fetching invite link:", error);
-            setError("Failed to generate invite link");
+            // Don't set global error - just log it
+            alert('Failed to generate invite link. Please try again.');
         }
     };
 
@@ -200,7 +201,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             }, 1000);
             timeoutRefs.current.push(timeoutId);
         } catch {
-            setError('Failed to update member role');
+            // Show error on the button itself, don't replace the whole table
             setMemberActions(prev => ({ ...prev, [actionKey]: 'error' }));
             const timeoutId = window.setTimeout(() => {
                 setMemberActions(prev => {
@@ -231,7 +232,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             }, 1000);
             timeoutRefs.current.push(timeoutId);
         } catch {
-            setError('Failed to delete member');
+            // Show error on the button itself, don't replace the whole table
             setMemberActions(prev => ({ ...prev, [`delete-${memberId}`]: 'error' }));
             const timeoutId = window.setTimeout(() => {
                 setMemberActions(prev => {
@@ -252,21 +253,21 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             // Keep the modal open but refresh the pending invites list
             // The pending invites list will automatically refresh due to useEffect
         } catch {
-            setError('Failed to send invite');
+            // Don't set global error - just show an alert
+            alert('Failed to send invite. Please try again.');
         }
     };
 
     // Permission logic based on backend rules (with desired admin permissions)
-    const canChangeRole = (currentUserRole: string | null, targetMemberRole: string, newRole: string, targetMember: Member): boolean => {
+    const canChangeRole = (currentUserRole: string | null, targetMemberRole: string, newRole: string): boolean => {
         if (!currentUserRole) return false;
         
-        // Check if current user is trying to demote themselves as the last owner
-        if (currentUser && targetMember.userId === currentUser.ID && 
-            targetMemberRole === 'owner' && newRole !== 'owner' && ownerCount <= 1) {
-            return false; // Prevent last owner from demoting themselves
+        // Check if trying to demote the last owner (prevents demoting ANY owner when they're the last one)
+        if (targetMemberRole === 'owner' && newRole !== 'owner' && ownerCount <= 1) {
+            return false; // Prevent last owner from being demoted
         }
         
-        // Owners can change any role to any role
+        // Owners can change any role to any role (except demoting last owner, checked above)
         if (currentUserRole === 'owner') {
             return true;
         }
@@ -346,7 +347,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                             Remove
                         </Button>
                     )}
-                    {member.role === 'member' && canChangeRole(currentUserRole, member.role, 'admin', member) && (
+                    {member.role === 'member' && canChangeRole(currentUserRole, member.role, 'admin') && (
                         <Button
                             size="sm"
                             variant="secondary"
@@ -360,7 +361,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                     )}
                     {member.role === 'admin' && (
                         <>
-                            {canChangeRole(currentUserRole, member.role, 'member', member) && (
+                            {canChangeRole(currentUserRole, member.role, 'member') && (
                                 <Button
                                     size="sm"
                                     variant="secondary"
@@ -372,7 +373,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                                     Demote
                                 </Button>
                             )}
-                            {canChangeRole(currentUserRole, member.role, 'owner', member) && (
+                            {canChangeRole(currentUserRole, member.role, 'owner') && (
                                 <Button
                                     size="sm"
                                     variant="secondary"
@@ -386,7 +387,7 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
                             )}
                         </>
                     )}
-                    {member.role === 'owner' && canChangeRole(currentUserRole, member.role, 'admin', member) && (
+                    {member.role === 'owner' && canChangeRole(currentUserRole, member.role, 'admin') && (
                         <Button
                             size="sm"
                             variant="secondary"
@@ -402,8 +403,6 @@ const AdminClubMemberList = ({ openJoinRequests = false }: AdminClubMemberListPr
             )
         }
     ];
-
-    if (error) return <div className="error">{error}</div>;
 
     return (
         <div>
