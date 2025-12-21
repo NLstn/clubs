@@ -1,11 +1,15 @@
 package models
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/NLstn/clubs/auth"
 	"github.com/NLstn/clubs/database"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type FineTemplate struct {
@@ -88,4 +92,114 @@ func (c *Club) DeleteFineTemplate(templateID, deletedBy string) error {
 
 	err = database.Db.Delete(&template).Error
 	return err
+}
+
+// ODataBeforeReadCollection filters fine templates to only those in clubs the user belongs to
+func (ft FineTemplate) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see fine templates of clubs they belong to
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeReadEntity validates access to a specific fine template
+func (ft FineTemplate) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return nil, fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// User can only see fine templates of clubs they belong to
+	scope := func(db *gorm.DB) *gorm.DB {
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+	}
+
+	return []func(*gorm.DB) *gorm.DB{scope}, nil
+}
+
+// ODataBeforeCreate validates fine template creation permissions
+func (ft *FineTemplate) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if user is an admin/owner of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", ft.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can create fine templates")
+	}
+
+	// Set CreatedBy and UpdatedBy
+	now := time.Now()
+	ft.CreatedAt = now
+	ft.UpdatedAt = now
+	ft.CreatedBy = userID
+	ft.UpdatedBy = userID
+
+	return nil
+}
+
+// ODataBeforeUpdate validates fine template update permissions
+func (ft *FineTemplate) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Load the existing template to enforce immutable fields
+	var existingTemplate FineTemplate
+	if err := database.Db.First(&existingTemplate, "id = ?", ft.ID).Error; err != nil {
+		return fmt.Errorf("fine template not found")
+	}
+
+	// SECURITY: Prevent changing the club of an existing template (ClubID is immutable)
+	if ft.ClubID != existingTemplate.ClubID {
+		return fmt.Errorf("forbidden: club cannot be changed for an existing fine template")
+	}
+
+	// Check if user is an admin/owner of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", ft.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can update fine templates")
+	}
+
+	// Set UpdatedBy and UpdatedAt
+	ft.UpdatedAt = time.Now()
+	ft.UpdatedBy = userID
+
+	// Preserve immutable fields
+	ft.CreatedAt = existingTemplate.CreatedAt
+	ft.CreatedBy = existingTemplate.CreatedBy
+
+	return nil
+}
+
+// ODataBeforeDelete validates fine template deletion permissions
+func (ft *FineTemplate) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
+	userID, ok := ctx.Value(auth.UserIDKey).(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Load the existing template to check club membership
+	var existingTemplate FineTemplate
+	if err := database.Db.First(&existingTemplate, "id = ?", ft.ID).Error; err != nil {
+		return fmt.Errorf("fine template not found")
+	}
+
+	// Check if user is an admin/owner of the club
+	var existingMember Member
+	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", existingTemplate.ClubID, userID).First(&existingMember).Error; err != nil {
+		return fmt.Errorf("unauthorized: only admins and owners can delete fine templates")
+	}
+
+	return nil
 }
