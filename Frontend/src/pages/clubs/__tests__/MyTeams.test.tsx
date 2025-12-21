@@ -75,30 +75,27 @@ describe('MyTeams Component', () => {
         Name: 'Development Team',
         Description: 'Team for developers',
         CreatedAt: '2024-01-01T00:00:00Z',
-        ClubID: 'test-club-id'
+        ClubID: 'test-club-id',
+        TeamMembers: [
+          { ID: 'tm-1', TeamID: 'team-1', UserID: 'test-user-id', Role: 'admin' }
+        ]
       },
       {
         ID: 'team-2',
         Name: 'Marketing Team',
         Description: 'Team for marketing',
         CreatedAt: '2024-01-01T00:00:00Z',
-        ClubID: 'test-club-id'
+        ClubID: 'test-club-id',
+        TeamMembers: [
+          { ID: 'tm-2', TeamID: 'team-2', UserID: 'test-user-id', Role: 'member' }
+        ]
       }
     ];
 
-    // Mock single query with $expand=Team
+    // Mock query with Teams filtered by ClubID and expanded TeamMembers
     mockGet.mockResolvedValueOnce({ 
       data: { 
-        value: [
-          { 
-            TeamID: 'team-1',
-            Team: mockTeams[0]
-          },
-          { 
-            TeamID: 'team-2',
-            Team: mockTeams[1]
-          }
-        ] 
+        value: mockTeams
       } 
     });
 
@@ -114,12 +111,28 @@ describe('MyTeams Component', () => {
     expect(screen.getByText('Marketing Team')).toBeInTheDocument();
     expect(screen.getByText('Team for marketing')).toBeInTheDocument();
 
-    expect(mockGet).toHaveBeenCalledWith("/api/v2/Users('test-user-id')/TeamMembers?$filter=Team/ClubID eq 'test-club-id'&$expand=Team");
+    expect(mockGet).toHaveBeenCalledWith("/api/v2/Teams?$filter=ClubID eq 'test-club-id'&$expand=TeamMembers");
   });
 
   it('does not render anything when user has no teams', async () => {
-    // Mock empty TeamMembers response
-    mockGet.mockResolvedValueOnce({ data: { value: [] } });
+    // Mock empty Teams response (user is not a member of any teams)
+    mockGet.mockResolvedValueOnce({ 
+      data: { 
+        value: [
+          // Team exists but user is not a member
+          {
+            ID: 'team-1',
+            Name: 'Other Team',
+            Description: 'Team for others',
+            CreatedAt: '2024-01-01T00:00:00Z',
+            ClubID: 'test-club-id',
+            TeamMembers: [
+              { ID: 'tm-1', TeamID: 'team-1', UserID: 'other-user-id', Role: 'admin' }
+            ]
+          }
+        ]
+      } 
+    });
 
     const { container } = renderWithRouter(<MyTeams />);
 
