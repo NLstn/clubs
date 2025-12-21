@@ -15,10 +15,10 @@ import (
 type ClubSettings struct {
 	ID                       string    `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
 	ClubID                   string    `json:"ClubID" gorm:"type:uuid;not null;unique" odata:"required"`
-	FinesEnabled             bool      `json:"FinesEnabled" gorm:"default:true"`
-	ShiftsEnabled            bool      `json:"ShiftsEnabled" gorm:"default:true"`
-	TeamsEnabled             bool      `json:"TeamsEnabled" gorm:"default:true"`
-	MembersListVisible       bool      `json:"MembersListVisible" gorm:"default:true"`
+	FinesEnabled             bool      `json:"FinesEnabled" gorm:"default:false"`
+	ShiftsEnabled            bool      `json:"ShiftsEnabled" gorm:"default:false"`
+	TeamsEnabled             bool      `json:"TeamsEnabled" gorm:"default:false"`
+	MembersListVisible       bool      `json:"MembersListVisible" gorm:"default:false"`
 	DiscoverableByNonMembers bool      `json:"DiscoverableByNonMembers" gorm:"default:false"`
 	CreatedAt                time.Time `json:"CreatedAt" odata:"immutable"`
 	CreatedBy                string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
@@ -49,10 +49,10 @@ func CreateDefaultClubSettings(clubID string) (ClubSettings, error) {
 	settings := ClubSettings{
 		ID:                       uuid.New().String(),
 		ClubID:                   clubID,
-		FinesEnabled:             true,
-		ShiftsEnabled:            true,
-		TeamsEnabled:             true,
-		MembersListVisible:       true,
+		FinesEnabled:             false,
+		ShiftsEnabled:            false,
+		TeamsEnabled:             false,
+		MembersListVisible:       false,
 		DiscoverableByNonMembers: false,
 		CreatedBy:                clubID, // Using clubID as default since we don't have user context here
 		UpdatedBy:                clubID,

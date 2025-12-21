@@ -208,10 +208,11 @@ func SetupTestDB(t *testing.T) {
 		CREATE TABLE IF NOT EXISTS club_settings (
 			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL UNIQUE,
-			fines_enabled BOOLEAN DEFAULT TRUE,
-			shifts_enabled BOOLEAN DEFAULT TRUE,
-			teams_enabled BOOLEAN DEFAULT TRUE,
-			members_list_visible BOOLEAN DEFAULT TRUE,
+			fines_enabled BOOLEAN DEFAULT FALSE,
+			shifts_enabled BOOLEAN DEFAULT FALSE,
+			teams_enabled BOOLEAN DEFAULT FALSE,
+			members_list_visible BOOLEAN DEFAULT FALSE,
+			discoverable_by_non_members BOOLEAN DEFAULT FALSE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			created_by TEXT,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -460,6 +461,23 @@ func CreateTestClub(t *testing.T, user models.User, clubName string) models.Club
 	}
 	if err := testDB.Create(&member).Error; err != nil {
 		t.Fatalf("Failed to add owner as member: %v", err)
+	}
+
+	// Create default club settings with all features disabled
+	settingsID := uuid.New().String()
+	settings := models.ClubSettings{
+		ID:                       settingsID,
+		ClubID:                   club.ID,
+		FinesEnabled:             false,
+		ShiftsEnabled:            false,
+		TeamsEnabled:             false,
+		MembersListVisible:       false,
+		DiscoverableByNonMembers: false,
+		CreatedBy:                user.ID,
+		UpdatedBy:                user.ID,
+	}
+	if err := testDB.Create(&settings).Error; err != nil {
+		t.Fatalf("Failed to create club settings: %v", err)
 	}
 
 	return club
