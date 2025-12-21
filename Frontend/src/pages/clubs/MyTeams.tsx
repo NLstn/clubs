@@ -11,6 +11,7 @@ interface Team {
     Description: string;
     CreatedAt: string;
     ClubID: string;
+    TeamMembers?: TeamMemberResponse[];
 }
 
 interface TeamMemberResponse {
@@ -18,7 +19,6 @@ interface TeamMemberResponse {
     TeamID: string;
     UserID: string;
     Role: string;
-    Team?: Team;
 }
 
 const MyTeams = () => {
@@ -38,19 +38,22 @@ const MyTeams = () => {
             }
 
             try {
-                // OData v2: Use navigation pattern User → TeamMembers → Team
-                const encodedUserId = encodeURIComponent(currentUser.ID);
+                // OData v2: Query Teams for this club with expanded TeamMembers
+                // Then filter client-side for teams where the user is a member
                 const encodedClubId = encodeURIComponent(clubId);
                 
-                const response = await api.get<ODataCollectionResponse<TeamMemberResponse>>(
-                    `/api/v2/Users('${encodedUserId}')/TeamMembers?$filter=Team/ClubID eq '${encodedClubId}'&$expand=Team`
+                const response = await api.get<ODataCollectionResponse<Team>>(
+                    `/api/v2/Teams?$filter=ClubID eq '${encodedClubId}'&$expand=TeamMembers`
                 );
-                const teamMembersData = parseODataCollection(response.data);
+                const allTeams = parseODataCollection(response.data);
                 
-                // Extract teams from the expanded navigation property, filtering out null/undefined Teams
-                const userTeams = teamMembersData
-                    .map((tm: TeamMemberResponse) => tm.Team)
-                    .filter((team): team is Team => team !== null && team !== undefined);
+                // Filter to only teams where the current user is a member
+                const userTeams = allTeams.filter((team: Team) => {
+                    if (!team.TeamMembers || team.TeamMembers.length === 0) {
+                        return false;
+                    }
+                    return team.TeamMembers.some((tm: TeamMemberResponse) => tm.UserID === currentUser.ID);
+                });
                 
                 setTeams(userTeams);
                 setError(null);
