@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/NLstn/clubs/auth"
@@ -15,7 +16,10 @@ type MagicLink struct {
 }
 
 func CreateMagicLink(email string) (string, error) {
-	token := auth.GenerateToken()
+	token, err := auth.GenerateToken()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate magic link token: %w", err)
+	}
 	expiresAt := time.Now().Add(15 * time.Minute)
 
 	tx := database.Db.Exec(`INSERT INTO magic_links (email, token, expires_at) VALUES (?, ?, ?)`,

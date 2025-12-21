@@ -63,7 +63,7 @@ func handleRequestMagicLink(w http.ResponseWriter, r *http.Request) {
 	token, err := models.CreateMagicLink(req.Email)
 	if err != nil {
 		log.Printf("Failed to create magic link for email %s: %v", req.Email, err)
-		http.Error(w, "DB error", http.StatusInternalServerError)
+		http.Error(w, "Failed to create magic link", http.StatusInternalServerError)
 		return
 	}
 

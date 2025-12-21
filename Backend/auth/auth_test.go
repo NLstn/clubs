@@ -15,7 +15,8 @@ func TestAuth(t *testing.T) {
 		t.Fatalf("failed to init auth: %v", err)
 	}
 	t.Run("GenerateToken", func(t *testing.T) {
-		token := GenerateToken()
+		token, err := GenerateToken()
+		assert.NoError(t, err)
 		assert.NotEmpty(t, token)
 		assert.Greater(t, len(token), 40) // Base64 encoded 32 bytes should be longer than 40 chars
 	})
