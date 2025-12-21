@@ -192,6 +192,10 @@ func ValidateRefreshToken(tokenStr string) (string, error) {
 	return userID, nil
 }
 
+// hashAPIKey creates a SHA-256 hash for indexed lookup (not for security).
+// This hash is used for fast database queries with an index, while bcrypt
+// remains the security-focused verification mechanism.
+// Returns a hex-encoded 64-character string (SHA-256 produces 32 bytes, hex encoding doubles to 64 chars).
 func hashAPIKey(keyStr string) string {
 	sum := sha256.Sum256([]byte(keyStr))
 	return hex.EncodeToString(sum[:])
@@ -259,21 +263,29 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 
 		var permissions []string
 		if key.Permissions != "" {
-			_ = json.Unmarshal([]byte(key.Permissions), &permissions)
+			if err := json.Unmarshal([]byte(key.Permissions), &permissions); err != nil {
+				log.Printf("failed to unmarshal API key permissions (api_key_id=%s, user_id=%s): %v", key.ID, key.UserID, err)
+			}
 		}
 
+		keyID := key.ID
+		keyHash := keyHashSHA256
 		db := database.Db
 		go func() {
 			now := time.Now()
-			if key.ID != "" {
-				db.Table("api_keys").
-					Where("id = ?", key.ID).
-					Update("last_used_at", now)
+			if keyID != "" {
+				if err := db.Table("api_keys").
+					Where("id = ?", keyID).
+					Update("last_used_at", now).Error; err != nil {
+					log.Printf("failed to update last_used_at for api key id %s: %v", keyID, err)
+				}
 				return
 			}
-			db.Table("api_keys").
-				Where("key_hash_sha256 = ?", keyHashSHA256).
-				Update("last_used_at", now)
+			if err := db.Table("api_keys").
+				Where("key_hash_sha256 = ?", keyHash).
+				Update("last_used_at", now).Error; err != nil {
+				log.Printf("failed to update last_used_at for api key hash %s: %v", keyHash, err)
+			}
 		}()
 
 		return key.UserID, permissions, nil
@@ -305,7 +317,7 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 
 	err = database.Db.Table("api_keys").
 		Select("id, user_id, key_hash, key_prefix, expires_at, permissions").
-		Where("key_hash_sha256 IS NULL OR key_hash_sha256 = ''").
+		Where("key_hash_sha256 IS NULL").
 		Find(&keys).Error
 	if err != nil {
 		return "", nil, fmt.Errorf("database query failed: %w", err)
@@ -368,13 +380,16 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 	// Parse permissions from JSON
 	var permissions []string
 	if result.Permissions != "" {
-		// Ignore unmarshal errors, just return empty array
-		_ = json.Unmarshal([]byte(result.Permissions), &permissions)
+		if err := json.Unmarshal([]byte(result.Permissions), &permissions); err != nil {
+			log.Printf("failed to unmarshal API key permissions (user_id=%s): %v", result.UserID, err)
+		}
 	}
 
 	// Update last used timestamp asynchronously
 	// For SQLite tests where ID might be empty, we need to use a different identifier
-	// Capture database reference to avoid race conditions in tests
+	// Capture specific values before spawning goroutine to avoid pointer issues
+	resultID := result.ID
+	resultKeyHash := result.KeyHash
 	db := database.Db
 	go func() {
 		now := time.Now()
@@ -383,15 +398,19 @@ func ValidateAPIKey(keyStr string) (string, []string, error) {
 			"key_hash_sha256": keyHashSHA256,
 		}
 		// Update by user_id and key_hash since ID might be empty in SQLite
-		if result.ID != "" {
-			db.Table("api_keys").
-				Where("id = ?", result.ID).
-				Updates(updates)
+		if resultID != "" {
+			if err := db.Table("api_keys").
+				Where("id = ?", resultID).
+				Updates(updates).Error; err != nil {
+				log.Printf("failed to update last_used_at for api key id %s: %v", resultID, err)
+			}
 			return
 		}
-		db.Table("api_keys").
-			Where("key_hash = ?", result.KeyHash).
-			Updates(updates)
+		if err := db.Table("api_keys").
+			Where("key_hash = ?", resultKeyHash).
+			Updates(updates).Error; err != nil {
+			log.Printf("failed to update last_used_at for api key hash %s: %v", resultKeyHash, err)
+		}
 	}()
 
 	return result.UserID, permissions, nil
