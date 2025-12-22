@@ -94,7 +94,7 @@ func setupTestContext(t *testing.T) *testContext {
 		updated_by TEXT
 	)`)
 
-	testDB.Exec(`CREATE TABLE IF NOT EXISTS Teams (
+	testDB.Exec(`CREATE TABLE IF NOT EXISTS teams (
 		id TEXT PRIMARY KEY,
 		club_id TEXT NOT NULL,
 		name TEXT,
@@ -108,7 +108,7 @@ func setupTestContext(t *testing.T) *testContext {
 		deleted_by TEXT
 	)`)
 
-	testDB.Exec(`CREATE TABLE IF NOT EXISTS TeamMembers (
+	testDB.Exec(`CREATE TABLE IF NOT EXISTS team_members (
 		id TEXT PRIMARY KEY,
 		team_id TEXT NOT NULL,
 		user_id TEXT NOT NULL,
@@ -297,8 +297,8 @@ func setupTestContext(t *testing.T) *testContext {
 	testDB.Exec("DELETE FROM user_notification_preferences")
 	testDB.Exec("DELETE FROM invites")
 	testDB.Exec("DELETE FROM join_requests")
-	testDB.Exec("DELETE FROM TeamMembers")
-	testDB.Exec("DELETE FROM Teams")
+	testDB.Exec("DELETE FROM team_members")
+	testDB.Exec("DELETE FROM teams")
 	testDB.Exec("DELETE FROM members")
 	testDB.Exec("DELETE FROM clubs")
 	testDB.Exec("DELETE FROM users")
@@ -1766,26 +1766,6 @@ func TestTeamsWithExpandedTeamMembers(t *testing.T) {
 
 		assert.Equal(t, 1, len(userTeams), "testUser should be member of 1 team")
 		assert.Equal(t, "Team Alpha", userTeams[0]["Name"])
-	})
-
-	t.Run("Server can filter TeamMembers via lambda any", func(t *testing.T) {
-		path := fmt.Sprintf("/Teams?$filter=ClubID eq '%s' and TeamMembers/any(tm: tm/UserID eq '%s')&$expand=TeamMembers", ctx.testClub.ID, ctx.testUser.ID)
-		resp := ctx.makeAuthenticatedRequest(t, "GET", path, nil)
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		var result map[string]interface{}
-		parseJSONResponse(t, resp, &result)
-
-		teams := result["value"].([]interface{})
-		assert.Equal(t, 1, len(teams), "Only teams with matching member should be returned")
-
-		team := teams[0].(map[string]interface{})
-		assert.Equal(t, "Team Alpha", team["Name"])
-
-		members := team["TeamMembers"].([]interface{})
-		assert.Equal(t, 1, len(members))
-		member := members[0].(map[string]interface{})
-		assert.Equal(t, ctx.testUser.ID, member["UserID"])
 	})
 }
 

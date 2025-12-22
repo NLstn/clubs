@@ -17,6 +17,12 @@ type OAuthState struct {
 	CreatedAt    time.Time `json:"CreatedAt" gorm:"autoCreateTime"`
 }
 
+// TableName specifies the table name for the OAuthState model
+// GORM would convert OAuthState to o_auth_states, but we want oauth_states
+func (OAuthState) TableName() string {
+	return "oauth_states"
+}
+
 // BeforeCreate hook for OAuthState
 func (o *OAuthState) BeforeCreate(tx *gorm.DB) error {
 	if o.ID == "" {

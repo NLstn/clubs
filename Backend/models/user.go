@@ -54,6 +54,11 @@ type UserSession struct {
 	IsCurrent bool      `json:"IsCurrent" gorm:"-" odata:"-"` // Computed field
 }
 
+// TableName specifies that UserSession uses the refresh_tokens table
+func (UserSession) TableName() string {
+	return "refresh_tokens"
+}
+
 // ODataBeforeReadCollection filters sessions to only show current user's active sessions
 // This implements the ReadHook interface from go-odata
 func (UserSession) ODataBeforeReadCollection(ctx context.Context, r *http.Request, opts interface{}) ([]func(*gorm.DB) *gorm.DB, error) {
