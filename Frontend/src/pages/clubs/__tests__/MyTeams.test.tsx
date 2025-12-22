@@ -119,6 +119,7 @@ describe('MyTeams Component', () => {
     mockGet.mockResolvedValueOnce({ 
       data: { 
         value: [
+          // Team exists but user is not a member
           {
             ID: 'team-1',
             Name: 'Other Team',

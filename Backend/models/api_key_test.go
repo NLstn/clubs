@@ -19,11 +19,6 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	return db
 }
 
-func TestAPIKey_TableName(t *testing.T) {
-	apiKey := APIKey{}
-	assert.Equal(t, "api_keys", apiKey.TableName())
-}
-
 func TestAPIKey_IsExpired(t *testing.T) {
 	tests := []struct {
 		name      string

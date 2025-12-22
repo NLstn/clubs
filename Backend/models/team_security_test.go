@@ -56,7 +56,7 @@ func setupTeamSecurityTestDB(t *testing.T) {
 			FOREIGN KEY (club_id) REFERENCES clubs(id),
 			FOREIGN KEY (user_id) REFERENCES users(id)
 		);
-		CREATE TABLE IF NOT EXISTS Teams (
+		CREATE TABLE IF NOT EXISTS teams (
 			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
 			name TEXT NOT NULL,
@@ -67,7 +67,7 @@ func setupTeamSecurityTestDB(t *testing.T) {
 			updated_by TEXT,
 			FOREIGN KEY (club_id) REFERENCES clubs(id)
 		);
-		CREATE TABLE IF NOT EXISTS TeamMembers (
+		CREATE TABLE IF NOT EXISTS team_members (
 			id TEXT PRIMARY KEY,
 			team_id TEXT NOT NULL,
 			user_id TEXT NOT NULL,
