@@ -7,6 +7,7 @@ interface ClubSettings {
     FinesEnabled: boolean;
     ShiftsEnabled: boolean;
     TeamsEnabled: boolean;
+    EventsEnabled: boolean;
     NewsEnabled: boolean;
     MembersListVisible: boolean;
     CreatedAt: string;
@@ -47,14 +48,15 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
                 setError(null);
             } catch (err: unknown) {
                 console.error('Error fetching club settings:', err);
-                // If settings don't exist, assume defaults (both features enabled)
+                // If settings don't exist, assume defaults
                 setSettings({
                 ID: '',
                 ClubID: clubId,
                 FinesEnabled: true,
                 ShiftsEnabled: true,
                 TeamsEnabled: true,
-                NewsEnabled: true,
+                EventsEnabled: false,
+                NewsEnabled: false,
                 MembersListVisible: true,
                 CreatedAt: '',
                 CreatedBy: '',
@@ -86,14 +88,15 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
             setError(null);
         } catch (err: unknown) {
             console.error('Error fetching club settings:', err);
-            // If settings don't exist, assume defaults (all features enabled)
+            // If settings don't exist, assume defaults
             setSettings({
                 ID: '',
                 ClubID: clubId,
                 FinesEnabled: true,
                 ShiftsEnabled: true,
                 TeamsEnabled: true,
-                NewsEnabled: true,
+                EventsEnabled: false,
+                NewsEnabled: false,
                 MembersListVisible: true,
                 CreatedAt: '',
                 CreatedBy: '',

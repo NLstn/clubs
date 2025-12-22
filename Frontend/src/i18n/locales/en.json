@@ -77,6 +77,8 @@
     "teamsDescription": "Allow club admins to create and manage teams with their members.",
     "newsFeature": "News",
     "newsDescription": "Enable news and announcements for your club.",
+    "eventsFeature": "Events",
+    "eventsDescription": "Enable event scheduling and management for your club.",
     "membersList": "Member List",
     "membersListDescription": "Allow regular members to view the club member list",
     "discoverable": "Discoverable by Non-Members",

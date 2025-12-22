@@ -76,6 +76,8 @@
     "teamsDescription": "Erlauben Sie Vereinsadministratoren, Teams mit ihren Mitgliedern zu erstellen und zu verwalten.",
     "newsFeature": "Nachrichten",
     "newsDescription": "Aktivieren Sie Nachrichten und Ankündigungen für Ihren Verein.",
+    "eventsFeature": "Veranstaltungen",
+    "eventsDescription": "Aktivieren Sie die Veranstaltungsplanung und -verwaltung für Ihren Verein.",
     "membersList": "Mitgliederliste",
     "membersListDescription": "Erlauben Sie regulären Mitgliedern, die Vereinsmitgliederliste einzusehen",
     "discoverable": "Für Nicht-Mitglieder auffindbar",
