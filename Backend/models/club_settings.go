@@ -18,6 +18,7 @@ type ClubSettings struct {
 	FinesEnabled             bool      `json:"FinesEnabled" gorm:"default:false"`
 	ShiftsEnabled            bool      `json:"ShiftsEnabled" gorm:"default:false"`
 	TeamsEnabled             bool      `json:"TeamsEnabled" gorm:"default:false"`
+	NewsEnabled              bool      `json:"NewsEnabled" gorm:"default:true"`
 	MembersListVisible       bool      `json:"MembersListVisible" gorm:"default:false"`
 	DiscoverableByNonMembers bool      `json:"DiscoverableByNonMembers" gorm:"default:false"`
 	CreatedAt                time.Time `json:"CreatedAt" odata:"immutable"`
@@ -55,6 +56,7 @@ func createClubSettingsWithTransaction(tx *gorm.DB, clubID, userID string, now t
 		FinesEnabled:             false,
 		ShiftsEnabled:            false,
 		TeamsEnabled:             false,
+		NewsEnabled:              true,
 		MembersListVisible:       false,
 		DiscoverableByNonMembers: false,
 		CreatedAt:                now,
@@ -73,6 +75,7 @@ func CreateDefaultClubSettings(clubID, userID string) (ClubSettings, error) {
 		FinesEnabled:             false,
 		ShiftsEnabled:            false,
 		TeamsEnabled:             false,
+		NewsEnabled:              true,
 		MembersListVisible:       false,
 		DiscoverableByNonMembers: false,
 		CreatedAt:                now,
@@ -84,11 +87,12 @@ func CreateDefaultClubSettings(clubID, userID string) (ClubSettings, error) {
 	return settings, err
 }
 
-func (s *ClubSettings) Update(finesEnabled, shiftsEnabled, teamsEnabled, membersListVisible, discoverableByNonMembers bool, updatedBy string) error {
+func (s *ClubSettings) Update(finesEnabled, shiftsEnabled, teamsEnabled, newsEnabled, membersListVisible, discoverableByNonMembers bool, updatedBy string) error {
 	return database.Db.Model(s).Updates(map[string]interface{}{
 		"fines_enabled":               finesEnabled,
 		"shifts_enabled":              shiftsEnabled,
 		"teams_enabled":               teamsEnabled,
+		"news_enabled":                newsEnabled,
 		"members_list_visible":        membersListVisible,
 		"discoverable_by_non_members": discoverableByNonMembers,
 		"updated_by":                  updatedBy,

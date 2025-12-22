@@ -212,6 +212,7 @@ func SetupTestDB(t *testing.T) {
 			fines_enabled BOOLEAN DEFAULT FALSE,
 			shifts_enabled BOOLEAN DEFAULT FALSE,
 			teams_enabled BOOLEAN DEFAULT FALSE,
+			news_enabled BOOLEAN DEFAULT TRUE,
 			members_list_visible BOOLEAN DEFAULT FALSE,
 			discoverable_by_non_members BOOLEAN DEFAULT FALSE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

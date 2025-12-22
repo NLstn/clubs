@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../../../utils/api';
 import { useT } from '../../../../hooks/useTranslation';
-import { ToggleSwitch } from '@/components/ui';
+import { ToggleSwitch, SettingsSection, SettingItem } from '@/components/ui';
 import './AdminClubSettings.css';
 
 interface ClubSettings {
@@ -11,6 +11,7 @@ interface ClubSettings {
     FinesEnabled: boolean;
     ShiftsEnabled: boolean;
     TeamsEnabled: boolean;
+    NewsEnabled: boolean;
     MembersListVisible: boolean;
     DiscoverableByNonMembers: boolean;
     CreatedAt: string;
@@ -51,7 +52,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
         fetchSettings();
     }, [id, t]);
 
-    const updateSettings = async (newSettings: Partial<Pick<ClubSettings, 'FinesEnabled' | 'ShiftsEnabled' | 'TeamsEnabled' | 'MembersListVisible' | 'DiscoverableByNonMembers'>>) => {
+    const updateSettings = async (newSettings: Partial<Pick<ClubSettings, 'FinesEnabled' | 'ShiftsEnabled' | 'TeamsEnabled' | 'NewsEnabled' | 'MembersListVisible' | 'DiscoverableByNonMembers'>>) => {
         if (!settings) return;
 
         try {
@@ -60,6 +61,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                 FinesEnabled: newSettings.FinesEnabled ?? settings.FinesEnabled,
                 ShiftsEnabled: newSettings.ShiftsEnabled ?? settings.ShiftsEnabled,
                 TeamsEnabled: newSettings.TeamsEnabled ?? settings.TeamsEnabled,
+                NewsEnabled: newSettings.NewsEnabled ?? settings.NewsEnabled,
                 MembersListVisible: newSettings.MembersListVisible ?? settings.MembersListVisible,
                 DiscoverableByNonMembers: newSettings.DiscoverableByNonMembers ?? settings.DiscoverableByNonMembers,
             };
@@ -81,6 +83,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                 FinesEnabled: newSettings.FinesEnabled ?? settings.FinesEnabled,
                 ShiftsEnabled: newSettings.ShiftsEnabled ?? settings.ShiftsEnabled,
                 TeamsEnabled: newSettings.TeamsEnabled ?? settings.TeamsEnabled,
+                NewsEnabled: newSettings.NewsEnabled ?? settings.NewsEnabled,
                 MembersListVisible: newSettings.MembersListVisible ?? settings.MembersListVisible,
                 DiscoverableByNonMembers: newSettings.DiscoverableByNonMembers ?? settings.DiscoverableByNonMembers,
             });
@@ -110,6 +113,11 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
         await updateSettings({ TeamsEnabled: checked });
     };
 
+    const handleNewsToggle = async (checked: boolean) => {
+        if (!settings) return;
+        await updateSettings({ NewsEnabled: checked });
+    };
+
     const handleMembersListToggle = async (checked: boolean) => {
         if (!settings) return;
         await updateSettings({ MembersListVisible: checked });
@@ -126,72 +134,88 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
 
     return (
         <div className="club-settings">
-            <h3>{t('clubs.clubSettings')}</h3>
-            <p>{t('clubs.configureFeatures')}</p>
+            <h2 className="club-settings-title">{t('clubs.clubSettings')}</h2>
+            <p className="club-settings-description">{t('clubs.configureFeatures')}</p>
             
             {error && <div className="error">{error}</div>}
             
-            <div className="settings-section">
-                <div className="setting-item">
-                    <div className="setting-info">
-                        <h4>{t('clubs.fines')}</h4>
-                        <p>{t('clubs.finesDescription')}</p>
-                    </div>
+            {/* Features Section */}
+            <SettingsSection
+                title={t('clubs.settings.features')}
+                description={t('clubs.settings.featuresDescription')}
+            >
+                <SettingItem
+                    title={t('clubs.fines')}
+                    description={t('clubs.finesDescription')}
+                >
                     <ToggleSwitch
                         checked={settings.FinesEnabled}
                         onChange={handleFinesToggle}
                         disabled={saving}
                     />
-                </div>
+                </SettingItem>
 
-                <div className="setting-item">
-                    <div className="setting-info">
-                        <h4>{t('clubs.shifts')}</h4>
-                        <p>{t('clubs.shiftsDescription')}</p>
-                    </div>
+                <SettingItem
+                    title={t('clubs.shifts')}
+                    description={t('clubs.shiftsDescription')}
+                >
                     <ToggleSwitch
                         checked={settings.ShiftsEnabled}
                         onChange={handleShiftsToggle}
                         disabled={saving}
                     />
-                </div>
+                </SettingItem>
 
-                <div className="setting-item">
-                    <div className="setting-info">
-                        <h4>{t('clubs.teams')}</h4>
-                        <p>{t('clubs.teamsDescription')}</p>
-                    </div>
+                <SettingItem
+                    title={t('clubs.teams')}
+                    description={t('clubs.teamsDescription')}
+                >
                     <ToggleSwitch
                         checked={settings.TeamsEnabled}
                         onChange={handleTeamsToggle}
                         disabled={saving}
                     />
-                </div>
+                </SettingItem>
 
-                <div className="setting-item">
-                    <div className="setting-info">
-                        <h4>{t('clubs.membersList')}</h4>
-                        <p>{t('clubs.membersListDescription')}</p>
-                    </div>
+                <SettingItem
+                    title={t('clubs.newsFeature')}
+                    description={t('clubs.newsDescription')}
+                >
+                    <ToggleSwitch
+                        checked={settings.NewsEnabled}
+                        onChange={handleNewsToggle}
+                        disabled={saving}
+                    />
+                </SettingItem>
+            </SettingsSection>
+
+            {/* Privacy Section */}
+            <SettingsSection
+                title={t('clubs.settings.privacy')}
+                description={t('clubs.settings.privacyDescription')}
+            >
+                <SettingItem
+                    title={t('clubs.membersList')}
+                    description={t('clubs.membersListDescription')}
+                >
                     <ToggleSwitch
                         checked={settings.MembersListVisible}
                         onChange={handleMembersListToggle}
                         disabled={saving}
                     />
-                </div>
+                </SettingItem>
 
-                <div className="setting-item">
-                    <div className="setting-info">
-                        <h4>{t('clubs.discoverable')}</h4>
-                        <p>{t('clubs.discoverableDescription')}</p>
-                    </div>
+                <SettingItem
+                    title={t('clubs.discoverable')}
+                    description={t('clubs.discoverableDescription')}
+                >
                     <ToggleSwitch
                         checked={settings.DiscoverableByNonMembers}
                         onChange={handleDiscoverableToggle}
                         disabled={saving}
                     />
-                </div>
-            </div>
+                </SettingItem>
+            </SettingsSection>
 
             {saving && <div className="saving-indicator">{t('clubs.saving')}</div>}
         </div>

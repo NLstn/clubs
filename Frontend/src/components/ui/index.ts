@@ -10,3 +10,4 @@ export { FormGroup } from './FormGroup';
 export { Card, type CardProps } from './Card';
 export { ToggleSwitch } from './ToggleSwitch';
 export { default as Divider, type DividerProps } from './Divider';
+export { SettingsSection, SettingItem, type SettingsSectionProps, type SettingItemProps } from './SettingsSection';

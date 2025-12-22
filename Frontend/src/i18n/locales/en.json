@@ -61,7 +61,13 @@
     "clubName": "Club Name",
     "clubDescription": "Club Description",
     "description": "Description",
-    "settings": "Settings",
+    "settings": {
+      "title": "Settings",
+      "features": "Features",
+      "featuresDescription": "Enable or disable features for your club.",
+      "privacy": "Privacy",
+      "privacyDescription": "Control how your club information is shared."
+    },
     "clubSettings": "Club Settings",
     "configureFeatures": "Configure which features are enabled for your club.",
     "fines": "Fines",
@@ -69,6 +75,8 @@
     "shifts": "Shifts in Events",
     "shiftsDescription": "Enable shift scheduling and management for club events.",
     "teamsDescription": "Allow club admins to create and manage teams with their members.",
+    "newsFeature": "News",
+    "newsDescription": "Enable news and announcements for your club.",
     "membersList": "Member List",
     "membersListDescription": "Allow regular members to view the club member list",
     "discoverable": "Discoverable by Non-Members",

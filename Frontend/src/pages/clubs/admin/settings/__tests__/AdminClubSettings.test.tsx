@@ -7,7 +7,7 @@ import api from '../../../../../utils/api';
 // Mock the API
 vi.mock('../../../../../utils/api');
 
-// Mock the ToggleSwitch component
+// Mock the ToggleSwitch and SettingsSection components
 vi.mock('@/components/ui', () => ({
   ToggleSwitch: ({ checked, onChange, disabled }: { checked: boolean; onChange: (value: boolean) => void; disabled?: boolean }) => (
     <input
@@ -17,6 +17,18 @@ vi.mock('@/components/ui', () => ({
       disabled={disabled}
       data-testid="toggle-switch"
     />
+  ),
+  SettingsSection: ({ title, children }: { title: string; description?: string; children: React.ReactNode }) => (
+    <div data-testid="settings-section">
+      <h3>{title}</h3>
+      {children}
+    </div>
+  ),
+  SettingItem: ({ title, children }: { title: string; description?: string; children: React.ReactNode }) => (
+    <div data-testid="setting-item">
+      <span>{title}</span>
+      {children}
+    </div>
   ),
 }));
 
@@ -34,6 +46,7 @@ describe('AdminClubSettings', () => {
     FinesEnabled: true,
     ShiftsEnabled: true,
     TeamsEnabled: false,
+    NewsEnabled: true,
     MembersListVisible: true,
     DiscoverableByNonMembers: false,
     CreatedAt: '2024-01-01T00:00:00Z',
@@ -64,9 +77,9 @@ describe('AdminClubSettings', () => {
     // Verify the API was called with correct endpoint
     expect(api.get).toHaveBeenCalledWith("/api/v2/Clubs('club-id')/Settings");
 
-    // Verify toggles are rendered with correct states
+    // Verify toggles are rendered with correct states (6 toggles: Fines, Shifts, Teams, News, MembersList, Discoverable)
     const toggles = screen.getAllByTestId('toggle-switch');
-    expect(toggles).toHaveLength(5);
+    expect(toggles).toHaveLength(6);
     
     // FinesEnabled is true
     expect(toggles[0]).toBeChecked();
@@ -74,6 +87,12 @@ describe('AdminClubSettings', () => {
     expect(toggles[1]).toBeChecked();
     // TeamsEnabled is false
     expect(toggles[2]).not.toBeChecked();
+    // NewsEnabled is true
+    expect(toggles[3]).toBeChecked();
+    // MembersListVisible is true
+    expect(toggles[4]).toBeChecked();
+    // DiscoverableByNonMembers is false
+    expect(toggles[5]).not.toBeChecked();
   });
 
   it('should update settings with PascalCase field names', async () => {
@@ -104,6 +123,7 @@ describe('AdminClubSettings', () => {
           FinesEnabled: true,
           ShiftsEnabled: false,
           TeamsEnabled: false,
+          NewsEnabled: true,
           MembersListVisible: true,
           DiscoverableByNonMembers: false,
         })
@@ -169,5 +189,29 @@ describe('AdminClubSettings', () => {
       // the component doesn't crash and the API call is made correctly
       expect(api.patch).toHaveBeenCalled();
     });
+  });
+
+  it('should display settings grouped in Features and Privacy sections', async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: mockSettings });
+
+    render(
+      <MemoryRouter initialEntries={['/clubs/club-id/admin/settings']}>
+        <Routes>
+          <Route path="/clubs/:id/admin/settings" element={<AdminClubSettings />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText('clubs.loading.settings')).not.toBeInTheDocument();
+    });
+
+    // Verify section titles are rendered
+    expect(screen.getByText('clubs.settings.features')).toBeInTheDocument();
+    expect(screen.getByText('clubs.settings.privacy')).toBeInTheDocument();
+    
+    // Verify there are 2 settings sections
+    const sections = screen.getAllByTestId('settings-section');
+    expect(sections).toHaveLength(2);
   });
 });
