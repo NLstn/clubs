@@ -175,6 +175,9 @@ const AdminClubDetails = () => {
             if (activeTab === 'news' && !clubSettings.NewsEnabled) {
                 navigate(`/clubs/${id}/admin`);
             }
+            if (activeTab === 'events' && !clubSettings.EventsEnabled) {
+                navigate(`/clubs/${id}/admin`);
+            }
         }
     }, [clubSettings, activeTab, navigate, id]);
 
@@ -350,12 +353,14 @@ const AdminClubDetails = () => {
                             </Link>
                         )}
 
-                        <Link 
-                            to={`/clubs/${id}/admin/events`}
-                            className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
-                        >
-                            {t('clubs.events')}
-                        </Link>
+                        {clubSettings?.EventsEnabled && (
+                            <Link 
+                                to={`/clubs/${id}/admin/events`}
+                                className={`tab-button ${activeTab === 'events' ? 'active' : ''}`}
+                            >
+                                {t('clubs.events')}
+                            </Link>
+                        )}
                         {clubSettings?.NewsEnabled && (
                             <Link 
                                 to={`/clubs/${id}/admin/news`}
@@ -537,9 +542,11 @@ const AdminClubDetails = () => {
                         )}
 
 
-                        <div className={`tab-panel ${activeTab === 'events' ? 'active' : ''}`}>
-                            <AdminClubEventList />
-                        </div>
+                        {clubSettings?.EventsEnabled && (
+                            <div className={`tab-panel ${activeTab === 'events' ? 'active' : ''}`}>
+                                <AdminClubEventList />
+                            </div>
+                        )}
 
                         {clubSettings?.NewsEnabled && (
                             <div className={`tab-panel ${activeTab === 'news' ? 'active' : ''}`}>

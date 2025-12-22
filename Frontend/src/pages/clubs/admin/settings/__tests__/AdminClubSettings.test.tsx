@@ -46,7 +46,8 @@ describe('AdminClubSettings', () => {
     FinesEnabled: true,
     ShiftsEnabled: true,
     TeamsEnabled: false,
-    NewsEnabled: true,
+    NewsEnabled: false,
+    EventsEnabled: false,
     MembersListVisible: true,
     DiscoverableByNonMembers: false,
     CreatedAt: '2024-01-01T00:00:00Z',
@@ -77,9 +78,9 @@ describe('AdminClubSettings', () => {
     // Verify the API was called with correct endpoint
     expect(api.get).toHaveBeenCalledWith("/api/v2/Clubs('club-id')/Settings");
 
-    // Verify toggles are rendered with correct states (6 toggles: Fines, Shifts, Teams, News, MembersList, Discoverable)
+    // Verify toggles are rendered with correct states (7 toggles: Fines, Shifts, Teams, News, Events, MembersList, Discoverable)
     const toggles = screen.getAllByTestId('toggle-switch');
-    expect(toggles).toHaveLength(6);
+    expect(toggles).toHaveLength(7);
     
     // FinesEnabled is true
     expect(toggles[0]).toBeChecked();
@@ -87,12 +88,14 @@ describe('AdminClubSettings', () => {
     expect(toggles[1]).toBeChecked();
     // TeamsEnabled is false
     expect(toggles[2]).not.toBeChecked();
-    // NewsEnabled is true
-    expect(toggles[3]).toBeChecked();
+    // NewsEnabled is false
+    expect(toggles[3]).not.toBeChecked();
+    // EventsEnabled is false
+    expect(toggles[4]).not.toBeChecked();
     // MembersListVisible is true
-    expect(toggles[4]).toBeChecked();
+    expect(toggles[5]).toBeChecked();
     // DiscoverableByNonMembers is false
-    expect(toggles[5]).not.toBeChecked();
+    expect(toggles[6]).not.toBeChecked();
   });
 
   it('should update settings with PascalCase field names', async () => {
@@ -123,7 +126,8 @@ describe('AdminClubSettings', () => {
           FinesEnabled: true,
           ShiftsEnabled: false,
           TeamsEnabled: false,
-          NewsEnabled: true,
+          NewsEnabled: false,
+          EventsEnabled: false,
           MembersListVisible: true,
           DiscoverableByNonMembers: false,
         })

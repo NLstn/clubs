@@ -12,6 +12,7 @@ interface ClubSettings {
     ShiftsEnabled: boolean;
     TeamsEnabled: boolean;
     NewsEnabled: boolean;
+    EventsEnabled: boolean;
     MembersListVisible: boolean;
     DiscoverableByNonMembers: boolean;
     CreatedAt: string;
@@ -21,7 +22,7 @@ interface ClubSettings {
 }
 
 /** Settings that can be toggled on/off in the admin settings page */
-type ToggleableSettings = Pick<ClubSettings, 'FinesEnabled' | 'ShiftsEnabled' | 'TeamsEnabled' | 'NewsEnabled' | 'MembersListVisible' | 'DiscoverableByNonMembers'>;
+type ToggleableSettings = Pick<ClubSettings, 'FinesEnabled' | 'ShiftsEnabled' | 'TeamsEnabled' | 'NewsEnabled' | 'EventsEnabled' | 'MembersListVisible' | 'DiscoverableByNonMembers'>;
 
 interface AdminClubSettingsProps {
     onSettingsUpdate?: () => void;
@@ -65,6 +66,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                 ShiftsEnabled: newSettings.ShiftsEnabled ?? settings.ShiftsEnabled,
                 TeamsEnabled: newSettings.TeamsEnabled ?? settings.TeamsEnabled,
                 NewsEnabled: newSettings.NewsEnabled ?? settings.NewsEnabled,
+                EventsEnabled: newSettings.EventsEnabled ?? settings.EventsEnabled,
                 MembersListVisible: newSettings.MembersListVisible ?? settings.MembersListVisible,
                 DiscoverableByNonMembers: newSettings.DiscoverableByNonMembers ?? settings.DiscoverableByNonMembers,
             };
@@ -87,6 +89,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                 ShiftsEnabled: newSettings.ShiftsEnabled ?? settings.ShiftsEnabled,
                 TeamsEnabled: newSettings.TeamsEnabled ?? settings.TeamsEnabled,
                 NewsEnabled: newSettings.NewsEnabled ?? settings.NewsEnabled,
+                EventsEnabled: newSettings.EventsEnabled ?? settings.EventsEnabled,
                 MembersListVisible: newSettings.MembersListVisible ?? settings.MembersListVisible,
                 DiscoverableByNonMembers: newSettings.DiscoverableByNonMembers ?? settings.DiscoverableByNonMembers,
             });
@@ -119,6 +122,11 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
     const handleNewsToggle = async (checked: boolean) => {
         if (!settings) return;
         await updateSettings({ NewsEnabled: checked });
+    };
+
+    const handleEventsToggle = async (checked: boolean) => {
+        if (!settings) return;
+        await updateSettings({ EventsEnabled: checked });
     };
 
     const handleMembersListToggle = async (checked: boolean) => {
@@ -187,6 +195,17 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
                     <ToggleSwitch
                         checked={settings.NewsEnabled}
                         onChange={handleNewsToggle}
+                        disabled={saving}
+                    />
+                </SettingItem>
+
+                <SettingItem
+                    title={t('clubs.eventsFeature')}
+                    description={t('clubs.eventsDescription')}
+                >
+                    <ToggleSwitch
+                        checked={settings.EventsEnabled}
+                        onChange={handleEventsToggle}
                         disabled={saving}
                     />
                 </SettingItem>

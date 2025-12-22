@@ -246,7 +246,7 @@ const ClubDetails = () => {
                 {/* Content Sections */}
                 <div className="club-content">
                     {clubSettings?.NewsEnabled && <ClubNews />}
-                    <UpcomingEvents />
+                    {clubSettings?.EventsEnabled && <UpcomingEvents />}
                     {clubSettings?.TeamsEnabled && <MyTeams />}
                     {clubSettings?.FinesEnabled && <MyOpenClubFines />}
                     {clubSettings?.MembersListVisible && <ReadonlyMemberList />}
