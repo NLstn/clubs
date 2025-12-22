@@ -7,6 +7,7 @@ interface ClubSettings {
     FinesEnabled: boolean;
     ShiftsEnabled: boolean;
     TeamsEnabled: boolean;
+    NewsEnabled: boolean;
     MembersListVisible: boolean;
     CreatedAt: string;
     CreatedBy: string;
@@ -53,6 +54,7 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
                 FinesEnabled: true,
                 ShiftsEnabled: true,
                 TeamsEnabled: true,
+                NewsEnabled: true,
                 MembersListVisible: true,
                 CreatedAt: '',
                 CreatedBy: '',
@@ -91,6 +93,7 @@ export const useClubSettings = (clubId: string | undefined): UseClubSettingsResu
                 FinesEnabled: true,
                 ShiftsEnabled: true,
                 TeamsEnabled: true,
+                NewsEnabled: true,
                 MembersListVisible: true,
                 CreatedAt: '',
                 CreatedBy: '',

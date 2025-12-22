@@ -252,6 +252,7 @@ func setupTestContext(t *testing.T) *testContext {
 		fines_enabled BOOLEAN DEFAULT TRUE,
 		shifts_enabled BOOLEAN DEFAULT TRUE,
 		teams_enabled BOOLEAN DEFAULT TRUE,
+		news_enabled BOOLEAN DEFAULT TRUE,
 		members_list_visible BOOLEAN DEFAULT TRUE,
 		discoverable_by_non_members BOOLEAN DEFAULT FALSE,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -381,6 +382,7 @@ func setupTestContext(t *testing.T) *testContext {
 		FinesEnabled:             true,
 		ShiftsEnabled:            true,
 		TeamsEnabled:             true,
+		NewsEnabled:              true,
 		MembersListVisible:       true,
 		DiscoverableByNonMembers: false,
 		CreatedBy:                testUser.ID,
@@ -1430,6 +1432,7 @@ func TestClubSettingsAccess(t *testing.T) {
 			testSettings.FinesEnabled,
 			testSettings.ShiftsEnabled,
 			testSettings.TeamsEnabled,
+			testSettings.NewsEnabled,
 			testSettings.MembersListVisible,
 			true, // Change to discoverable
 			ctx.testUser.ID,

@@ -172,6 +172,9 @@ const AdminClubDetails = () => {
             if (activeTab === 'teams' && !clubSettings.TeamsEnabled) {
                 navigate(`/clubs/${id}/admin`);
             }
+            if (activeTab === 'news' && !clubSettings.NewsEnabled) {
+                navigate(`/clubs/${id}/admin`);
+            }
         }
     }, [clubSettings, activeTab, navigate, id]);
 
@@ -353,17 +356,19 @@ const AdminClubDetails = () => {
                         >
                             {t('clubs.events')}
                         </Link>
-                        <Link 
-                            to={`/clubs/${id}/admin/news`}
-                            className={`tab-button ${activeTab === 'news' ? 'active' : ''}`}
-                        >
-                            {t('clubs.news')}
-                        </Link>
+                        {clubSettings?.NewsEnabled && (
+                            <Link 
+                                to={`/clubs/${id}/admin/news`}
+                                className={`tab-button ${activeTab === 'news' ? 'active' : ''}`}
+                            >
+                                {t('clubs.news')}
+                            </Link>
+                        )}
                         <Link 
                             to={`/clubs/${id}/admin/settings`}
                             className={`tab-button ${activeTab === 'settings' ? 'active' : ''}`}
                         >
-                            {t('clubs.settings')}
+                            {t('clubs.settings.title')}
                         </Link>
                     </nav>
 
@@ -536,9 +541,11 @@ const AdminClubDetails = () => {
                             <AdminClubEventList />
                         </div>
 
-                        <div className={`tab-panel ${activeTab === 'news' ? 'active' : ''}`}>
-                            <AdminClubNewsList />
-                        </div>
+                        {clubSettings?.NewsEnabled && (
+                            <div className={`tab-panel ${activeTab === 'news' ? 'active' : ''}`}>
+                                <AdminClubNewsList />
+                            </div>
+                        )}
 
                         <div className={`tab-panel ${activeTab === 'settings' ? 'active' : ''}`}>
                             <AdminClubSettings onSettingsUpdate={refetchSettings} />

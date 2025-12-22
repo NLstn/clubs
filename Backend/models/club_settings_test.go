@@ -59,10 +59,11 @@ func TestClubSettingsCreatedWithClub(t *testing.T) {
 		assert.NotEmpty(t, settings.ID)
 		assert.Equal(t, clubID, settings.ClubID)
 
-		// Verify all settings are disabled by default
+		// Verify default settings
 		assert.False(t, settings.FinesEnabled, "FinesEnabled should be false by default")
 		assert.False(t, settings.ShiftsEnabled, "ShiftsEnabled should be false by default")
 		assert.False(t, settings.TeamsEnabled, "TeamsEnabled should be false by default")
+		assert.True(t, settings.NewsEnabled, "NewsEnabled should be true by default")
 		assert.False(t, settings.MembersListVisible, "MembersListVisible should be false by default")
 		assert.False(t, settings.DiscoverableByNonMembers, "DiscoverableByNonMembers should be false by default")
 
@@ -73,7 +74,7 @@ func TestClubSettingsCreatedWithClub(t *testing.T) {
 		assert.NotZero(t, settings.UpdatedAt)
 	})
 
-	t.Run("test helper creates settings with all disabled", func(t *testing.T) {
+	t.Run("test helper creates settings with correct defaults", func(t *testing.T) {
 		user, _ := handlers.CreateTestUser(t, "testhelperclub@example.com")
 
 		// Create a club using test helper
@@ -84,10 +85,11 @@ func TestClubSettingsCreatedWithClub(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, club.ID, settings.ClubID)
 
-		// Verify all settings are disabled
+		// Verify default settings
 		assert.False(t, settings.FinesEnabled)
 		assert.False(t, settings.ShiftsEnabled)
 		assert.False(t, settings.TeamsEnabled)
+		assert.True(t, settings.NewsEnabled)
 		assert.False(t, settings.MembersListVisible)
 		assert.False(t, settings.DiscoverableByNonMembers)
 	})
@@ -97,7 +99,7 @@ func TestCreateDefaultClubSettings(t *testing.T) {
 	handlers.SetupTestDB(t)
 	defer handlers.TeardownTestDB(t)
 
-	t.Run("creates settings with all features disabled", func(t *testing.T) {
+	t.Run("creates settings with correct defaults", func(t *testing.T) {
 		user, _ := handlers.CreateTestUser(t, "defaultsettings@example.com")
 		club := handlers.CreateTestClub(t, user, "Default Settings Club")
 
@@ -111,10 +113,11 @@ func TestCreateDefaultClubSettings(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, settings.ID)
 
-		// Verify all settings are disabled
+		// Verify default settings
 		assert.False(t, settings.FinesEnabled)
 		assert.False(t, settings.ShiftsEnabled)
 		assert.False(t, settings.TeamsEnabled)
+		assert.True(t, settings.NewsEnabled)
 		assert.False(t, settings.MembersListVisible)
 		assert.False(t, settings.DiscoverableByNonMembers)
 		

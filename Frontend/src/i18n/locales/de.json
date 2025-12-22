@@ -60,7 +60,13 @@
     "clubName": "Vereinsname",
     "clubDescription": "Vereinsbeschreibung",
     "description": "Beschreibung",
-    "settings": "Einstellungen",
+    "settings": {
+      "title": "Einstellungen",
+      "features": "Funktionen",
+      "featuresDescription": "Aktivieren oder deaktivieren Sie Funktionen für Ihren Verein.",
+      "privacy": "Datenschutz",
+      "privacyDescription": "Kontrollieren Sie, wie Ihre Vereinsinformationen geteilt werden."
+    },
     "clubSettings": "Vereinseinstellungen",
     "configureFeatures": "Konfigurieren Sie, welche Funktionen für Ihren Verein aktiviert sind.",
     "fines": "Strafen",
@@ -68,6 +74,8 @@
     "shifts": "Schichten in Events",
     "shiftsDescription": "Aktivieren Sie die Schichtplanung und -verwaltung für Vereinsveranstaltungen.",
     "teamsDescription": "Erlauben Sie Vereinsadministratoren, Teams mit ihren Mitgliedern zu erstellen und zu verwalten.",
+    "newsFeature": "Nachrichten",
+    "newsDescription": "Aktivieren Sie Nachrichten und Ankündigungen für Ihren Verein.",
     "membersList": "Mitgliederliste",
     "membersListDescription": "Erlauben Sie regulären Mitgliedern, die Vereinsmitgliederliste einzusehen",
     "discoverable": "Für Nicht-Mitglieder auffindbar",
