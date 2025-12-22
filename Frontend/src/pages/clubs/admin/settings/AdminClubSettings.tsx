@@ -20,6 +20,9 @@ interface ClubSettings {
     UpdatedBy: string;
 }
 
+/** Settings that can be toggled on/off in the admin settings page */
+type ToggleableSettings = Pick<ClubSettings, 'FinesEnabled' | 'ShiftsEnabled' | 'TeamsEnabled' | 'NewsEnabled' | 'MembersListVisible' | 'DiscoverableByNonMembers'>;
+
 interface AdminClubSettingsProps {
     onSettingsUpdate?: () => void;
 }
@@ -52,7 +55,7 @@ const AdminClubSettings = ({ onSettingsUpdate }: AdminClubSettingsProps) => {
         fetchSettings();
     }, [id, t]);
 
-    const updateSettings = async (newSettings: Partial<Pick<ClubSettings, 'FinesEnabled' | 'ShiftsEnabled' | 'TeamsEnabled' | 'NewsEnabled' | 'MembersListVisible' | 'DiscoverableByNonMembers'>>) => {
+    const updateSettings = async (newSettings: Partial<ToggleableSettings>) => {
         if (!settings) return;
 
         try {
