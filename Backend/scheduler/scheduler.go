@@ -39,13 +39,12 @@ func (c JobConfig) Validate() error {
 
 // Scheduler manages periodic job execution
 type Scheduler struct {
-	jobs           map[string]JobFunc
-	jobsMutex      sync.RWMutex
-	registeredJobs []string // Track registered job names for startup logging
-	ticker         *time.Ticker
-	ctx            context.Context
-	cancel         context.CancelFunc
-	wg             sync.WaitGroup
+	jobs       map[string]JobFunc
+	jobsMutex  sync.RWMutex
+	ticker     *time.Ticker
+	ctx        context.Context
+	cancel     context.CancelFunc
+	wg         sync.WaitGroup
 	tickerInterval time.Duration
 }
 
@@ -60,7 +59,6 @@ func NewScheduler(tickerInterval time.Duration) *Scheduler {
 	
 	return &Scheduler{
 		jobs:           make(map[string]JobFunc),
-		registeredJobs: make([]string, 0),
 		ctx:            ctx,
 		cancel:         cancel,
 		tickerInterval: tickerInterval,
@@ -122,19 +120,9 @@ func (s *Scheduler) RegisterJobWithSchedule(handlerName string, jobFunc JobFunc,
 	// Step 2: Register in-memory only after successful database operation
 	s.jobsMutex.Lock()
 	s.jobs[handlerName] = jobFunc
-	
-	// Add to registered jobs list if not already present
-	found := false
-	for _, name := range s.registeredJobs {
-		if name == config.Name {
-			found = true
-			break
-		}
-	}
-	if !found {
-		s.registeredJobs = append(s.registeredJobs, config.Name)
-	}
 	s.jobsMutex.Unlock()
+	
+	log.Printf("Registered scheduled job: %s", config.Name)
 	
 	return nil
 }
@@ -146,19 +134,6 @@ func (s *Scheduler) Start() {
 	
 	go func() {
 		defer s.wg.Done()
-		
-		// Log all initialized jobs
-		s.jobsMutex.RLock()
-		jobCount := len(s.registeredJobs)
-		jobNames := make([]string, len(s.registeredJobs))
-		copy(jobNames, s.registeredJobs)
-		s.jobsMutex.RUnlock()
-		
-		if jobCount > 0 {
-			log.Printf("Initialized %d scheduled job(s): %v", jobCount, jobNames)
-		} else {
-			log.Printf("No scheduled jobs initialized")
-		}
 		log.Println("Scheduler started successfully")
 		
 		// Run immediately on start to catch any overdue jobs
