@@ -155,9 +155,7 @@ func main() {
 	// Wrap OData v2 service with authentication middleware
 	// This enforces JWT token validation on all /api/v2/ endpoints
 	// except for metadata and service document endpoints
-	// Then add feature check middleware to enforce settings-based feature toggles
-	odataWithFeatureCheck := odata.FeatureCheckMiddleware()(odataV2Mux)
-	odataWithAuth := http.StripPrefix("/api/v2", odata.AuthMiddleware(jwtSecret)(odataWithFeatureCheck))
+	odataWithAuth := http.StripPrefix("/api/v2", odata.AuthMiddleware(jwtSecret)(odataV2Mux))
 	mux.Handle("/api/v2/", odataWithAuth)
 
 	handler := handlers.CorsMiddleware(mux)

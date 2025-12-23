@@ -57,8 +57,9 @@ func (ft FineTemplate) ODataBeforeReadCollection(ctx context.Context, r *http.Re
 	}
 
 	// User can only see fine templates of clubs they belong to
+	// Also filter out templates from clubs where fines feature is disabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE fines_enabled = true)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -72,8 +73,9 @@ func (ft FineTemplate) ODataBeforeReadEntity(ctx context.Context, r *http.Reques
 	}
 
 	// User can only see fine templates of clubs they belong to
+	// Also check that fines feature is enabled for the club
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE fines_enabled = true)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -84,6 +86,11 @@ func (ft *FineTemplate) ODataBeforeCreate(ctx context.Context, r *http.Request) 
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if fines feature is enabled for the club
+	if err := CheckFeatureEnabled(ft.ClubID, "fines"); err != nil {
+		return err
 	}
 
 	// Check if user is an admin/owner of the club
@@ -113,6 +120,11 @@ func (ft *FineTemplate) ODataBeforeUpdate(ctx context.Context, r *http.Request) 
 	var existingTemplate FineTemplate
 	if err := database.Db.First(&existingTemplate, "id = ?", ft.ID).Error; err != nil {
 		return fmt.Errorf("fine template not found")
+	}
+
+	// Check if fines feature is enabled for the club
+	if err := CheckFeatureEnabled(existingTemplate.ClubID, "fines"); err != nil {
+		return err
 	}
 
 	// SECURITY: Prevent changing the club of an existing template (ClubID is immutable)
@@ -148,6 +160,11 @@ func (ft *FineTemplate) ODataBeforeDelete(ctx context.Context, r *http.Request) 
 	var existingTemplate FineTemplate
 	if err := database.Db.First(&existingTemplate, "id = ?", ft.ID).Error; err != nil {
 		return fmt.Errorf("fine template not found")
+	}
+
+	// Check if fines feature is enabled for the club
+	if err := CheckFeatureEnabled(existingTemplate.ClubID, "fines"); err != nil {
+		return err
 	}
 
 	// Check if user is an admin/owner of the club
