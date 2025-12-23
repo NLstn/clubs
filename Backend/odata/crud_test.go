@@ -384,7 +384,7 @@ func setupTestContext(t *testing.T) *testContext {
 		ShiftsEnabled:            true,
 		TeamsEnabled:             true,
 		NewsEnabled:              true,
-		EventsEnabled:            false,
+		EventsEnabled:            true,
 		MembersListVisible:       true,
 		DiscoverableByNonMembers: false,
 		CreatedBy:                testUser.ID,
