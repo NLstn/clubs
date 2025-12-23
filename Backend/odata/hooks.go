@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/NLstn/clubs/auth"
+	"github.com/NLstn/civo/auth"
 )
 
 // getUserIDFromContext extracts the user ID from the request context

@@ -1,5 +1,5 @@
 {
-  "name": "Clubs Development Container",
+  "name": "Civo Development Container",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",

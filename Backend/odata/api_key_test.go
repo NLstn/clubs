@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/civo/auth"
+	"github.com/NLstn/civo/models"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

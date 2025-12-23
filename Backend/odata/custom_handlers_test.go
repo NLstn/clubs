@@ -9,9 +9,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/database"
-	"github.com/NLstn/clubs/handlers"
+	"github.com/NLstn/civo/auth"
+	"github.com/NLstn/civo/database"
+	"github.com/NLstn/civo/handlers"
 	"github.com/stretchr/testify/assert"
 )
 

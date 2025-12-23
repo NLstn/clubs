@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/NLstn/clubs/azure/acs"
-	frontend "github.com/NLstn/clubs/tools"
+	"github.com/NLstn/civo/azure/acs"
+	frontend "github.com/NLstn/civo/tools"
 )
 
 // SendMemberAddedNotification sends both email and in-app notifications for member addition

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/NLstn/clubs/azure"
+	"github.com/NLstn/civo/azure"
 )
 
 type EmailRequest struct {

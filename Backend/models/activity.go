@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/civo/database"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

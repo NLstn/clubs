@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NLstn/clubs/auth"
+	"github.com/NLstn/civo/auth"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/NLstn/clubs/auth"
+	"github.com/NLstn/civo/auth"
 	"golang.org/x/time/rate"
 )
 

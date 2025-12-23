@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/civo/auth"
+	"github.com/NLstn/civo/models"
 )
 
 func Handler_v1() http.Handler {

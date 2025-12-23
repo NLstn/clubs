@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/civo/database"
 )
 
 // HealthResponse represents the health check response

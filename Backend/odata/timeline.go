@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/civo/auth"
+	"github.com/NLstn/civo/models"
 	odata "github.com/nlstn/go-odata"
 	"gorm.io/gorm"
 )

@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/csrf"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/civo/auth"
+	"github.com/NLstn/civo/csrf"
+	"github.com/NLstn/civo/models"
 )
 
 func registerKeycloakAuthRoutes(mux *http.ServeMux) {

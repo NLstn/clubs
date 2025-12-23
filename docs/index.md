@@ -1,8 +1,8 @@
-# Welcome to Clubs
+# Welcome to Civo
 
-Clubs is a comprehensive club management platform designed to help you efficiently manage your organization's members, events, fines, shifts, and communications. Whether you're running a sports club, social organization, or community group, Clubs provides all the tools you need to stay organized and keep your members engaged.
+Civo is a comprehensive club management platform designed to help you efficiently manage your organization's members, events, fines, shifts, and communications. Whether you're running a sports club, social organization, or community group, Civo provides all the tools you need to stay organized and keep your members engaged.
 
-## New to Clubs?
+## New to Civo?
 
 👉 **[Start Here: Complete Getting Started Guide](getting-started.md)** 👈
 

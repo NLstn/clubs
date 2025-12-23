@@ -3,7 +3,7 @@ package odata
 import (
 	"fmt"
 
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/civo/models"
 )
 
 // registerEntities registers all entity types with the OData service

@@ -1,10 +1,10 @@
-# Getting Started with Clubs
+# Getting Started with Civo
 
-Welcome! This guide will walk you through everything you need to know to get started with the Clubs platform as a brand new user.
+Welcome! This guide will walk you through everything you need to know to get started with the Civo platform as a brand new user.
 
-## What is Clubs?
+## What is Civo?
 
-Clubs is a comprehensive club management platform that helps organizations manage their members, events, fines, shifts, and communications. Whether you're starting your own club or joining an existing one, this guide will help you get up and running quickly.
+Civo is a comprehensive club management platform that helps organizations manage their members, events, fines, shifts, and communications. Whether you're starting your own club or joining an existing one, this guide will help you get up and running quickly.
 
 ## Prerequisites
 

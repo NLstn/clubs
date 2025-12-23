@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/models"
-	frontend "github.com/NLstn/clubs/tools"
+	"github.com/NLstn/civo/auth"
+	"github.com/NLstn/civo/models"
+	frontend "github.com/NLstn/civo/tools"
 )
 
 func registerAuthRoutes(mux *http.ServeMux) {

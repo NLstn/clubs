@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NLstn/clubs/handlers"
+	"github.com/NLstn/civo/handlers"
 	"github.com/stretchr/testify/assert"
 )
 

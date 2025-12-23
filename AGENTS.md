@@ -1,8 +1,8 @@
-# AI Agent Instructions for Clubs Project
+# AI Agent Instructions for Civo Project
 
 ## Project Overview
 
-**Clubs** is a full-stack club management application designed to help organizations manage their clubs, members, events, fines, shifts, and more. The application provides a comprehensive platform for club administration with features including:
+**Civo** is a full-stack club management application designed to help organizations manage their clubs, members, events, fines, shifts, and more. The application provides a comprehensive platform for club administration with features including:
 
 - Club creation and management
 - Member management with roles and permissions
@@ -120,9 +120,9 @@ Simply open the project in VS Code and select "Reopen in Container" when prompte
 **PostgreSQL Database**:
 - Host: `db` (use this in devcontainer)
 - Port: `5432`
-- Database: `clubs_dev`
-- User: `clubs_dev`
-- Password: `clubs_dev_password`
+- Database: `civo_dev`
+- User: `civo_dev`
+- Password: `civo_dev_password`
 
 ### VS Code Tasks
 
