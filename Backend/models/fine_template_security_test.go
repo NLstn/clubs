@@ -39,6 +39,21 @@ func setupFineTemplateSecurityTestDB(t *testing.T) {
 			updated_by TEXT,
 			deleted BOOLEAN DEFAULT 0
 		);
+		CREATE TABLE IF NOT EXISTS club_settings (
+			id TEXT PRIMARY KEY,
+			club_id TEXT NOT NULL UNIQUE,
+			fines_enabled BOOLEAN DEFAULT 0,
+			shifts_enabled BOOLEAN DEFAULT 0,
+			teams_enabled BOOLEAN DEFAULT 0,
+			news_enabled BOOLEAN DEFAULT 0,
+			events_enabled BOOLEAN DEFAULT 0,
+			members_list_visible BOOLEAN DEFAULT 0,
+			discoverable_by_non_members BOOLEAN DEFAULT 0,
+			created_at DATETIME,
+			created_by TEXT,
+			updated_at DATETIME,
+			updated_by TEXT
+		);
 		CREATE TABLE IF NOT EXISTS members (
 			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
@@ -179,6 +194,10 @@ func TestFineTemplateCreationAuthorization(t *testing.T) {
 	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)",
 		clubID, "Test Club", ownerID, ownerID)
 
+	// Create club settings with fines enabled
+	database.Db.Exec("INSERT INTO club_settings (id, club_id, fines_enabled, created_by, updated_by) VALUES (?, ?, ?, ?, ?)",
+		uuid.New().String(), clubID, 1, ownerID, ownerID)
+
 	// Add members with different roles
 	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		uuid.New().String(), clubID, ownerID, "owner", ownerID, ownerID)
@@ -274,6 +293,12 @@ func TestFineTemplateClubIsolation(t *testing.T) {
 	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)",
 		club2ID, "Club 2", user2ID, user2ID)
 
+	// Create club settings with fines enabled
+	database.Db.Exec("INSERT INTO club_settings (id, club_id, fines_enabled, created_by, updated_by) VALUES (?, ?, ?, ?, ?)",
+		uuid.New().String(), club1ID, 1, user1ID, user1ID)
+	database.Db.Exec("INSERT INTO club_settings (id, club_id, fines_enabled, created_by, updated_by) VALUES (?, ?, ?, ?, ?)",
+		uuid.New().String(), club2ID, 1, user2ID, user2ID)
+
 	// user1 is member of club1
 	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
 		uuid.New().String(), club1ID, user1ID, "owner", user1ID, user1ID)
@@ -339,6 +364,12 @@ func TestFineTemplateClubIDImmutable(t *testing.T) {
 		club1ID, "Club 1", userID, userID)
 	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)",
 		club2ID, "Club 2", userID, userID)
+
+	// Create club settings with fines enabled
+	database.Db.Exec("INSERT INTO club_settings (id, club_id, fines_enabled, created_by, updated_by) VALUES (?, ?, ?, ?, ?)",
+		uuid.New().String(), club1ID, 1, userID, userID)
+	database.Db.Exec("INSERT INTO club_settings (id, club_id, fines_enabled, created_by, updated_by) VALUES (?, ?, ?, ?, ?)",
+		uuid.New().String(), club2ID, 1, userID, userID)
 
 	// User is owner of both clubs
 	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",

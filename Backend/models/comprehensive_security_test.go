@@ -44,6 +44,21 @@ func setupComprehensiveSecurityTestDB(t *testing.T) {
 			deleted_at DATETIME,
 			deleted_by TEXT
 		);
+		CREATE TABLE IF NOT EXISTS club_settings (
+			id TEXT PRIMARY KEY,
+			club_id TEXT NOT NULL UNIQUE,
+			fines_enabled BOOLEAN DEFAULT 0,
+			shifts_enabled BOOLEAN DEFAULT 0,
+			teams_enabled BOOLEAN DEFAULT 0,
+			news_enabled BOOLEAN DEFAULT 0,
+			events_enabled BOOLEAN DEFAULT 0,
+			members_list_visible BOOLEAN DEFAULT 0,
+			discoverable_by_non_members BOOLEAN DEFAULT 0,
+			created_at DATETIME,
+			created_by TEXT,
+			updated_at DATETIME,
+			updated_by TEXT
+		);
 		CREATE TABLE IF NOT EXISTS members (
 			id TEXT PRIMARY KEY,
 			club_id TEXT NOT NULL,
@@ -520,6 +535,10 @@ func TestNewsCreationClubAuthorization(t *testing.T) {
 	clubID := uuid.New().String()
 	database.Db.Exec("INSERT INTO clubs (id, name, created_by, updated_by) VALUES (?, ?, ?, ?)",
 		clubID, "Test Club", ownerID, ownerID)
+
+	// Create club settings with news enabled
+	database.Db.Exec("INSERT INTO club_settings (id, club_id, news_enabled, created_by, updated_by) VALUES (?, ?, ?, ?, ?)",
+		uuid.New().String(), clubID, 1, ownerID, ownerID)
 
 	// Add members with different roles
 	database.Db.Exec("INSERT INTO members (id, club_id, user_id, role, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?)",
