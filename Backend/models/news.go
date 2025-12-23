@@ -87,9 +87,9 @@ func (n News) ODataBeforeReadCollection(ctx context.Context, r *http.Request, op
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see news of clubs they belong to
+	// User can only see news of clubs they belong to and where news feature is enabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE news_enabled = true)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -102,9 +102,9 @@ func (n News) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts i
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see news of clubs they belong to
+	// User can only see news of clubs they belong to and where news feature is enabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE news_enabled = true)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -115,6 +115,11 @@ func (n *News) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if news feature is enabled for the club
+	if err := CheckFeatureEnabled(n.ClubID, "news"); err != nil {
+		return err
 	}
 
 	// Check if user is an admin/owner of the club
@@ -140,6 +145,11 @@ func (n *News) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
+	// Check if news feature is enabled for the club
+	if err := CheckFeatureEnabled(n.ClubID, "news"); err != nil {
+		return err
+	}
+
 	// Check if user is an admin/owner of the club
 	var existingMember Member
 	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", n.ClubID, userID).First(&existingMember).Error; err != nil {
@@ -159,6 +169,11 @@ func (n *News) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if news feature is enabled for the club
+	if err := CheckFeatureEnabled(n.ClubID, "news"); err != nil {
+		return err
 	}
 
 	// Check if user is an admin/owner of the club
