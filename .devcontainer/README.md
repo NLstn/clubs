@@ -1,6 +1,6 @@
 # Development Container
 
-This directory contains the configuration for the VS Code Development Container for the Clubs project.
+This directory contains the configuration for the VS Code Development Container for the Civo project.
 
 ## What's Included
 
@@ -13,12 +13,12 @@ This directory contains the configuration for the VS Code Development Container 
 
 The devcontainer includes a PostgreSQL database with the following default credentials. Both databases are automatically created by the initialization script in the `postgres-init/` folder.
 
-### Clubs Application Database
+### Civo Application Database
 - **Host**: `db` (Docker service name - use this in devcontainer)
 - **Port**: `5432` (internal only, not exposed to host for security)
-- **Database**: `clubs_dev`
-- **User**: `clubs_dev`
-- **Password**: `clubs_dev_password`
+- **Database**: `civo_dev`
+- **User**: `civo_dev`
+- **Password**: `civo_dev_password`
 
 ### Keycloak Database
 - **Host**: `db` (Docker service name)

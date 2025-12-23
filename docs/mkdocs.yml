@@ -1,7 +1,7 @@
-site_name: Clubs User Documentation
-site_description: User documentation for the Clubs management platform
+site_name: Civo User Documentation
+site_description: User documentation for the Civo management platform
 site_author: NLstn
-site_url: https://nlstn.github.io/clubs/
+site_url: https://nlstn.github.io/civo/
 
 theme:
   name: material

@@ -1,6 +1,6 @@
 # Security Documentation
 
-This document outlines the security measures implemented in the Clubs application and provides guidance for maintaining security.
+This document outlines the security measures implemented in the Civo application and provides guidance for maintaining security.
 
 ## Table of Contents
 1. [Authentication](#authentication)

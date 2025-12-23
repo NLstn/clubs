@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/azure"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/civo/auth"
+	"github.com/NLstn/civo/azure"
+	"github.com/NLstn/civo/models"
 	"gorm.io/gorm"
 )
 

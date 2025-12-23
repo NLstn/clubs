@@ -1,6 +1,6 @@
 # Profile Management
 
-This guide explains how to manage your user profile, preferences, and account settings in the Clubs platform.
+This guide explains how to manage your user profile, preferences, and account settings in the Civo platform.
 
 ## Your Profile
 

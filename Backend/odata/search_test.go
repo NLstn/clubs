@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NLstn/clubs/database"
-	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
-	"github.com/NLstn/clubs/odata"
+	"github.com/NLstn/civo/database"
+	"github.com/NLstn/civo/handlers"
+	"github.com/NLstn/civo/models"
+	"github.com/NLstn/civo/odata"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )

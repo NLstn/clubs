@@ -1,4 +1,4 @@
-# Club Management API Documentation
+# Civo API Documentation
 
 ## Base URL
 All API endpoints are prefixed with `/api/v1/`

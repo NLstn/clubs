@@ -3,7 +3,7 @@ package models
 import (
 	"testing"
 
-	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/civo/database"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )

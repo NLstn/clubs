@@ -1,4 +1,4 @@
-module github.com/NLstn/clubs
+module github.com/NLstn/civo
 
 go 1.25
 

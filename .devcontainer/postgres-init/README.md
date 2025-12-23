@@ -9,12 +9,12 @@ SQL script that runs during PostgreSQL initialization to create all required dat
 
 This script creates:
 
-#### Clubs Application Database
-- **Database**: `clubs_dev`
-- **User**: `clubs_dev`
-- **Password**: `clubs_dev_password`
+#### Civo Application Database
+- **Database**: `civo_dev`
+- **User**: `civo_dev`
+- **Password**: `civo_dev_password`
 
-This is the main application database used by the Clubs backend.
+This is the main application database used by the Civo backend.
 
 #### Keycloak Database
 - **Database**: `keycloak_dev`

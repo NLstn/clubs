@@ -3,7 +3,7 @@ package models
 import (
 	"fmt"
 
-	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/civo/database"
 	"gorm.io/gorm"
 )
 

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/NLstn/clubs/auth"
+	"github.com/NLstn/civo/auth"
 	"github.com/golang-jwt/jwt/v5"
 )
 

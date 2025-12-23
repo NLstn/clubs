@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NLstn/clubs/azure/acs"
-	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/civo/azure/acs"
+	"github.com/NLstn/civo/database"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"

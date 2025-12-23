@@ -22,7 +22,7 @@ Backend/.env.staging
 Backend/.env.production
 
 # Backend binary
-Backend/clubs
+Backend/civo
 Backend/main
 
 # Logs

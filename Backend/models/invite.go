@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/civo/auth"
+	"github.com/NLstn/civo/database"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/NLstn/clubs/auth"
+	"github.com/NLstn/civo/auth"
 	"github.com/google/uuid"
 	"github.com/nlstn/go-odata"
 	"gorm.io/gorm"
 
-	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/civo/database"
 )
 
 type Club struct {

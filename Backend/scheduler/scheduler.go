@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/NLstn/clubs/database"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/civo/database"
+	"github.com/NLstn/civo/models"
 	"gorm.io/gorm"
 )
 

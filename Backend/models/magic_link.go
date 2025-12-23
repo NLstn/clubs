@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/NLstn/clubs/auth"
-	"github.com/NLstn/clubs/database"
+	"github.com/NLstn/civo/auth"
+	"github.com/NLstn/civo/database"
 )
 
 type MagicLink struct {

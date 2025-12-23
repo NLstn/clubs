@@ -1,10 +1,10 @@
 # Club Management
 
-This guide covers everything you need to know about creating and managing clubs in the Clubs platform.
+This guide covers everything you need to know about creating and managing clubs in the Civo platform.
 
 ## Before You Start
 
-!!! info "New to Clubs?"
+!!! info "New to Civo?"
     If this is your first time using the platform, check out the [Getting Started Guide](getting-started.md) first for a complete walkthrough of setting up your account and navigating the application.
 
 ## Understanding Clubs

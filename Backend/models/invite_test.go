@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/NLstn/clubs/handlers"
-	"github.com/NLstn/clubs/models"
+	"github.com/NLstn/civo/handlers"
+	"github.com/NLstn/civo/models"
 	"github.com/stretchr/testify/assert"
 )
 
