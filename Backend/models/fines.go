@@ -125,8 +125,9 @@ func (f Fine) ODataBeforeReadCollection(ctx context.Context, r *http.Request, op
 	}
 
 	// User can only see fines of clubs they belong to
+	// Also filter out fines from clubs where fines feature is disabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE fines_enabled = true)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -140,8 +141,9 @@ func (f Fine) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts i
 	}
 
 	// User can only see fines of clubs they belong to
+	// Also check that fines feature is enabled for the club
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE fines_enabled = true)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -152,6 +154,11 @@ func (f *Fine) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if fines feature is enabled for the club
+	if err := CheckFeatureEnabled(f.ClubID, "fines"); err != nil {
+		return err
 	}
 
 	// SECURITY: If TeamID is provided, verify it belongs to the specified ClubID
@@ -191,6 +198,11 @@ func (f *Fine) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("fine not found")
 	}
 
+	// Check if fines feature is enabled for the club
+	if err := CheckFeatureEnabled(existingFine.ClubID, "fines"); err != nil {
+		return err
+	}
+
 	// SECURITY: Prevent changing the club of an existing fine (ClubID is immutable)
 	if f.ClubID != existingFine.ClubID {
 		return fmt.Errorf("forbidden: club cannot be changed for an existing fine")
@@ -223,6 +235,11 @@ func (f *Fine) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if fines feature is enabled for the club
+	if err := CheckFeatureEnabled(f.ClubID, "fines"); err != nil {
+		return err
 	}
 
 	// Check if user is an admin/owner of the club

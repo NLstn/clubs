@@ -53,6 +53,14 @@ func CheckFeatureEnabled(clubID, featureName string) error {
 		if !settings.TeamsEnabled {
 			return NewFeatureDisabledError(featureName)
 		}
+	case "news":
+		if !settings.NewsEnabled {
+			return NewFeatureDisabledError(featureName)
+		}
+	case "events":
+		if !settings.EventsEnabled {
+			return NewFeatureDisabledError(featureName)
+		}
 	default:
 		return fmt.Errorf("unknown feature: %s", featureName)
 	}

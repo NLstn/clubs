@@ -86,8 +86,9 @@ func (s Shift) ODataBeforeReadCollection(ctx context.Context, r *http.Request, o
 	}
 
 	// User can only see shifts of clubs they belong to
+	// Also filter out shifts from clubs where shifts feature is disabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE shifts_enabled = true)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -101,8 +102,9 @@ func (s Shift) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts 
 	}
 
 	// User can only see shifts of clubs they belong to
+	// Also check that shifts feature is enabled for the club
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE shifts_enabled = true)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -113,6 +115,11 @@ func (s *Shift) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if shifts feature is enabled for the club
+	if err := CheckFeatureEnabled(s.ClubID, "shifts"); err != nil {
+		return err
 	}
 
 	// SECURITY: Verify the EventID belongs to the specified ClubID
@@ -155,6 +162,11 @@ func (s *Shift) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("shift not found")
 	}
 
+	// Check if shifts feature is enabled for the club
+	if err := CheckFeatureEnabled(existingShift.ClubID, "shifts"); err != nil {
+		return err
+	}
+
 	// SECURITY: Prevent changing the club of an existing shift (ClubID is immutable)
 	if s.ClubID != existingShift.ClubID {
 		return fmt.Errorf("forbidden: club cannot be changed for an existing shift")
@@ -192,6 +204,11 @@ func (s *Shift) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
+	// Check if shifts feature is enabled for the club
+	if err := CheckFeatureEnabled(s.ClubID, "shifts"); err != nil {
+		return err
+	}
+
 	// Check if user is an admin/owner of the club
 	var existingMember Member
 	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", s.ClubID, userID).First(&existingMember).Error; err != nil {
@@ -209,9 +226,9 @@ func (sm ShiftMember) ODataBeforeReadCollection(ctx context.Context, r *http.Req
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see shift members of clubs they belong to
+	// User can only see shift members of clubs they belong to and where shifts feature is enabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("shift_id IN (SELECT id FROM shifts WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))", userID)
+		return db.Where("shift_id IN (SELECT id FROM shifts WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE shifts_enabled = true))", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -224,9 +241,9 @@ func (sm ShiftMember) ODataBeforeReadEntity(ctx context.Context, r *http.Request
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see shift members of clubs they belong to
+	// User can only see shift members of clubs they belong to and where shifts feature is enabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("shift_id IN (SELECT id FROM shifts WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))", userID)
+		return db.Where("shift_id IN (SELECT id FROM shifts WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE shifts_enabled = true))", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -243,6 +260,11 @@ func (sm *ShiftMember) ODataBeforeCreate(ctx context.Context, r *http.Request) e
 	var shift Shift
 	if err := database.Db.Where("id = ?", sm.ShiftID).First(&shift).Error; err != nil {
 		return fmt.Errorf("shift not found")
+	}
+
+	// Check if shifts feature is enabled for the club
+	if err := CheckFeatureEnabled(shift.ClubID, "shifts"); err != nil {
+		return err
 	}
 
 	// Check if user is an admin/owner of the club
@@ -274,6 +296,11 @@ func (sm *ShiftMember) ODataBeforeUpdate(ctx context.Context, r *http.Request) e
 		return fmt.Errorf("shift not found")
 	}
 
+	// Check if shifts feature is enabled for the club
+	if err := CheckFeatureEnabled(shift.ClubID, "shifts"); err != nil {
+		return err
+	}
+
 	// Check if user is an admin/owner of the club
 	var existingMember Member
 	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", shift.ClubID, userID).First(&existingMember).Error; err != nil {
@@ -299,6 +326,11 @@ func (sm *ShiftMember) ODataBeforeDelete(ctx context.Context, r *http.Request) e
 	var shift Shift
 	if err := database.Db.Where("id = ?", sm.ShiftID).First(&shift).Error; err != nil {
 		return fmt.Errorf("shift not found")
+	}
+
+	// Check if shifts feature is enabled for the club
+	if err := CheckFeatureEnabled(shift.ClubID, "shifts"); err != nil {
+		return err
 	}
 
 	// Check if user is an admin/owner of the club, or removing themselves
