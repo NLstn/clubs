@@ -396,9 +396,9 @@ func (t Team) ODataBeforeReadCollection(ctx context.Context, r *http.Request, op
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see teams of clubs they belong to
+	// User can only see teams of clubs they belong to and where teams feature is enabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE teams_enabled = true)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -411,9 +411,9 @@ func (t Team) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts i
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see teams of clubs they belong to
+	// User can only see teams of clubs they belong to and where teams feature is enabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE teams_enabled = true)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -424,6 +424,11 @@ func (t *Team) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if teams feature is enabled for the club
+	if err := CheckFeatureEnabled(t.ClubID, "teams"); err != nil {
+		return err
 	}
 
 	// Check if user is an admin/owner of the club
@@ -447,6 +452,11 @@ func (t *Team) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if teams feature is enabled for the club
+	if err := CheckFeatureEnabled(t.ClubID, "teams"); err != nil {
+		return err
 	}
 
 	// Get user for permission checks
@@ -477,6 +487,11 @@ func (t *Team) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
+	// Check if teams feature is enabled for the club
+	if err := CheckFeatureEnabled(t.ClubID, "teams"); err != nil {
+		return err
+	}
+
 	// Check if user is an admin/owner of the club
 	var existingMember Member
 	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", t.ClubID, userID).First(&existingMember).Error; err != nil {
@@ -494,9 +509,9 @@ func (tm TeamMember) ODataBeforeReadCollection(ctx context.Context, r *http.Requ
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see team members of teams in clubs they belong to
+	// User can only see team members of teams in clubs they belong to and where teams feature is enabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("team_id IN (SELECT id FROM teams WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))", userID)
+		return db.Where("team_id IN (SELECT id FROM teams WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE teams_enabled = true))", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -509,9 +524,9 @@ func (tm TeamMember) ODataBeforeReadEntity(ctx context.Context, r *http.Request,
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see team members of teams in clubs they belong to
+	// User can only see team members of teams in clubs they belong to and where teams feature is enabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("team_id IN (SELECT id FROM teams WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))", userID)
+		return db.Where("team_id IN (SELECT id FROM teams WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE teams_enabled = true))", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -528,6 +543,11 @@ func (tm *TeamMember) ODataBeforeCreate(ctx context.Context, r *http.Request) er
 	var team Team
 	if err := database.Db.Where("id = ?", tm.TeamID).First(&team).Error; err != nil {
 		return fmt.Errorf("team not found")
+	}
+
+	// Check if teams feature is enabled for the club
+	if err := CheckFeatureEnabled(team.ClubID, "teams"); err != nil {
+		return err
 	}
 
 	// Check if user is an admin/owner of the club or team admin
@@ -567,6 +587,11 @@ func (tm *TeamMember) ODataBeforeUpdate(ctx context.Context, r *http.Request) er
 	var team Team
 	if err := database.Db.Where("id = ?", currentTeamMember.TeamID).First(&team).Error; err != nil {
 		return fmt.Errorf("team not found")
+	}
+
+	// Check if teams feature is enabled for the club
+	if err := CheckFeatureEnabled(team.ClubID, "teams"); err != nil {
+		return err
 	}
 
 	// SECURITY: Prevent changing the team of an existing team member (TeamID is immutable)
@@ -623,6 +648,11 @@ func (tm *TeamMember) ODataBeforeDelete(ctx context.Context, r *http.Request) er
 	var team Team
 	if err := database.Db.Where("id = ?", tm.TeamID).First(&team).Error; err != nil {
 		return fmt.Errorf("team not found")
+	}
+
+	// Check if teams feature is enabled for the club
+	if err := CheckFeatureEnabled(team.ClubID, "teams"); err != nil {
+		return err
 	}
 
 	// Users can leave teams (delete their own membership)

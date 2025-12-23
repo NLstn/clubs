@@ -354,9 +354,9 @@ func (e Event) ODataBeforeReadCollection(ctx context.Context, r *http.Request, o
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see events of clubs they belong to
+	// User can only see events of clubs they belong to and where events feature is enabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE events_enabled = true)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -369,9 +369,9 @@ func (e Event) ODataBeforeReadEntity(ctx context.Context, r *http.Request, opts 
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see events of clubs they belong to
+	// User can only see events of clubs they belong to and where events feature is enabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?)", userID)
+		return db.Where("club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE events_enabled = true)", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -382,6 +382,11 @@ func (e *Event) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check if events feature is enabled for the club
+	if err := CheckFeatureEnabled(e.ClubID, "events"); err != nil {
+		return err
 	}
 
 	// SECURITY: If TeamID is provided, verify it belongs to the specified ClubID
@@ -421,6 +426,11 @@ func (e *Event) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("event not found")
 	}
 
+	// Check if events feature is enabled for the club
+	if err := CheckFeatureEnabled(existingEvent.ClubID, "events"); err != nil {
+		return err
+	}
+
 	// SECURITY: Prevent changing the club of an existing event (ClubID is immutable)
 	if e.ClubID != existingEvent.ClubID {
 		return fmt.Errorf("forbidden: club cannot be changed for an existing event")
@@ -455,6 +465,11 @@ func (e *Event) ODataBeforeDelete(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
+	// Check if events feature is enabled for the club
+	if err := CheckFeatureEnabled(e.ClubID, "events"); err != nil {
+		return err
+	}
+
 	// Check if user is an admin/owner of the club
 	var existingMember Member
 	if err := database.Db.Where("club_id = ? AND user_id = ? AND role IN ('admin', 'owner')", e.ClubID, userID).First(&existingMember).Error; err != nil {
@@ -472,9 +487,9 @@ func (er EventRSVP) ODataBeforeReadCollection(ctx context.Context, r *http.Reque
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see RSVPs for events in clubs they belong to
+	// User can only see RSVPs for events in clubs they belong to and where events feature is enabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("event_id IN (SELECT id FROM events WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))", userID)
+		return db.Where("event_id IN (SELECT id FROM events WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE events_enabled = true))", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -487,9 +502,9 @@ func (er EventRSVP) ODataBeforeReadEntity(ctx context.Context, r *http.Request, 
 		return nil, fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// User can only see RSVPs for events in clubs they belong to
+	// User can only see RSVPs for events in clubs they belong to and where events feature is enabled
 	scope := func(db *gorm.DB) *gorm.DB {
-		return db.Where("event_id IN (SELECT id FROM events WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?))", userID)
+		return db.Where("event_id IN (SELECT id FROM events WHERE club_id IN (SELECT club_id FROM members WHERE user_id = ?) AND club_id IN (SELECT club_id FROM club_settings WHERE events_enabled = true))", userID)
 	}
 
 	return []func(*gorm.DB) *gorm.DB{scope}, nil
@@ -506,6 +521,11 @@ func (er *EventRSVP) ODataBeforeCreate(ctx context.Context, r *http.Request) err
 	var event Event
 	if err := database.Db.Where("id = ?", er.EventID).First(&event).Error; err != nil {
 		return fmt.Errorf("event not found")
+	}
+
+	// Check if events feature is enabled for the club
+	if err := CheckFeatureEnabled(event.ClubID, "events"); err != nil {
+		return err
 	}
 
 	// Check if user is a member of the club
@@ -539,6 +559,17 @@ func (er *EventRSVP) ODataBeforeUpdate(ctx context.Context, r *http.Request) err
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
+	// Get event to check if events feature is enabled
+	var event Event
+	if err := database.Db.Where("id = ?", er.EventID).First(&event).Error; err != nil {
+		return fmt.Errorf("event not found")
+	}
+
+	// Check if events feature is enabled for the club
+	if err := CheckFeatureEnabled(event.ClubID, "events"); err != nil {
+		return err
+	}
+
 	// Users can only update their own RSVPs
 	if er.UserID != userID {
 		return fmt.Errorf("unauthorized: can only update your own RSVPs")
@@ -555,6 +586,17 @@ func (er *EventRSVP) ODataBeforeDelete(ctx context.Context, r *http.Request) err
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Get event to check if events feature is enabled
+	var event Event
+	if err := database.Db.Where("id = ?", er.EventID).First(&event).Error; err != nil {
+		return fmt.Errorf("event not found")
+	}
+
+	// Check if events feature is enabled for the club
+	if err := CheckFeatureEnabled(event.ClubID, "events"); err != nil {
+		return err
 	}
 
 	// Users can only delete their own RSVPs
