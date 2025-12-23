@@ -66,7 +66,7 @@ func Init() error {
 
 	dbName := os.Getenv("DATABASE_NAME")
 	if dbName == "" {
-		dbName = "clubs"
+		dbName = "civo"
 	}
 
 	sslMode := os.Getenv("DATABASE_SSL_MODE")

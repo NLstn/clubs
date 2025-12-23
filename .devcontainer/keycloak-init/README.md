@@ -4,18 +4,18 @@ This directory contains the initialization files for the Keycloak authentication
 
 ## Files
 
-### `clubs-realm.json`
+### `civo-realm.json`
 Keycloak realm configuration that is automatically imported on first startup. This includes:
 
 #### Realm Settings
-- **Realm Name**: `clubs-dev`
+- **Realm Name**: `civo-dev`
 - **SSL**: Not required (dev mode)
 - **Registration**: Enabled
 - **Login with email**: Enabled
 - **Remember me**: Enabled
 
 #### OAuth/OIDC Client
-- **Client ID**: `clubs-frontend`
+- **Client ID**: `civo-frontend`
 - **Type**: Public client (no client secret required)
 - **Protocol**: OpenID Connect
 - **Redirect URIs**: 
@@ -51,7 +51,7 @@ Two test users are created automatically:
 
 To modify the Keycloak configuration:
 
-1. Make changes to `clubs-realm.json`
+1. Make changes to `civo-realm.json`
 2. Rebuild the dev container or restart the Keycloak service
 3. The realm will be re-imported on startup
 
@@ -59,7 +59,7 @@ Alternatively, you can:
 1. Access the Keycloak Admin Console at `http://localhost:8081/admin`
 2. Login with username `admin` and password `admin`
 3. Make changes through the UI
-4. Export the realm to replace `clubs-realm.json` if you want to persist the changes
+4. Export the realm to replace `civo-realm.json` if you want to persist the changes
 
 ## Testing Authentication
 

@@ -37,8 +37,8 @@ The devcontainer includes a pre-configured Keycloak instance for authentication:
 - **Admin Console**: `http://localhost:8081/admin`
 - **Admin Username**: `admin`
 - **Admin Password**: `admin`
-- **Realm**: `clubs-dev`
-- **Frontend Client ID**: `clubs-frontend`
+- **Realm**: `civo-dev`
+- **Frontend Client ID**: `civo-frontend`
 
 ### Port Forwarding Setup
 
@@ -115,20 +115,20 @@ If Keycloak fails to start or shows connection errors:
 
 ### Keycloak realm not imported
 
-If the clubs-dev realm is not available:
+If the civo-dev realm is not available:
 1. The realm should import automatically on first startup
 2. You can manually import it via the Admin Console at `http://localhost:8081/admin`
 3. Navigate to the realm dropdown (top left) and select "Create Realm"
-4. Import the file from `.devcontainer/keycloak-init/clubs-realm.json`
+4. Import the file from `.devcontainer/keycloak-init/civo-realm.json`
 
 ### Authentication not working
 
 1. Verify environment variables in `Backend/.env` match:
    - `KEYCLOAK_SERVER_URL=http://localhost:8081`
-   - `KEYCLOAK_REALM=clubs-dev`
-   - `KEYCLOAK_CLIENT_ID=clubs-frontend`
+   - `KEYCLOAK_REALM=civo-dev`
+   - `KEYCLOAK_CLIENT_ID=civo-frontend`
 2. Ensure Keycloak is accessible at `http://localhost:8081`
-3. Check that the clubs-dev realm is properly imported
+3. Check that the civo-dev realm is properly imported
 4. Clear browser cache and sessionStorage if experiencing issues
 5. Check browser console for detailed error messages
 
