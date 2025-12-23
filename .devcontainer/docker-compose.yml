@@ -6,7 +6,7 @@ services:
     volumes:
       - ..:/workspace:cached
     networks:
-      - clubs-network
+      - civo-network
     extra_hosts:
       - "localhost:host-gateway"
     depends_on:
@@ -19,7 +19,7 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     networks:
-      - clubs-network
+      - civo-network
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./postgres-init/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql
@@ -38,7 +38,7 @@ services:
       - start-dev
       - --import-realm
     networks:
-      - clubs-network
+      - civo-network
     ports:
       - "8081:8080"
     environment:
@@ -56,7 +56,7 @@ services:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
     volumes:
-      - ./keycloak-init/clubs-realm.json:/opt/keycloak/data/import/clubs-realm.json
+      - ./keycloak-init/civo-realm.json:/opt/keycloak/data/import/civo-realm.json
     depends_on:
       db:
         condition: service_healthy
@@ -69,7 +69,7 @@ services:
       start_period: 60s
 
 networks:
-  clubs-network:
+  civo-network:
     driver: bridge
 
 volumes:

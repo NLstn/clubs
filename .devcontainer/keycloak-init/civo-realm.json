@@ -1,5 +1,5 @@
 {
-  "realm": "clubs-dev",
+  "realm": "civo-dev",
   "enabled": true,
   "sslRequired": "none",
   "registrationAllowed": true,
@@ -22,9 +22,9 @@
   "accessCodeLifespanLogin": 1800,
   "clients": [
     {
-      "clientId": "clubs-frontend",
-      "name": "Clubs Frontend Application",
-      "description": "Frontend client for the Clubs application",
+      "clientId": "civo-frontend",
+      "name": "Civo Frontend Application",
+      "description": "Frontend client for the Civo application",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",
       "publicClient": true,
