@@ -41,6 +41,7 @@ func SetupTestDB(t *testing.T) {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			email TEXT NOT NULL,
 			token TEXT NOT NULL UNIQUE,
+			otp_code TEXT UNIQUE,
 			expires_at DATETIME NOT NULL
 		)
 	`)

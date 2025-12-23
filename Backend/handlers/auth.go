@@ -29,6 +29,15 @@ func registerAuthRoutes(mux *http.ServeMux) {
 		}
 	})))
 
+	mux.Handle("/api/v1/auth/verifyMagicCode", RateLimitMiddleware(authLimiter)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			verifyMagicCode(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})))
+
 	mux.Handle("/api/v1/auth/refreshToken", RateLimitMiddleware(authLimiter)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
@@ -60,7 +69,8 @@ func handleRequestMagicLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := models.CreateMagicLink(req.Email)
+	// Issue both magic link token and a 6-digit OTP code
+	token, code, err := models.CreateMagicLinkWithCode(req.Email)
 	if err != nil {
 		log.Printf("Failed to create magic link for email %s: %v", req.Email, err)
 		http.Error(w, "Failed to create magic link", http.StatusInternalServerError)
@@ -69,7 +79,8 @@ func handleRequestMagicLink(w http.ResponseWriter, r *http.Request) {
 
 	link := frontend.MakeMagicLink(token)
 
-	err = auth.SendMagicLinkEmail(req.Email, link)
+	// Send email with both magic link and code
+	err = auth.SendMagicLinkEmail(req.Email, link, code)
 	if err != nil {
 		log.Printf("Failed to send magic link email to %s: %v", req.Email, err)
 		http.Error(w, "Failed to send magic link email", http.StatusInternalServerError)
@@ -132,6 +143,64 @@ func verifyMagicLink(w http.ResponseWriter, r *http.Request) {
 		"access":          accessToken,
 		"refresh":         refreshToken,
 		"profileComplete": user.IsProfileComplete(),
+		"userID":          user.ID,
+	})
+}
+
+// endpoint: POST /api/v1/auth/verifyMagicCode
+func verifyMagicCode(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Code string `json:"code"`
+	}
+	json.NewDecoder(r.Body).Decode(&req)
+
+	if req.Code == "" {
+		http.Error(w, "Code required", http.StatusBadRequest)
+		return
+	}
+
+	email, valid, err := models.VerifyMagicCode(req.Code)
+	if err != nil || !valid {
+		if err != nil {
+			log.Printf("Magic code verification error: %v", err)
+		}
+		http.Error(w, "Invalid or expired code", http.StatusUnauthorized)
+		return
+	}
+
+	user, err := models.FindOrCreateUser(email)
+	if err != nil {
+		log.Printf("Failed to find or create user for email %s: %v", email, err)
+		http.Error(w, "User error", http.StatusInternalServerError)
+		return
+	}
+
+	accessToken, err := auth.GenerateAccessToken(user.ID)
+	if err != nil {
+		log.Printf("Failed to generate access token for user %s: %v", user.ID, err)
+		http.Error(w, "JWT error", http.StatusInternalServerError)
+		return
+	}
+
+	refreshToken, err := auth.GenerateRefreshToken(user.ID)
+	if err != nil {
+		log.Printf("Failed to generate refresh token for user %s: %v", user.ID, err)
+		http.Error(w, "Refresh token error", http.StatusInternalServerError)
+		return
+	}
+
+	userAgent, ipAddress := models.GetDeviceInfo(r)
+	if err := user.StoreRefreshToken(refreshToken, userAgent, ipAddress); err != nil {
+		log.Printf("Failed to store refresh token for user %s: %v", user.ID, err)
+		http.Error(w, "Failed to store refresh token", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"access":          accessToken,
+		"refresh":         refreshToken,
+		"profileComplete": user.IsProfileComplete(),
+		"userID":          user.ID,
 	})
 }
 

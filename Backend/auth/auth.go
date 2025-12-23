@@ -54,13 +54,16 @@ func GenerateToken() (string, error) {
 	return base64.URLEncoding.EncodeToString(b), nil
 }
 
-func SendMagicLinkEmail(email, link string) error {
+func SendMagicLinkEmail(email, link, code string) error {
 	// Skip Azure Communication Services email calls in test environment
 	if os.Getenv("GO_ENV") == "test" {
 		return nil
 	}
 
-	return acs.SendMail([]acs.Recipient{{Address: email}}, "Magic Link", "Click the link to login: "+link, "<a href='"+link+"'>Click here to login</a>")
+	subject := "Your login link and code"
+	text := "Click the link to login: " + link + "\nOr enter this code in the app: " + code
+	html := "<p><a href='" + link + "'>Click here to login</a></p><p>Or enter this code in the app: <strong>" + code + "</strong></p>"
+	return acs.SendMail([]acs.Recipient{{Address: email}}, subject, text, html)
 }
 
 func generateJWT(userID string, expiration time.Duration) (string, error) {
