@@ -32,7 +32,12 @@ theme:
     - search.highlight
     - content.code.copy
 
-docs_dir: docs
+docs_dir: .
+site_dir: ../site
+
+exclude_docs: |
+  mkdocs.yml
+  requirements.txt
 
 nav:
   - Home: index.md
