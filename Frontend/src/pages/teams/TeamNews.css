@@ -1,4 +1,5 @@
 /* Team News page styles */
+@import '../../styles/markdown-content.css';
 
 .news-card {
   background-color: var(--color-background);
@@ -20,102 +21,6 @@
 .news-content {
   margin: 0 0 var(--space-xs) 0;
   line-height: 1.5;
-}
-
-/* Markdown content styling in news cards */
-.news-content h1,
-.news-content h2,
-.news-content h3,
-.news-content h4,
-.news-content h5,
-.news-content h6 {
-  margin-top: var(--space-sm);
-  margin-bottom: var(--space-xs);
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.news-content h1:first-child,
-.news-content h2:first-child,
-.news-content h3:first-child,
-.news-content h4:first-child,
-.news-content h5:first-child,
-.news-content h6:first-child {
-  margin-top: 0;
-}
-
-.news-content h1 { font-size: 1.4rem; }
-.news-content h2 { font-size: 1.2rem; }
-.news-content h3 { font-size: 1.1rem; }
-.news-content h4 { font-size: 1rem; }
-
-.news-content p {
-  margin: 0 0 var(--space-sm) 0;
-}
-
-.news-content p:last-child {
-  margin-bottom: 0;
-}
-
-.news-content ul,
-.news-content ol {
-  margin: 0 0 var(--space-sm) 0;
-  padding-left: var(--space-lg);
-}
-
-.news-content li {
-  margin-bottom: var(--space-xs);
-}
-
-.news-content a {
-  color: var(--color-secondary);
-  text-decoration: none;
-}
-
-.news-content a:hover {
-  text-decoration: underline;
-}
-
-.news-content code {
-  background-color: var(--color-background-light);
-  padding: 2px 6px;
-  border-radius: var(--border-radius-sm);
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.9em;
-}
-
-.news-content pre {
-  background-color: var(--color-background-light);
-  padding: var(--space-sm);
-  border-radius: var(--border-radius-sm);
-  overflow-x: auto;
-  margin: 0 0 var(--space-sm) 0;
-}
-
-.news-content pre code {
-  background-color: transparent;
-  padding: 0;
-}
-
-.news-content blockquote {
-  margin: 0 0 var(--space-sm) 0;
-  padding-left: var(--space-md);
-  border-left: 3px solid var(--color-primary);
-  color: var(--color-text-secondary);
-}
-
-.news-content hr {
-  border: none;
-  border-top: 1px solid var(--color-border);
-  margin: var(--space-md) 0;
-}
-
-.news-content strong {
-  font-weight: 600;
-}
-
-.news-content em {
-  font-style: italic;
 }
 
 .news-section {
