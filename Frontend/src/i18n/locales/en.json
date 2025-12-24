@@ -190,6 +190,12 @@
     "newsTitle": "Title",
     "newsContent": "Content"
   },
+  "markdown": {
+    "write": "Write",
+    "preview": "Preview",
+    "helpLink": "Markdown is supported",
+    "noContent": "Nothing to preview"
+  },
   "dates": {
     "notSet": "Not set",
     "invalidDateTime": "Invalid date/time",

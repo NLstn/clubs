@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import Markdown from "react-markdown";
 import { useT } from "../../hooks/useTranslation";
 import './TeamNews.css';
 
@@ -62,7 +63,9 @@ const TeamNews = () => {
                 {news.map(newsItem => (
                     <div key={newsItem.id} className="news-card">
                         <h4 className="news-title">{newsItem.title}</h4>
-                        <p className="news-content">{newsItem.content}</p>
+                        <div className="news-content">
+                            <Markdown>{newsItem.content}</Markdown>
+                        </div>
                         <small className="news-meta">
                             {t('news.postedOn')} {formatDateTime(newsItem.created_at)}
                         </small>
