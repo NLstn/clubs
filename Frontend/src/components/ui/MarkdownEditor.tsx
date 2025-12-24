@@ -30,6 +30,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [mode, setMode] = useState<EditorMode>('write');
   const generatedId = useId();
   const editorId = id || generatedId;
+  const errorId = `${editorId}-error`;
 
   const handleTextChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -38,9 +39,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     [onChange]
   );
 
-  const handleModeChange = useCallback((newMode: EditorMode) => {
+  const handleModeChange = (newMode: EditorMode) => {
     setMode(newMode);
-  }, []);
+  };
 
   return (
     <div className="markdown-editor">
@@ -80,6 +81,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             placeholder={placeholder}
             disabled={disabled}
             rows={rows}
+            aria-invalid={error ? 'true' : undefined}
+            aria-describedby={error ? errorId : undefined}
           />
         ) : (
           <div
@@ -94,7 +97,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         )}
       </div>
 
-      {error && <span className="markdown-editor-error">{error}</span>}
+      {error && <span id={errorId} className="markdown-editor-error">{error}</span>}
 
       <div className="markdown-editor-footer">
         <a

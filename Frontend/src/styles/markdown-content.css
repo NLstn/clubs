@@ -1,10 +1,16 @@
-/* Shared markdown content styling for news cards */
+/* Shared markdown content styling for news cards and markdown editor preview */
 .news-content h1,
 .news-content h2,
 .news-content h3,
 .news-content h4,
 .news-content h5,
-.news-content h6 {
+.news-content h6,
+.markdown-editor-preview h1,
+.markdown-editor-preview h2,
+.markdown-editor-preview h3,
+.markdown-editor-preview h4,
+.markdown-editor-preview h5,
+.markdown-editor-preview h6 {
   margin-top: var(--space-sm);
   margin-bottom: var(--space-xs);
   font-weight: 600;
@@ -16,43 +22,68 @@
 .news-content h3:first-child,
 .news-content h4:first-child,
 .news-content h5:first-child,
-.news-content h6:first-child {
+.news-content h6:first-child,
+.markdown-editor-preview h1:first-child,
+.markdown-editor-preview h2:first-child,
+.markdown-editor-preview h3:first-child,
+.markdown-editor-preview h4:first-child,
+.markdown-editor-preview h5:first-child,
+.markdown-editor-preview h6:first-child {
   margin-top: 0;
 }
 
-.news-content h1 { font-size: 1.4rem; }
-.news-content h2 { font-size: 1.2rem; }
-.news-content h3 { font-size: 1.1rem; }
-.news-content h4 { font-size: 1rem; }
+.news-content h1,
+.markdown-editor-preview h1 { font-size: 1.4rem; }
+.news-content h2,
+.markdown-editor-preview h2 { font-size: 1.2rem; }
+.news-content h3,
+.markdown-editor-preview h3 { font-size: 1.1rem; }
+.news-content h4,
+.markdown-editor-preview h4 { font-size: 1rem; }
 
-.news-content p {
+.news-content p,
+.markdown-editor-preview p {
   margin: 0 0 var(--space-sm) 0;
 }
 
-.news-content p:last-child {
+.news-content p:last-child,
+.markdown-editor-preview p:last-child {
   margin-bottom: 0;
 }
 
 .news-content ul,
-.news-content ol {
+.news-content ol,
+.markdown-editor-preview ul,
+.markdown-editor-preview ol {
   margin: 0 0 var(--space-sm) 0;
   padding-left: var(--space-lg);
 }
 
-.news-content li {
+.news-content li,
+.markdown-editor-preview li {
   margin-bottom: var(--space-xs);
 }
 
-.news-content a {
+.news-content a,
+.markdown-editor-preview a {
   color: var(--color-secondary);
   text-decoration: none;
 }
 
-.news-content a:hover {
+.news-content a:hover,
+.markdown-editor-preview a:hover {
   text-decoration: underline;
 }
 
-.news-content code {
+.news-content a:focus-visible,
+.markdown-editor-preview a:focus-visible {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 2px;
+  text-decoration: underline;
+}
+
+.news-content code,
+.markdown-editor-preview code {
   background-color: var(--color-background-light);
   padding: 2px 6px;
   border-radius: var(--border-radius-sm);
@@ -60,7 +91,8 @@
   font-size: 0.9em;
 }
 
-.news-content pre {
+.news-content pre,
+.markdown-editor-preview pre {
   background-color: var(--color-background-light);
   padding: var(--space-sm);
   border-radius: var(--border-radius-sm);
@@ -68,28 +100,33 @@
   margin: 0 0 var(--space-sm) 0;
 }
 
-.news-content pre code {
+.news-content pre code,
+.markdown-editor-preview pre code {
   background-color: transparent;
   padding: 0;
 }
 
-.news-content blockquote {
+.news-content blockquote,
+.markdown-editor-preview blockquote {
   margin: 0 0 var(--space-sm) 0;
   padding-left: var(--space-md);
   border-left: 3px solid var(--color-primary);
   color: var(--color-text-secondary);
 }
 
-.news-content hr {
+.news-content hr,
+.markdown-editor-preview hr {
   border: none;
   border-top: 1px solid var(--color-border);
   margin: var(--space-md) 0;
 }
 
-.news-content strong {
+.news-content strong,
+.markdown-editor-preview strong {
   font-weight: 600;
 }
 
-.news-content em {
+.news-content em,
+.markdown-editor-preview em {
   font-style: italic;
 }
