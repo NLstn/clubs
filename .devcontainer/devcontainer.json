@@ -46,6 +46,6 @@
       "onAutoForward": "notify"
     }
   },
-  "postCreateCommand": "cd Backend && go mod download",
+  "postCreateCommand": "cd Backend && go mod download && cd ../Frontend && npm install",
   "remoteUser": "vscode"
 }
