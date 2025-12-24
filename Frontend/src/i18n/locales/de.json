@@ -179,6 +179,12 @@
     "newsTitle": "Titel",
     "newsContent": "Inhalt"
   },
+  "markdown": {
+    "write": "Schreiben",
+    "preview": "Vorschau",
+    "helpLink": "Markdown wird unterstützt",
+    "noContent": "Nichts zur Vorschau"
+  },
   "dates": {
     "notSet": "Nicht gesetzt",
     "invalidDateTime": "Ungültige Datum/Zeit",

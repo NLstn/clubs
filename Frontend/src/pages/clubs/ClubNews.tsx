@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
+import Markdown from "react-markdown";
 import api from "../../utils/api";
 import { buildODataQuery, ODataFilter, parseODataCollection, type ODataCollectionResponse } from "../../utils/odata";
 import { useT } from "../../hooks/useTranslation";
@@ -89,7 +90,9 @@ const ClubNews = () => {
                 {news.map(newsItem => (
                     <div key={newsItem.id} className="news-card">
                         <h4 className="news-title">{newsItem.title}</h4>
-                        <p className="news-content">{newsItem.content}</p>
+                        <div className="news-content">
+                            <Markdown>{newsItem.content}</Markdown>
+                        </div>
                         <small className="news-meta">
                             {t('news.postedOn')} {formatDateTime(newsItem.created_at)}
                         </small>

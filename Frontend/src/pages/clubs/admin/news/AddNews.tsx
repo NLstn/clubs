@@ -1,6 +1,6 @@
 import { FC, useState, useEffect, useRef } from "react";
 import api from "../../../../utils/api";
-import { Input, Modal, Button, ButtonState } from '@/components/ui';
+import { Input, Modal, Button, ButtonState, MarkdownEditor } from '@/components/ui';
 
 interface AddNewsProps {
     isOpen: boolean;
@@ -86,14 +86,13 @@ const AddNews: FC<AddNewsProps> = ({ isOpen, onClose, clubId, onSuccess }) => {
                         disabled={buttonState === 'loading'}
                     />
 
-                    <Input
+                    <MarkdownEditor
                         label="Content"
                         value={content}
-                        onChange={(e) => setContent(e.target.value)}
+                        onChange={setContent}
                         placeholder="News Content"
                         disabled={buttonState === 'loading'}
-                        multiline
-                        rows={6}
+                        rows={8}
                     />
                 </div>
             </Modal.Body>
