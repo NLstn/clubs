@@ -68,7 +68,8 @@ jobs:
       uses: azure/CLI@v2
       with:
         inlineScript: |
+          REVISION_SUFFIX="$(date +%s)-${GITHUB_SHA::7}"
           az containerapp update --name civo-staging-backend \
             --resource-group civo-staging-rg \
-            --image ghcr.io/nlstn/civo/backend:latest
-          az containerapp revision copy --name civo-staging-backend --resource-group civo-staging-rg
+            --image ghcr.io/nlstn/civo/backend:latest \
+            --revision-suffix "$REVISION_SUFFIX"
