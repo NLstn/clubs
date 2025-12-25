@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -13,6 +14,13 @@ import (
 
 	"github.com/NLstn/civo/database"
 )
+
+// DefaultMaxActiveClubs is the default maximum number of active (non-deleted) clubs a user can create.
+// This limit can be increased in the future through a paid subscription.
+const DefaultMaxActiveClubs = 3
+
+// ErrClubLimitExceeded is returned when a user tries to create more clubs than their quota allows
+var ErrClubLimitExceeded = errors.New("club creation limit exceeded: you can only create up to 3 active clubs")
 
 type Club struct {
 	ID          string     `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
@@ -88,6 +96,16 @@ func (c *Club) GetAdminsAndOwners() ([]User, error) {
 	return users, err
 }
 
+// CountActiveClubsCreatedByUser returns the number of active (non-deleted) clubs created by a user.
+// This is used to enforce the club creation quota.
+func CountActiveClubsCreatedByUser(userID string) (int64, error) {
+	var count int64
+	err := database.Db.Model(&Club{}).
+		Where("created_by = ? AND deleted = ?", userID, false).
+		Count(&count).Error
+	return count, err
+}
+
 // BeforeCreate GORM hook - sets UUID if not provided
 func (c *Club) BeforeCreate(tx *gorm.DB) error {
 	if c.ID == "" {
@@ -103,11 +121,21 @@ func (c *Club) BeforeCreate(tx *gorm.DB) error {
 // OData EntityHook implementation
 
 // ODataBeforeCreate OData hook - sets audit fields from authenticated user context
+// and enforces the club creation quota
 func (c *Club) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 	// Extract user ID from context
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
 	if !ok || userID == "" {
 		return fmt.Errorf("unauthorized: user ID not found in context")
+	}
+
+	// Check club creation quota
+	activeClubCount, err := CountActiveClubsCreatedByUser(userID)
+	if err != nil {
+		return fmt.Errorf("failed to check club creation quota: %w", err)
+	}
+	if activeClubCount >= DefaultMaxActiveClubs {
+		return ErrClubLimitExceeded
 	}
 
 	// Set audit fields

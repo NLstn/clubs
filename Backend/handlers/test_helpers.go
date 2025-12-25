@@ -27,7 +27,8 @@ func SetupTestDB(t *testing.T) {
 	os.Setenv("GO_ENV", "test")
 
 	var err error
-	testDB, err = gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	// Use file::memory:?cache=shared to ensure all connections share the same in-memory database
+	testDB, err = gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("Failed to connect to test database: %v", err)
 	}

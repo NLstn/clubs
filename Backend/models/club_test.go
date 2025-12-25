@@ -3,6 +3,7 @@ package models_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -416,5 +417,228 @@ func TestSoftDeleteClub(t *testing.T) {
 		resp := rec.Result()
 
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+}
+
+func TestCountActiveClubsCreatedByUser(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+
+	t.Run("counts only active clubs created by user", func(t *testing.T) {
+		user, _ := handlers.CreateTestUser(t, "countuser@example.com")
+
+		// Initially no clubs
+		count, err := models.CountActiveClubsCreatedByUser(user.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(0), count)
+
+		// Create first club
+		handlers.CreateTestClub(t, user, "Club 1")
+		count, err = models.CountActiveClubsCreatedByUser(user.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1), count)
+
+		// Create second club
+		handlers.CreateTestClub(t, user, "Club 2")
+		count, err = models.CountActiveClubsCreatedByUser(user.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(2), count)
+	})
+
+	t.Run("does not count deleted clubs", func(t *testing.T) {
+		user, _ := handlers.CreateTestUser(t, "deletedcountuser@example.com")
+
+		// Create a club and delete it
+		club := handlers.CreateTestClub(t, user, "To Delete Club")
+		err := club.SoftDelete(user.ID)
+		assert.NoError(t, err)
+
+		// Count should be 0
+		count, err := models.CountActiveClubsCreatedByUser(user.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(0), count)
+
+		// Create an active club
+		handlers.CreateTestClub(t, user, "Active Club")
+		count, err = models.CountActiveClubsCreatedByUser(user.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1), count)
+	})
+
+	t.Run("does not count clubs created by other users", func(t *testing.T) {
+		user1, _ := handlers.CreateTestUser(t, "user1clubs@example.com")
+		user2, _ := handlers.CreateTestUser(t, "user2clubs@example.com")
+
+		// User1 creates clubs
+		handlers.CreateTestClub(t, user1, "User1 Club 1")
+		handlers.CreateTestClub(t, user1, "User1 Club 2")
+
+		// User2 creates a club
+		handlers.CreateTestClub(t, user2, "User2 Club")
+
+		// Count for user1 should be 2
+		count, err := models.CountActiveClubsCreatedByUser(user1.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(2), count)
+
+		// Count for user2 should be 1
+		count, err = models.CountActiveClubsCreatedByUser(user2.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(1), count)
+	})
+}
+
+func TestClubCreationLimit(t *testing.T) {
+	handlers.SetupTestDB(t)
+	defer handlers.TeardownTestDB(t)
+
+	// Set up OData service for testing
+	service, err := odata.NewService(database.Db)
+	require.NoError(t, err, "Failed to create OData service")
+
+	odataV2Mux := http.NewServeMux()
+	service.RegisterCustomHandlers(odataV2Mux)
+	odataV2Mux.Handle("/", service)
+	handler := http.StripPrefix("/api/v2", handlers.CompositeAuthMiddleware(odataV2Mux))
+
+	t.Run("can create up to 3 clubs", func(t *testing.T) {
+		user, token := handlers.CreateTestUser(t, "limituser@example.com")
+
+		// Create 3 clubs (the limit)
+		for i := 1; i <= 3; i++ {
+			clubData := map[string]interface{}{
+				"Name":        fmt.Sprintf("Club %d", i),
+				"Description": "Test Description",
+			}
+			body, err := json.Marshal(clubData)
+			require.NoError(t, err)
+
+			req := httptest.NewRequest("POST", "/api/v2/Clubs", bytes.NewReader(body))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+token)
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+			resp := rec.Result()
+
+			assert.Equal(t, http.StatusCreated, resp.StatusCode, "Should be able to create club %d", i)
+		}
+
+		// Verify user has 3 clubs
+		count, err := models.CountActiveClubsCreatedByUser(user.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(3), count)
+	})
+
+	t.Run("cannot create 4th club when at limit", func(t *testing.T) {
+		user, token := handlers.CreateTestUser(t, "exceededlimituser@example.com")
+
+		// Create 3 clubs (the limit)
+		for i := 1; i <= 3; i++ {
+			handlers.CreateTestClub(t, user, fmt.Sprintf("Club %d", i))
+		}
+
+		// Try to create a 4th club - should fail
+		clubData := map[string]interface{}{
+			"Name":        "Club 4",
+			"Description": "This should fail",
+		}
+		body, err := json.Marshal(clubData)
+		require.NoError(t, err)
+
+		req := httptest.NewRequest("POST", "/api/v2/Clubs", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		resp := rec.Result()
+
+		// Should be rejected with a 4xx error
+		assert.True(t, resp.StatusCode >= 400 && resp.StatusCode < 500, "Creating 4th club should be rejected")
+
+		// Verify user still has only 3 clubs
+		count, err := models.CountActiveClubsCreatedByUser(user.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(3), count)
+	})
+
+	t.Run("can create new club after deleting one", func(t *testing.T) {
+		user, token := handlers.CreateTestUser(t, "deletedquotauser@example.com")
+
+		// Create 3 clubs (the limit)
+		clubs := make([]models.Club, 3)
+		for i := 0; i < 3; i++ {
+			clubs[i] = handlers.CreateTestClub(t, user, fmt.Sprintf("Club %d", i+1))
+		}
+
+		// Delete one club
+		err := clubs[0].SoftDelete(user.ID)
+		assert.NoError(t, err)
+
+		// Verify count is now 2
+		count, err := models.CountActiveClubsCreatedByUser(user.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(2), count)
+
+		// Now we should be able to create a new club
+		clubData := map[string]interface{}{
+			"Name":        "New Club After Delete",
+			"Description": "This should succeed",
+		}
+		body, err := json.Marshal(clubData)
+		require.NoError(t, err)
+
+		req := httptest.NewRequest("POST", "/api/v2/Clubs", bytes.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer "+token)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		resp := rec.Result()
+
+		assert.Equal(t, http.StatusCreated, resp.StatusCode, "Should be able to create club after deleting one")
+
+		// Verify count is back to 3
+		count, err = models.CountActiveClubsCreatedByUser(user.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(3), count)
+	})
+
+	t.Run("deleted clubs do not count toward quota", func(t *testing.T) {
+		user, token := handlers.CreateTestUser(t, "deletedmanyuser@example.com")
+
+		// Create and delete 5 clubs
+		for i := 0; i < 5; i++ {
+			club := handlers.CreateTestClub(t, user, fmt.Sprintf("Deleted Club %d", i+1))
+			err := club.SoftDelete(user.ID)
+			assert.NoError(t, err)
+		}
+
+		// Count should be 0
+		count, err := models.CountActiveClubsCreatedByUser(user.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(0), count)
+
+		// Should be able to create 3 new clubs
+		for i := 1; i <= 3; i++ {
+			clubData := map[string]interface{}{
+				"Name":        fmt.Sprintf("New Active Club %d", i),
+				"Description": "Test Description",
+			}
+			body, err := json.Marshal(clubData)
+			require.NoError(t, err)
+
+			req := httptest.NewRequest("POST", "/api/v2/Clubs", bytes.NewReader(body))
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("Authorization", "Bearer "+token)
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+			resp := rec.Result()
+
+			assert.Equal(t, http.StatusCreated, resp.StatusCode, "Should be able to create active club %d", i)
+		}
+
+		// Count should be 3
+		count, err = models.CountActiveClubsCreatedByUser(user.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(3), count)
 	})
 }
