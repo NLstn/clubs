@@ -337,7 +337,8 @@ func FindOrCreateUser(email string) (User, error) {
 	err := database.Db.Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if err.Error() == "record not found" {
-			user = User{Email: email}
+			// SetupCompleted is explicitly false - user needs to complete profile setup
+			user = User{Email: email, SetupCompleted: false}
 			err = database.Db.Create(&user).Error
 			if err != nil {
 				return User{}, err
