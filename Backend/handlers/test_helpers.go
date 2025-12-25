@@ -53,6 +53,7 @@ func SetupTestDB(t *testing.T) {
 			email TEXT NOT NULL UNIQUE,
 			keycloak_id TEXT UNIQUE,
 			birth_date DATE,
+			setup_completed BOOLEAN DEFAULT FALSE,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 		)
@@ -421,11 +422,12 @@ func CreateTestUser(t *testing.T, email string) (models.User, string) {
 	// Create user directly in database
 	keycloakPtr := &keycloakID
 	user := models.User{
-		ID:         userID,
-		Email:      email,
-		FirstName:  "Test",
-		LastName:   "User",
-		KeycloakID: keycloakPtr,
+		ID:             userID,
+		Email:          email,
+		FirstName:      "Test",
+		LastName:       "User",
+		KeycloakID:     keycloakPtr,
+		SetupCompleted: true, // Test users are fully set up
 	}
 
 	if err := testDB.Create(&user).Error; err != nil {

@@ -64,6 +64,7 @@ func setupTimelineTestContext(t *testing.T) *timelineTestContext {
 		email TEXT NOT NULL UNIQUE,
 		keycloak_id TEXT UNIQUE,
 		birth_date DATE,
+		setup_completed BOOLEAN DEFAULT FALSE,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	)`)

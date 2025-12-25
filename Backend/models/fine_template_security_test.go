@@ -26,6 +26,7 @@ func setupFineTemplateSecurityTestDB(t *testing.T) {
 			first_name TEXT,
 			last_name TEXT,
 			email TEXT NOT NULL UNIQUE,
+			setup_completed BOOLEAN DEFAULT 0,
 			created_at DATETIME,
 			updated_at DATETIME
 		);

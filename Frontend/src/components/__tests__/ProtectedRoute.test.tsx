@@ -11,6 +11,13 @@ vi.mock('../../hooks/useAuth', () => ({
   useAuth: () => mockUseAuth()
 }))
 
+// Mock the useCurrentUser hook
+const mockUseCurrentUser = vi.fn()
+
+vi.mock('../../hooks/useCurrentUser', () => ({
+  useCurrentUser: () => mockUseCurrentUser()
+}))
+
 // Mock Navigate component from react-router-dom
 const mockNavigate = vi.fn()
 vi.mock('react-router-dom', async () => {
@@ -41,7 +48,7 @@ describe('ProtectedRoute', () => {
     vi.clearAllMocks()
   })
 
-  it('renders children when user is authenticated', () => {
+  it('renders children when user is authenticated and setup is completed', () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: true,
       accessToken: 'valid-token',
@@ -49,6 +56,11 @@ describe('ProtectedRoute', () => {
       login: vi.fn(),
       logout: vi.fn(),
       api: {}
+    })
+    mockUseCurrentUser.mockReturnValue({
+      user: { ID: 'user-123', Email: 'test@example.com', SetupCompleted: true },
+      loading: false,
+      error: null
     })
 
     renderWithRouter(
@@ -70,6 +82,11 @@ describe('ProtectedRoute', () => {
       logout: vi.fn(),
       api: {}
     })
+    mockUseCurrentUser.mockReturnValue({
+      user: null,
+      loading: false,
+      error: null
+    })
 
     renderWithRouter(
       <ProtectedRoute>
@@ -80,5 +97,56 @@ describe('ProtectedRoute', () => {
     expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument()
     expect(screen.getByTestId('navigate')).toBeInTheDocument()
     expect(mockNavigate).toHaveBeenCalledWith('/login?redirect=%2F', true)
+  })
+
+  it('shows loading state while fetching user data', () => {
+    mockUseAuth.mockReturnValue({
+      isAuthenticated: true,
+      accessToken: 'valid-token',
+      refreshToken: 'valid-refresh-token',
+      login: vi.fn(),
+      logout: vi.fn(),
+      api: {}
+    })
+    mockUseCurrentUser.mockReturnValue({
+      user: null,
+      loading: true,
+      error: null
+    })
+
+    renderWithRouter(
+      <ProtectedRoute>
+        <TestChild />
+      </ProtectedRoute>
+    )
+
+    expect(screen.getByText('Loading...')).toBeInTheDocument()
+    expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument()
+  })
+
+  it('redirects to signup when user setup is not completed', () => {
+    mockUseAuth.mockReturnValue({
+      isAuthenticated: true,
+      accessToken: 'valid-token',
+      refreshToken: 'valid-refresh-token',
+      login: vi.fn(),
+      logout: vi.fn(),
+      api: {}
+    })
+    mockUseCurrentUser.mockReturnValue({
+      user: { ID: 'user-123', Email: 'test@example.com', SetupCompleted: false },
+      loading: false,
+      error: null
+    })
+
+    renderWithRouter(
+      <ProtectedRoute>
+        <TestChild />
+      </ProtectedRoute>
+    )
+
+    expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument()
+    expect(screen.getByTestId('navigate')).toBeInTheDocument()
+    expect(mockNavigate).toHaveBeenCalledWith('/signup', true)
   })
 })
