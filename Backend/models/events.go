@@ -20,10 +20,10 @@ type Event struct {
 	Location    *string   `json:"Location,omitempty" gorm:"type:varchar(255)" odata:"nullable"`
 	StartTime   time.Time `json:"StartTime" gorm:"not null" odata:"required"`
 	EndTime     time.Time `json:"EndTime" gorm:"not null" odata:"required"`
-	CreatedAt   time.Time `json:"CreatedAt" odata:"immutable"`
-	CreatedBy   string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
-	UpdatedAt   time.Time `json:"UpdatedAt"`
-	UpdatedBy   string    `json:"UpdatedBy" gorm:"type:uuid" odata:"required"`
+	CreatedAt   time.Time `json:"CreatedAt" odata:"auto,immutable"`
+	CreatedBy   string    `json:"CreatedBy" gorm:"type:uuid" odata:"auto,immutable"`
+	UpdatedAt   time.Time `json:"UpdatedAt" odata:"auto"`
+	UpdatedBy   string    `json:"UpdatedBy" gorm:"type:uuid" odata:"auto"`
 	// Recurring event fields
 	IsRecurring        bool       `json:"IsRecurring" gorm:"column:is_recurring;default:false"`
 	RecurrencePattern  *string    `json:"RecurrencePattern,omitempty" gorm:"column:recurrence_pattern;type:varchar(50)" odata:"nullable"` // "weekly", "daily", "monthly"

@@ -741,11 +741,18 @@ func TestEventCRUD(t *testing.T) {
 			"StartTime":   startTime.Format(time.RFC3339),
 			"EndTime":     endTime.Format(time.RFC3339),
 			"Location":    "Test Location",
-			"CreatedBy":   ctx.testUser.ID,
-			"UpdatedBy":   ctx.testUser.ID,
+			// CreatedBy and UpdatedBy are auto-generated server-side from the authenticated user
 		}
 
 		resp := ctx.makeAuthenticatedRequest(t, "POST", "/Events", newEvent)
+
+		// If status is not 201, print the error response
+		if resp.StatusCode != http.StatusCreated {
+			var errResp map[string]interface{}
+			json.NewDecoder(resp.Body).Decode(&errResp)
+			t.Logf("POST failed with status %d: %+v", resp.StatusCode, errResp)
+		}
+
 		// May return 500 if there are schema issues, or 201 on success
 		if resp.StatusCode == http.StatusInternalServerError {
 			t.Skip("Event creation failed due to database schema - expected in test environment")
@@ -768,6 +775,13 @@ func TestEventCRUD(t *testing.T) {
 			}
 			if created["ClubID"] != nil {
 				assert.Equal(t, ctx.testClub.ID, created["ClubID"])
+			}
+			// Verify CreatedBy and UpdatedBy are auto-generated
+			if created["CreatedBy"] != nil {
+				assert.Equal(t, ctx.testUser.ID, created["CreatedBy"])
+			}
+			if created["UpdatedBy"] != nil {
+				assert.Equal(t, ctx.testUser.ID, created["UpdatedBy"])
 			}
 		}
 	})
