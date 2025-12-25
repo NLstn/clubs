@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -19,8 +18,10 @@ import (
 // This limit can be increased in the future through a paid subscription.
 const DefaultMaxActiveClubs = 3
 
-// ErrClubLimitExceeded is returned when a user tries to create more clubs than their quota allows
-var ErrClubLimitExceeded = errors.New("club creation limit exceeded: you can only create up to 3 active clubs")
+// ErrClubLimitExceeded returns an error when a user tries to create more clubs than their quota allows
+func ErrClubLimitExceeded() error {
+	return fmt.Errorf("club creation limit exceeded: you can only create up to %d active clubs", DefaultMaxActiveClubs)
+}
 
 type Club struct {
 	ID          string     `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
@@ -135,7 +136,7 @@ func (c *Club) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("failed to check club creation quota: %w", err)
 	}
 	if activeClubCount >= DefaultMaxActiveClubs {
-		return ErrClubLimitExceeded
+		return ErrClubLimitExceeded()
 	}
 
 	// Set audit fields
