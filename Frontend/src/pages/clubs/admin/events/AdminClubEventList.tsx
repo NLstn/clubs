@@ -257,7 +257,7 @@ const AdminClubEventList = () => {
                 loadingMessage="Loading events..."
                 errorMessage={error || "Failed to fetch events"}
             />
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginTop: '20px' }}>
                 <Button onClick={() => setIsAddModalOpen(true)} variant="accept">
                     Add Event
                 </Button>
