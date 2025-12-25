@@ -428,19 +428,19 @@ func TestCountActiveClubsCreatedByUser(t *testing.T) {
 		user, _ := handlers.CreateTestUser(t, "countuser@example.com")
 
 		// Initially no clubs
-		count, err := models.CountActiveClubsCreatedByUser(user.ID)
+		count, err := models.CountActiveClubsCreatedByUser(user.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(0), count)
 
 		// Create first club
 		handlers.CreateTestClub(t, user, "Club 1")
-		count, err = models.CountActiveClubsCreatedByUser(user.ID)
+		count, err = models.CountActiveClubsCreatedByUser(user.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1), count)
 
 		// Create second club
 		handlers.CreateTestClub(t, user, "Club 2")
-		count, err = models.CountActiveClubsCreatedByUser(user.ID)
+		count, err = models.CountActiveClubsCreatedByUser(user.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(2), count)
 	})
@@ -454,13 +454,13 @@ func TestCountActiveClubsCreatedByUser(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Count should be 0
-		count, err := models.CountActiveClubsCreatedByUser(user.ID)
+		count, err := models.CountActiveClubsCreatedByUser(user.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(0), count)
 
 		// Create an active club
 		handlers.CreateTestClub(t, user, "Active Club")
-		count, err = models.CountActiveClubsCreatedByUser(user.ID)
+		count, err = models.CountActiveClubsCreatedByUser(user.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1), count)
 	})
@@ -477,12 +477,12 @@ func TestCountActiveClubsCreatedByUser(t *testing.T) {
 		handlers.CreateTestClub(t, user2, "User2 Club")
 
 		// Count for user1 should be 2
-		count, err := models.CountActiveClubsCreatedByUser(user1.ID)
+		count, err := models.CountActiveClubsCreatedByUser(user1.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(2), count)
 
 		// Count for user2 should be 1
-		count, err = models.CountActiveClubsCreatedByUser(user2.ID)
+		count, err = models.CountActiveClubsCreatedByUser(user2.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(1), count)
 	})
@@ -524,7 +524,7 @@ func TestClubCreationLimit(t *testing.T) {
 		}
 
 		// Verify user has 3 clubs
-		count, err := models.CountActiveClubsCreatedByUser(user.ID)
+		count, err := models.CountActiveClubsCreatedByUser(user.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})
@@ -556,7 +556,7 @@ func TestClubCreationLimit(t *testing.T) {
 		assert.True(t, resp.StatusCode >= 400 && resp.StatusCode < 500, "Creating 4th club should be rejected")
 
 		// Verify user still has only 3 clubs
-		count, err := models.CountActiveClubsCreatedByUser(user.ID)
+		count, err := models.CountActiveClubsCreatedByUser(user.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})
@@ -575,7 +575,7 @@ func TestClubCreationLimit(t *testing.T) {
 		assert.NoError(t, err)
 
 		// Verify count is now 2
-		count, err := models.CountActiveClubsCreatedByUser(user.ID)
+		count, err := models.CountActiveClubsCreatedByUser(user.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(2), count)
 
@@ -597,7 +597,7 @@ func TestClubCreationLimit(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, resp.StatusCode, "Should be able to create club after deleting one")
 
 		// Verify count is back to 3
-		count, err = models.CountActiveClubsCreatedByUser(user.ID)
+		count, err = models.CountActiveClubsCreatedByUser(user.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})
@@ -613,7 +613,7 @@ func TestClubCreationLimit(t *testing.T) {
 		}
 
 		// Count should be 0
-		count, err := models.CountActiveClubsCreatedByUser(user.ID)
+		count, err := models.CountActiveClubsCreatedByUser(user.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(0), count)
 
@@ -637,7 +637,7 @@ func TestClubCreationLimit(t *testing.T) {
 		}
 
 		// Count should be 3
-		count, err = models.CountActiveClubsCreatedByUser(user.ID)
+		count, err = models.CountActiveClubsCreatedByUser(user.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, int64(3), count)
 	})

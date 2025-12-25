@@ -28,11 +28,11 @@ type Club struct {
 	Name        string     `json:"Name" odata:"required"`
 	Description *string    `json:"Description,omitempty" odata:"nullable"`
 	LogoURL     *string    `json:"LogoURL,omitempty" odata:"nullable"`
-	CreatedAt   time.Time  `json:"CreatedAt" odata:"auto,immutable"`                  // Set server-side, immutable after creation
-	CreatedBy   string     `json:"CreatedBy" gorm:"type:uuid" odata:"auto,immutable"` // Set server-side from context
-	UpdatedAt   time.Time  `json:"UpdatedAt" odata:"auto"`                            // Set server-side automatically
-	UpdatedBy   string     `json:"UpdatedBy" gorm:"type:uuid" odata:"auto"`           // Set server-side from context
-	Deleted     bool       `json:"Deleted" gorm:"default:false"`
+	CreatedAt   time.Time  `json:"CreatedAt" odata:"auto,immutable"`                                                         // Set server-side, immutable after creation
+	CreatedBy   string     `json:"CreatedBy" gorm:"type:uuid;index:idx_clubs_created_by_deleted" odata:"auto,immutable"`     // Set server-side from context
+	UpdatedAt   time.Time  `json:"UpdatedAt" odata:"auto"`                                                                   // Set server-side automatically
+	UpdatedBy   string     `json:"UpdatedBy" gorm:"type:uuid" odata:"auto"`                                                  // Set server-side from context
+	Deleted     bool       `json:"Deleted" gorm:"default:false;index:idx_clubs_created_by_deleted"`
 	DeletedAt   *time.Time `json:"DeletedAt,omitempty" odata:"nullable"`
 	DeletedBy   *string    `json:"DeletedBy,omitempty" gorm:"type:uuid" odata:"nullable"`
 
@@ -99,9 +99,14 @@ func (c *Club) GetAdminsAndOwners() ([]User, error) {
 
 // CountActiveClubsCreatedByUser returns the number of active (non-deleted) clubs created by a user.
 // This is used to enforce the club creation quota.
-func CountActiveClubsCreatedByUser(userID string) (int64, error) {
+// If tx is provided, it uses that transaction; otherwise it uses the global database connection.
+func CountActiveClubsCreatedByUser(userID string, tx *gorm.DB) (int64, error) {
 	var count int64
-	err := database.Db.Model(&Club{}).
+	db := tx
+	if db == nil {
+		db = database.Db
+	}
+	err := db.Model(&Club{}).
 		Where("created_by = ? AND deleted = ?", userID, false).
 		Count(&count).Error
 	return count, err
@@ -122,7 +127,7 @@ func (c *Club) BeforeCreate(tx *gorm.DB) error {
 // OData EntityHook implementation
 
 // ODataBeforeCreate OData hook - sets audit fields from authenticated user context
-// and enforces the club creation quota
+// and enforces the club creation quota within the same transaction to prevent race conditions
 func (c *Club) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 	// Extract user ID from context
 	userID, ok := ctx.Value(auth.UserIDKey).(string)
@@ -130,8 +135,11 @@ func (c *Club) ODataBeforeCreate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("unauthorized: user ID not found in context")
 	}
 
-	// Check club creation quota
-	activeClubCount, err := CountActiveClubsCreatedByUser(userID)
+	// Get transaction from context for atomic quota check
+	tx, _ := odata.TransactionFromContext(ctx)
+
+	// Check club creation quota within the transaction to prevent race conditions
+	activeClubCount, err := CountActiveClubsCreatedByUser(userID, tx)
 	if err != nil {
 		return fmt.Errorf("failed to check club creation quota: %w", err)
 	}
