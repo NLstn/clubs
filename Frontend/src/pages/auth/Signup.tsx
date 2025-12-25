@@ -33,10 +33,10 @@ const Signup: React.FC = () => {
     }
 
     try {
-      // OData v2: PATCH to update user entity
+      // OData v2: PATCH to update user entity (PascalCase field names required)
       await api.patch(`/api/v2/Users('${currentUser.ID}')`, {
-        firstName: firstName.trim(),
-        lastName: lastName.trim()
+        FirstName: firstName.trim(),
+        LastName: lastName.trim()
       });
 
       // Navigate to dashboard after successful signup
