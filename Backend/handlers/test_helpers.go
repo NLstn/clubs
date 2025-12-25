@@ -21,14 +21,14 @@ func GetDB() *gorm.DB {
 	return testDB
 }
 
-// SetupTestDB initializes an in-memory SQLite database for testing
+// SetupTestDB initializes a file-based SQLite database for testing
 func SetupTestDB(t *testing.T) {
 	// Set test environment variable
 	os.Setenv("GO_ENV", "test")
 
 	var err error
-	// Use file::memory:?cache=shared to ensure all connections share the same in-memory database
-	testDB, err = gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	// Use a temp file-based SQLite database for more consistent test behavior
+	testDB, err = gorm.Open(sqlite.Open("file:/tmp/test.db?cache=shared"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("Failed to connect to test database: %v", err)
 	}
