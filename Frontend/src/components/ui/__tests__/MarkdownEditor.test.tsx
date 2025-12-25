@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import '@testing-library/jest-dom';
 import { MarkdownEditor } from '../MarkdownEditor';
@@ -51,7 +51,7 @@ describe('MarkdownEditor Component', () => {
     expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
-  it('switches to preview mode when Preview tab is clicked', () => {
+  it('switches to preview mode when Preview tab is clicked', async () => {
     render(<MarkdownEditor {...defaultProps} value="**Bold text**" />);
     
     const previewTab = screen.getByRole('button', { name: /preview/i });
@@ -59,7 +59,9 @@ describe('MarkdownEditor Component', () => {
     
     expect(previewTab).toHaveClass('active');
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
-    expect(screen.getByText('Bold text')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Bold text')).toBeInTheDocument();
+    });
   });
 
   it('switches back to write mode when Write tab is clicked', () => {
@@ -152,22 +154,26 @@ describe('MarkdownEditor Component', () => {
     expect(textarea).toHaveAttribute('id', 'custom-id');
   });
 
-  it('renders markdown content in preview mode', () => {
+  it('renders markdown content in preview mode', async () => {
     render(<MarkdownEditor {...defaultProps} value="# Heading" />);
     
     const previewTab = screen.getByRole('button', { name: /preview/i });
     fireEvent.click(previewTab);
     
-    expect(screen.getByRole('heading', { level: 1, name: 'Heading' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: 'Heading' })).toBeInTheDocument();
+    });
   });
 
-  it('renders bold text in preview mode', () => {
+  it('renders bold text in preview mode', async () => {
     render(<MarkdownEditor {...defaultProps} value="**bold text**" />);
     
     const previewTab = screen.getByRole('button', { name: /preview/i });
     fireEvent.click(previewTab);
     
-    expect(screen.getByText('bold text')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('bold text')).toBeInTheDocument();
+    });
   });
 
   it('sets custom number of rows', () => {
