@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import CookieConsent from '../../components/CookieConsent';
 import { Input, Button } from '@/components/ui';
+import './Login.css';
 
 const Signup: React.FC = () => {
   const { api } = useAuth();
