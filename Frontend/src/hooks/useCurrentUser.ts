@@ -8,6 +8,7 @@ export interface CurrentUser {
   FirstName?: string;
   LastName?: string;
   BirthDate?: string;
+  SetupCompleted?: boolean;
 }
 
 export const useCurrentUser = () => {
@@ -21,7 +22,7 @@ export const useCurrentUser = () => {
       try {
         setLoading(true);
         // OData v2: Query Users entity - backend hooks filter to current user
-        const response = await api.get<ODataCollectionResponse<CurrentUser>>('/api/v2/Users?$select=ID,Email,FirstName,LastName,BirthDate');
+        const response = await api.get<ODataCollectionResponse<CurrentUser>>('/api/v2/Users?$select=ID,Email,FirstName,LastName,BirthDate,SetupCompleted');
         // OData returns collection with 'value' array
         const users = parseODataCollection(response.data);
         if (users.length > 0) {

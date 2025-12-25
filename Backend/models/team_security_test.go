@@ -28,6 +28,7 @@ func setupTeamSecurityTestDB(t *testing.T) {
 			email TEXT NOT NULL UNIQUE,
 			keycloak_id TEXT UNIQUE,
 			birth_date DATE,
+			setup_completed BOOLEAN DEFAULT 0,
 			created_at DATETIME,
 			updated_at DATETIME
 		);

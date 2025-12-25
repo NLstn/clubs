@@ -35,6 +35,7 @@ func setupMiddlewareTestDB(t *testing.T) *gorm.DB {
 			email TEXT NOT NULL,
 			keycloak_id TEXT,
 			birth_date DATE,
+			setup_completed BOOLEAN DEFAULT FALSE,
 			created_at DATETIME,
 			updated_at DATETIME
 		)

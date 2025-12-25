@@ -18,14 +18,15 @@ import (
 )
 
 type User struct {
-	ID         string     `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
-	FirstName  string     `json:"FirstName" odata:"required"`
-	LastName   string     `json:"LastName" odata:"required"`
-	Email      string     `json:"Email" gorm:"uniqueIndex;not null" odata:"required"`
-	KeycloakID *string    `json:"KeycloakID,omitempty" gorm:"uniqueIndex" odata:"nullable"`
-	BirthDate  *time.Time `json:"BirthDate,omitempty" gorm:"type:date" odata:"nullable"`
-	CreatedAt  time.Time  `json:"CreatedAt" odata:"immutable"`
-	UpdatedAt  time.Time  `json:"UpdatedAt"`
+	ID             string     `json:"ID" gorm:"type:uuid;default:gen_random_uuid();primaryKey" odata:"key"`
+	FirstName      string     `json:"FirstName" odata:"required"`
+	LastName       string     `json:"LastName" odata:"required"`
+	Email          string     `json:"Email" gorm:"uniqueIndex;not null" odata:"required"`
+	KeycloakID     *string    `json:"KeycloakID,omitempty" gorm:"uniqueIndex" odata:"nullable"`
+	BirthDate      *time.Time `json:"BirthDate,omitempty" gorm:"type:date" odata:"nullable"`
+	SetupCompleted bool       `json:"SetupCompleted" gorm:"default:false"`
+	CreatedAt      time.Time  `json:"CreatedAt" odata:"immutable"`
+	UpdatedAt      time.Time  `json:"UpdatedAt"`
 
 	// Navigation properties for OData
 	Members     []Member     `gorm:"foreignKey:UserID" json:"Members,omitempty" odata:"nav"`
@@ -304,6 +305,11 @@ func (u *User) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("forbidden: can only update your own user profile")
 	}
 
+	// Mark setup as completed if name is being provided
+	if u.FirstName != "" && u.LastName != "" {
+		u.SetupCompleted = true
+	}
+
 	// Set UpdatedAt
 	u.UpdatedAt = time.Now()
 
@@ -371,11 +377,15 @@ func FindOrCreateUserWithKeycloakID(keycloakID, email, fullName string) (User, e
 		// Parse full name into first and last name
 		firstName, lastName := parseFullName(fullName)
 
+		// Mark setup as completed if we have both first and last name from Keycloak
+		setupCompleted := firstName != "" && lastName != ""
+
 		user = User{
-			Email:      email,
-			KeycloakID: &keycloakID,
-			FirstName:  firstName,
-			LastName:   lastName,
+			Email:          email,
+			KeycloakID:     &keycloakID,
+			FirstName:      firstName,
+			LastName:       lastName,
+			SetupCompleted: setupCompleted,
 		}
 		err = database.Db.Create(&user).Error
 		if err != nil {
