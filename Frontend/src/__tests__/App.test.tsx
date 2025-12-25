@@ -37,7 +37,7 @@ vi.mock('react-i18next', () => ({
 // Mock the entire router module
 vi.mock('react-router-dom', () => ({
   BrowserRouter: ({ children }: { children: React.ReactNode }) => <div data-testid="browser-router">{children}</div>,
-  Routes: ({ children }: { children: React.ReactNode }) => <div data-testid="routes">{children}</div>,
+  Routes: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   Route: ({ element }: { element: React.ReactNode }) => <div data-testid="route">{element}</div>,
   useNavigate: () => vi.fn(),
   useParams: () => ({ clubId: '1', eventId: '1' }),
@@ -155,9 +155,9 @@ describe('App', () => {
     expect(screen.getByTestId('auth-provider')).toBeInTheDocument();
     expect(screen.getByTestId('browser-router')).toBeInTheDocument();
     
-    // Wait for Suspense to resolve and Routes to render
+    // Wait for Suspense to resolve and lazy components to render
     await waitFor(() => {
-      expect(screen.getByTestId('routes')).toBeInTheDocument();
+      expect(screen.getByTestId('dashboard')).toBeInTheDocument();
     });
   });
 

@@ -69,7 +69,8 @@ jobs:
       with:
         inlineScript: |
           REVISION_SUFFIX="r-${GITHUB_SHA::7}-$(date +%s)"
+          IMAGE_TAG="main-${GITHUB_SHA::7}"
           az containerapp update --name civo-staging-backend \
             --resource-group civo-staging-rg \
-            --image ghcr.io/nlstn/civo/backend:latest \
+            --image ghcr.io/nlstn/civo/backend:${IMAGE_TAG} \
             --revision-suffix "$REVISION_SUFFIX"

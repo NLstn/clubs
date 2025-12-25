@@ -49,7 +49,7 @@ function App() {
             <AuthProvider>
                 <BrowserRouter>
                     <Suspense fallback={<PageLoader />}>
-                        <Routes data-testid="routes">
+                        <Routes>
                         <Route path="/" element={
                             <ProtectedRoute>
                                 <Dashboard />
