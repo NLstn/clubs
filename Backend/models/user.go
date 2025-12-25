@@ -14,6 +14,7 @@ import (
 
 	"github.com/NLstn/civo/auth"
 	"github.com/NLstn/civo/database"
+	"github.com/nlstn/go-odata"
 	"gorm.io/gorm"
 )
 
@@ -305,13 +306,31 @@ func (u *User) ODataBeforeUpdate(ctx context.Context, r *http.Request) error {
 		return fmt.Errorf("forbidden: can only update your own user profile")
 	}
 
-	// Mark setup as completed if name is being provided
-	if u.FirstName != "" && u.LastName != "" {
-		u.SetupCompleted = true
-	}
-
 	// Set UpdatedAt
 	u.UpdatedAt = time.Now()
+
+	return nil
+}
+
+// ODataAfterUpdate handles setting SetupCompleted when both FirstName and LastName are provided
+// This hook persists the SetupCompleted field that may not be in the original PATCH request
+func (u *User) ODataAfterUpdate(ctx context.Context, r *http.Request) error {
+	// If user now has both FirstName and LastName, mark setup as completed
+	if u.FirstName != "" && u.LastName != "" && !u.SetupCompleted {
+		// Get transaction from context
+		tx, ok := odata.TransactionFromContext(ctx)
+		if !ok {
+			return nil // Log but don't fail the update
+		}
+
+		// Update the SetupCompleted field
+		if err := tx.Model(&User{}).Where("id = ?", u.ID).Update("setup_completed", true).Error; err != nil {
+			return fmt.Errorf("failed to set setup_completed: %w", err)
+		}
+
+		// Update the in-memory struct as well
+		u.SetupCompleted = true
+	}
 
 	return nil
 }
