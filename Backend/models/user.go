@@ -320,7 +320,8 @@ func (u *User) ODataAfterUpdate(ctx context.Context, r *http.Request) error {
 		// Get transaction from context
 		tx, ok := odata.TransactionFromContext(ctx)
 		if !ok {
-			return nil // Log but don't fail the update
+			// Transaction not available - don't fail the update
+			return nil
 		}
 
 		// Update the SetupCompleted field
