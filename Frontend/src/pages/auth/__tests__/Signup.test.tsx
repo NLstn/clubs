@@ -112,8 +112,8 @@ describe('Signup', () => {
 
     await waitFor(() => {
       expect(mockApi.patch).toHaveBeenCalledWith('/api/v2/Users(\'user-123\')', {
-        firstName: 'John',
-        lastName: 'Doe',
+        FirstName: 'John',
+        LastName: 'Doe',
       });
       expect(mockNavigate).toHaveBeenCalledWith('/');
     });
