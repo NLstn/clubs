@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/NLstn/civo/auth"
@@ -99,13 +100,6 @@ func (c *Club) AddMemberViaInvite(userId, role string) error {
 }
 
 func (c *Club) addMemberWithActor(userId, role string, sendNotification bool, actorID *string) error {
-	var existing Member
-	if err := database.Db.Where("club_id = ? AND user_id = ?", c.ID, userId).First(&existing).Error; err == nil {
-		return ErrMemberAlreadyExists
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return err
-	}
-
 	var member Member
 	member.ID = uuid.New().String()
 	member.ClubID = c.ID
@@ -120,6 +114,13 @@ func (c *Club) addMemberWithActor(userId, role string, sendNotification bool, ac
 	member.UpdatedBy = createdBy
 	err := database.Db.Create(&member).Error
 	if err != nil {
+		// Check if this is a unique constraint violation
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "UNIQUE constraint failed") ||
+			strings.Contains(errMsg, "duplicate key") ||
+			strings.Contains(errMsg, "unique constraint") {
+			return ErrMemberAlreadyExists
+		}
 		return err
 	}
 	if sendNotification {
