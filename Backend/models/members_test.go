@@ -224,11 +224,10 @@ func TestAddMember(t *testing.T) {
 		err := club.AddMember(member.ID, "member")
 		assert.NoError(t, err)
 
-		// Try to add same member again - this may not fail in SQLite without proper constraints
+		// Try to add same member again - should now fail with ErrMemberAlreadyExists
 		err = club.AddMember(member.ID, "member")
-		// Note: SQLite may not enforce this constraint, so we just check it doesn't panic
-		// In a real PostgreSQL setup, this would fail with a unique constraint error
-		assert.NoError(t, err) // Changed to NoError since SQLite doesn't enforce this
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, models.ErrMemberAlreadyExists)
 	})
 
 	t.Run("add_non-existent_user_should_fail", func(t *testing.T) {
