@@ -188,8 +188,19 @@ const AdminClubDetails = () => {
                 Name: editForm.name,
                 Description: editForm.description
             });
-            const updatedClub = response.data;
-            setClub(updatedClub);
+            
+            // OData PATCH may return 204 No Content with empty body, or 200 OK with updated entity
+            // If we get a response body, use it; otherwise, update state with form values
+            if (response.data && response.data.ID) {
+                setClub(response.data);
+            } else if (club) {
+                // 204 No Content: update local state with the values we sent
+                setClub({
+                    ...club,
+                    Name: editForm.name,
+                    Description: editForm.description
+                });
+            }
             
             setIsEditing(false);
             setError(null);
