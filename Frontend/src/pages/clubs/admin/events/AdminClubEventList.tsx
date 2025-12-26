@@ -226,9 +226,9 @@ const AdminClubEventList = () => {
                 return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                         <div>
-                            <span style={{color: 'green'}}>Yes: {yesCount}</span>{' '}
-                            <span style={{color: 'red'}}>No: {noCount}</span>{' '}
-                            <span style={{color: 'orange'}}>Maybe: {maybeCount}</span>
+                            <span style={{color: 'var(--color-primary)'}}>Yes: {yesCount}</span>{' '}
+                            <span style={{color: 'var(--color-cancel)'}}>No: {noCount}</span>{' '}
+                            <span style={{color: 'var(--color-maybe)'}}>Maybe: {maybeCount}</span>
                         </div>
                         {(yesCount > 0 || noCount > 0 || maybeCount > 0) && (
                             <Button
