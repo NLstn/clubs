@@ -103,9 +103,13 @@ func (c *Club) addMemberWithActor(userId, role string, sendNotification bool, ac
 	member.ClubID = c.ID
 	member.UserID = userId
 	member.Role = role
-	// For now, set created_by to the user being added since we don't have the adding user's ID
-	member.CreatedBy = userId
-	member.UpdatedBy = userId
+	// Set created_by/updated_by to the adding user when available, otherwise fall back to the added user.
+	createdBy := userId
+	if actorID != nil {
+		createdBy = *actorID
+	}
+	member.CreatedBy = createdBy
+	member.UpdatedBy = createdBy
 	err := database.Db.Create(&member).Error
 	if err != nil {
 		return err
