@@ -1,0 +1,92 @@
+/* Admin Club Event List Styles */
+
+/* Clickable event name link styling */
+.event-name-link {
+    background: none;
+    border: none;
+    color: var(--color-secondary);
+    font-size: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 0;
+    text-align: left;
+    transition: color 0.2s ease;
+}
+
+.event-name-link:hover {
+    color: var(--color-secondary-hover);
+    text-decoration: underline;
+}
+
+.event-name-link:focus {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+    border-radius: var(--border-radius-sm);
+}
+
+/* Event Details Modal Content */
+.event-details-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.event-details-title {
+    margin: 0 0 var(--space-sm) 0;
+    color: var(--color-text);
+    font-size: 1.5rem;
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: var(--space-sm);
+}
+
+.event-details-section {
+    margin-bottom: 0;
+}
+
+.event-details-section h4 {
+    margin: 0 0 var(--space-sm) 0;
+    color: var(--color-text);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.event-details-section p {
+    margin: 0;
+    color: var(--color-text-secondary);
+}
+
+.event-schedule {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    color: var(--color-text-secondary);
+}
+
+.event-rsvp-summary {
+    display: flex;
+    gap: var(--space-lg);
+    font-weight: 500;
+}
+
+.event-shifts-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.event-shift-item {
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-background);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .event-rsvp-summary {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+}
