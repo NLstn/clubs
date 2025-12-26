@@ -7,7 +7,7 @@
 
 .club-settings-title {
   margin: 0 0 var(--space-sm) 0;
-  font-size: 1.8rem;
+  font-size: var(--font-size-page-title);
   font-weight: 600;
   color: var(--color-text);
 }
@@ -15,7 +15,7 @@
 .club-settings-description {
   margin: 0 0 var(--space-lg) 0;
   color: var(--color-text-secondary);
-  font-size: 1rem;
+  font-size: var(--font-size-page-description);
   line-height: 1.5;
 }
 
@@ -32,12 +32,7 @@
     padding: 0 var(--space-sm);
   }
 
-  .club-settings-title {
-    font-size: 1.5rem;
-  }
-
   .club-settings-description {
-    font-size: 0.95rem;
     margin: 0 0 var(--space-md) 0;
   }
 }
@@ -49,15 +44,7 @@
     padding: 0;
   }
 
-  .club-settings-title {
-    font-size: 1.3rem;
-  }
-
-  .club-settings-description {
-    font-size: 0.9rem;
-  }
-
   .saving-indicator {
-    font-size: 0.9rem;
+    font-size: var(--font-size-small);
   }
 }

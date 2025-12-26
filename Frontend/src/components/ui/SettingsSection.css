@@ -19,14 +19,14 @@
 
 .settings-section-title {
     margin: 0 0 var(--space-xs) 0;
-    font-size: 1.25rem;
+    font-size: var(--font-size-section-title);
     font-weight: 600;
     color: var(--color-text);
 }
 
 .settings-section-description {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: var(--font-size-section-description);
     color: var(--color-text-secondary);
     line-height: 1.4;
 }
@@ -62,14 +62,14 @@
 
 .setting-title {
     margin: 0 0 var(--space-xs) 0;
-    font-size: 1rem;
+    font-size: var(--font-size-setting-title);
     font-weight: 500;
     color: var(--color-text);
 }
 
 .setting-description {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: var(--font-size-setting-description);
     color: var(--color-text-secondary);
     line-height: 1.4;
 }
@@ -90,20 +90,8 @@
         padding-bottom: var(--space-sm);
     }
 
-    .settings-section-title {
-        font-size: 1.15rem;
-    }
-
     .setting-item {
         padding: var(--space-sm) 0;
-    }
-
-    .setting-title {
-        font-size: 0.95rem;
-    }
-
-    .setting-description {
-        font-size: 0.85rem;
     }
 }
 
@@ -121,14 +109,6 @@
         border-bottom-width: 1px;
     }
 
-    .settings-section-title {
-        font-size: 1.1rem;
-    }
-
-    .settings-section-description {
-        font-size: 0.85rem;
-    }
-
     .setting-item {
         flex-direction: column;
         justify-content: flex-start;
@@ -137,12 +117,7 @@
         padding: var(--space-sm) 0;
     }
 
-    .setting-title {
-        font-size: 0.9rem;
-    }
-
     .setting-description {
-        font-size: 0.8rem;
         line-height: 1.3;
     }
 

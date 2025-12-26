@@ -16,6 +16,15 @@
   --space-lg: 2rem;
   --space-xl: 3rem;
 
+  /* Font Sizes - Theme Independent */
+  --font-size-page-title: 1.8rem;
+  --font-size-page-description: 1rem;
+  --font-size-section-title: 1.25rem;
+  --font-size-section-description: 0.9rem;
+  --font-size-setting-title: 1rem;
+  --font-size-setting-description: 0.875rem;
+  --font-size-small: 0.9rem;
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -109,19 +118,17 @@
   background-color: var(--color-background);
 }
 
-/* Mobile-specific spacing adjustments */
-@media (max-width: 480px) {
-  :root {
-    --space-xs: 0.4rem;
-    --space-sm: 0.8rem;
-    --space-md: 1.2rem;
-    --space-lg: 1.6rem;
-    --space-xl: 2.4rem;
-  }
-}
-
-/* Mobile utility classes */
+/* Responsive variables and utility classes */
 @media (max-width: 768px) {
+  :root {
+    /* Font Sizes - Tablet */
+    --font-size-page-title: 1.5rem;
+    --font-size-page-description: 0.95rem;
+    --font-size-section-title: 1.15rem;
+    --font-size-setting-title: 0.95rem;
+    --font-size-setting-description: 0.85rem;
+  }
+
   .mobile-hide {
     display: none !important;
   }
@@ -159,6 +166,23 @@
 }
 
 @media (max-width: 480px) {
+  :root {
+    --space-xs: 0.4rem;
+    --space-sm: 0.8rem;
+    --space-md: 1.2rem;
+    --space-lg: 1.6rem;
+    --space-xl: 2.4rem;
+
+    /* Font Sizes - Mobile */
+    --font-size-page-title: 1.3rem;
+    --font-size-page-description: 0.9rem;
+    --font-size-section-title: 1.1rem;
+    --font-size-section-description: 0.85rem;
+    --font-size-setting-title: 0.9rem;
+    --font-size-setting-description: 0.8rem;
+    --font-size-small: 0.9rem;
+  }
+
   .mobile-sm-hide {
     display: none !important;
   }
