@@ -2,6 +2,7 @@
 .club-settings {
   max-width: 800px;
   margin: 0 auto;
+  padding: 0 var(--space-md);
 }
 
 .club-settings-title {
@@ -15,6 +16,7 @@
   margin: 0 0 var(--space-lg) 0;
   color: var(--color-text-secondary);
   font-size: 1rem;
+  line-height: 1.5;
 }
 
 .saving-indicator {
@@ -22,4 +24,40 @@
   color: var(--color-text-secondary);
   font-style: italic;
   margin-top: var(--space-md);
+}
+
+/* Tablet responsive */
+@media (max-width: 768px) {
+  .club-settings {
+    padding: 0 var(--space-sm);
+  }
+
+  .club-settings-title {
+    font-size: 1.5rem;
+  }
+
+  .club-settings-description {
+    font-size: 0.95rem;
+    margin: 0 0 var(--space-md) 0;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .club-settings {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .club-settings-title {
+    font-size: 1.3rem;
+  }
+
+  .club-settings-description {
+    font-size: 0.9rem;
+  }
+
+  .saving-indicator {
+    font-size: 0.9rem;
+  }
 }
