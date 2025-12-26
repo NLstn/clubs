@@ -92,7 +92,13 @@ func AcceptJoinRequest(requestId, adminUserId string) error {
 	err = RemoveJoinRequestNotifications(joinRequest.ID)
 	if err != nil {
 		// Log error but don't fail the operation
-		// TODO: Add proper logging
+		log.Printf(
+			"Failed to remove join request notifications: club_id=%s join_request_id=%s admin_id=%s err=%v",
+			joinRequest.ClubID,
+			joinRequest.ID,
+			adminUserId,
+			err,
+		)
 	}
 
 	// Delete the join request since it's now complete
@@ -192,7 +198,13 @@ func (c *Club) notifyAdminsAboutJoinRequest(userID, email, joinRequestID string)
 			err := CreateNotificationWithJoinRequest(admin.ID, "join_request_received", title, message, &c.ID, nil, nil, &joinRequestID)
 			if err != nil {
 				// Log error but continue with other notifications
-				// TODO: Add proper logging
+				log.Printf(
+					"Failed to create join request notification: club_id=%s join_request_id=%s admin_id=%s err=%v",
+					c.ID,
+					joinRequestID,
+					admin.ID,
+					err,
+				)
 			}
 		}
 
