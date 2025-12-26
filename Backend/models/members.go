@@ -16,11 +16,12 @@ import (
 )
 
 var ErrLastOwnerDemotion = errors.New("cannot demote the last owner of the club")
+var ErrMemberAlreadyExists = errors.New("member already exists for club and user")
 
 type Member struct {
 	ID        string    `json:"ID" gorm:"type:uuid;primary_key" odata:"key"`
-	ClubID    string    `json:"ClubID" gorm:"type:uuid" odata:"required"`
-	UserID    string    `json:"UserID" gorm:"type:uuid" odata:"required"`
+	ClubID    string    `json:"ClubID" gorm:"type:uuid;uniqueIndex:idx_members_club_user" odata:"required"`
+	UserID    string    `json:"UserID" gorm:"type:uuid;uniqueIndex:idx_members_club_user" odata:"required"`
 	Role      string    `json:"Role" gorm:"default:member" odata:"required"`
 	CreatedAt time.Time `json:"CreatedAt" odata:"immutable"`
 	CreatedBy string    `json:"CreatedBy" gorm:"type:uuid" odata:"required"`
@@ -98,6 +99,13 @@ func (c *Club) AddMemberViaInvite(userId, role string) error {
 }
 
 func (c *Club) addMemberWithActor(userId, role string, sendNotification bool, actorID *string) error {
+	var existing Member
+	if err := database.Db.Where("club_id = ? AND user_id = ?", c.ID, userId).First(&existing).Error; err == nil {
+		return ErrMemberAlreadyExists
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
 	var member Member
 	member.ID = uuid.New().String()
 	member.ClubID = c.ID
