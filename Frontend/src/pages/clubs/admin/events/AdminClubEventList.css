@@ -83,6 +83,16 @@
     font-size: 0.9rem;
 }
 
+/* Delete error message in modal */
+.event-delete-error {
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-error-bg);
+    color: var(--color-error-text);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.9rem;
+    margin-top: var(--space-sm);
+}
+
 /* Responsive styles */
 @media (max-width: 768px) {
     .event-rsvp-summary {

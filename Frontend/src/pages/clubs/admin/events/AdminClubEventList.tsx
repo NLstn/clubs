@@ -43,6 +43,7 @@ const AdminClubEventList = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
     const [rsvpCounts, setRsvpCounts] = useState<Record<string, RSVPCounts>>({});
     const [eventShifts, setEventShifts] = useState<Record<string, Shift[]>>({});
 
@@ -123,6 +124,8 @@ const AdminClubEventList = () => {
     const handleCloseDetailsModal = () => {
         setSelectedEventForDetails(null);
         setIsDetailsModalOpen(false);
+        setDeleteLoading(false);
+        setDeleteError(null);
     };
 
     const handleViewRSVPs = (event: Event) => {
@@ -141,6 +144,7 @@ const AdminClubEventList = () => {
         }
 
         setDeleteLoading(true);
+        setDeleteError(null);
         try {
             // OData v2: Delete event
             await api.delete(`/api/v2/Events('${eventId}')`);
@@ -148,7 +152,7 @@ const AdminClubEventList = () => {
             fetchEvents(); // Refresh the list
         } catch (error) {
             console.error("Error deleting event:", error);
-            setError(error instanceof Error ? error.message : "Failed to delete event");
+            setDeleteError(error instanceof Error ? error.message : "Failed to delete event");
         } finally {
             setDeleteLoading(false);
         }
@@ -194,6 +198,7 @@ const AdminClubEventList = () => {
                 <button
                     className="event-name-link"
                     onClick={() => handleViewDetails(event)}
+                    aria-label={`View details for ${event.Name}`}
                 >
                     {event.Name}
                 </button>
@@ -329,7 +334,7 @@ const AdminClubEventList = () => {
                                     <span style={{color: 'var(--color-cancel)'}}>
                                         No: {rsvpCounts[selectedEventForDetails.ID]?.no || 0}
                                     </span>
-                                    <span style={{color: 'orange'}}>
+                                    <span style={{color: 'var(--color-maybe)'}}>
                                         Maybe: {rsvpCounts[selectedEventForDetails.ID]?.maybe || 0}
                                     </span>
                                 </div>
@@ -347,6 +352,12 @@ const AdminClubEventList = () => {
                                     </div>
                                 </Card>
                             )}
+
+                            {deleteError && (
+                                <div className="event-delete-error">
+                                    {deleteError}
+                                </div>
+                            )}
                         </div>
                     )}
                 </Modal.Body>
@@ -357,15 +368,15 @@ const AdminClubEventList = () => {
                     >
                         Edit
                     </Button>
+                    <Button onClick={handleCloseDetailsModal} variant="secondary">
+                        Close
+                    </Button>
                     <Button
                         onClick={handleDeleteFromDetails}
                         variant="cancel"
                         disabled={deleteLoading}
                     >
                         {deleteLoading ? 'Deleting...' : 'Delete'}
-                    </Button>
-                    <Button onClick={handleCloseDetailsModal} variant="secondary">
-                        Close
                     </Button>
                 </Modal.Actions>
             </Modal>
