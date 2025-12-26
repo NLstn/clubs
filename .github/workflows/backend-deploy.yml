@@ -10,7 +10,6 @@ on:
 
 permissions:
   contents: read
-  packages: read
   id-token: write
 
 jobs:
@@ -48,6 +47,3 @@ jobs:
         containerAppName: civo-staging-backend
         resourceGroup: civo-staging-rg
         imageToDeploy: ghcr.io/${{ steps.repo_owner.outputs.lowercase }}/civo/backend:${{ steps.image_tag.outputs.tag }}
-        registryUrl: ghcr.io
-        registryUsername: ${{ github.actor }}
-        registryPassword: ${{ secrets.GITHUB_TOKEN }}
