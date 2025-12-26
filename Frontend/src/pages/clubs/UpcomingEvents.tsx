@@ -45,7 +45,7 @@ const UpcomingEvents = () => {
             const encodedUserId = encodeURIComponent(currentUser.ID);
             
             const query = buildODataQuery({
-                filter: ODataFilter.ge('StartTime', now),
+                filter: ODataFilter.ge('EndTime', now),
                 orderby: 'StartTime',
                 expand: odataExpandWithOptions('EventRSVPs', {
                     filter: ODataFilter.eq('UserID', encodedUserId)
