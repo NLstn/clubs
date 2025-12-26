@@ -85,8 +85,10 @@ func SetupTestDB(t *testing.T) {
 			deleted_by TEXT
 		)
 	`)
+	// Drop and recreate members table to ensure it has the unique constraint
+	testDB.Exec(`DROP TABLE IF EXISTS members`)
 	testDB.Exec(`
-		CREATE TABLE IF NOT EXISTS members (
+		CREATE TABLE members (
 			id TEXT PRIMARY KEY,
 			user_id TEXT NOT NULL,
 			club_id TEXT NOT NULL,
@@ -94,7 +96,8 @@ func SetupTestDB(t *testing.T) {
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			created_by TEXT,
 			updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-			updated_by TEXT
+			updated_by TEXT,
+			UNIQUE(club_id, user_id)
 		)
 	`)
 	testDB.Exec(`
