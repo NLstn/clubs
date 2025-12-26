@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import EditEvent from "./EditEvent";
 import AddEvent from "./AddEvent";
 import EventRSVPList from "./EventRSVPList";
-import { Table, TableColumn, Button } from '@/components/ui';
+import { Table, TableColumn, Button, Modal, Card } from '@/components/ui';
 import api from "../../../../utils/api";
 import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
 import { RSVPCounts } from "../../../../utils/eventUtils";
+import './AdminClubEventList.css';
 
 interface EventRSVP {
     Response: string;
@@ -25,6 +26,8 @@ interface Event {
     Location: string;
     StartTime: string;
     EndTime: string;
+    CreatedAt?: string;
+    UpdatedAt?: string;
     EventRSVPs?: EventRSVP[];
     Shifts?: Shift[];
 }
@@ -36,9 +39,12 @@ const AdminClubEventList = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isRSVPModalOpen, setIsRSVPModalOpen] = useState(false);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [selectedEventForDetails, setSelectedEventForDetails] = useState<Event | null>(null);
     const [selectedEventForRSVP, setSelectedEventForRSVP] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [rsvpCounts, setRsvpCounts] = useState<Record<string, RSVPCounts>>({});
     const [eventShifts, setEventShifts] = useState<Record<string, Shift[]>>({});
 
@@ -111,6 +117,16 @@ const AdminClubEventList = () => {
         setIsEditModalOpen(false);
     };
 
+    const handleViewDetails = (event: Event) => {
+        setSelectedEventForDetails(event);
+        setIsDetailsModalOpen(true);
+    };
+
+    const handleCloseDetailsModal = () => {
+        setSelectedEventForDetails(null);
+        setIsDetailsModalOpen(false);
+    };
+
     const handleViewRSVPs = (event: Event) => {
         setSelectedEventForRSVP(event);
         setIsRSVPModalOpen(true);
@@ -126,13 +142,17 @@ const AdminClubEventList = () => {
             return;
         }
 
+        setDeleteLoading(true);
         try {
             // OData v2: Delete event
             await api.delete(`/api/v2/Events('${eventId}')`);
+            handleCloseDetailsModal(); // Close the details modal after deletion
             fetchEvents(); // Refresh the list
         } catch (error) {
             console.error("Error deleting event:", error);
             setError(error instanceof Error ? error.message : "Failed to delete event");
+        } finally {
+            setDeleteLoading(false);
         }
     };
 
@@ -159,7 +179,14 @@ const AdminClubEventList = () => {
         {
             key: 'name',
             header: 'Name',
-            render: (event) => event.Name
+            render: (event) => (
+                <button
+                    className="event-name-link"
+                    onClick={() => handleViewDetails(event)}
+                >
+                    {event.Name}
+                </button>
+            )
         },
         {
             key: 'start_time',
@@ -199,48 +226,6 @@ const AdminClubEventList = () => {
                     </div>
                 );
             }
-        },
-        {
-            key: 'shifts',
-            header: 'Shifts',
-            render: (event) => {
-                const shifts = eventShifts[event.ID] || [];
-                return (
-                    <span style={{color: shifts.length > 0 ? 'blue' : 'gray'}}>
-                        {shifts.length} shift{shifts.length !== 1 ? 's' : ''}
-                    </span>
-                );
-            }
-        },
-        {
-            key: 'actions',
-            header: 'Actions',
-            render: (event) => (
-                <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                    <Link 
-                        to={`/clubs/${id}/admin/events/${event.ID}`}
-                        style={{ textDecoration: 'none' }}
-                    >
-                        <Button variant="secondary" size="sm">
-                            View Details
-                        </Button>
-                    </Link>
-                    <Button
-                        onClick={() => handleEditEvent(event)}
-                        variant="accept"
-                        size="sm"
-                    >
-                        Edit
-                    </Button>
-                    <Button
-                        onClick={() => handleDeleteEvent(event.ID)}
-                        variant="cancel"
-                        size="sm"
-                    >
-                        Delete
-                    </Button>
-                </div>
-            )
         }
     ];
 
@@ -289,6 +274,95 @@ const AdminClubEventList = () => {
                 eventName={selectedEventForRSVP?.Name || ''}
                 clubId={id || ''}
             />
+            
+            {/* Event Details Modal */}
+            <Modal
+                isOpen={isDetailsModalOpen}
+                onClose={handleCloseDetailsModal}
+                title="Event Details"
+                maxWidth="700px"
+            >
+                <Modal.Body>
+                    {selectedEventForDetails && (
+                        <div className="event-details-content">
+                            <h2 className="event-details-title">{selectedEventForDetails.Name}</h2>
+                            
+                            {selectedEventForDetails.Description && (
+                                <Card variant="dark" padding="md" className="event-details-section">
+                                    <h4>Description</h4>
+                                    <p>{selectedEventForDetails.Description}</p>
+                                </Card>
+                            )}
+                            
+                            {selectedEventForDetails.Location && (
+                                <Card variant="dark" padding="md" className="event-details-section">
+                                    <h4>Location</h4>
+                                    <p>{selectedEventForDetails.Location}</p>
+                                </Card>
+                            )}
+                            
+                            <Card variant="dark" padding="md" className="event-details-section">
+                                <h4>Schedule</h4>
+                                <div className="event-schedule">
+                                    <div><strong>Start:</strong> {formatDateTime(selectedEventForDetails.StartTime)}</div>
+                                    <div><strong>End:</strong> {formatDateTime(selectedEventForDetails.EndTime)}</div>
+                                </div>
+                            </Card>
+                            
+                            <Card variant="dark" padding="md" className="event-details-section">
+                                <h4>RSVPs</h4>
+                                <div className="event-rsvp-summary">
+                                    <span style={{color: 'var(--color-primary)'}}>
+                                        Yes: {rsvpCounts[selectedEventForDetails.ID]?.yes || 0}
+                                    </span>
+                                    <span style={{color: 'var(--color-cancel)'}}>
+                                        No: {rsvpCounts[selectedEventForDetails.ID]?.no || 0}
+                                    </span>
+                                    <span style={{color: 'orange'}}>
+                                        Maybe: {rsvpCounts[selectedEventForDetails.ID]?.maybe || 0}
+                                    </span>
+                                </div>
+                            </Card>
+
+                            {eventShifts[selectedEventForDetails.ID]?.length > 0 && (
+                                <Card variant="dark" padding="md" className="event-details-section">
+                                    <h4>Shifts</h4>
+                                    <div className="event-shifts-list">
+                                        {eventShifts[selectedEventForDetails.ID].map((shift) => (
+                                            <div key={shift.ID} className="event-shift-item">
+                                                {formatDateTime(shift.StartTime)} - {formatDateTime(shift.EndTime)}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Card>
+                            )}
+                        </div>
+                    )}
+                </Modal.Body>
+                <Modal.Actions>
+                    <Button
+                        onClick={() => {
+                            if (selectedEventForDetails) {
+                                handleEditEvent(selectedEventForDetails);
+                                handleCloseDetailsModal();
+                            }
+                        }}
+                        variant="accept"
+                    >
+                        Edit
+                    </Button>
+                    <Button
+                        onClick={() => selectedEventForDetails && handleDeleteEvent(selectedEventForDetails.ID)}
+                        variant="cancel"
+                        disabled={deleteLoading}
+                    >
+                        {deleteLoading ? 'Deleting...' : 'Delete'}
+                    </Button>
+                    <Button onClick={handleCloseDetailsModal} variant="secondary">
+                        Close
+                    </Button>
+                </Modal.Actions>
+            </Modal>
         </div>
     );
 };
