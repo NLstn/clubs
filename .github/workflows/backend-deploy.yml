@@ -22,6 +22,15 @@ jobs:
       cancel-in-progress: false
     
     steps:
+    - name: Determine image tag
+      id: image_tag
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "tag=latest" >> $GITHUB_OUTPUT
+        else
+          echo "tag=sha-${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+        fi
+
     - name: Login to Azure
       uses: azure/login@v2
       with:
@@ -34,7 +43,7 @@ jobs:
       with:
         containerAppName: civo-staging-backend
         resourceGroup: civo-staging-rg
-        imageToDeploy: ghcr.io/${{ github.repository }}/backend:sha-${{ github.event.workflow_run.head_sha || github.sha }}
+        imageToDeploy: ghcr.io/${{ github.repository }}/backend:${{ steps.image_tag.outputs.tag }}
         registryUrl: ghcr.io
         registryUsername: ${{ github.actor }}
         registryPassword: ${{ secrets.GITHUB_TOKEN }}
