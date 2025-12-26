@@ -26,8 +26,6 @@ interface Event {
     Location: string;
     StartTime: string;
     EndTime: string;
-    CreatedAt?: string;
-    UpdatedAt?: string;
     EventRSVPs?: EventRSVP[];
     Shifts?: Shift[];
 }
@@ -153,6 +151,19 @@ const AdminClubEventList = () => {
             setError(error instanceof Error ? error.message : "Failed to delete event");
         } finally {
             setDeleteLoading(false);
+        }
+    };
+
+    const handleEditFromDetails = () => {
+        if (selectedEventForDetails) {
+            handleEditEvent(selectedEventForDetails);
+            handleCloseDetailsModal();
+        }
+    };
+
+    const handleDeleteFromDetails = () => {
+        if (selectedEventForDetails) {
+            handleDeleteEvent(selectedEventForDetails.ID);
         }
     };
 
@@ -341,18 +352,13 @@ const AdminClubEventList = () => {
                 </Modal.Body>
                 <Modal.Actions>
                     <Button
-                        onClick={() => {
-                            if (selectedEventForDetails) {
-                                handleEditEvent(selectedEventForDetails);
-                                handleCloseDetailsModal();
-                            }
-                        }}
+                        onClick={handleEditFromDetails}
                         variant="accept"
                     >
                         Edit
                     </Button>
                     <Button
-                        onClick={() => selectedEventForDetails && handleDeleteEvent(selectedEventForDetails.ID)}
+                        onClick={handleDeleteFromDetails}
                         variant="cancel"
                         disabled={deleteLoading}
                     >
