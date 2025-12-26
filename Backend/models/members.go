@@ -115,6 +115,10 @@ func (c *Club) addMemberWithActor(userId, role string, sendNotification bool, ac
 	err := database.Db.Create(&member).Error
 	if err != nil {
 		// Check if this is a unique constraint violation
+		// Use GORM's error type for PostgreSQL, and string matching for SQLite in tests
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return ErrMemberAlreadyExists
+		}
 		errMsg := err.Error()
 		if strings.Contains(errMsg, "UNIQUE constraint failed") ||
 			strings.Contains(errMsg, "duplicate key") ||
