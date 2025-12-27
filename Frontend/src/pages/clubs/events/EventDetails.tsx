@@ -3,6 +3,8 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button, ButtonState } from "../../../components/ui";
 import PageHeader from "../../../components/layout/PageHeader";
 import api from "../../../utils/api";
+import { useCurrentUser } from "../../../hooks/useCurrentUser";
+import { buildODataQuery, odataExpandWithOptions, ODataFilter } from "@/utils/odata";
 import "./EventDetails.css";
 import '../../../styles/events.css';
 
@@ -32,6 +34,7 @@ interface EventDetailsData {
 const EventDetails: FC = () => {
     const { clubId, eventId } = useParams<{ clubId: string; eventId: string }>();
     const navigate = useNavigate();
+    const { user: currentUser, loading: userLoading } = useCurrentUser();
     const [eventData, setEventData] = useState<EventDetailsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -41,19 +44,27 @@ const EventDetails: FC = () => {
     const timeoutRef = useRef<number | undefined>(undefined);
 
     const fetchEventDetails = async (abortSignal?: AbortSignal) => {
-        if (!clubId || !eventId) return;
+        if (!clubId || !eventId || !currentUser?.ID) return;
         
         setLoading(true);
         setError(null);
         
         try {
-            // OData v2: Get Event entity with expanded user RSVP
-            const response = await api.get(`/api/v2/Events('${eventId}')?$expand=UserRSVP`, {
+            // OData v2: Get Event entity with expanded EventRSVPs filtered to current user
+            const encodedUserId = encodeURIComponent(currentUser.ID);
+            const query = buildODataQuery({
+                expand: odataExpandWithOptions('EventRSVPs', {
+                    filter: ODataFilter.eq('UserID', encodedUserId)
+                })
+            });
+            const response = await api.get(`/api/v2/Events('${eventId}')${query}`, {
                 signal: abortSignal
             });
             if (!abortSignal?.aborted) {
                 // Map OData response to expected format
                 const event = response.data;
+                // EventRSVPs is an array; get the first item if it exists (user's RSVP)
+                const userRSVP = event.EventRSVPs && event.EventRSVPs.length > 0 ? event.EventRSVPs[0] : null;
                 setEventData({
                     id: event.ID,
                     name: event.Name,
@@ -65,13 +76,13 @@ const EventDetails: FC = () => {
                     created_by: event.CreatedBy,
                     updated_at: event.UpdatedAt,
                     updated_by: event.UpdatedBy,
-                    user_rsvp: event.UserRSVP ? {
-                        id: event.UserRSVP.ID,
-                        event_id: event.UserRSVP.EventID,
-                        user_id: event.UserRSVP.UserID,
-                        response: event.UserRSVP.Response,
-                        created_at: event.UserRSVP.CreatedAt,
-                        updated_at: event.UserRSVP.UpdatedAt
+                    user_rsvp: userRSVP ? {
+                        id: userRSVP.ID,
+                        event_id: userRSVP.EventID,
+                        user_id: userRSVP.UserID,
+                        response: userRSVP.Response,
+                        created_at: userRSVP.CreatedAt,
+                        updated_at: userRSVP.UpdatedAt
                     } : undefined
                 });
             }
@@ -108,7 +119,7 @@ const EventDetails: FC = () => {
                 clearTimeout(timeoutRef.current);
             }
         };
-    }, [clubId, eventId]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [clubId, eventId, currentUser?.ID]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleRSVP = async (response: string) => {
         if (!clubId || !eventId) return;
@@ -169,7 +180,8 @@ const EventDetails: FC = () => {
         }
     };
 
-    if (loading) {
+    // Show loading while user data or event data is being fetched
+    if (loading || userLoading) {
         return (
             <div className="container">
                 <div className="loading">Loading event details...</div>
