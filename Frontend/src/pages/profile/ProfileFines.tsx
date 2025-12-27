@@ -1,5 +1,5 @@
 import Layout from "../../components/layout/Layout";
-import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
+import SimpleSettingsLayout from '../../components/layout/SimpleSettingsLayout';
 import { ODataTable, ODataTableColumn } from '@/components/ui';
 import './Profile.css';
 
@@ -57,7 +57,7 @@ const ProfileFines = () => {
 
     return (
         <Layout title="Fines">
-            <ProfileContentLayout title="Fines">
+            <SimpleSettingsLayout title="Fines">
                 <ODataTable
                     endpoint="/api/v2/Fines"
                     expand="Club"
@@ -69,7 +69,7 @@ const ProfileFines = () => {
                     emptyMessage="No fines found"
                     loadingMessage="Loading fines..."
                 />
-            </ProfileContentLayout>
+            </SimpleSettingsLayout>
         </Layout>
     )
 }

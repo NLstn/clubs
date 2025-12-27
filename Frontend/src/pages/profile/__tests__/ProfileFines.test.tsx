@@ -20,8 +20,8 @@ vi.mock('../../../components/layout/Layout', () => ({
   ),
 }))
 
-// Mock ProfileContentLayout to simplify testing
-vi.mock('../../../components/layout/ProfileContentLayout', () => ({
+// Mock SimpleSettingsLayout to simplify testing
+vi.mock('../../../components/layout/SimpleSettingsLayout', () => ({
   default: ({ title, children }: { title: string; children: React.ReactNode }) => (
     <div data-testid="profile-content-layout">
       <h1>{title}</h1>

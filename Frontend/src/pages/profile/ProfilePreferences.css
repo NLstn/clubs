@@ -1,0 +1,7 @@
+/* Current theme indicator styling */
+.preferences-current-theme-indicator {
+    padding: var(--space-md);
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    text-align: center;
+}

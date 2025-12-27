@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/layout/Layout';
-import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
+import SimpleSettingsLayout from '../../components/layout/SimpleSettingsLayout';
 import { useAuth } from '../../hooks/useAuth';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { useT } from '../../hooks/useTranslation';
@@ -118,7 +118,7 @@ function ProfileShifts() {
 
     return (
         <Layout>
-            <ProfileContentLayout title={t('shifts.myFutureShifts')}>
+            <SimpleSettingsLayout title={t('shifts.myFutureShifts')}>
                 {loading && (
                     <div style={{ 
                         textAlign: 'center', 
@@ -273,7 +273,7 @@ function ProfileShifts() {
                             ))}
                         </div>
                     )}
-            </ProfileContentLayout>
+            </SimpleSettingsLayout>
         </Layout>
     );
 }

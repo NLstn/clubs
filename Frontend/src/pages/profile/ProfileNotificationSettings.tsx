@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Layout from "../../components/layout/Layout";
-import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
+import SimpleSettingsLayout from '../../components/layout/SimpleSettingsLayout';
 import { useNotificationPreferences } from '../../hooks/useNotifications';
 import { useT } from '../../hooks/useTranslation';
 import { ToggleSwitch } from '@/components/ui';
@@ -41,7 +41,7 @@ const ProfileNotificationSettings: React.FC = () => {
   if (loading && !preferences) {
     return (
       <Layout title="Notification Settings">
-        <ProfileContentLayout title="Notification Settings">
+        <SimpleSettingsLayout title="Notification Settings">
           <div style={{ 
             textAlign: 'center', 
             padding: 'var(--space-xl)',
@@ -49,7 +49,7 @@ const ProfileNotificationSettings: React.FC = () => {
           }}>
             <p>Loading notification settings...</p>
           </div>
-        </ProfileContentLayout>
+        </SimpleSettingsLayout>
       </Layout>
     );
   }
@@ -57,7 +57,7 @@ const ProfileNotificationSettings: React.FC = () => {
   if (error && !preferences) {
     return (
       <Layout title="Notification Settings">
-        <ProfileContentLayout title="Notification Settings">
+        <SimpleSettingsLayout title="Notification Settings">
           <div style={{ 
             textAlign: 'center', 
             padding: 'var(--space-xl)',
@@ -65,7 +65,7 @@ const ProfileNotificationSettings: React.FC = () => {
           }}>
             <p>Failed to load notification settings</p>
           </div>
-        </ProfileContentLayout>
+        </SimpleSettingsLayout>
       </Layout>
     );
   }
@@ -73,7 +73,7 @@ const ProfileNotificationSettings: React.FC = () => {
   if (!preferences) {
     return (
       <Layout title="Notification Settings">
-        <ProfileContentLayout title="Notification Settings">
+        <SimpleSettingsLayout title="Notification Settings">
           <div style={{ 
             textAlign: 'center', 
             padding: 'var(--space-xl)',
@@ -81,7 +81,7 @@ const ProfileNotificationSettings: React.FC = () => {
           }}>
             <p>Notification settings not found</p>
           </div>
-        </ProfileContentLayout>
+        </SimpleSettingsLayout>
       </Layout>
     );
   }
@@ -119,7 +119,7 @@ const ProfileNotificationSettings: React.FC = () => {
 
   return (
     <Layout title="Notification Settings">
-      <ProfileContentLayout title="Notification Settings">
+      <SimpleSettingsLayout title="Notification Settings">
         {saveMessage && (
           <div className={`save-message ${saveMessage.includes('success') ? 'success' : 'error'}`}>
             {saveMessage}
@@ -179,7 +179,7 @@ const ProfileNotificationSettings: React.FC = () => {
             </div>
           )}
         </div>
-      </ProfileContentLayout>
+      </SimpleSettingsLayout>
     </Layout>
   );
 };
