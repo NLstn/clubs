@@ -128,33 +128,43 @@ const GlobalSearch: React.FC = () => {
   };
 
   const handleResultClick = (result: SearchResult) => {
-    if (result.type === 'club') {
-      navigate(`/clubs/${result.id}`);
-    } else if (result.type === 'event') {
-      navigate(`/clubs/${result.club_id}`); // Navigate to club page for events
-    }
+    const targetUrl = result.type === 'club' 
+      ? `/clubs/${result.id}` 
+      : `/clubs/${result.club_id}`; // Navigate to club page for events
+    
+    navigate(targetUrl);
     setIsOpen(false);
     setIsFocused(false);
     setQuery('');
   };
 
+  const handleResultKeyDown = (e: React.KeyboardEvent, result: SearchResult) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleResultClick(result);
+    }
+  };
+
   const handleRecentClubClick = async (club: RecentClub) => {
-    setIsOpen(false);
-    setIsFocused(false);
-    setQuery('');
-    
     try {
       // First try to check if the club exists (OData v2)
       await api.get(`/api/v2/Clubs('${club.id}')`);
       navigate(`/clubs/${club.id}`);
+      setIsOpen(false);
+      setIsFocused(false);
+      setQuery('');
     } catch {
-      // If club doesn't exist, remove it from recent clubs
+      // If club doesn't exist, remove it from recent clubs and do not navigate
       console.warn(`Club ${club.id} not found, removing from recent clubs`);
       removeRecentClub(club.id);
       setRecentClubs(getRecentClubs()); // Refresh the list
-      
-      // Still navigate to the club page, which will show the ClubNotFound component
-      navigate(`/clubs/${club.id}`);
+    }
+  };
+
+  const handleRecentClubKeyDown = (e: React.KeyboardEvent, club: RecentClub) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleRecentClubClick(club);
     }
   };
 
@@ -224,9 +234,12 @@ const GlobalSearch: React.FC = () => {
                   <div
                     key={`recent-${club.id}`}
                     className="search-result-item"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => handleRecentClubClick(club)}
+                    onKeyDown={(e) => handleRecentClubKeyDown(e, club)}
                   >
-                    <div className="search-result-type">Club</div>
+                    <div className="search-result-type">{t('search.club')}</div>
                     <div className="search-result-content">
                       <div className="search-result-title">{club.name}</div>
                     </div>
@@ -263,22 +276,25 @@ const GlobalSearch: React.FC = () => {
         <div className="search-dropdown">
           {totalResults === 0 ? (
             <div className="search-no-results">
-              No results found for "{query}"
+              {t('search.noResults', { query })}
             </div>
           ) : (
             <>
               {results?.clubs && results.clubs.length > 0 && (
                 <div className="search-section">
                   <div className="search-section-header">
-                    <span className="search-section-title">Clubs ({results?.clubs?.length || 0})</span>
+                    <span className="search-section-title">{t('search.clubs')} ({results?.clubs?.length || 0})</span>
                   </div>
                   {results.clubs?.map((club) => (
                     <div
                       key={`club-${club.id}`}
                       className="search-result-item"
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleResultClick(club)}
+                      onKeyDown={(e) => handleResultKeyDown(e, club)}
                     >
-                      <div className="search-result-type">Club</div>
+                      <div className="search-result-type">{t('search.club')}</div>
                       <div className="search-result-content">
                         <div className="search-result-title">{club.name}</div>
                         {club.description && (
@@ -298,15 +314,18 @@ const GlobalSearch: React.FC = () => {
               {results?.events && results.events.length > 0 && (
                 <div className="search-section">
                   <div className="search-section-header">
-                    <span className="search-section-title">Events ({results?.events?.length || 0})</span>
+                    <span className="search-section-title">{t('search.events')} ({results?.events?.length || 0})</span>
                   </div>
                   {results.events?.map((event) => (
                     <div
                       key={`event-${event.id}`}
                       className="search-result-item"
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleResultClick(event)}
+                      onKeyDown={(e) => handleResultKeyDown(e, event)}
                     >
-                      <div className="search-result-type">Event</div>
+                      <div className="search-result-type">{t('search.event')}</div>
                       <div className="search-result-content">
                         <div className="search-result-title">{event.name}</div>
                         <div className="search-result-meta">

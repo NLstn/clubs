@@ -30,6 +30,13 @@
     "notShared": "Not shared",
     "unknownRole": "Unknown Role"
   },
+  "search": {
+    "club": "Club",
+    "clubs": "Clubs",
+    "event": "Event",
+    "events": "Events",
+    "noResults": "No results found for \"{{query}}\""
+  },
   "navigation": {
     "home": "Home",
     "clubs": "Clubs",

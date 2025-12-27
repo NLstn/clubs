@@ -111,7 +111,7 @@ describe('GlobalSearch', () => {
     });
   });
 
-  it('removes non-existent club from recent and still navigates', async () => {
+  it('removes non-existent club from recent and does not navigate', async () => {
     const mockClubs = [{ id: 'club-1', name: 'Test Club', visitedAt: 1000 }];
     mockGetRecentClubs.mockReturnValue(mockClubs);
     
@@ -129,7 +129,8 @@ describe('GlobalSearch', () => {
 
     await waitFor(() => {
       expect(mockRemoveRecentClub).toHaveBeenCalledWith('club-1');
-      expect(mockNavigate).toHaveBeenCalledWith('/clubs/club-1');
+      // Should NOT navigate when club doesn't exist
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     consoleSpy.mockRestore();

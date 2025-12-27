@@ -1,13 +1,13 @@
 .global-search {
   position: relative;
   width: 100%;
-  max-width: 300px;
+  max-width: 250px;
   margin-right: var(--space-md);
   transition: max-width 0.3s ease;
 }
 
 .global-search-focused {
-  max-width: 450px;
+  max-width: 500px;
 }
 
 .search-input-container {
@@ -207,12 +207,12 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .global-search {
-    max-width: 200px;
+    max-width: 150px;
     margin-right: var(--space-sm);
   }
 
   .global-search-focused {
-    max-width: 280px;
+    max-width: calc(100vw - 200px);
   }
 
   .search-input {
@@ -222,6 +222,10 @@
 
   .search-dropdown {
     max-height: 300px;
+    position: fixed;
+    left: var(--space-sm);
+    right: var(--space-sm);
+    width: auto;
   }
 
   .search-result-item {
@@ -246,12 +250,12 @@
 
 @media (max-width: 480px) {
   .global-search {
-    max-width: 140px;
+    max-width: 100px;
     margin-right: var(--space-xs);
   }
 
   .global-search-focused {
-    max-width: 220px;
+    max-width: calc(100vw - 150px);
   }
 
   .search-input {

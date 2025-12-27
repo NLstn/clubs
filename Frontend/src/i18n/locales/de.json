@@ -30,6 +30,13 @@
     "notShared": "Nicht geteilt",
     "unknownRole": "Unbekannte Rolle"
   },
+  "search": {
+    "club": "Verein",
+    "clubs": "Vereine",
+    "event": "Ereignis",
+    "events": "Ereignisse",
+    "noResults": "Keine Ergebnisse für \"{{query}}\" gefunden"
+  },
   "navigation": {
     "home": "Startseite",
     "clubs": "Vereine",

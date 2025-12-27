@@ -27,6 +27,13 @@ testI18n
             no: "No",
             search: "Search"
           },
+          search: {
+            club: "Club",
+            clubs: "Clubs",
+            event: "Event",
+            events: "Events",
+            noResults: "No results found for \"{{query}}\""
+          },
           navigation: {
             home: "Home",
             clubs: "Clubs",
