@@ -96,7 +96,8 @@ const ClubList = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentUser, t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser]);
 
     useEffect(() => {
         fetchClubs();
