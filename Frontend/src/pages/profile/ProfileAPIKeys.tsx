@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import Layout from "../../components/layout/Layout";
-import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
+import SimpleSettingsLayout from '../../components/layout/SimpleSettingsLayout';
 import { useAuth } from '../../hooks/useAuth';
 import { ODataTable, ODataTableColumn, Button, ConfirmDialog, Input, FormGroup, Modal } from '@/components/ui';
 import './Profile.css';
@@ -154,7 +154,7 @@ const ProfileAPIKeys = () => {
 
   return (
     <Layout title="API Keys">
-      <ProfileContentLayout title="API Keys">
+      <SimpleSettingsLayout title="API Keys">
         {message && (
           <div className={message.includes('success') ? 'success-message' : 'error-message'}>
             {message}
@@ -307,7 +307,7 @@ const ProfileAPIKeys = () => {
             onClose={() => setKeyToDelete(null)}
             isLoading={isDeleting}
           />
-      </ProfileContentLayout>
+      </SimpleSettingsLayout>
     </Layout>
   );
 };

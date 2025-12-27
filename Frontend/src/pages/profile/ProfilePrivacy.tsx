@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from "../../components/layout/Layout";
-import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
+import SimpleSettingsLayout from '../../components/layout/SimpleSettingsLayout';
 import { useAuth } from "../../hooks/useAuth";
 import { useCurrentUser } from "../../hooks/useCurrentUser";
 import { FormGroup, Card } from '@/components/ui';
@@ -192,7 +192,7 @@ const ProfilePrivacy = () => {
 
     return (
         <Layout title="Privacy Settings">
-            <ProfileContentLayout title="Privacy Settings">
+            <SimpleSettingsLayout title="Privacy Settings">
                 {message && (
                     <div className={message.includes('Failed') ? 'error-message' : 'success-message'}>
                         {message}
@@ -281,7 +281,7 @@ const ProfilePrivacy = () => {
                             </div>
                         </div>
                     )}
-            </ProfileContentLayout>
+            </SimpleSettingsLayout>
         </Layout>
     );
 };

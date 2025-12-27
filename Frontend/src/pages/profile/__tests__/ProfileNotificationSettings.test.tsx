@@ -12,8 +12,8 @@ vi.mock('../../../components/layout/Layout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="layout">{children}</div>,
 }));
 
-// Mock the ProfileContentLayout component
-vi.mock('../../../components/layout/ProfileContentLayout', () => ({
+// Mock the SimpleSettingsLayout component
+vi.mock('../../../components/layout/SimpleSettingsLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="profile-content-layout">{children}</div>,
 }));
 

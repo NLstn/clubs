@@ -30,9 +30,9 @@ vi.mock('../../../components/layout/Layout', () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="layout">{children}</div>
 }));
 
-vi.mock('../../../components/layout/ProfileContentLayout', () => ({
+vi.mock('../../../components/layout/SimpleSettingsLayout', () => ({
   default: ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div data-testid="profile-content-layout">
+    <div data-testid="simple-settings-layout">
       <h1>{title}</h1>
       {children}
     </div>
@@ -48,7 +48,7 @@ describe('ProfileShifts', () => {
     );
 
     expect(screen.getByTestId('layout')).toBeInTheDocument();
-    expect(screen.getByTestId('profile-content-layout')).toBeInTheDocument();
+    expect(screen.getByTestId('simple-settings-layout')).toBeInTheDocument();
     // The mock returns translation keys, so look for the key
     expect(screen.getByText('shifts.myFutureShifts')).toBeInTheDocument();
   });

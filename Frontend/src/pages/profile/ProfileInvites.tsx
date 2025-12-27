@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Layout from "../../components/layout/Layout";
-import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
+import SimpleSettingsLayout from '../../components/layout/SimpleSettingsLayout';
 import { Table, TableColumn, Button, ButtonState } from '@/components/ui';
 import api from '../../utils/api';
 import { parseODataCollection, type ODataCollectionResponse } from '@/utils/odata';
@@ -164,7 +164,7 @@ const ProfileInvites = () => {
 
   return (
     <Layout title="Club Invitations">
-      <ProfileContentLayout title="Pending Invitations">
+      <SimpleSettingsLayout title="Pending Invitations">
         {message && (
           <div className={message.includes('Failed') ? 'error' : 'success'}
             style={{
@@ -186,7 +186,7 @@ const ProfileInvites = () => {
           loading={loading}
           loadingMessage="Loading invitations..."
         />
-      </ProfileContentLayout>
+      </SimpleSettingsLayout>
     </Layout>
   );
 };

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import Layout from "../../components/layout/Layout";
-import ProfileContentLayout from '../../components/layout/ProfileContentLayout';
+import SimpleSettingsLayout from '../../components/layout/SimpleSettingsLayout';
 import { useAuth } from '../../hooks/useAuth';
 import { ODataTable, ODataTableColumn, Button, ConfirmDialog } from '@/components/ui';
 import './Profile.css';
@@ -119,7 +119,7 @@ const ProfileSessions = () => {
 
   return (
     <Layout title="Active Sessions">
-      <ProfileContentLayout title="Active Sessions">
+      <SimpleSettingsLayout title="Active Sessions">
         {message && (
           <div className={message.includes('Failed') ? 'error' : 'success'} 
                style={{ 
@@ -156,7 +156,7 @@ const ProfileSessions = () => {
           variant="danger"
           isLoading={isDeleting}
         />
-      </ProfileContentLayout>
+      </SimpleSettingsLayout>
     </Layout>
   );
 };
