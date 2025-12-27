@@ -15,10 +15,9 @@ const Login = lazy(() => import('./pages/auth/Login'));
 const MagicLinkHandler = lazy(() => import('./pages/auth/MagicLinkHandler'));
 const KeycloakCallback = lazy(() => import('./pages/auth/KeycloakCallback'));
 const Signup = lazy(() => import('./pages/auth/Signup'));
+const SettingsIndex = lazy(() => import('./pages/profile/SettingsIndex'));
 const Profile = lazy(() => import('./pages/profile/Profile'));
 const ProfileSettings = lazy(() => import('./pages/profile/ProfileSettings'));
-const ProfileLanguageSettings = lazy(() => import('./pages/profile/ProfileLanguageSettings'));
-const ProfileAppearanceSettings = lazy(() => import('./pages/profile/ProfileAppearanceSettings'));
 const ProfileInvites = lazy(() => import('./pages/profile/ProfileInvites'));
 const ProfileFines = lazy(() => import('./pages/profile/ProfileFines'));
 const ProfileShifts = lazy(() => import('./pages/profile/ProfileShifts'));
@@ -181,6 +180,12 @@ function App() {
                             }
                         />
 
+                        <Route path="/settings" element={
+                            <ProtectedRoute>
+                                <SettingsIndex />
+                            </ProtectedRoute>
+                        } />
+
                         <Route path="/settings/profile" element={
                             <ProtectedRoute>
                                 <Profile />
@@ -190,18 +195,6 @@ function App() {
                         <Route path="/settings/preferences" element={
                             <ProtectedRoute>
                                 <ProfileSettings />
-                            </ProtectedRoute>
-                        } />
-
-                        <Route path="/settings/language" element={
-                            <ProtectedRoute>
-                                <ProfileLanguageSettings />
-                            </ProtectedRoute>
-                        } />
-
-                        <Route path="/settings/appearance" element={
-                            <ProtectedRoute>
-                                <ProfileAppearanceSettings />
                             </ProtectedRoute>
                         } />
 
