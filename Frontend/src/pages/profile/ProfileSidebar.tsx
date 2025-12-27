@@ -32,12 +32,21 @@ const ProfileSidebar = () => {
   return (
     <div className="profile-sidebar">
       <h3>Navigation</h3>
-      <ul className="profile-nav">
+      <ul className="profile-nav" role="tablist">
         {navItems.map((item) => (
           <li 
             key={item.path}
             onClick={() => handleNavigation(item.path)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleNavigation(item.path);
+              }
+            }}
             className={`profile-nav-item ${activeItem === item.path ? 'active' : ''}`}
+            tabIndex={0}
+            role="tab"
+            aria-selected={activeItem === item.path}
           >
             {item.label}
           </li>

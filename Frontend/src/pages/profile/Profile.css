@@ -277,6 +277,7 @@
     border-bottom: 2px solid var(--color-border) !important;
     padding: 0 !important;
     height: auto !important;
+    position: relative;
   }
   
   /* Hide the "Navigation" heading on mobile */
@@ -292,10 +293,41 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
+    scroll-padding: 0 var(--space-lg); /* Keyboard accessibility: ensure focused items are visible */
+    padding: 0 var(--space-lg); /* Add padding to accommodate fade indicators */
   }
   
   .profile-sidebar .profile-nav::-webkit-scrollbar {
     display: none; /* Chrome/Safari */
+  }
+  
+  /* Fade gradient indicators to show more content is available */
+  .profile-sidebar::before,
+  .profile-sidebar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 2px; /* Account for bottom border */
+    width: var(--space-lg);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  
+  .profile-sidebar::before {
+    left: 0;
+    background: linear-gradient(to right, var(--color-background) 0%, transparent 100%);
+  }
+  
+  .profile-sidebar::after {
+    right: 0;
+    background: linear-gradient(to left, var(--color-background) 0%, transparent 100%);
+  }
+  
+  /* Show fade indicators when scrollable - use CSS to show right indicator by default */
+  .profile-sidebar::after {
+    opacity: 0.9;
   }
   
   .profile-sidebar .profile-nav-item {
@@ -315,6 +347,18 @@
   .profile-sidebar .profile-nav-item:hover {
     color: var(--color-text);
     background-color: var(--color-background-light);
+  }
+  
+  /* Focus state for keyboard accessibility */
+  .profile-sidebar .profile-nav-item:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+    color: var(--color-text);
+  }
+  
+  .profile-sidebar .profile-nav-item:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
   }
 
   /* Class-based active state */
