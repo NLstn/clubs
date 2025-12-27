@@ -269,39 +269,60 @@
   }
 }
 
-/* Profile sidebar responsive styles */
+/* Profile sidebar responsive styles - horizontal scrollable tabs on mobile */
 @media (max-width: 768px) {
   .profile-sidebar {
     width: 100% !important;
     border-right: none !important;
-    border-bottom: 1px solid var(--color-border) !important;
-    padding: var(--space-md) 0 !important;
+    border-bottom: 2px solid var(--color-border) !important;
+    padding: 0 !important;
+    height: auto !important;
   }
   
-  .profile-sidebar ul {
+  /* Hide the "Navigation" heading on mobile */
+  .profile-sidebar h3 {
+    display: none;
+  }
+  
+  .profile-sidebar .profile-nav {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-xs);
+    flex-wrap: nowrap;
+    gap: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
   }
   
-  .profile-sidebar li {
-    flex: 1;
-    min-width: 120px;
+  .profile-sidebar .profile-nav::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+  
+  .profile-sidebar .profile-nav-item {
+    flex: 0 0 auto;
+    min-width: auto;
     text-align: center;
     border-left: none !important;
-    border-bottom: 3px solid transparent !important;
-    padding: var(--space-sm) var(--space-xs) !important;
+    border-bottom: 2px solid transparent !important;
+    padding: var(--space-sm) var(--space-md) !important;
+    white-space: nowrap;
+    font-size: var(--font-size-small);
+    color: var(--color-text-secondary);
+    transition: all 0.2s ease;
+    margin-bottom: -2px; /* Align with parent border */
   }
   
-  .profile-sidebar li[style*="var(--color-primary)"] {
-    border-bottom: 3px solid var(--color-primary) !important;
-    background-color: var(--color-background-light) !important;
+  .profile-sidebar .profile-nav-item:hover {
+    color: var(--color-text);
+    background-color: var(--color-background-light);
   }
 
   /* Class-based active state */
   .profile-sidebar .profile-nav-item.active {
-    border-bottom: 3px solid var(--color-primary) !important;
+    border-bottom: 2px solid var(--color-primary) !important;
+    border-left: none !important;
     background-color: var(--color-background-light) !important;
+    color: var(--color-primary) !important;
   }
 }
 
