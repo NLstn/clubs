@@ -24,7 +24,8 @@ testI18n
             edit: "Edit",
             delete: "Delete",
             yes: "Yes",
-            no: "No"
+            no: "No",
+            search: "Search"
           },
           navigation: {
             home: "Home",

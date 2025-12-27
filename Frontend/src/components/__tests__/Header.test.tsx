@@ -34,14 +34,14 @@ vi.mock('../../assets/logo.png', () => ({
   default: 'mock-logo.png'
 }))
 
-// Mock the RecentClubsDropdown component
-vi.mock('../layout/RecentClubsDropdown', () => ({
-  default: () => <div data-testid="recent-clubs-dropdown">Recent Clubs Dropdown</div>
-}))
-
 // Mock the NotificationDropdown component
 vi.mock('../layout/NotificationDropdown', () => ({
   default: () => <div data-testid="notification-dropdown">Notification Dropdown</div>
+}))
+
+// Mock the GlobalSearch component
+vi.mock('../layout/GlobalSearch', () => ({
+  default: () => <div data-testid="global-search">Global Search</div>
 }))
 
 const renderWithRouter = (component: React.ReactElement) => {
@@ -163,29 +163,14 @@ describe('Header', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/login')
   })
 
-  it('shows recent clubs dropdown when showRecentClubs is true', () => {
-    renderWithRouter(<Header showRecentClubs={true} />)
+  it('shows global search component', () => {
+    renderWithRouter(<Header />)
     
-    expect(screen.getByTestId('recent-clubs-dropdown')).toBeInTheDocument()
+    expect(screen.getByTestId('global-search')).toBeInTheDocument()
   })
 
-  it('does not show recent clubs dropdown when showRecentClubs is false', () => {
-    renderWithRouter(<Header showRecentClubs={false} />)
-    
-    expect(screen.queryByTestId('recent-clubs-dropdown')).not.toBeInTheDocument()
-  })
-
-  it('shows My Clubs when showRecentClubs is false', () => {
-    renderWithRouter(<Header showRecentClubs={false} />)
-    
-    const userIcon = screen.getByText('U')
-    fireEvent.click(userIcon)
-    
-    expect(screen.getByText('My Clubs')).toBeInTheDocument()
-  })
-
-  it('shows My Clubs when showRecentClubs is true', () => {
-    renderWithRouter(<Header showRecentClubs={true} />)
+  it('shows My Clubs in dropdown', () => {
+    renderWithRouter(<Header />)
     
     const userIcon = screen.getByText('U')
     fireEvent.click(userIcon)

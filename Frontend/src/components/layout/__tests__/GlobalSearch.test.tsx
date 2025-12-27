@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { vi, describe, it, expect, beforeEach, Mock } from 'vitest';
 import GlobalSearch from '../GlobalSearch';
 import { useAuth } from '../../../hooks/useAuth';
+import { TestI18nProvider } from '../../../test/i18n-test-utils';
 
 // Mock the useAuth hook
 vi.mock('../../../hooks/useAuth');
@@ -18,6 +19,14 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+// Mock the recentClubs utility
+const mockGetRecentClubs = vi.fn();
+const mockRemoveRecentClub = vi.fn();
+vi.mock('../../../utils/recentClubs', () => ({
+  getRecentClubs: () => mockGetRecentClubs(),
+  removeRecentClub: (id: string) => mockRemoveRecentClub(id),
+}));
+
 const mockApi = {
   get: vi.fn(),
 };
@@ -25,7 +34,11 @@ const mockApi = {
 const MockedUseAuth = useAuth as Mock;
 
 const renderWithRouter = (component: React.ReactElement) => {
-  return render(<BrowserRouter>{component}</BrowserRouter>);
+  return render(
+    <TestI18nProvider>
+      <BrowserRouter>{component}</BrowserRouter>
+    </TestI18nProvider>
+  );
 };
 
 describe('GlobalSearch', () => {
@@ -39,13 +52,88 @@ describe('GlobalSearch', () => {
       login: vi.fn(),
       logout: vi.fn(),
     });
+    mockGetRecentClubs.mockReturnValue([]);
   });
 
   it('renders search input', () => {
     renderWithRouter(<GlobalSearch />);
     
-    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
+    const searchInput = screen.getByPlaceholderText('Search');
     expect(searchInput).toBeDefined();
+  });
+
+  it('shows recent clubs when focused with empty query', () => {
+    const mockClubs = [
+      { id: '1', name: 'Club A', visitedAt: 1000 },
+      { id: '2', name: 'Club B', visitedAt: 2000 },
+    ];
+    mockGetRecentClubs.mockReturnValue(mockClubs);
+
+    renderWithRouter(<GlobalSearch />);
+    
+    const searchInput = screen.getByPlaceholderText('Search');
+    fireEvent.focus(searchInput);
+
+    // Should show recent clubs dropdown
+    expect(screen.getByText('Recent Clubs')).toBeDefined();
+    expect(screen.getByText('Club A')).toBeDefined();
+    expect(screen.getByText('Club B')).toBeDefined();
+  });
+
+  it('shows "No recent clubs" when focused with no recent clubs', () => {
+    mockGetRecentClubs.mockReturnValue([]);
+
+    renderWithRouter(<GlobalSearch />);
+    
+    const searchInput = screen.getByPlaceholderText('Search');
+    fireEvent.focus(searchInput);
+
+    expect(screen.getByText('No recent clubs')).toBeDefined();
+  });
+
+  it('navigates to club when recent club is clicked', () => {
+    const mockClubs = [{ id: 'club-1', name: 'Test Club', visitedAt: 1000 }];
+    mockGetRecentClubs.mockReturnValue(mockClubs);
+
+    renderWithRouter(<GlobalSearch />);
+    
+    const searchInput = screen.getByPlaceholderText('Search');
+    fireEvent.focus(searchInput);
+
+    const clubItem = screen.getByText('Test Club');
+    fireEvent.click(clubItem);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/clubs/club-1');
+  });
+
+  it('navigates to clubs list when "View All Clubs" is clicked', () => {
+    mockGetRecentClubs.mockReturnValue([]);
+
+    renderWithRouter(<GlobalSearch />);
+    
+    const searchInput = screen.getByPlaceholderText('Search');
+    fireEvent.focus(searchInput);
+
+    const viewAllButton = screen.getByText('View All Clubs');
+    fireEvent.click(viewAllButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/clubs');
+  });
+
+  it('removes recent club when remove button is clicked', () => {
+    const mockClubs = [{ id: 'club-1', name: 'Test Club', visitedAt: 1000 }];
+    mockGetRecentClubs.mockReturnValue(mockClubs);
+
+    renderWithRouter(<GlobalSearch />);
+    
+    const searchInput = screen.getByPlaceholderText('Search');
+    fireEvent.focus(searchInput);
+
+    // Find and click the remove button
+    const removeButton = screen.getByTitle('Remove from recent clubs');
+    fireEvent.click(removeButton);
+
+    expect(mockRemoveRecentClub).toHaveBeenCalledWith('club-1');
   });
 
   it('shows loading indicator during search', async () => {
@@ -58,7 +146,7 @@ describe('GlobalSearch', () => {
 
     renderWithRouter(<GlobalSearch />);
     
-    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
+    const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'test' } });
 
     // Should show loading indicator briefly
@@ -95,7 +183,7 @@ describe('GlobalSearch', () => {
 
     renderWithRouter(<GlobalSearch />);
     
-    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
+    const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'test' } });
 
     // Wait for search to complete
@@ -117,7 +205,7 @@ describe('GlobalSearch', () => {
 
     renderWithRouter(<GlobalSearch />);
     
-    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
+    const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'nonexistent' } });
 
     await waitFor(() => {
@@ -142,7 +230,7 @@ describe('GlobalSearch', () => {
 
     renderWithRouter(<GlobalSearch />);
     
-    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
+    const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'test' } });
 
     // Wait for results and click on club
@@ -175,7 +263,7 @@ describe('GlobalSearch', () => {
 
     renderWithRouter(<GlobalSearch />);
     
-    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
+    const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'event' } });
 
     // Wait for results and click on event
@@ -189,21 +277,16 @@ describe('GlobalSearch', () => {
   });
 
   it('closes dropdown when clicking outside', async () => {
-    const mockResults = {
-      Clubs: [{ Type: 'club', ID: '1', Name: 'Test Club', Description: '' }],
-      Events: [],
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockResults });
+    mockGetRecentClubs.mockReturnValue([{ id: '1', name: 'Recent Club', visitedAt: 1000 }]);
 
     renderWithRouter(<GlobalSearch />);
     
-    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
-    fireEvent.change(searchInput, { target: { value: 'test' } });
+    const searchInput = screen.getByPlaceholderText('Search');
+    fireEvent.focus(searchInput);
 
     // Wait for dropdown to appear
     await waitFor(() => {
-      expect(screen.getByText('Test Club')).toBeDefined();
+      expect(screen.getByText('Recent Club')).toBeDefined();
     });
 
     // Click outside the dropdown
@@ -211,35 +294,7 @@ describe('GlobalSearch', () => {
 
     // Dropdown should close
     await waitFor(() => {
-      expect(screen.queryByText('Test Club')).toBeNull();
-    });
-  });
-
-  it('clears results when search input is cleared', async () => {
-    const mockResults = {
-      Clubs: [{ Type: 'club', ID: '1', Name: 'Test Club', Description: '' }],
-      Events: [],
-    };
-
-    mockApi.get.mockResolvedValue({ data: mockResults });
-
-    renderWithRouter(<GlobalSearch />);
-    
-    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
-    
-    // First search
-    fireEvent.change(searchInput, { target: { value: 'test' } });
-    
-    await waitFor(() => {
-      expect(screen.getByText('Test Club')).toBeDefined();
-    });
-
-    // Clear search
-    fireEvent.change(searchInput, { target: { value: '' } });
-
-    // Results should disappear
-    await waitFor(() => {
-      expect(screen.queryByText('Test Club')).toBeNull();
+      expect(screen.queryByText('Recent Club')).toBeNull();
     });
   });
 
@@ -248,7 +303,7 @@ describe('GlobalSearch', () => {
 
     renderWithRouter(<GlobalSearch />);
     
-    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
+    const searchInput = screen.getByPlaceholderText('Search');
     
     // Type multiple characters quickly
     fireEvent.change(searchInput, { target: { value: 't' } });
@@ -269,7 +324,7 @@ describe('GlobalSearch', () => {
 
     renderWithRouter(<GlobalSearch />);
     
-    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
+    const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'test' } });
 
     await waitFor(() => {
@@ -299,7 +354,7 @@ describe('GlobalSearch', () => {
 
     renderWithRouter(<GlobalSearch />);
     
-    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
+    const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'event' } });
 
     await waitFor(() => {
@@ -328,12 +383,27 @@ describe('GlobalSearch', () => {
 
     renderWithRouter(<GlobalSearch />);
     
-    const searchInput = screen.getByPlaceholderText('Search clubs and events...');
+    const searchInput = screen.getByPlaceholderText('Search');
     fireEvent.change(searchInput, { target: { value: 'test' } });
 
     await waitFor(() => {
       const truncatedText = screen.getByText(/This is a very long description.*\.\.\./);
       expect(truncatedText).toBeDefined();
     });
+  });
+
+  it('expands search field when focused', () => {
+    const { container } = renderWithRouter(<GlobalSearch />);
+    
+    const searchInput = screen.getByPlaceholderText('Search');
+    const searchContainer = container.querySelector('.global-search');
+    
+    // Before focus, should not have focused class
+    expect(searchContainer?.classList.contains('global-search-focused')).toBe(false);
+    
+    fireEvent.focus(searchInput);
+    
+    // After focus, should have focused class
+    expect(searchContainer?.classList.contains('global-search-focused')).toBe(true);
   });
 });

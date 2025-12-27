@@ -4,7 +4,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { useT } from '../../hooks/useTranslation';
 import { useNotifications } from '../../hooks/useNotifications';
 import logo from '../../assets/logo.png';
-import RecentClubsDropdown from './RecentClubsDropdown';
 import NotificationDropdown from './NotificationDropdown';
 import GlobalSearch from './GlobalSearch';
 import './Header.css';
@@ -13,10 +12,9 @@ interface HeaderProps {
   title?: string;
   isClubAdmin?: boolean;
   clubId?: string;
-  showRecentClubs?: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentClubs = false }) => {
+const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId }) => {
   const { t } = useT();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { logout } = useAuth();
@@ -63,7 +61,6 @@ const Header: React.FC<HeaderProps> = ({ title, isClubAdmin, clubId, showRecentC
       <h1>{title || t('navigation.clubs')}</h1>
       <div className="header-actions">
         <GlobalSearch />
-        {showRecentClubs && <RecentClubsDropdown />}
         <NotificationDropdown
           notifications={notifications}
           unreadCount={unreadCount}
