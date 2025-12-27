@@ -214,7 +214,7 @@ const Dashboard = () => {
     const getRoleChangeMessage = (activity: ActivityItem) => {
         // Determine the message based on ActorName
         return activity.ActorName 
-            ? `by ${activity.ActorName}` 
+            ? `${t('dashboard.by')} ${activity.ActorName}` 
             : '';
     };
 
@@ -223,9 +223,9 @@ const Dashboard = () => {
         if (activity.Type === 'member_promoted' || activity.Type === 'member_demoted' || activity.Type === 'role_changed') {
             if (!currentUser || !activity.Metadata?.affected_user_id) {
                 // Fallback to generic titles
-                if (activity.Type === 'member_promoted') return 'Member promoted';
-                if (activity.Type === 'member_demoted') return 'Member demoted';
-                return 'Role changed';
+                if (activity.Type === 'member_promoted') return t('dashboard.memberPromoted');
+                if (activity.Type === 'member_demoted') return t('dashboard.memberDemoted');
+                return t('dashboard.roleChanged');
             }
 
             const isCurrentUser = activity.Metadata.affected_user_id === currentUser.ID;
@@ -233,17 +233,17 @@ const Dashboard = () => {
             
             if (isCurrentUser) {
                 if (activity.Type === 'member_promoted') {
-                    return `You got promoted to ${translateRole(new_role)}!`;
+                    return t('dashboard.youGotPromoted', { role: translateRole(new_role) });
                 } else if (activity.Type === 'member_demoted') {
-                    return `Your role changed to ${translateRole(new_role)}`;
+                    return t('dashboard.yourRoleChanged', { role: translateRole(new_role) });
                 } else {
-                    return `Your role changed to ${translateRole(new_role)}`;
+                    return t('dashboard.yourRoleChanged', { role: translateRole(new_role) });
                 }
             } else {
                 // For other users
-                if (activity.Type === 'member_promoted') return 'Member promoted';
-                if (activity.Type === 'member_demoted') return 'Member demoted';
-                return 'Role changed';
+                if (activity.Type === 'member_promoted') return t('dashboard.memberPromoted');
+                if (activity.Type === 'member_demoted') return t('dashboard.memberDemoted');
+                return t('dashboard.roleChanged');
             }
         }
         
@@ -257,7 +257,7 @@ const Dashboard = () => {
             if (!currentUser || !activity.Metadata?.affected_user_id) {
                 // Fallback to generic content
                 const { old_role, new_role } = activity.Metadata || {};
-                return `Role changed from ${translateRole(old_role)} to ${translateRole(new_role)}`;
+                return t('dashboard.roleChangedFrom', { oldRole: translateRole(old_role), newRole: translateRole(new_role) });
             }
 
             const isCurrentUser = activity.Metadata.affected_user_id === currentUser.ID;
@@ -265,13 +265,13 @@ const Dashboard = () => {
             
             if (isCurrentUser) {
                 if (activity.ActorName) {
-                    return `${activity.ActorName} changed your role from ${translateRole(old_role)} to ${translateRole(new_role)}.`;
+                    return t('dashboard.actorChangedRole', { actor: activity.ActorName, oldRole: translateRole(old_role), newRole: translateRole(new_role) });
                 } else {
-                    return `Your role was changed from ${translateRole(old_role)} to ${translateRole(new_role)}.`;
+                    return t('dashboard.yourRoleWasChanged', { oldRole: translateRole(old_role), newRole: translateRole(new_role) });
                 }
             } else {
                 // For other users
-                return `Role changed from ${translateRole(old_role)} to ${translateRole(new_role)}`;
+                return t('dashboard.roleChangedFrom', { oldRole: translateRole(old_role), newRole: translateRole(new_role) });
             }
         }
         
@@ -298,9 +298,9 @@ const Dashboard = () => {
                     })()}
                     {activity.Metadata?.user_rsvp && (
                         <p className="user-rsvp">
-                            <strong>Your RSVP:</strong> 
+                            <strong>{t('dashboard.yourRsvp')}:</strong> 
                             <span className={`rsvp-status ${(activity.Metadata.user_rsvp as { response: string }).response}`}>
-                                {(activity.Metadata.user_rsvp as { response: string }).response === 'yes' ? ' Yes' : ' No'}
+                                {(activity.Metadata.user_rsvp as { response: string }).response === 'yes' ? ` ${t('common.yes')}` : ` ${t('common.no')}`}
                             </span>
                         </p>
                     )}
@@ -327,17 +327,17 @@ const Dashboard = () => {
     };
 
     return (
-        <Layout title="Dashboard" showRecentClubs={true}>
+        <Layout title={t('dashboard.title')} showRecentClubs={true}>
             <div>
                 {dashboardError && <p className="error">{dashboardError}</p>}
 
                 {/* Activity Feed Section */}
                 {dashboardLoading ? (
-                    <div>Loading dashboard...</div>
+                    <div>{t('dashboard.loadingDashboard')}</div>
                 ) : (
                     <>
                         <div className="dashboard-section">
-                            <h2>Activity Feed</h2>
+                            <h2>{t('dashboard.activityFeed')}</h2>
                             {activities.length > 0 ? (
                                 <>
                                     <div className="activity-feed">
@@ -375,11 +375,11 @@ const Dashboard = () => {
                                                     ) : (
                                                         activity.ActorName && activity.Type !== 'event' && (
                                                             <>
-                                                                {`Created by ${activity.ActorName}`} • 
+                                                                {`${t('dashboard.createdBy')} ${activity.ActorName}`} • 
                                                             </>
                                                         )
                                                     )}
-                                                    Posted on {formatDateTime(activity.CreatedAt)}
+                                                    {t('dashboard.postedOn')} {formatDateTime(activity.CreatedAt)}
                                                 </small>
                                             </div>
                                         ))}
@@ -389,7 +389,7 @@ const Dashboard = () => {
                                         <div ref={loaderRef} className="load-more-trigger">
                                             {loadingMore && (
                                                 <div className="loading-more">
-                                                    Loading more activities...
+                                                    {t('dashboard.loadingMore')}
                                                 </div>
                                             )}
                                         </div>
@@ -397,7 +397,7 @@ const Dashboard = () => {
                                 </>
                             ) : (
                                 <div className="empty-state">
-                                    <p>No recent activities from your clubs.</p>
+                                    <p>{t('dashboard.noActivities')}</p>
                                 </div>
                             )}
                         </div>

@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useT } from '../../hooks/useTranslation';
 import Layout from '../../components/layout/Layout';
 import { Input, Button, FormGroup, ButtonState } from '@/components/ui';
 
 const CreateClub = () => {
     const navigate = useNavigate();
     const { api } = useAuth();
+    const { t } = useT();
     const [clubName, setClubName] = useState('');
     const [description, setDescription] = useState('');
     const [createButtonState, setCreateButtonState] = useState<ButtonState>('idle');
@@ -35,31 +37,31 @@ const CreateClub = () => {
             });
             const createdClub = response.data;
             setCreateButtonState('success');
-            setMessage('Club created successfully!');
+            setMessage(t('createClub.successMessage'));
             timeoutRef.current = window.setTimeout(() => {
                 // OData returns ID property with capital I
                 navigate(`/clubs/${createdClub.ID || createdClub.id}`);
             }, 1000);
         } catch (error) {
             setCreateButtonState('error');
-            setMessage('Error creating club');
+            setMessage(t('createClub.errorMessage'));
             console.error(error);
             timeoutRef.current = window.setTimeout(() => setCreateButtonState('idle'), 3000);
         }
     };
 
     return (
-        <Layout title="Create New Club">
+        <Layout title={t('createClub.title')}>
             <div>
-                <h2>Create New Club</h2>
+                <h2>{t('createClub.title')}</h2>
 
-                {message && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
+                {message && <p className={`message ${message.includes(t('common.error')) || message.includes('Error') ? 'error' : 'success'}`}>
                     {message}
                 </p>}
 
                 <form onSubmit={handleSubmit}>
                     <Input
-                        label="Club Name:"
+                        label={t('createClub.clubName')}
                         id="clubName"
                         type="text"
                         value={clubName}
@@ -69,7 +71,7 @@ const CreateClub = () => {
                         disabled={createButtonState === 'loading'}
                     />
                     <FormGroup>
-                        <label htmlFor="description">Description:</label>
+                        <label htmlFor="description">{t('createClub.description')}</label>
                         <textarea
                             id="description"
                             value={description}
@@ -83,10 +85,10 @@ const CreateClub = () => {
                             type="submit" 
                             variant="accept"
                             state={createButtonState}
-                            successMessage="Club created successfully!"
-                            errorMessage="Error creating club"
+                            successMessage={t('createClub.successMessage')}
+                            errorMessage={t('createClub.errorMessage')}
                         >
-                            Create Club
+                            {t('createClub.createClub')}
                         </Button>
                         <Button 
                             type="button" 
@@ -94,7 +96,7 @@ const CreateClub = () => {
                             onClick={() => navigate('/')}
                             disabled={createButtonState === 'loading'}
                         >
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                     </div>
                 </form>

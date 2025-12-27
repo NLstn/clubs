@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import RecentClubsDropdown from '../layout/RecentClubsDropdown';
+import { TestI18nProvider } from '../../test/i18n-test-utils';
 
 // Mock the recentClubs utility
 const mockGetRecentClubs = vi.fn();
@@ -31,7 +32,9 @@ vi.mock('../../utils/api', () => ({
 const renderWithRouter = (component: React.ReactElement) => {
   return render(
     <BrowserRouter>
-      {component}
+      <TestI18nProvider>
+        {component}
+      </TestI18nProvider>
     </BrowserRouter>
   );
 };
