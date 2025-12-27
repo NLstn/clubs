@@ -5,8 +5,9 @@ import LanguageSwitcher from "../../components/LanguageSwitcher";
 import { useTheme } from "../../hooks/useTheme";
 import { ThemeMode } from "../../context/ThemeContext";
 import { useT } from '../../hooks/useTranslation';
-import { FormGroup } from '@/components/ui';
+import { FormGroup, SettingsList, SettingsListSection, SettingsListItem } from '@/components/ui';
 import './Profile.css';
+import './ProfilePreferences.css';
 
 const ProfilePreferences = () => {
     const { t } = useT();
@@ -46,7 +47,8 @@ const ProfilePreferences = () => {
                     </div>
                 )}
 
-                <div className="profile-content-sections">
+                {/* Desktop Layout - Grid-based theme selector */}
+                <div className="profile-content-sections desktop-preferences">
                     <div className="content-section">
                         <h3>{t('preferences.language')}</h3>
                                 <FormGroup>
@@ -257,6 +259,53 @@ const ProfilePreferences = () => {
                                 </FormGroup>
                             </div>
                         </div>
+
+                {/* Mobile Layout - Smartphone-style settings list */}
+                <div className="mobile-preferences">
+                    <SettingsList>
+                        <SettingsListSection 
+                            title={t('preferences.language').toUpperCase()}
+                            description={t('preferences.preferredLanguage')}
+                        >
+                            <div style={{ padding: 'var(--space-md)' }}>
+                                <LanguageSwitcher />
+                            </div>
+                        </SettingsListSection>
+
+                        <SettingsListSection 
+                            title={t('preferences.appearance').toUpperCase()}
+                            description={t('preferences.themeDescription')}
+                        >
+                            {themeOptions.map((option) => (
+                                <SettingsListItem
+                                    key={option.value}
+                                    title={option.label}
+                                    subtitle={option.description}
+                                    value={theme === option.value ? '✓' : ''}
+                                    onClick={() => handleThemeChange(option.value)}
+                                    icon={
+                                        option.value === 'light' ? '☀️' :
+                                        option.value === 'dark' ? '🌙' : 'ℹ️'
+                                    }
+                                />
+                            ))}
+                        </SettingsListSection>
+
+                        <div style={{ 
+                            padding: 'var(--space-md)',
+                            color: 'var(--color-text-secondary)',
+                            fontSize: '0.85rem',
+                            textAlign: 'center'
+                        }}>
+                            <strong>{t('preferences.currentlyActive')}</strong>{' '}
+                            {effectiveTheme === 'light' ? 
+                                <><span aria-hidden="true">☀️</span> {t('preferences.lightTheme')}</> : 
+                                <><span aria-hidden="true">🌙</span> {t('preferences.darkTheme')}</>
+                            }
+                            {theme === 'system' && <> ({t('preferences.automaticallySet')})</>}
+                        </div>
+                    </SettingsList>
+                </div>
             </ProfileContentLayout>
         </Layout>
     );

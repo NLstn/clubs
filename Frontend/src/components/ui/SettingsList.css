@@ -1,0 +1,176 @@
+/* SettingsList - Smartphone-style settings container */
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+/* SettingsListSection - Grouped section */
+.settings-list-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-list-section-header {
+    padding: var(--space-xs) var(--space-md);
+    margin-bottom: var(--space-xs);
+}
+
+.settings-list-section-title {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-secondary);
+}
+
+.settings-list-section-description {
+    margin: var(--space-xs) 0 0 0;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+}
+
+.settings-list-section-content {
+    background-color: var(--color-background-light);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+}
+
+/* SettingsListItem - Individual setting row */
+.settings-list-item {
+    display: flex;
+    align-items: center;
+    padding: var(--space-md) var(--space-md);
+    min-height: 44px; /* Touch-friendly minimum */
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-background-light);
+    transition: background-color 0.15s ease;
+}
+
+.settings-list-item:last-child {
+    border-bottom: none;
+}
+
+/* Navigable items (with onClick) */
+.settings-list-item-navigable {
+    cursor: pointer;
+}
+
+.settings-list-item-navigable:hover {
+    background-color: var(--color-background);
+}
+
+.settings-list-item-navigable:active {
+    background-color: var(--color-background);
+    opacity: 0.8;
+}
+
+.settings-list-item-navigable:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+}
+
+/* Item icon */
+.settings-list-item-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-right: var(--space-md);
+    font-size: 1.25rem;
+}
+
+/* Item content */
+.settings-list-item-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    gap: var(--space-md);
+}
+
+.settings-list-item-text {
+    flex: 1;
+    min-width: 0; /* Allow text truncation */
+}
+
+.settings-list-item-title {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--color-text);
+    line-height: 1.4;
+}
+
+.settings-list-item-subtitle {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-top: var(--space-xs);
+    line-height: 1.3;
+}
+
+/* Item value (right-aligned text) */
+.settings-list-item-value {
+    flex-shrink: 0;
+    font-size: 0.95rem;
+    color: var(--color-text-secondary);
+    text-align: right;
+}
+
+/* Item control (toggle, checkbox, etc.) */
+.settings-list-item-control {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Chevron indicator */
+.settings-list-item-chevron {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    color: var(--color-text-secondary);
+    opacity: 0.6;
+    margin-left: var(--space-xs);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .settings-list-section-content {
+        border-radius: var(--border-radius-md);
+    }
+    
+    .settings-list-item {
+        padding: var(--space-sm) var(--space-md);
+        min-height: 48px; /* Slightly larger for mobile touch */
+    }
+}
+
+@media (max-width: 480px) {
+    .settings-list {
+        gap: var(--space-md);
+    }
+    
+    .settings-list-section-header {
+        padding: var(--space-xs) var(--space-sm);
+    }
+    
+    .settings-list-section-content {
+        border-radius: var(--border-radius-sm);
+    }
+    
+    .settings-list-item {
+        padding: var(--space-md) var(--space-sm);
+    }
+    
+    .settings-list-item-title {
+        font-size: 0.95rem;
+    }
+    
+    .settings-list-item-subtitle {
+        font-size: 0.8rem;
+    }
+}
