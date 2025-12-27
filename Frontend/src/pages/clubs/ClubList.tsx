@@ -5,6 +5,7 @@ import { Button, Card } from '../../components/ui';
 import api from '../../utils/api';
 import { addRecentClub } from '../../utils/recentClubs';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { useT } from '../../hooks/useTranslation';
 import './ClubList.css';
 
 interface Club {
@@ -49,6 +50,7 @@ interface ODataTeam {
 }
 
 const ClubList = () => {
+    const { t } = useT();
     const { user: currentUser } = useCurrentUser();
     const [clubs, setClubs] = useState<Club[]>([]);
     const [loading, setLoading] = useState(true);
@@ -90,11 +92,11 @@ const ClubList = () => {
             setClubs(transformedClubs);
         } catch (err: Error | unknown) {
             console.error('Error fetching clubs:', err);
-            setError('Failed to fetch clubs');
+            setError(t('clubList.failedToFetch'));
         } finally {
             setLoading(false);
         }
-    }, [currentUser]);
+    }, [currentUser, t]);
 
     useEffect(() => {
         fetchClubs();
@@ -116,26 +118,26 @@ const ClubList = () => {
 
     if (loading) {
         return (
-            <Layout title="My Clubs">
-                <div>Loading clubs...</div>
+            <Layout title={t('clubList.myClubs')}>
+                <div>{t('clubList.loadingClubs')}</div>
             </Layout>
         );
     }
 
     if (error) {
         return (
-            <Layout title="My Clubs">
+            <Layout title={t('clubList.myClubs')}>
                 <div className="error">{error}</div>
             </Layout>
         );
     }
 
     return (
-        <Layout title="My Clubs" showRecentClubs={false}>
+        <Layout title={t('clubList.myClubs')} showRecentClubs={false}>
             <div className="clubs-container">
                 {adminClubs.length > 0 && (
                     <div className="clubs-section">
-                        <h2>Clubs I Manage</h2>
+                        <h2>{t('clubList.clubsIManage')}</h2>
                         <div className="clubs-grid">
                             {adminClubs.map(club => (
                                 <Card
@@ -153,12 +155,12 @@ const ClubList = () => {
                                     <p className="club-description">{club.description}</p>
                                     {club.deleted && (
                                         <div className="club-deleted-badge">
-                                            Deleted
+                                            {t('clubList.deleted')}
                                         </div>
                                     )}
                                     {club.user_teams && club.user_teams.length > 0 && (
                                         <div className="club-teams-section">
-                                            <h4 className="teams-title">My Teams</h4>
+                                            <h4 className="teams-title">{t('clubList.myTeams')}</h4>
                                             <div className="teams-list">
                                                 {club.user_teams.map(team => (
                                                     <div 
@@ -181,7 +183,7 @@ const ClubList = () => {
 
                 {memberClubs.length > 0 && (
                     <div className="clubs-section">
-                        <h2>Clubs I'm a Member Of</h2>
+                        <h2>{t('clubList.clubsImMemberOf')}</h2>
                         <div className="clubs-grid">
                             {memberClubs.map(club => (
                                 <Card
@@ -199,7 +201,7 @@ const ClubList = () => {
                                     <p className="club-description">{club.description}</p>
                                     {club.user_teams && club.user_teams.length > 0 && (
                                         <div className="club-teams-section">
-                                            <h4 className="teams-title">My Teams</h4>
+                                            <h4 className="teams-title">{t('clubList.myTeams')}</h4>
                                             <div className="teams-list">
                                                 {club.user_teams.map(team => (
                                                     <div 
@@ -222,13 +224,13 @@ const ClubList = () => {
 
                 {adminClubs.length === 0 && memberClubs.length === 0 && (
                     <div className="empty-state">
-                        <h2>No Clubs Yet</h2>
-                        <p>You're not a member of any clubs yet.</p>
+                        <h2>{t('clubList.noClubsYet')}</h2>
+                        <p>{t('clubList.notMemberYet')}</p>
                         <Button 
                             onClick={() => navigate('/createClub')}
                             variant="primary"
                         >
-                            Create Your First Club
+                            {t('clubList.createFirstClub')}
                         </Button>
                     </div>
                 )}

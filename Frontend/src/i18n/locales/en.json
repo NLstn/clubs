@@ -260,5 +260,64 @@
       "saving": "Saving..."
     },
     "note": "In-app notifications appear in the notification bell icon. Email notifications are sent to your registered email address."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "activityFeed": "Activity Feed",
+    "loadingDashboard": "Loading dashboard...",
+    "loadingMore": "Loading more activities...",
+    "failedToLoad": "Failed to load dashboard data",
+    "noActivities": "No recent activities from your clubs.",
+    "postedOn": "Posted on",
+    "createdBy": "Created by",
+    "by": "by",
+    "yourRsvp": "Your RSVP",
+    "memberPromoted": "Member promoted",
+    "memberDemoted": "Member demoted",
+    "roleChanged": "Role changed",
+    "youGotPromoted": "You got promoted to {{role}}!",
+    "yourRoleChanged": "Your role changed to {{role}}",
+    "roleChangedFrom": "Role changed from {{oldRole}} to {{newRole}}",
+    "actorChangedRole": "{{actor}} changed your role from {{oldRole}} to {{newRole}}.",
+    "yourRoleWasChanged": "Your role was changed from {{oldRole}} to {{newRole}}."
+  },
+  "recentClubs": {
+    "title": "Recent Clubs",
+    "recentClubs": "Recent clubs",
+    "noRecentClubs": "No recent clubs",
+    "viewAllClubs": "View All Clubs",
+    "removeFromRecent": "Remove from recent clubs"
+  },
+  "clubList": {
+    "myClubs": "My Clubs",
+    "clubsIManage": "Clubs I Manage",
+    "clubsImMemberOf": "Clubs I'm a Member Of",
+    "myTeams": "My Teams",
+    "deleted": "Deleted",
+    "noClubsYet": "No Clubs Yet",
+    "notMemberYet": "You're not a member of any clubs yet.",
+    "createFirstClub": "Create Your First Club",
+    "loadingClubs": "Loading clubs...",
+    "failedToFetch": "Failed to fetch clubs"
+  },
+  "createClub": {
+    "title": "Create New Club",
+    "clubName": "Club Name:",
+    "description": "Description:",
+    "createClub": "Create Club",
+    "successMessage": "Club created successfully!",
+    "errorMessage": "Error creating club"
+  },
+  "shifts": {
+    "myFutureShifts": "My Future Shifts",
+    "loadingShifts": "Loading shifts...",
+    "failedToLoad": "Failed to load shifts",
+    "noUpcomingShifts": "No upcoming shifts found.",
+    "checkBackLater": "Check back later or contact your club administrators if you expect to see shifts here.",
+    "time": "Time",
+    "location": "Location",
+    "teamMembers": "Team Members",
+    "noOtherMembers": "No other members assigned",
+    "moreMembers": "+{{count}} more"
   }
 }

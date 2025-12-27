@@ -118,14 +118,14 @@ function ProfileShifts() {
 
     return (
         <Layout>
-            <ProfileContentLayout title={t('My Future Shifts')}>
+            <ProfileContentLayout title={t('shifts.myFutureShifts')}>
                 {loading && (
                     <div style={{ 
                         textAlign: 'center', 
                         padding: '2rem', 
                         color: 'var(--color-text-secondary)' 
                     }}>
-                        Loading shifts...
+                        {t('shifts.loadingShifts')}
                     </div>
                 )}
 
@@ -147,9 +147,9 @@ function ProfileShifts() {
                         padding: '3rem', 
                         color: 'var(--color-text-secondary)' 
                     }}>
-                        <p>{t('No upcoming shifts found.')}</p>
+                        <p>{t('shifts.noUpcomingShifts')}</p>
                         <p style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                            {t('Check back later or contact your club administrators if you expect to see shifts here.')}
+                            {t('shifts.checkBackLater')}
                         </p>
                     </div>
                 )}
@@ -201,7 +201,7 @@ function ProfileShifts() {
                                                 fontSize: '0.9rem',
                                                 fontWeight: '600'
                                             }}>
-                                                {t('Time')}
+                                                {t('shifts.time')}
                                             </h4>
                                             <p style={{ 
                                                 color: 'var(--color-text-secondary)', 
@@ -220,7 +220,7 @@ function ProfileShifts() {
                                                     fontSize: '0.9rem',
                                                     fontWeight: '600'
                                                 }}>
-                                                    {t('Location')}
+                                                    {t('shifts.location')}
                                                 </h4>
                                                 <p style={{ 
                                                     color: 'var(--color-text-secondary)', 
@@ -239,7 +239,7 @@ function ProfileShifts() {
                                                 fontSize: '0.9rem',
                                                 fontWeight: '600'
                                             }}>
-                                                {t('Team Members')} ({shift.members.length})
+                                                {t('shifts.teamMembers')} ({shift.members.length})
                                             </h4>
                                             <div style={{ 
                                                 color: 'var(--color-text-secondary)', 
@@ -257,13 +257,13 @@ function ProfileShifts() {
                                                                 fontStyle: 'italic',
                                                                 color: 'var(--color-text-tertiary)'
                                                             }}>
-                                                                +{shift.members.length - 3} more
+                                                                {t('shifts.moreMembers', { count: shift.members.length - 3 })}
                                                             </div>
                                                         )}
                                                     </div>
                                                 ) : (
                                                     <span style={{ fontStyle: 'italic' }}>
-                                                        {t('No other members assigned')}
+                                                        {t('shifts.noOtherMembers')}
                                                     </span>
                                                 )}
                                             </div>

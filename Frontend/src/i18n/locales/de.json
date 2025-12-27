@@ -25,6 +25,7 @@
     "role": "Rolle",
     "actions": "Aktionen",
     "note": "Hinweis",
+    "goToDashboard": "Zum Dashboard",
     "notAvailable": "Nicht verfügbar",
     "notShared": "Nicht geteilt",
     "unknownRole": "Unbekannte Rolle"
@@ -102,6 +103,16 @@
     "hardDeleteSuccess": "Verein wurde endgültig gelöscht.",
     "hardDeleteError": "Fehler beim endgültigen Löschen des Vereins. Bitte versuchen Sie es erneut.",
     "clubDeleted": "Dieser Verein wurde als gelöscht markiert und ist nur für Besitzer sichtbar.",
+    "clubId": "Vereins-ID",
+    "viewAllClubs": "Alle Vereine anzeigen",
+    "createClub": "Verein erstellen",
+    "possibleReasons": "Mögliche Gründe:",
+    "noLongerMember": "Sie sind nicht mehr Mitglied dieses Vereins",
+    "invalidLink": "Der verwendete Link ist ungültig oder abgelaufen",
+    "temporaryIssue": "Es könnte ein vorübergehendes Problem mit dem Server geben",
+    "joined": "Beigetreten",
+    "birthDate": "Geburtsdatum",
+    "totalMembers": "Gesamt: {{count}} Mitglieder",
     "loading": {
       "settings": "Einstellungen werden geladen...",
       "news": "Nachrichten werden geladen...",
@@ -249,5 +260,64 @@
       "saving": "Speichern..."
     },
     "note": "In-App-Benachrichtigungen erscheinen im Benachrichtigungsglocken-Symbol. E-Mail-Benachrichtigungen werden an Ihre registrierte E-Mail-Adresse gesendet."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "activityFeed": "Aktivitäts-Feed",
+    "loadingDashboard": "Dashboard wird geladen...",
+    "loadingMore": "Weitere Aktivitäten werden geladen...",
+    "failedToLoad": "Dashboard-Daten konnten nicht geladen werden",
+    "noActivities": "Keine aktuellen Aktivitäten aus Ihren Vereinen.",
+    "postedOn": "Veröffentlicht am",
+    "createdBy": "Erstellt von",
+    "by": "von",
+    "yourRsvp": "Ihre Rückmeldung",
+    "memberPromoted": "Mitglied befördert",
+    "memberDemoted": "Mitglied herabgestuft",
+    "roleChanged": "Rolle geändert",
+    "youGotPromoted": "Sie wurden zu {{role}} befördert!",
+    "yourRoleChanged": "Ihre Rolle wurde zu {{role}} geändert",
+    "roleChangedFrom": "Rolle geändert von {{oldRole}} zu {{newRole}}",
+    "actorChangedRole": "{{actor}} hat Ihre Rolle von {{oldRole}} zu {{newRole}} geändert.",
+    "yourRoleWasChanged": "Ihre Rolle wurde von {{oldRole}} zu {{newRole}} geändert."
+  },
+  "recentClubs": {
+    "title": "Letzte Vereine",
+    "recentClubs": "Letzte Vereine",
+    "noRecentClubs": "Keine letzten Vereine",
+    "viewAllClubs": "Alle Vereine anzeigen",
+    "removeFromRecent": "Aus letzten Vereinen entfernen"
+  },
+  "clubList": {
+    "myClubs": "Meine Vereine",
+    "clubsIManage": "Vereine, die ich verwalte",
+    "clubsImMemberOf": "Vereine, in denen ich Mitglied bin",
+    "myTeams": "Meine Teams",
+    "deleted": "Gelöscht",
+    "noClubsYet": "Noch keine Vereine",
+    "notMemberYet": "Sie sind noch kein Mitglied in einem Verein.",
+    "createFirstClub": "Erstellen Sie Ihren ersten Verein",
+    "loadingClubs": "Vereine werden geladen...",
+    "failedToFetch": "Vereine konnten nicht abgerufen werden"
+  },
+  "createClub": {
+    "title": "Neuen Verein erstellen",
+    "clubName": "Vereinsname:",
+    "description": "Beschreibung:",
+    "createClub": "Verein erstellen",
+    "successMessage": "Verein erfolgreich erstellt!",
+    "errorMessage": "Fehler beim Erstellen des Vereins"
+  },
+  "shifts": {
+    "myFutureShifts": "Meine zukünftigen Schichten",
+    "loadingShifts": "Schichten werden geladen...",
+    "failedToLoad": "Schichten konnten nicht geladen werden",
+    "noUpcomingShifts": "Keine bevorstehenden Schichten gefunden.",
+    "checkBackLater": "Schauen Sie später noch einmal vorbei oder kontaktieren Sie Ihre Vereinsadministratoren, wenn Sie hier Schichten erwarten.",
+    "time": "Zeit",
+    "location": "Ort",
+    "teamMembers": "Teammitglieder",
+    "noOtherMembers": "Keine anderen Mitglieder zugewiesen",
+    "moreMembers": "+{{count}} weitere"
   }
 }

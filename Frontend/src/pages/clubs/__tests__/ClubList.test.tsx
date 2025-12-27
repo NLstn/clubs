@@ -19,6 +19,16 @@ vi.mock('../../../hooks/useTranslation', () => ({
                 'clubs.roles.owner': 'Owner',
                 'clubs.roles.admin': 'Admin',
                 'clubs.roles.member': 'Member',
+                'clubList.myClubs': 'My Clubs',
+                'clubList.clubsIManage': 'Clubs I Manage',
+                'clubList.clubsImMemberOf': "Clubs I'm a Member Of",
+                'clubList.myTeams': 'My Teams',
+                'clubList.deleted': 'Deleted',
+                'clubList.noClubsYet': 'No Clubs Yet',
+                'clubList.notMemberYet': "You're not a member of any clubs yet.",
+                'clubList.createFirstClub': 'Create Your First Club',
+                'clubList.loadingClubs': 'Loading clubs...',
+                'clubList.failedToFetch': 'Failed to fetch clubs',
             };
             return translations[key] || key;
         }

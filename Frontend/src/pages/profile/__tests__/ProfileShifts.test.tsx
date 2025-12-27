@@ -49,7 +49,8 @@ describe('ProfileShifts', () => {
 
     expect(screen.getByTestId('layout')).toBeInTheDocument();
     expect(screen.getByTestId('profile-content-layout')).toBeInTheDocument();
-    expect(screen.getByText('My Future Shifts')).toBeInTheDocument();
+    // The mock returns translation keys, so look for the key
+    expect(screen.getByText('shifts.myFutureShifts')).toBeInTheDocument();
   });
 
   it('shows loading state initially', () => {
@@ -59,6 +60,7 @@ describe('ProfileShifts', () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByText('Loading shifts...')).toBeInTheDocument();
+    // The mock returns translation keys, so look for the key
+    expect(screen.getByText('shifts.loadingShifts')).toBeInTheDocument();
   });
 });

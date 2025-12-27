@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 import CreateClub from '../CreateClub';
+import { TestI18nProvider } from '../../../test/i18n-test-utils';
 
 // Mock useNavigate
 const mockNavigate = vi.fn();
@@ -29,13 +30,21 @@ vi.mock('../../../components/layout/Layout', () => ({
   ),
 }));
 
+const renderWithProviders = (component: React.ReactElement) => {
+  return render(
+    <TestI18nProvider>
+      {component}
+    </TestI18nProvider>
+  );
+};
+
 describe('CreateClub', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('renders correctly', () => {
-    render(<CreateClub />);
+    renderWithProviders(<CreateClub />);
     
     expect(screen.getByTestId('layout')).toBeInTheDocument();
     expect(screen.getAllByText('Create New Club')[0]).toBeInTheDocument(); // Get first occurrence
@@ -45,7 +54,7 @@ describe('CreateClub', () => {
   });
 
   it('updates input values when user types', () => {
-    render(<CreateClub />);
+    renderWithProviders(<CreateClub />);
     
     const clubNameInput = screen.getByLabelText(/club name/i) as HTMLInputElement;
     const descriptionInput = screen.getByLabelText(/description/i) as HTMLTextAreaElement;
@@ -61,7 +70,7 @@ describe('CreateClub', () => {
     const mockResponse = { data: { ID: '123', Name: 'Test Club' } };
     mockPost.mockResolvedValue(mockResponse);
     
-    render(<CreateClub />);
+    renderWithProviders(<CreateClub />);
     
     const clubNameInput = screen.getByLabelText(/club name/i);
     const descriptionInput = screen.getByLabelText(/description/i);

@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { getRecentClubs, RecentClub, removeRecentClub } from '../../utils/recentClubs';
 import api from '../../utils/api';
 import { Divider } from '@/components/ui';
+import { useT } from '../../hooks/useTranslation';
 import './RecentClubsDropdown.css';
 
 const RecentClubsDropdown: React.FC = () => {
+  const { t } = useT();
   const [isOpen, setIsOpen] = useState(false);
   // Initialize state directly from getRecentClubs()
   const [recentClubs, setRecentClubs] = useState<RecentClub[]>(() => getRecentClubs());
@@ -60,14 +62,14 @@ const RecentClubsDropdown: React.FC = () => {
       <div 
         className="recent-clubs-trigger"
         onClick={() => setIsOpen(!isOpen)}
-        title="Recent Clubs"
+        title={t('recentClubs.title')}
       >
-        <span className="clubs-text">Recent clubs</span>
+        <span className="clubs-text">{t('recentClubs.recentClubs')}</span>
       </div>
 
       {isOpen && (
         <div className="recent-clubs-menu">
-          <div className="recent-clubs-header">Recent Clubs</div>
+          <div className="recent-clubs-header">{t('recentClubs.title')}</div>
           
           {recentClubs.length > 0 ? (
             <>
@@ -85,8 +87,8 @@ const RecentClubsDropdown: React.FC = () => {
                   <button
                     className="recent-club-remove"
                     onClick={(e) => handleRemoveClub(e, club.id)}
-                    title="Remove from recent clubs"
-                    aria-label={`Remove ${club.name} from recent clubs`}
+                    title={t('recentClubs.removeFromRecent')}
+                    aria-label={`${t('recentClubs.removeFromRecent')}: ${club.name}`}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14zM10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -97,14 +99,14 @@ const RecentClubsDropdown: React.FC = () => {
               <Divider spacing="sm" />
             </>
           ) : (
-            <div className="no-recent-clubs">No recent clubs</div>
+            <div className="no-recent-clubs">{t('recentClubs.noRecentClubs')}</div>
           )}
           
           <button
             className="view-all-clubs"
             onClick={handleViewAllClubs}
           >
-            View All Clubs
+            {t('recentClubs.viewAllClubs')}
           </button>
         </div>
       )}
