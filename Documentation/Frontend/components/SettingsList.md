@@ -229,7 +229,7 @@ The `SettingsList` components are specifically designed for **mobile/smartphone 
 |---------|--------------|-----------------|
 | Layout | Vertical, stacked | Horizontal, side-by-side |
 | Visual Style | iOS/Android native | Desktop settings panel |
-| Touch Targets | Extra large (48px+) | Standard (44px) |
+| Touch Targets | Extra large (48px) | Standard (44px) |
 | Navigation | Chevron indicators | No chevron |
 | Best For | Mobile/tablet | Desktop |
 

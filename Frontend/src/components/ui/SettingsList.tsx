@@ -150,7 +150,11 @@ export const SettingsListItem: React.FC<SettingsListItemProps> = ({
             role={isNavigable ? 'button' : undefined}
             tabIndex={isNavigable ? 0 : undefined}
         >
-            {icon && <div className="settings-list-item-icon">{icon}</div>}
+            {icon && (
+                <div className="settings-list-item-icon" aria-hidden="true">
+                    {icon}
+                </div>
+            )}
             
             <div className="settings-list-item-content">
                 <div className="settings-list-item-text">

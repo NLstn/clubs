@@ -284,19 +284,16 @@ const ProfilePreferences = () => {
                                     value={theme === option.value ? '✓' : ''}
                                     onClick={() => handleThemeChange(option.value)}
                                     icon={
-                                        option.value === 'light' ? '☀️' :
-                                        option.value === 'dark' ? '🌙' : 'ℹ️'
+                                        <span aria-hidden="true">
+                                            {option.value === 'light' ? '☀️' :
+                                             option.value === 'dark' ? '🌙' : 'ℹ️'}
+                                        </span>
                                     }
                                 />
                             ))}
                         </SettingsListSection>
 
-                        <div style={{ 
-                            padding: 'var(--space-md)',
-                            color: 'var(--color-text-secondary)',
-                            fontSize: '0.85rem',
-                            textAlign: 'center'
-                        }}>
+                        <div className="preferences-current-theme-indicator">
                             <strong>{t('preferences.currentlyActive')}</strong>{' '}
                             {effectiveTheme === 'light' ? 
                                 <><span aria-hidden="true">☀️</span> {t('preferences.lightTheme')}</> : 
