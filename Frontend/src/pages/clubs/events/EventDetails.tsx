@@ -68,7 +68,8 @@ const EventDetails: FC = () => {
                     filter: ODataFilter.eq('UserID', encodedUserId)
                 })
             });
-            const response = await api.get(`/api/v2/Events('${eventId}')${query}`, {
+            const encodedEventId = encodeURIComponent(eventId);
+            const response = await api.get(`/api/v2/Events('${encodedEventId}')${query}`, {
                 signal: abortSignal
             });
             if (!abortSignal?.aborted) {
