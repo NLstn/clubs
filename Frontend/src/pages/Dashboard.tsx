@@ -327,7 +327,7 @@ const Dashboard = () => {
     };
 
     return (
-        <Layout title={t('dashboard.title')} showRecentClubs={true}>
+        <Layout title={t('dashboard.title')}>
             <div>
                 {dashboardError && <p className="error">{dashboardError}</p>}
 

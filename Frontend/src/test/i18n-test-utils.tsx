@@ -24,7 +24,15 @@ testI18n
             edit: "Edit",
             delete: "Delete",
             yes: "Yes",
-            no: "No"
+            no: "No",
+            search: "Search"
+          },
+          search: {
+            club: "Club",
+            clubs: "Clubs",
+            event: "Event",
+            events: "Events",
+            noResults: "No results found for \"{{query}}\""
           },
           navigation: {
             home: "Home",

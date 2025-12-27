@@ -5,13 +5,12 @@ import CookieConsent from '../CookieConsent';
 interface LayoutProps {
   children: React.ReactNode;
   title?: string;
-  showRecentClubs?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, title, showRecentClubs = true }) => {
+const Layout: React.FC<LayoutProps> = ({ children, title }) => {
   return (
     <div className="layout">
-      <Header title={title} showRecentClubs={showRecentClubs} />
+      <Header title={title} />
       <main className="main-content">{children}</main>
       <CookieConsent />
     </div>

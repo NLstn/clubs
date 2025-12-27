@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useT } from '../../hooks/useTranslation';
+import { getRecentClubs, removeRecentClub, RecentClub } from '../../utils/recentClubs';
 import './GlobalSearch.css';
 
 interface SearchResult {
@@ -20,20 +22,31 @@ interface SearchResponse {
 }
 
 const GlobalSearch: React.FC = () => {
+  const { t } = useT();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResponse>({ clubs: [], events: [] });
   const [isOpen, setIsOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [recentClubs, setRecentClubs] = useState<RecentClub[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { api } = useAuth();
+
+  // Load recent clubs when focused
+  useEffect(() => {
+    if (isFocused && !query.trim()) {
+      setRecentClubs(getRecentClubs());
+    }
+  }, [isFocused, query]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setIsFocused(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -49,12 +62,15 @@ const GlobalSearch: React.FC = () => {
         performSearch(query.trim());
       } else {
         setResults({ clubs: [], events: [] });
-        setIsOpen(false);
+        // Keep isOpen true if focused to show recent clubs
+        if (!isFocused) {
+          setIsOpen(false);
+        }
       }
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [query]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [query, isFocused]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const performSearch = async (searchQuery: string) => {
     if (!searchQuery) return;
@@ -112,12 +128,62 @@ const GlobalSearch: React.FC = () => {
   };
 
   const handleResultClick = (result: SearchResult) => {
-    if (result.type === 'club') {
-      navigate(`/clubs/${result.id}`);
-    } else if (result.type === 'event') {
-      navigate(`/clubs/${result.club_id}`); // Navigate to club page for events
-    }
+    const targetUrl = result.type === 'club' 
+      ? `/clubs/${result.id}` 
+      : `/clubs/${result.club_id}`; // Navigate to club page for events
+    
+    navigate(targetUrl);
     setIsOpen(false);
+    setIsFocused(false);
+    setQuery('');
+  };
+
+  const handleResultKeyDown = (e: React.KeyboardEvent, result: SearchResult) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleResultClick(result);
+    }
+  };
+
+  const handleRecentClubClick = async (club: RecentClub) => {
+    try {
+      // First try to check if the club exists (OData v2)
+      await api.get(`/api/v2/Clubs('${club.id}')`);
+      navigate(`/clubs/${club.id}`);
+      setIsOpen(false);
+      setIsFocused(false);
+      setQuery('');
+    } catch {
+      // If club doesn't exist, remove it from recent clubs and do not navigate
+      console.warn(`Club ${club.id} not found, removing from recent clubs`);
+      removeRecentClub(club.id);
+      setRecentClubs(getRecentClubs()); // Refresh the list
+    }
+  };
+
+  const handleRecentClubKeyDown = (e: React.KeyboardEvent, club: RecentClub) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleRecentClubClick(club);
+    }
+  };
+
+  const handleRemoveRecentClub = (e: React.MouseEvent, clubId: string) => {
+    e.stopPropagation();
+    removeRecentClub(clubId);
+    setRecentClubs(getRecentClubs());
+  };
+
+  const handleFocus = () => {
+    setIsFocused(true);
+    setIsOpen(true);
+    setRecentClubs(getRecentClubs());
+  };
+
+  const handleViewAllClubs = () => {
+    navigate('/clubs');
+    setIsOpen(false);
+    setIsFocused(false);
     setQuery('');
   };
 
@@ -131,16 +197,19 @@ const GlobalSearch: React.FC = () => {
   };
 
   const totalResults = (results?.clubs?.length || 0) + (results?.events?.length || 0);
+  const showRecentClubs = isFocused && !query.trim();
+  const showSearchResults = isOpen && query.trim();
 
   return (
-    <div className="global-search" ref={searchRef}>
+    <div className={`global-search ${isFocused ? 'global-search-focused' : ''}`} ref={searchRef}>
       <div className="search-input-container">
         <input
           ref={inputRef}
           type="text"
-          placeholder="Search clubs and events..."
+          placeholder={t('common.search')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onFocus={handleFocus}
           className="search-input"
         />
         <div className="search-icon">
@@ -152,26 +221,80 @@ const GlobalSearch: React.FC = () => {
         </div>
       </div>
 
-      {isOpen && query.trim() && (
+      {/* Show recent clubs when focused with empty query */}
+      {showRecentClubs && (
+        <div className="search-dropdown">
+          <div className="search-section">
+            <div className="search-section-header">
+              <span className="search-section-title">{t('recentClubs.title')}</span>
+            </div>
+            {recentClubs.length > 0 ? (
+              <>
+                {recentClubs.map((club) => (
+                  <div
+                    key={`recent-${club.id}`}
+                    className="search-result-item"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleRecentClubClick(club)}
+                    onKeyDown={(e) => handleRecentClubKeyDown(e, club)}
+                  >
+                    <div className="search-result-type">{t('search.club')}</div>
+                    <div className="search-result-content">
+                      <div className="search-result-title">{club.name}</div>
+                    </div>
+                    <button
+                      className="search-result-remove"
+                      onClick={(e) => handleRemoveRecentClub(e, club.id)}
+                      title={t('recentClubs.removeFromRecent')}
+                      aria-label={`${t('recentClubs.removeFromRecent')}: ${club.name}`}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <div className="search-no-results">
+                {t('recentClubs.noRecentClubs')}
+              </div>
+            )}
+            <button
+              className="search-view-all"
+              onClick={handleViewAllClubs}
+            >
+              {t('recentClubs.viewAllClubs')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Show search results when there's a query */}
+      {showSearchResults && (
         <div className="search-dropdown">
           {totalResults === 0 ? (
             <div className="search-no-results">
-              No results found for "{query}"
+              {t('search.noResults', { query })}
             </div>
           ) : (
             <>
               {results?.clubs && results.clubs.length > 0 && (
                 <div className="search-section">
                   <div className="search-section-header">
-                    <span className="search-section-title">Clubs ({results?.clubs?.length || 0})</span>
+                    <span className="search-section-title">{t('search.clubs')} ({results?.clubs?.length || 0})</span>
                   </div>
                   {results.clubs?.map((club) => (
                     <div
                       key={`club-${club.id}`}
                       className="search-result-item"
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleResultClick(club)}
+                      onKeyDown={(e) => handleResultKeyDown(e, club)}
                     >
-                      <div className="search-result-type">Club</div>
+                      <div className="search-result-type">{t('search.club')}</div>
                       <div className="search-result-content">
                         <div className="search-result-title">{club.name}</div>
                         {club.description && (
@@ -191,15 +314,18 @@ const GlobalSearch: React.FC = () => {
               {results?.events && results.events.length > 0 && (
                 <div className="search-section">
                   <div className="search-section-header">
-                    <span className="search-section-title">Events ({results?.events?.length || 0})</span>
+                    <span className="search-section-title">{t('search.events')} ({results?.events?.length || 0})</span>
                   </div>
                   {results.events?.map((event) => (
                     <div
                       key={`event-${event.id}`}
                       className="search-result-item"
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleResultClick(event)}
+                      onKeyDown={(e) => handleResultKeyDown(e, event)}
                     >
-                      <div className="search-result-type">Event</div>
+                      <div className="search-result-type">{t('search.event')}</div>
                       <div className="search-result-content">
                         <div className="search-result-title">{event.name}</div>
                         <div className="search-result-meta">

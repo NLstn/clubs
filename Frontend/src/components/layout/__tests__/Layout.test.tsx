@@ -39,9 +39,9 @@ vi.mock('../../CookieConsent', () => ({
   default: () => <div data-testid="cookie-consent-mock">Cookie Consent</div>
 }));
 
-// Mock the RecentClubsDropdown component
-vi.mock('../RecentClubsDropdown', () => ({
-  default: () => <div data-testid="recent-clubs-dropdown">Recent Clubs Dropdown</div>
+// Mock the GlobalSearch component
+vi.mock('../GlobalSearch', () => ({
+  default: () => <div data-testid="global-search">Global Search</div>
 }));
 
 // Mock the NotificationDropdown component

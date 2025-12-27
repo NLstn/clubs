@@ -134,7 +134,7 @@ const ClubList = () => {
     }
 
     return (
-        <Layout title={t('clubList.myClubs')} showRecentClubs={false}>
+        <Layout title={t('clubList.myClubs')}>
             <div className="clubs-container">
                 {adminClubs.length > 0 && (
                     <div className="clubs-section">
