@@ -1,34 +1,3 @@
-/* ProfilePreferences - Responsive layout switching */
-
-/* Desktop layout - shown by default, hidden on mobile */
-.desktop-preferences {
-    display: flex;
-}
-
-/* Mobile layout - hidden by default, shown on mobile */
-.mobile-preferences {
-    display: none;
-}
-
-/* Switch layouts at tablet breakpoint (768px) */
-@media (max-width: 768px) {
-    .desktop-preferences {
-        display: none;
-    }
-    
-    .mobile-preferences {
-        display: block;
-    }
-}
-
-/* Mobile-specific adjustments */
-@media (max-width: 768px) {
-    /* Remove extra padding from profile content on mobile */
-    .mobile-preferences {
-        padding: 0;
-    }
-}
-
 /* Current theme indicator styling */
 .preferences-current-theme-indicator {
     padding: var(--space-md);

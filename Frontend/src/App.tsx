@@ -16,7 +16,9 @@ const MagicLinkHandler = lazy(() => import('./pages/auth/MagicLinkHandler'));
 const KeycloakCallback = lazy(() => import('./pages/auth/KeycloakCallback'));
 const Signup = lazy(() => import('./pages/auth/Signup'));
 const Profile = lazy(() => import('./pages/profile/Profile'));
-const ProfilePreferences = lazy(() => import('./pages/profile/ProfilePreferences'));
+const ProfileSettings = lazy(() => import('./pages/profile/ProfileSettings'));
+const ProfileLanguageSettings = lazy(() => import('./pages/profile/ProfileLanguageSettings'));
+const ProfileAppearanceSettings = lazy(() => import('./pages/profile/ProfileAppearanceSettings'));
 const ProfileInvites = lazy(() => import('./pages/profile/ProfileInvites'));
 const ProfileFines = lazy(() => import('./pages/profile/ProfileFines'));
 const ProfileShifts = lazy(() => import('./pages/profile/ProfileShifts'));
@@ -187,7 +189,19 @@ function App() {
 
                         <Route path="/settings/preferences" element={
                             <ProtectedRoute>
-                                <ProfilePreferences />
+                                <ProfileSettings />
+                            </ProtectedRoute>
+                        } />
+
+                        <Route path="/settings/language" element={
+                            <ProtectedRoute>
+                                <ProfileLanguageSettings />
+                            </ProtectedRoute>
+                        } />
+
+                        <Route path="/settings/appearance" element={
+                            <ProtectedRoute>
+                                <ProfileAppearanceSettings />
                             </ProtectedRoute>
                         } />
 
