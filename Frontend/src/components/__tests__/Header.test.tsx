@@ -135,7 +135,7 @@ describe('Header', () => {
     const settingsButton = screen.getByText('Settings')
     fireEvent.click(settingsButton)
     
-    expect(mockNavigate).toHaveBeenCalledWith('/settings/profile')
+    expect(mockNavigate).toHaveBeenCalledWith('/settings')
   })
 
   it('navigates to create club when create new club is clicked', () => {
