@@ -44,8 +44,19 @@ const EventDetails: FC = () => {
     const timeoutRef = useRef<number | undefined>(undefined);
 
     const fetchEventDetails = async (abortSignal?: AbortSignal) => {
-        if (!clubId || !eventId || !currentUser?.ID) return;
-        
+        // Validate required route params
+        if (!clubId || !eventId) {
+            setError("Invalid event or club ID");
+            setLoading(false);
+            return;
+        }
+
+        // Ensure we have a valid current user ID before fetching
+        if (!currentUser?.ID) {
+            setError("Unable to load user information. Please sign in and try again.");
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         setError(null);
         
