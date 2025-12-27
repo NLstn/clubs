@@ -17,14 +17,19 @@
 .header h1 {
   margin: 0;
   text-align: left;
-  flex-grow: 1;
+  flex: 1 1 auto;
   font-size: 2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .headerLogo {
   margin-right: 1rem;
   transition: transform 0.2s;
   border-radius: 8px;
+  flex-shrink: 0;
 }
 
 .userSection {
@@ -35,6 +40,7 @@
   display: flex;
   align-items: center;
   margin-right: 50px;
+  flex-shrink: 0;
 }
 
 /* Mobile Responsive Header */
