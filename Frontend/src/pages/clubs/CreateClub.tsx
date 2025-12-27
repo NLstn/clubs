@@ -55,7 +55,7 @@ const CreateClub = () => {
             <div>
                 <h2>{t('createClub.title')}</h2>
 
-                {message && <p className={`message ${message.includes(t('common.error')) || message.includes('Error') ? 'error' : 'success'}`}>
+                {message && <p className={`message ${createButtonState === 'error' ? 'error' : 'success'}`}>
                     {message}
                 </p>}
 
