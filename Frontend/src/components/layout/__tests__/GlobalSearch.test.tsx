@@ -91,9 +91,12 @@ describe('GlobalSearch', () => {
     expect(screen.getByText('No recent clubs')).toBeDefined();
   });
 
-  it('navigates to club when recent club is clicked', () => {
+  it('navigates to club when recent club is clicked', async () => {
     const mockClubs = [{ id: 'club-1', name: 'Test Club', visitedAt: 1000 }];
     mockGetRecentClubs.mockReturnValue(mockClubs);
+    
+    // Mock successful API call (club exists)
+    mockApi.get.mockResolvedValue({ data: {} });
 
     renderWithRouter(<GlobalSearch />);
     
@@ -103,7 +106,33 @@ describe('GlobalSearch', () => {
     const clubItem = screen.getByText('Test Club');
     fireEvent.click(clubItem);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/clubs/club-1');
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/clubs/club-1');
+    });
+  });
+
+  it('removes non-existent club from recent and still navigates', async () => {
+    const mockClubs = [{ id: 'club-1', name: 'Test Club', visitedAt: 1000 }];
+    mockGetRecentClubs.mockReturnValue(mockClubs);
+    
+    // Mock API error (club doesn't exist)
+    mockApi.get.mockRejectedValue(new Error('Not found'));
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    renderWithRouter(<GlobalSearch />);
+    
+    const searchInput = screen.getByPlaceholderText('Search');
+    fireEvent.focus(searchInput);
+
+    const clubItem = screen.getByText('Test Club');
+    fireEvent.click(clubItem);
+
+    await waitFor(() => {
+      expect(mockRemoveRecentClub).toHaveBeenCalledWith('club-1');
+      expect(mockNavigate).toHaveBeenCalledWith('/clubs/club-1');
+    });
+
+    consoleSpy.mockRestore();
   });
 
   it('navigates to clubs list when "View All Clubs" is clicked', () => {

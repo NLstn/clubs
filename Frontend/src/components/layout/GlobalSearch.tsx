@@ -138,11 +138,24 @@ const GlobalSearch: React.FC = () => {
     setQuery('');
   };
 
-  const handleRecentClubClick = (club: RecentClub) => {
-    navigate(`/clubs/${club.id}`);
+  const handleRecentClubClick = async (club: RecentClub) => {
     setIsOpen(false);
     setIsFocused(false);
     setQuery('');
+    
+    try {
+      // First try to check if the club exists (OData v2)
+      await api.get(`/api/v2/Clubs('${club.id}')`);
+      navigate(`/clubs/${club.id}`);
+    } catch {
+      // If club doesn't exist, remove it from recent clubs
+      console.warn(`Club ${club.id} not found, removing from recent clubs`);
+      removeRecentClub(club.id);
+      setRecentClubs(getRecentClubs()); // Refresh the list
+      
+      // Still navigate to the club page, which will show the ClubNotFound component
+      navigate(`/clubs/${club.id}`);
+    }
   };
 
   const handleRemoveRecentClub = (e: React.MouseEvent, clubId: string) => {
